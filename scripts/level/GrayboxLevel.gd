@@ -16,9 +16,9 @@ var _current_level_data: Dictionary = {}
 func _ready() -> void:
 	load_level(level_id)
 
-func load_level(next_level_id: String) -> void:
+func load_level(next_level_id: String, emit_errors: bool = true) -> void:
 	level_id = next_level_id
-	var level_data: Dictionary = LevelDataLoader.load_level(level_id)
+	var level_data: Dictionary = LevelDataLoader.load_level(level_id, emit_errors)
 	if level_data.is_empty():
 		return
 
