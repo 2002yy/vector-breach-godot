@@ -1,0 +1,53 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/StatusPanel.gd" id="1"]
+
+[node name="StatusPanel" type="CanvasLayer"]
+script = ExtResource("1")
+
+[node name="StatusPanel" type="PanelContainer" parent="."]
+anchors_preset = 10
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -460.0
+offset_top = -196.0
+offset_right = -18.0
+offset_bottom = -18.0
+
+[node name="Margin" type="MarginContainer" parent="StatusPanel"]
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
+
+[node name="VBox" type="VBoxContainer" parent="StatusPanel/Margin"]
+theme_override_constants/separation = 4
+
+[node name="Perf" type="Label" parent="StatusPanel/Margin/VBox"]
+text = "帧数：-"
+
+[node name="Quality" type="Label" parent="StatusPanel/Margin/VBox"]
+text = "画质：原型"
+autowrap_mode = 3
+
+[node name="Level" type="Label" parent="StatusPanel/Margin/VBox"]
+text = "地图：测试碰撞房"
+
+[node name="State" type="Label" parent="StatusPanel/Margin/VBox"]
+text = "状态：热身/菜单 | 窗口：窗口 | 鼠标：自由"
+autowrap_mode = 3
+
+[node name="Movement" type="Label" parent="StatusPanel/Margin/VBox"]
+text = "速度：0.00 | 落地：否"
+
+[node name="WeaponDebug" type="Label" parent="StatusPanel/Margin/VBox"]
+text = "扩散：0.00° | 后坐：0.000"
+
+[node name="Position" type="Label" parent="StatusPanel/Margin/VBox"]
+text = "坐标：X 0.00 | Y 0.00 | Z 0.00"
+
+[node name="Controls" type="Label" parent="StatusPanel/Margin/VBox"]
+text = "快捷键：F 全屏 | P 菜单/暂停 | Esc 释放鼠标/退出全屏"
+autowrap_mode = 3

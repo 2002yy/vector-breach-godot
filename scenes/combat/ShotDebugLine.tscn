@@ -1,0 +1,18 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/ShotDebugLine.gd" id="1"]
+
+[sub_resource type="ImmediateMesh" id="1"]
+
+[sub_resource type="SphereMesh" id="2"]
+radius = 0.5
+height = 1.0
+
+[node name="ShotDebugLine" type="Node3D"]
+script = ExtResource("1")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("1")
+
+[node name="MarkerMeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("2")

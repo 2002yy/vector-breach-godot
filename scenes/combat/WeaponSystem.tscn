@@ -1,0 +1,10 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/WeaponSystem.gd" id="1"]
+[ext_resource type="Resource" path="res://data/weapons/rifle.tres" id="2"]
+[ext_resource type="Resource" path="res://data/weapons/pistol.tres" id="3"]
+
+[node name="WeaponSystem" type="Node"]
+script = ExtResource("1")
+weapon_profiles = [ExtResource("2"), ExtResource("3")]
+starting_weapon_index = 0

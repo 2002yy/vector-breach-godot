@@ -1,0 +1,7 @@
+*.gd text eol=lf
+*.uid text eol=lf
+*.tscn text eol=lf
+*.tres text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.png binary

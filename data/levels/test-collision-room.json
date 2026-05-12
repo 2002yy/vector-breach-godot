@@ -1,0 +1,335 @@
+{
+  "id": "test-collision-room",
+  "name": "TestCollisionRoom",
+  "arenaSize": 56,
+  "start": [
+    -24,
+    24
+  ],
+  "exit": [
+    24,
+    -24
+  ],
+  "enemies": 0,
+  "colors": {
+    "tint": [
+      0.96,
+      0.68,
+      0.34
+    ],
+    "floor": [
+      0.55,
+      0.5,
+      0.44
+    ],
+    "wall": [
+      0.62,
+      0.58,
+      0.52
+    ],
+    "metal": [
+      0.28,
+      0.3,
+      0.31
+    ],
+    "sky": [
+      0.4,
+      0.4,
+      0.38
+    ],
+    "clear": [
+      0.092,
+      0.09,
+      0.084
+    ]
+  },
+  "lights": {
+    "points": [
+      [
+        -20,
+        8,
+        20
+      ],
+      [
+        -4,
+        8,
+        2
+      ],
+      [
+        18,
+        8,
+        -8
+      ],
+      [
+        24,
+        7.4,
+        -22
+      ]
+    ],
+    "colors": [
+      [
+        1,
+        0.62,
+        0.28
+      ],
+      [
+        1,
+        0.82,
+        0.56
+      ],
+      [
+        0.65,
+        0.86,
+        1
+      ],
+      [
+        1,
+        0.48,
+        0.24
+      ]
+    ]
+  },
+  "routes": {},
+  "emptyRoutes": [],
+  "spawnPoints": [],
+  "routeHints": [],
+  "landmarks": [],
+  "drops": [],
+  "walls": [
+    {
+      "x": -12,
+      "z": 18,
+      "sx": 8,
+      "sz": 2,
+      "h": 3.4,
+      "role": "wall",
+      "id": "test-wall"
+    }
+  ],
+  "covers": [
+    {
+      "x": -12,
+      "z": 6,
+      "sx": 5,
+      "sz": 1.6,
+      "h": 1.5,
+      "role": "cover",
+      "id": "test-cover"
+    }
+  ],
+  "floors": [
+    {
+      "x": 12,
+      "z": -18,
+      "sx": 10,
+      "sz": 8,
+      "h": 2.8,
+      "climbable": true,
+      "upper": true,
+      "role": "floor",
+      "id": "test-floor"
+    }
+  ],
+  "stairs": [
+    {
+      "x": 4,
+      "z": -6,
+      "sx": 4,
+      "sz": 3,
+      "h": 0.75,
+      "climbable": true,
+      "role": "stair",
+      "id": "test-stair-1"
+    },
+    {
+      "x": 8,
+      "z": -10,
+      "sx": 4,
+      "sz": 3,
+      "h": 1.55,
+      "climbable": true,
+      "role": "stair",
+      "id": "test-stair-2"
+    },
+    {
+      "x": 12,
+      "z": -14,
+      "sx": 4,
+      "sz": 3,
+      "h": 2.35,
+      "climbable": true,
+      "role": "stair",
+      "id": "test-stair-3"
+    },
+    {
+      "x": -12,
+      "z": -6,
+      "sx": 4,
+      "sz": 3,
+      "h": 0.7,
+      "climbable": true,
+      "role": "stair",
+      "id": "test-low-step"
+    }
+  ],
+  "ramps": [
+    {
+      "x": 16,
+      "z": 6,
+      "sx": 6,
+      "sz": 4,
+      "h": 1,
+      "climbable": true,
+      "ramp": true,
+      "role": "ramp",
+      "id": "test-ramp"
+    }
+  ],
+  "catwalks": [
+    {
+      "x": 18,
+      "z": 18,
+      "sx": 12,
+      "sz": 3.6,
+      "h": 3,
+      "climbable": true,
+      "upper": true,
+      "catwalk": true,
+      "passUnder": true,
+      "role": "catwalk",
+      "id": "test-passunder-catwalk"
+    }
+  ],
+  "obstacles": [
+    {
+      "x": -12,
+      "z": 18,
+      "sx": 8,
+      "sz": 2,
+      "h": 3.4,
+      "role": "wall",
+      "climbable": false,
+      "passUnder": false,
+      "upper": false,
+      "catwalk": false,
+      "sourceId": "test-wall",
+      "sourceType": "semantic:legacy"
+    },
+    {
+      "x": -12,
+      "z": 6,
+      "sx": 5,
+      "sz": 1.6,
+      "h": 1.5,
+      "role": "cover",
+      "climbable": false,
+      "passUnder": false,
+      "upper": false,
+      "catwalk": false,
+      "sourceId": "test-cover",
+      "sourceType": "semantic:legacy"
+    },
+    {
+      "x": 12,
+      "z": -18,
+      "sx": 10,
+      "sz": 8,
+      "h": 2.8,
+      "role": "floor",
+      "climbable": true,
+      "passUnder": false,
+      "upper": true,
+      "catwalk": false,
+      "sourceId": "test-floor",
+      "sourceType": "semantic:legacy"
+    },
+    {
+      "x": 4,
+      "z": -6,
+      "sx": 4,
+      "sz": 3,
+      "h": 0.75,
+      "role": "stair",
+      "climbable": true,
+      "passUnder": false,
+      "upper": false,
+      "catwalk": false,
+      "sourceId": "test-stair-1",
+      "sourceType": "semantic:legacy"
+    },
+    {
+      "x": 8,
+      "z": -10,
+      "sx": 4,
+      "sz": 3,
+      "h": 1.55,
+      "role": "stair",
+      "climbable": true,
+      "passUnder": false,
+      "upper": false,
+      "catwalk": false,
+      "sourceId": "test-stair-2",
+      "sourceType": "semantic:legacy"
+    },
+    {
+      "x": 12,
+      "z": -14,
+      "sx": 4,
+      "sz": 3,
+      "h": 2.35,
+      "role": "stair",
+      "climbable": true,
+      "passUnder": false,
+      "upper": false,
+      "catwalk": false,
+      "sourceId": "test-stair-3",
+      "sourceType": "semantic:legacy"
+    },
+    {
+      "x": -12,
+      "z": -6,
+      "sx": 4,
+      "sz": 3,
+      "h": 0.7,
+      "role": "stair",
+      "climbable": true,
+      "passUnder": false,
+      "upper": false,
+      "catwalk": false,
+      "sourceId": "test-low-step",
+      "sourceType": "semantic:legacy"
+    },
+    {
+      "x": 16,
+      "z": 6,
+      "sx": 6,
+      "sz": 4,
+      "h": 1,
+      "role": "ramp",
+      "climbable": true,
+      "passUnder": false,
+      "upper": false,
+      "catwalk": false,
+      "sourceId": "test-ramp",
+      "sourceType": "semantic:legacy"
+    },
+    {
+      "x": 18,
+      "z": 18,
+      "sx": 12,
+      "sz": 3.6,
+      "h": 3,
+      "role": "catwalk",
+      "climbable": true,
+      "passUnder": true,
+      "upper": true,
+      "catwalk": true,
+      "sourceId": "test-passunder-catwalk",
+      "sourceType": "semantic:legacy"
+    }
+  ],
+  "layout": {
+    "zh": "碰撞校准图：floor、wall、cover、step、ramp、stair、passUnder catwalk。",
+    "en": "Collision calibration room: floor, wall, cover, step, ramp, stair, and pass-under catwalk."
+  }
+}
