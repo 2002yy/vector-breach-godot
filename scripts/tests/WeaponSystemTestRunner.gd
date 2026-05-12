@@ -4,6 +4,8 @@ const WEAPON_SYSTEM_SCENE = preload("res://scenes/combat/WeaponSystem.tscn")
 const RIFLE_PROFILE = preload("res://data/weapons/rifle.tres")
 const PISTOL_PROFILE = preload("res://data/weapons/pistol.tres")
 const TEST_PLAYER_SCENE = preload("res://scenes/tests/support/TestPlayerStub.tscn")
+const TARGET_DUMMY_SCENE = preload("res://scenes/combat/TargetDummy.tscn")
+const COMBAT_HUD_SCENE = preload("res://scenes/ui/CombatHud.tscn")
 
 var _failures: PackedStringArray = []
 var _passes: int = 0
@@ -31,6 +33,9 @@ func _run_all_tests() -> void:
 	await _run_test("empty_mag_fire_triggers_reload", _test_empty_mag_fire_triggers_reload)
 	await _run_test("switch_to_slot_cancels_reload_and_respects_equip_lock", _test_switch_to_slot_cancels_reload_and_respects_equip_lock)
 	await _run_test("pattern_index_resets_after_recovery_delay", _test_pattern_index_resets_after_recovery_delay)
+	await _run_test("hits_dummy_registers_damage_and_updates_hud", _test_hits_dummy_registers_damage_and_updates_hud)
+	await _run_test("kill_shot_registers_kill_and_updates_hud", _test_kill_shot_registers_kill_and_updates_hud)
+	await _run_test("terrain_hit_does_not_increment_hit_count", _test_terrain_hit_does_not_increment_hit_count)
 
 func _run_test(test_name: String, callable: Callable) -> void:
 	var failed_before: int = _failures.size()
@@ -43,6 +48,9 @@ func _run_test(test_name: String, callable: Callable) -> void:
 
 func _create_fixture() -> Dictionary:
 	GameState.reset_runtime_state()
+	GameState.set_menu_state(false)
+	GameState.set_game_started(true)
+	RoundManager.set_live()
 
 	var player: CharacterBody3D = TEST_PLAYER_SCENE.instantiate()
 	player.name = "TestPlayer"
@@ -62,16 +70,15 @@ func _create_fixture() -> Dictionary:
 		"player": player,
 		"weapon_system": weapon_system,
 		"rifle_profile": weapon_profiles[0],
-		"pistol_profile": weapon_profiles[1]
+		"pistol_profile": weapon_profiles[1],
+		"cleanup_nodes": [weapon_system, player]
 	}
 
 func _destroy_fixture(fixture: Dictionary) -> void:
-	var weapon_system: Node = fixture.get("weapon_system", null)
-	if weapon_system != null:
-		weapon_system.queue_free()
-	var player: Node = fixture.get("player", null)
-	if player != null:
-		player.queue_free()
+	for node_variant in fixture.get("cleanup_nodes", []):
+		if node_variant is Node:
+			(node_variant as Node).queue_free()
+	await get_tree().physics_frame
 	await get_tree().process_frame
 
 func _clone_profile(profile_resource: Resource) -> Resource:
@@ -112,6 +119,47 @@ func _current_state(weapon_system: Node) -> Dictionary:
 
 func _weapon_states(weapon_system: Node) -> Array:
 	return weapon_system.get("_weapon_states")
+
+func _capture_shot_result(result: Dictionary, bucket: Array) -> void:
+	bucket.append(result)
+
+func _register_cleanup_node(fixture: Dictionary, node: Node) -> void:
+	var cleanup_nodes: Array = fixture.get("cleanup_nodes", [])
+	cleanup_nodes.append(node)
+	fixture["cleanup_nodes"] = cleanup_nodes
+
+func _spawn_target_dummy(fixture: Dictionary, max_health: int = 100) -> StaticBody3D:
+	var dummy: StaticBody3D = TARGET_DUMMY_SCENE.instantiate()
+	dummy.set("max_health", max_health)
+	dummy.position = Vector3(0.0, 1.6, -10.0)
+	add_child(dummy)
+	_register_cleanup_node(fixture, dummy)
+	return dummy
+
+func _spawn_combat_hud(fixture: Dictionary) -> CanvasLayer:
+	var hud: CanvasLayer = COMBAT_HUD_SCENE.instantiate()
+	add_child(hud)
+	_register_cleanup_node(fixture, hud)
+	return hud
+
+func _spawn_test_wall(fixture: Dictionary) -> StaticBody3D:
+	var wall := StaticBody3D.new()
+	wall.name = "TestWall"
+	wall.collision_layer = 1
+	wall.collision_mask = 1
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(2.0, 2.0, 0.5)
+	collision.shape = shape
+	wall.add_child(collision)
+	wall.position = Vector3(0.0, 1.6, -6.0)
+	add_child(wall)
+	_register_cleanup_node(fixture, wall)
+	return wall
+
+func _await_world_ready() -> void:
+	await get_tree().physics_frame
+	await get_tree().process_frame
 
 func _test_configure_default_loadout_syncs_snapshot(fixture: Dictionary) -> void:
 	var weapon_system: Node = fixture["weapon_system"]
@@ -221,3 +269,67 @@ func _test_pattern_index_resets_after_recovery_delay(fixture: Dictionary) -> voi
 	_tick_weapon_system(weapon_system, player, 0.2, false, false)
 	var recovered_state: Dictionary = _current_state(weapon_system)
 	_assert_equal(recovered_state.get("pattern_index"), 0, "pattern should reset after enough idle recovery time")
+
+func _test_hits_dummy_registers_damage_and_updates_hud(fixture: Dictionary) -> void:
+	var weapon_system: Node = fixture["weapon_system"]
+	var player: CharacterBody3D = fixture["player"]
+	var hud: CanvasLayer = _spawn_combat_hud(fixture)
+	_spawn_target_dummy(fixture, 100)
+	var shot_results: Array = []
+	weapon_system.connect("shot_resolved", Callable(self, "_capture_shot_result").bind(shot_results), CONNECT_ONE_SHOT)
+	await _await_world_ready()
+	_tick_weapon_system(weapon_system, player, 0.01, true, true)
+	_assert_equal(shot_results.size(), 1, "dummy hit test should emit exactly one shot result")
+	var result: Dictionary = shot_results[0] if not shot_results.is_empty() else {}
+	var damage_result: Dictionary = result.get("damage_result", {}) as Dictionary
+	_assert_true(bool(result.get("hit", false)), "firing at dummy should register a world hit")
+	_assert_true(bool(damage_result.get("hit", false)), "firing at dummy should include damage result")
+	_assert_equal(int(GameState.hit_count), 1, "dummy hit should increment GameState hit counter")
+	_assert_equal(int(GameState.kill_count), 0, "non-lethal dummy hit should not increment kill counter")
+	hud.call("update_display", GameState.get_hud_snapshot())
+	var ammo_label: Label = hud.get_node("Panel/Margin/VBox/Ammo")
+	var state_label: Label = hud.get_node("Panel/Margin/VBox/MenuState")
+	_assert_true(ammo_label.text.contains("29 / 90"), "HUD ammo should reflect one rifle round spent after hit")
+	_assert_true(state_label.text.contains("命中：1"), "HUD state should show one registered hit")
+
+func _test_kill_shot_registers_kill_and_updates_hud(fixture: Dictionary) -> void:
+	var weapon_system: Node = fixture["weapon_system"]
+	var player: CharacterBody3D = fixture["player"]
+	var rifle_profile: Resource = fixture["rifle_profile"]
+	rifle_profile.set("damage", 100)
+	var hud: CanvasLayer = _spawn_combat_hud(fixture)
+	_spawn_target_dummy(fixture, 40)
+	var shot_results: Array = []
+	weapon_system.connect("shot_resolved", Callable(self, "_capture_shot_result").bind(shot_results), CONNECT_ONE_SHOT)
+	await _await_world_ready()
+	_tick_weapon_system(weapon_system, player, 0.01, true, true)
+	_assert_equal(shot_results.size(), 1, "kill shot test should emit exactly one shot result")
+	var result: Dictionary = shot_results[0] if not shot_results.is_empty() else {}
+	var damage_result: Dictionary = result.get("damage_result", {}) as Dictionary
+	_assert_true(bool(damage_result.get("killed", false)), "kill shot should flag damage result as killed")
+	_assert_equal(int(GameState.hit_count), 1, "kill shot should still count as a hit")
+	_assert_equal(int(GameState.kill_count), 1, "kill shot should increment GameState kill counter")
+	hud.call("update_display", GameState.get_hud_snapshot())
+	var state_label: Label = hud.get_node("Panel/Margin/VBox/MenuState")
+	_assert_true(state_label.text.contains("命中：1"), "HUD state should keep hit counter after kill shot")
+	_assert_true(state_label.text.contains("击倒：1"), "HUD state should show one kill after lethal hit")
+
+func _test_terrain_hit_does_not_increment_hit_count(fixture: Dictionary) -> void:
+	var weapon_system: Node = fixture["weapon_system"]
+	var player: CharacterBody3D = fixture["player"]
+	var hud: CanvasLayer = _spawn_combat_hud(fixture)
+	_spawn_test_wall(fixture)
+	var shot_results: Array = []
+	weapon_system.connect("shot_resolved", Callable(self, "_capture_shot_result").bind(shot_results), CONNECT_ONE_SHOT)
+	await _await_world_ready()
+	_tick_weapon_system(weapon_system, player, 0.01, true, true)
+	_assert_equal(shot_results.size(), 1, "terrain hit test should emit exactly one shot result")
+	var result: Dictionary = shot_results[0] if not shot_results.is_empty() else {}
+	var damage_result: Dictionary = result.get("damage_result", {}) as Dictionary
+	_assert_true(bool(result.get("hit", false)), "terrain collider should still count as a world hit")
+	_assert_true(damage_result.is_empty(), "terrain hit should not include target damage payload")
+	_assert_equal(int(GameState.hit_count), 0, "terrain hit should not increment GameState hit counter")
+	_assert_equal(int(GameState.kill_count), 0, "terrain hit should not increment kill counter")
+	hud.call("update_display", GameState.get_hud_snapshot())
+	var state_label: Label = hud.get_node("Panel/Margin/VBox/MenuState")
+	_assert_true(state_label.text.contains("命中：0"), "HUD state should stay at zero hits after terrain shot")
