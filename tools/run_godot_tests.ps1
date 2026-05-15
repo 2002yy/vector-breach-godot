@@ -11,14 +11,18 @@ function Resolve-GodotExe {
         return (Resolve-Path $Preferred).Path
     }
 
+    if ($env:GODOT_EXE -and (Test-Path $env:GODOT_EXE)) {
+        return (Resolve-Path $env:GODOT_EXE).Path
+    }
+
     $command = Get-Command Godot.exe -ErrorAction SilentlyContinue
     if ($command) {
         return $command.Source
     }
 
     $fallbacks = @(
-        "E:\Godot\Godot_\Godot.exe",
-        "C:\Program Files\Godot\Godot.exe"
+        "C:\Program Files\Godot\Godot.exe",
+        "C:\Program Files (x86)\Godot\Godot.exe"
     )
 
     foreach ($candidate in $fallbacks) {
@@ -27,7 +31,7 @@ function Resolve-GodotExe {
         }
     }
 
-    throw "Unable to locate Godot.exe. Pass -GodotExe <path>."
+    throw "Unable to locate Godot.exe. Pass -GodotExe <path>, set GODOT_EXE, or add Godot.exe to PATH."
 }
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
