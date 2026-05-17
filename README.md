@@ -1,5 +1,11 @@
 # Vector Breach Godot
 
+<p>
+  <img src="https://img.shields.io/badge/Status-Prototype%20%2F%20Experimental-yellow" alt="Prototype">
+  <img src="https://img.shields.io/badge/Godot-4.6-blue" alt="Godot 4.6">
+  <img src="https://img.shields.io/badge/tests-5%20suites-green" alt="5 test suites">
+</p>
+
 中文优先说明。This repository contains the standalone Godot migration prototype for `Vector Breach`.
 
 ## 项目简介 / About
@@ -63,27 +69,25 @@ Open this folder directly in the Godot editor, or launch it from the command lin
 
 ## 测试 / Tests
 
-运行全部测试：
+Run all 5 headless test suites:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\tools\run_godot_tests.ps1
 ```
 
-如果 Godot 不在 `PATH`：
+If Godot is not in `PATH`:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\tools\run_godot_tests.ps1 -GodotExe "C:\Program Files\Godot\Godot.exe"
 ```
 
-当前会依次运行这些测试场景：
-
-- `LevelDataLoaderTestRunner`
-- `WeaponSystemTestRunner`
-- `GrayboxLevelTestRunner`
-- `HitFeedbackLayerTestRunner`
-- `MainStateFlowTestRunner`
-
-These suites cover loader validation, weapon-state boundaries, graybox level integration, hit-feedback UI behavior, and main menu/state flow.
+| Test Runner | Coverage |
+|---|---|
+| `LevelDataLoaderTestRunner` | JSON level data validation, loader edge cases |
+| `WeaponSystemTestRunner` | Weapon state boundaries, ammo, recoil |
+| `GrayboxLevelTestRunner` | Level assembly, collision integrity |
+| `HitFeedbackLayerTestRunner` | HUD layer behavior, hit marker |
+| `MainStateFlowTestRunner` | Main menu / gameplay state transitions |
 
 ## 当前控制 / Current Controls
 
@@ -97,20 +101,18 @@ These suites cover loader validation, weapon-state boundaries, graybox level int
 - `F`: 全屏切换 / Toggle fullscreen
 - `Esc`: 释放鼠标或退出全屏 / Release mouse or exit fullscreen
 
-## 当前定位 / Project Status
+## Engineering Focus
 
-这是一个偏原型验证阶段的 Godot 迁移仓库，重点是：
+```
+Prototype stage — the professional value is in the structure, not the content volume.
+```
 
-- 把旧实现里的关卡语义、移动手感和枪械节奏迁移到 Godot
-- 保持结构清晰，方便继续扩展
-- 用最小但持续可跑的测试守住核心状态流
+- **Semantic graybox level loading**: JSON-driven level data → Godot scene assembly
+- **Player collision & movement calibration**: First-pass physics tuning for FPS feel
+- **Weapon state boundaries**: Magazine, fire mode, recoil pattern, reload state machine
+- **Main menu / gameplay state flow**: State transitions, HUD layer management
+- **Headless regression tests**: 5 test suites running via Godot `--headless` — loader, weapon, level, hit-feedback, main state flow
 
-This is a prototype-focused migration repo. The priorities are:
+### What is not yet covered
 
-- Preserving level semantics, movement feel, and weapon rhythm in Godot
-- Keeping the project structure clean and easy to extend
-- Using small but repeatable tests to protect core gameplay state flows
-
-还没有覆盖所有“手感”验证。像楼梯与坡道 traversal、peek 节奏、压枪体感，仍然需要编辑器内和真人手测补充验证。
-
-Not every feel-related case is covered yet. Stairs, ramps, peek rhythm, and recoil feel still need editor-side and human playtesting.
+Stair and ramp traversal, peek rhythm, and sustained recoil feel still require editor-side tuning and human playtesting.
