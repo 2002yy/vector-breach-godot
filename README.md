@@ -130,3 +130,7 @@ Stair and ramp traversal, peek rhythm, and sustained recoil feel still require e
 - [ ] weapon feedback and audio
 - [ ] basic level demo video
 
+
+## License
+
+MIT License — see [LICENSE](LICENSE) file.
