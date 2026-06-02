@@ -7,6 +7,11 @@
 </p>
 
 中文优先说明。This repository contains the standalone Godot migration prototype for `Vector Breach`.
+> Portfolio note: this repository is a secondary Godot engineering prototype.
+> For the main polished Godot project, see [BallWar](https://github.com/2002yy/BallWar).
+
+> 作品集说明：本仓库是 Godot 工程原型辅助项目，重点展示 FPS 状态流、灰盒地图和测试意识。主展示项目请看 [BallWar](https://github.com/2002yy/BallWar)。
+
 
 ## 项目简介 / About
 
@@ -116,3 +121,12 @@ Prototype stage — the professional value is in the structure, not the content 
 ### What is not yet covered
 
 Stair and ramp traversal, peek rhythm, and sustained recoil feel still require editor-side tuning and human playtesting.
+
+## Roadmap
+
+- [ ] stair and ramp traversal tuning
+- [ ] sustained recoil feel playtest
+- [ ] peek rhythm and movement polish
+- [ ] weapon feedback and audio
+- [ ] basic level demo video
+
