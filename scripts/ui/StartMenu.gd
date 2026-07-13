@@ -35,7 +35,7 @@ func set_map_details(option: Dictionary, can_resume: bool) -> void:
 			String(option["test_focus"])
 		]
 	)
-	hint_label.text = "\u5f00\u59cb\uff1a\u70b9\u51fb\u5f00\u59cb | \u7ee7\u7eed\uff1aP | \u5168\u5c4f\uff1aF | \u91ca\u653e\u9f20\u6807/\u9000\u51fa\u5168\u5c4f\uff1aEsc"
+	hint_label.text = "Esc / P  \u83dc\u5355\u4e0e\u7ee7\u7eed   |   F  \u5168\u5c4f   |   F3  \u8c03\u8bd5\u9762\u677f"
 	var preview_path: String = String(option["preview"])
 	if ResourceLoader.exists(preview_path):
 		preview_rect.texture = load(preview_path)

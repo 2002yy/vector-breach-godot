@@ -52,3 +52,23 @@ func get_spread_direction_for_shot(shot_index: int) -> Vector2:
 	if value is Vector2:
 		return value as Vector2
 	return Vector2.ZERO
+
+func get_configuration_errors() -> PackedStringArray:
+	var errors := PackedStringArray()
+	if weapon_id.strip_edges().is_empty():
+		errors.append("weapon_id must not be empty")
+	if display_name.strip_edges().is_empty():
+		errors.append("display_name must not be empty")
+	if magazine_size <= 0:
+		errors.append("magazine_size must be greater than zero")
+	if reserve_ammo_on_spawn < 0:
+		errors.append("reserve_ammo_on_spawn must not be negative")
+	if fire_interval <= 0.0:
+		errors.append("fire_interval must be greater than zero")
+	if reload_duration < 0.0:
+		errors.append("reload_duration must not be negative")
+	if max_range <= 0.0:
+		errors.append("max_range must be greater than zero")
+	if spread_min_degrees < 0.0 or spread_max_degrees < spread_min_degrees:
+		errors.append("spread range is invalid")
+	return errors

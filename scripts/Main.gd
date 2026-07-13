@@ -61,6 +61,8 @@ func _ready() -> void:
 		level.connect("level_loaded", _on_level_loaded)
 	if weapon_system.has_signal("shot_resolved"):
 		weapon_system.connect("shot_resolved", _on_shot_resolved)
+	if not GameState.hud_state_changed.is_connected(_on_hud_state_changed):
+		GameState.hud_state_changed.connect(_on_hud_state_changed)
 	start_menu.call("set_map_options", LEVEL_OPTIONS, selected_level_index)
 	start_menu.connect("start_pressed", _on_start_pressed)
 	start_menu.connect("resume_pressed", _on_resume_pressed)
@@ -96,29 +98,29 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F3:
+		status_panel.visible = not status_panel.visible
+		_update_ui(true)
+		get_viewport().set_input_as_handled()
+		return
+
 	if event.is_action_pressed("reload_weapon"):
-		if game_started and weapon_system.has_method("request_reload"):
+		if _can_accept_combat_input() and weapon_system.has_method("request_reload"):
 			weapon_system.call("request_reload")
 		get_viewport().set_input_as_handled()
 		return
 
 	if event.is_action_pressed("weapon_slot_1"):
-		if game_started and weapon_system.has_method("switch_to_slot"):
+		if _can_accept_combat_input() and weapon_system.has_method("switch_to_slot"):
 			weapon_system.call("switch_to_slot", 0)
 		get_viewport().set_input_as_handled()
 		return
 
 	if event.is_action_pressed("weapon_slot_2"):
-		if game_started and weapon_system.has_method("switch_to_slot"):
+		if _can_accept_combat_input() and weapon_system.has_method("switch_to_slot"):
 			weapon_system.call("switch_to_slot", 1)
 		get_viewport().set_input_as_handled()
 		return
-
-	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_ESCAPE:
-		if DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN:
-			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
-		_open_menu(false)
-		get_viewport().set_input_as_handled()
 
 func _apply_selected_map() -> void:
 	var option: Dictionary = LEVEL_OPTIONS[selected_level_index]
@@ -190,10 +192,17 @@ func _on_shot_resolved(result: Dictionary) -> void:
 	if shot_debug_line.has_method("show_shot"):
 		shot_debug_line.call("show_shot", result)
 
+func _on_hud_state_changed(snapshot: Dictionary) -> void:
+	combat_hud.call("update_display", snapshot)
+
+func _can_accept_combat_input() -> bool:
+	return game_started and not menu_open
+
 func _update_ui(force: bool) -> void:
-	if force or combat_hud.visible:
+	if force:
 		combat_hud.call("update_display", GameState.get_hud_snapshot())
 	var snapshot: Dictionary = {}
 	if player.has_method("get_debug_snapshot"):
 		snapshot = player.call("get_debug_snapshot", menu_open)
-	status_panel.call("update_display", snapshot)
+	if force or status_panel.visible:
+		status_panel.call("update_display", snapshot)

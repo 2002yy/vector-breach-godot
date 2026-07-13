@@ -36,6 +36,7 @@ func _run_all_tests() -> void:
 	await _run_test("hits_dummy_registers_damage_and_updates_hud", _test_hits_dummy_registers_damage_and_updates_hud)
 	await _run_test("kill_shot_registers_kill_and_updates_hud", _test_kill_shot_registers_kill_and_updates_hud)
 	await _run_test("terrain_hit_does_not_increment_hit_count", _test_terrain_hit_does_not_increment_hit_count)
+	await _run_test("invalid_profile_does_not_shift_runtime_slots", _test_invalid_profile_does_not_shift_runtime_slots)
 
 func _run_test(test_name: String, callable: Callable) -> void:
 	var failed_before: int = _failures.size()
@@ -333,3 +334,16 @@ func _test_terrain_hit_does_not_increment_hit_count(fixture: Dictionary) -> void
 	hud.call("update_display", GameState.get_hud_snapshot())
 	var state_label: Label = hud.get_node("Panel/Margin/VBox/MenuState")
 	_assert_true(state_label.text.contains("命中：0"), "HUD state should stay at zero hits after terrain shot")
+
+func _test_invalid_profile_does_not_shift_runtime_slots(fixture: Dictionary) -> void:
+	var weapon_system: Node = fixture["weapon_system"]
+	var rifle_profile: Resource = fixture["rifle_profile"]
+	var pistol_profile: Resource = fixture["pistol_profile"]
+	weapon_system.set("weapon_profiles", [Resource.new(), rifle_profile, pistol_profile])
+	weapon_system.call("configure_default_loadout", false)
+
+	var rifle_snapshot: Dictionary = weapon_system.call("get_runtime_snapshot")
+	_assert_equal(rifle_snapshot.get("weapon_name"), rifle_profile.get("display_name"), "invalid resources should not displace the valid rifle from runtime slot 0")
+	weapon_system.call("switch_to_slot", 1)
+	var pistol_snapshot: Dictionary = weapon_system.call("get_runtime_snapshot")
+	_assert_equal(pistol_snapshot.get("weapon_name"), pistol_profile.get("display_name"), "runtime slot 1 should still map to the pistol after invalid resources are skipped")

@@ -12,14 +12,24 @@ signal weapon_switched(weapon_name: String, slot_index: int)
 @export var starting_weapon_index: int = 0
 
 var _weapon_states: Array[Dictionary] = []
+var _runtime_profiles: Array[Resource] = []
 var _current_weapon_index: int = 0
 
-func configure_default_loadout() -> void:
+func configure_default_loadout(emit_warnings: bool = true) -> void:
 	_weapon_states.clear()
+	_runtime_profiles.clear()
 	for profile_variant in weapon_profiles:
 		if not _is_weapon_profile(profile_variant):
+			if emit_warnings:
+				push_warning("WeaponSystem ignored a resource that is not a WeaponProfile.")
 			continue
 		var profile = profile_variant
+		var configuration_errors: PackedStringArray = profile.get_configuration_errors()
+		if not configuration_errors.is_empty():
+			if emit_warnings:
+				push_warning("WeaponSystem ignored invalid profile '%s': %s" % [profile.resource_path, "; ".join(configuration_errors)])
+			continue
+		_runtime_profiles.append(profile)
 		_weapon_states.append({
 			"ammo_in_mag": profile.magazine_size,
 			"ammo_reserve": profile.reserve_ammo_on_spawn,
@@ -187,7 +197,7 @@ func get_runtime_snapshot() -> Dictionary:
 
 func _tick_weapon_states(delta: float, player: CharacterBody3D) -> void:
 	for index in range(_weapon_states.size()):
-		var profile_variant: Variant = weapon_profiles[index]
+		var profile_variant: Variant = _runtime_profiles[index]
 		if not _is_weapon_profile(profile_variant):
 			continue
 		var profile = profile_variant
@@ -324,9 +334,9 @@ func _sync_game_state(status_text: String) -> void:
 	)
 
 func _current_profile():
-	if _current_weapon_index < 0 or _current_weapon_index >= weapon_profiles.size():
+	if _current_weapon_index < 0 or _current_weapon_index >= _runtime_profiles.size():
 		return null
-	var profile_variant: Variant = weapon_profiles[_current_weapon_index]
+	var profile_variant: Variant = _runtime_profiles[_current_weapon_index]
 	if _is_weapon_profile(profile_variant):
 		return profile_variant
 	return null

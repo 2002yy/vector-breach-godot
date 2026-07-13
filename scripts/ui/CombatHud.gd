@@ -24,10 +24,8 @@ func update_display(snapshot: Dictionary) -> void:
 		int(snapshot.get("ammo_in_mag", 30)),
 		int(snapshot.get("ammo_reserve", 90))
 	]
-	var menu_label: String = "\u5df2\u6253\u5f00" if bool(snapshot.get("menu_open", true)) else "\u5df2\u5173\u95ed"
-	state_label.text = "\u72b6\u6001\uff1a%s | \u83dc\u5355\uff1a%s | \u547d\u4e2d\uff1a%d | \u51fb\u5012\uff1a%d" % [
+	state_label.text = "\u9636\u6bb5\uff1a%s  |  \u547d\u4e2d\uff1a%d  |  \u51fb\u5012\uff1a%d" % [
 		String(snapshot.get("round_label", "\u70ed\u8eab/\u83dc\u5355")),
-		menu_label,
 		int(snapshot.get("hit_count", 0)),
 		int(snapshot.get("kill_count", 0))
 	]

@@ -22,6 +22,8 @@ func _run_all_tests() -> void:
 	await _run_test("map_selection_updates_game_state_and_menu_copy", _test_map_selection_updates_game_state_and_menu_copy)
 	await _run_test("start_game_transitions_to_live_state", _test_start_game_transitions_to_live_state)
 	await _run_test("pause_then_resume_restores_live_state", _test_pause_then_resume_restores_live_state)
+	await _run_test("player_input_maps_to_local_forward_and_right", _test_player_input_maps_to_local_forward_and_right)
+	await _run_test("pause_menu_blocks_combat_commands", _test_pause_menu_blocks_combat_commands)
 
 func _run_test(test_name: String, callable: Callable) -> void:
 	var failed_before: int = _failures.size()
@@ -73,6 +75,7 @@ func _test_initial_boot_shows_menu_and_default_map() -> void:
 	var resume_button: Button = start_menu.get_node("MenuPanel/Margin/VBox/Buttons/ResumeButton")
 	var description_label: RichTextLabel = start_menu.get_node("MenuPanel/Margin/VBox/Description")
 	var level: Node3D = main.get_node("Level")
+	var status_panel: CanvasLayer = main.get_node("StatusPanel")
 
 	_assert_true(bool(main.get("menu_open")), "main should start with menu open")
 	_assert_true(not bool(main.get("game_started")), "main should start before gameplay begins")
@@ -80,6 +83,7 @@ func _test_initial_boot_shows_menu_and_default_map() -> void:
 	_assert_equal(map_select.item_count, 4, "start menu should list all shipped maps")
 	_assert_equal(map_select.selected, 0, "default selected map should be the first entry")
 	_assert_true(not resume_button.visible, "resume button should stay hidden before the first run")
+	_assert_true(not status_panel.visible, "debug status panel should be hidden by default")
 	_assert_equal(String(GameState.current_level_id), "test-collision-room", "boot should sync default level id into GameState")
 	_assert_equal(String(GameState.current_level_name), "测试碰撞房", "boot should sync default level name into GameState")
 	_assert_true(description_label.text.contains("测试碰撞房"), "menu description should render the default map copy")
@@ -164,5 +168,38 @@ func _test_pause_then_resume_restores_live_state() -> void:
 	_assert_true(bool(player.get("controls_enabled")), "resume should restore controls")
 	_assert_true(bool(player.get("mouse_capture_enabled")), "resume should restore mouse capture")
 	_assert_equal(String(RoundManager.get_state_name()), "Live", "resume should restore live round state")
+
+	await _cleanup_main(main)
+
+func _test_player_input_maps_to_local_forward_and_right() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	var player: CharacterBody3D = main.get_node("Player")
+
+	var forward: Vector3 = player.call("get_world_move_direction", Vector2(0.0, -1.0))
+	var right: Vector3 = player.call("get_world_move_direction", Vector2(1.0, 0.0))
+	_assert_vec3_close(forward, Vector3.FORWARD, 0.001, "forward input should follow the player's local forward axis")
+	_assert_vec3_close(right, Vector3.RIGHT, 0.001, "right input should follow the player's local right axis")
+
+	await _cleanup_main(main)
+
+func _test_pause_menu_blocks_combat_commands() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	main.call("_on_start_pressed")
+	await _await_main_ready()
+
+	var weapon_system: Node = main.get_node("WeaponSystem")
+	var state: Dictionary = weapon_system.call("_current_state")
+	state["ammo_in_mag"] = 20
+	weapon_system.call("_store_current_state", state)
+	main.call("_open_menu", false)
+
+	var reload_event := InputEventAction.new()
+	reload_event.action = "reload_weapon"
+	reload_event.pressed = true
+	main.call("_unhandled_input", reload_event)
+	var snapshot: Dictionary = weapon_system.call("get_runtime_snapshot")
+	_assert_true(not bool(snapshot.get("is_reloading", false)), "reload input should be ignored while the pause menu is open")
 
 	await _cleanup_main(main)

@@ -56,12 +56,7 @@ func _physics_process(delta: float) -> void:
 		velocity.y = jump_velocity
 
 	var input_vector: Vector2 = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
-	var body_basis: Basis = global_transform.basis
-	var forward: Vector3 = -body_basis.z
-	var right: Vector3 = -body_basis.x
-	var move_dir: Vector3 = right * input_vector.x + forward * input_vector.y
-	move_dir.y = 0.0
-	move_dir = move_dir.normalized()
+	var move_dir: Vector3 = get_world_move_direction(input_vector)
 
 	var speed: float = sprint_speed if Input.is_action_pressed("sprint") else walk_speed
 	var target_velocity: Vector3 = move_dir * speed
@@ -96,6 +91,12 @@ func reset_to_spawn() -> void:
 
 func get_camera_node() -> Camera3D:
 	return camera
+
+func get_world_move_direction(input_vector: Vector2) -> Vector3:
+	var local_direction := Vector3(input_vector.x, 0.0, input_vector.y)
+	var world_direction: Vector3 = global_transform.basis * local_direction
+	world_direction.y = 0.0
+	return world_direction.normalized()
 
 func apply_recoil_kick(pitch_radians: float, yaw_radians: float) -> void:
 	camera_pivot.rotation.x = clamp(

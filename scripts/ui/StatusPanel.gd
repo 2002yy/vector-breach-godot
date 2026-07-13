@@ -29,7 +29,7 @@ func update_display(snapshot: Dictionary) -> void:
 	]
 	var pos: Vector3 = snapshot.get("position", Vector3.ZERO)
 	position_label.text = "\u5750\u6807\uff1aX %.2f | Y %.2f | Z %.2f" % [pos.x, pos.y, pos.z]
-	control_label.text = "\u5feb\u6377\u952e\uff1aF \u5168\u5c4f | P \u83dc\u5355/\u6682\u505c | Esc \u91ca\u653e\u9f20\u6807/\u9000\u51fa\u5168\u5c4f"
+	control_label.text = "\u5feb\u6377\u952e\uff1aEsc/P \u83dc\u5355 | F \u5168\u5c4f | F3 \u9690\u85cf\u8c03\u8bd5"
 
 func _build_quality_text() -> String:
 	var renderer: String = String(ProjectSettings.get_setting("rendering/renderer/rendering_method", "forward_plus"))

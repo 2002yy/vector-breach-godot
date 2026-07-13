@@ -8,20 +8,30 @@ function Resolve-GodotExe {
     param([string]$Preferred)
 
     if ($Preferred -and (Test-Path $Preferred)) {
-        return (Resolve-Path $Preferred).Path
+        $resolvedPreferred = (Resolve-Path $Preferred).Path
+        $consoleSibling = Join-Path (Split-Path -Parent $resolvedPreferred) "Godot_console.exe"
+        if ((Split-Path -Leaf $resolvedPreferred) -ieq "Godot.exe" -and (Test-Path $consoleSibling)) {
+            return (Resolve-Path $consoleSibling).Path
+        }
+        return $resolvedPreferred
     }
 
     if ($env:GODOT_EXE -and (Test-Path $env:GODOT_EXE)) {
         return (Resolve-Path $env:GODOT_EXE).Path
     }
 
-    $command = Get-Command Godot.exe -ErrorAction SilentlyContinue
+    $command = Get-Command Godot_console.exe -ErrorAction SilentlyContinue
+    if (-not $command) {
+        $command = Get-Command Godot.exe -ErrorAction SilentlyContinue
+    }
     if ($command) {
         return $command.Source
     }
 
     $fallbacks = @(
+        "C:\Program Files\Godot\Godot_console.exe",
         "C:\Program Files\Godot\Godot.exe",
+        "C:\Program Files (x86)\Godot\Godot_console.exe",
         "C:\Program Files (x86)\Godot\Godot.exe"
     )
 
@@ -58,3 +68,4 @@ foreach ($scene in $scenes) {
 
 Write-Host ""
 Write-Host "All Godot test suites passed."
+Write-Host "RUN_ALL_OK"

@@ -102,9 +102,9 @@ powershell -ExecutionPolicy Bypass -File .\tools\run_godot_tests.ps1 -GodotExe "
 - `鼠标左键`: 开火 / Fire
 - `R`: 换弹 / Reload
 - `1 / 2`: 切枪 / Switch weapons
-- `P`: 菜单或继续 / Pause or resume
+- `Esc / P`: 菜单或继续 / Pause or resume
 - `F`: 全屏切换 / Toggle fullscreen
-- `Esc`: 释放鼠标或退出全屏 / Release mouse or exit fullscreen
+- `F3`: 显示或隐藏调试面板 / Toggle the debug panel
 
 ## Engineering Focus
 
