@@ -22,6 +22,8 @@ func _run_all_tests() -> void:
 	await _run_test("map_selection_updates_game_state_and_menu_copy", _test_map_selection_updates_game_state_and_menu_copy)
 	await _run_test("start_game_transitions_to_live_state", _test_start_game_transitions_to_live_state)
 	await _run_test("pause_then_resume_restores_live_state", _test_pause_then_resume_restores_live_state)
+	await _run_test("weapon_view_model_tracks_switch_and_shot", _test_weapon_view_model_tracks_switch_and_shot)
+	await _run_test("player_scale_matches_cs_reference", _test_player_scale_matches_cs_reference)
 	await _run_test("player_input_maps_to_local_forward_and_right", _test_player_input_maps_to_local_forward_and_right)
 	await _run_test("pause_menu_blocks_combat_commands", _test_pause_menu_blocks_combat_commands)
 
@@ -44,6 +46,16 @@ func _assert_equal(actual: Variant, expected: Variant, message: String) -> void:
 
 func _assert_vec3_close(actual: Vector3, expected: Vector3, epsilon: float, message: String) -> void:
 	if actual.distance_to(expected) <= epsilon:
+		return
+	_failures.append("%s | expected=%s actual=%s epsilon=%s" % [message, str(expected), str(actual), str(epsilon)])
+
+func _assert_vec2_close(actual: Vector2, expected: Vector2, epsilon: float, message: String) -> void:
+	if actual.distance_to(expected) <= epsilon:
+		return
+	_failures.append("%s | expected=%s actual=%s epsilon=%s" % [message, str(expected), str(actual), str(epsilon)])
+
+func _assert_float_close(actual: float, expected: float, epsilon: float, message: String) -> void:
+	if is_equal_approx(actual, expected) or absf(actual - expected) <= epsilon:
 		return
 	_failures.append("%s | expected=%s actual=%s epsilon=%s" % [message, str(expected), str(actual), str(epsilon)])
 
@@ -133,7 +145,16 @@ func _test_start_game_transitions_to_live_state() -> void:
 	_assert_equal(String(GameState.current_level_id), "depot", "starting from map selection should load the selected level id")
 	_assert_equal(String(level.call("get_current_level_data").get("id", "")), "depot", "level scene should swap to depot on start")
 	_assert_true(GameState.player_spawn != Vector3.ZERO, "starting the game should populate a non-zero player spawn")
-	_assert_vec3_close(player.global_position, GameState.player_spawn, 0.06, "player reset should move the player near the level spawn after initial physics step")
+	_assert_vec2_close(
+		Vector2(player.global_position.x, player.global_position.z),
+		Vector2(GameState.player_spawn.x, GameState.player_spawn.z),
+		0.06,
+		"player reset should use the selected level spawn coordinates"
+	)
+	_assert_true(
+		player.global_position.y > 0.4 and player.global_position.y <= GameState.player_spawn.y + 0.06,
+		"player should remain between the floor and spawn height while initial gravity settles"
+	)
 	_assert_equal(String(RoundManager.get_state_name()), "Live", "starting should move round manager into live state")
 	_assert_equal(snapshot.get("weapon_slot"), 0, "starting should configure the default rifle slot")
 	_assert_equal(snapshot.get("ammo_in_mag"), 30, "starting should configure full rifle ammo")
@@ -168,6 +189,50 @@ func _test_pause_then_resume_restores_live_state() -> void:
 	_assert_true(bool(player.get("controls_enabled")), "resume should restore controls")
 	_assert_true(bool(player.get("mouse_capture_enabled")), "resume should restore mouse capture")
 	_assert_equal(String(RoundManager.get_state_name()), "Live", "resume should restore live round state")
+
+	await _cleanup_main(main)
+
+func _test_weapon_view_model_tracks_switch_and_shot() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	main.call("_on_start_pressed")
+	await _await_main_ready()
+
+	var weapon_system: Node = main.get_node("WeaponSystem")
+	var view_model: Node3D = main.get_node("Player/CameraPivot/Camera3D/WeaponViewModel")
+	var initial_snapshot: Dictionary = view_model.call("get_debug_snapshot")
+	_assert_true(view_model.visible, "starting gameplay should show the first-person weapon view model")
+	_assert_equal(initial_snapshot.get("weapon_slot"), 0, "the view model should start on the rifle slot")
+	_assert_true(bool(initial_snapshot.get("rifle_visible", false)), "the rifle model should be visible for slot 1")
+	_assert_true(not bool(initial_snapshot.get("pistol_visible", true)), "the pistol model should be hidden for slot 1")
+
+	weapon_system.call("switch_to_slot", 1)
+	var switched_snapshot: Dictionary = view_model.call("get_debug_snapshot")
+	_assert_equal(switched_snapshot.get("weapon_slot"), 1, "the WeaponSystem switch signal should select the pistol view model")
+	_assert_true(not bool(switched_snapshot.get("rifle_visible", true)), "the rifle model should hide after switching to slot 2")
+	_assert_true(bool(switched_snapshot.get("pistol_visible", false)), "the pistol model should show after switching to slot 2")
+
+	main.call("_on_shot_resolved", {"hit": false})
+	var shot_snapshot: Dictionary = view_model.call("get_debug_snapshot")
+	_assert_true(float(shot_snapshot.get("shot_kick", 0.0)) > 0.0, "a resolved shot should trigger view model recoil")
+
+	await _cleanup_main(main)
+
+func _test_player_scale_matches_cs_reference() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	var player: CharacterBody3D = main.get_node("Player")
+	var collision: CollisionShape3D = player.get_node("CollisionShape3D")
+	var capsule: CapsuleShape3D = collision.shape as CapsuleShape3D
+	var camera_pivot: Node3D = player.get_node("CameraPivot")
+
+	_assert_true(capsule != null, "player should use a capsule collision hull")
+	if capsule != null:
+		_assert_float_close(capsule.height, 1.8, 0.001, "standing player collision should be approximately 1.8 meters tall")
+		_assert_float_close(capsule.radius, 0.4, 0.001, "player collision width should stay close to the CS reference hull")
+	_assert_float_close(float(player.get("standing_height")), 0.9, 0.001, "player origin should remain centered over the standing hull")
+	_assert_float_close(camera_pivot.position.y + float(player.get("standing_height")), 1.62, 0.001, "standing eye height should be approximately 1.62 meters")
+	_assert_true(float(player.get("max_step_height")) <= 0.42, "automatic step-up should not climb waist-high graybox blocks")
 
 	await _cleanup_main(main)
 

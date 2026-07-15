@@ -13,7 +13,7 @@ const LEVEL_OPTIONS := [
 	{
 		"id": "depot",
 		"name": "\u4ed3\u5e93\u7ad9",
-		"preview": "res://assets/maps/depot-preview.png",
+		"preview": "res://assets/maps/foundry-depot-preview.png",
 		"description": "\u504f CS \u8282\u594f\u7684\u7070\u76d2\u5730\u56fe\uff0c\u5305\u542b\u4e2d\u8def\u3001\u4fa7\u8def\u548c\u4e0a\u5c42\u538b\u5236\u8def\u7ebf\u3002",
 		"route_profile": "\u4e2d\u8def\u3001\u4fa7\u7ffc\u8def\u3001\u4e0a\u5c42\u538b\u5236\u7ebf",
 		"recommended_use": "\u6e05\u70b9\u3001\u5f00\u5c40\u4ea4\u6218\u8282\u594f\u3001\u8f6c\u70b9\u65f6\u95f4\u6d4b\u8bd5",
@@ -46,6 +46,7 @@ const LEVEL_OPTIONS := [
 @onready var status_panel: CanvasLayer = $StatusPanel
 @onready var hit_feedback_layer: CanvasLayer = $HitFeedbackLayer
 @onready var weapon_system: Node = $WeaponSystem
+@onready var weapon_view_model: Node3D = $Player/CameraPivot/Camera3D/WeaponViewModel
 @onready var combat_sandbox: Node3D = $CombatSandbox
 @onready var shot_debug_line: Node3D = $ShotDebugLine
 
@@ -61,6 +62,8 @@ func _ready() -> void:
 		level.connect("level_loaded", _on_level_loaded)
 	if weapon_system.has_signal("shot_resolved"):
 		weapon_system.connect("shot_resolved", _on_shot_resolved)
+	if weapon_system.has_signal("weapon_switched"):
+		weapon_system.connect("weapon_switched", _on_weapon_switched)
 	if not GameState.hud_state_changed.is_connected(_on_hud_state_changed):
 		GameState.hud_state_changed.connect(_on_hud_state_changed)
 	start_menu.call("set_map_options", LEVEL_OPTIONS, selected_level_index)
@@ -142,6 +145,8 @@ func _on_start_pressed() -> void:
 	GameState.set_game_started(true)
 	if weapon_system.has_method("configure_default_loadout"):
 		weapon_system.call("configure_default_loadout")
+	if weapon_view_model.has_method("set_weapon_slot"):
+		weapon_view_model.call("set_weapon_slot", 0, false)
 	_resume_game()
 
 func _on_resume_pressed() -> void:
@@ -156,6 +161,7 @@ func _resume_game() -> void:
 		player.call("set_controls_enabled", true)
 	if player.has_method("set_mouse_capture_enabled"):
 		player.call("set_mouse_capture_enabled", true)
+	weapon_view_model.visible = game_started
 	_update_ui(true)
 
 func _open_menu(initial_open: bool) -> void:
@@ -172,6 +178,7 @@ func _open_menu(initial_open: bool) -> void:
 		player.call("set_controls_enabled", false)
 	if player.has_method("set_mouse_capture_enabled"):
 		player.call("set_mouse_capture_enabled", false)
+	weapon_view_model.visible = false
 	_update_ui(true)
 
 func _toggle_fullscreen() -> void:
@@ -187,10 +194,16 @@ func _on_level_loaded(level_data: Dictionary) -> void:
 		combat_sandbox.call("load_for_level", level_data)
 
 func _on_shot_resolved(result: Dictionary) -> void:
+	if weapon_view_model.has_method("play_shot"):
+		weapon_view_model.call("play_shot")
 	if hit_feedback_layer.has_method("show_shot_feedback"):
 		hit_feedback_layer.call("show_shot_feedback", result)
 	if shot_debug_line.has_method("show_shot"):
 		shot_debug_line.call("show_shot", result)
+
+func _on_weapon_switched(_weapon_name: String, slot_index: int) -> void:
+	if weapon_view_model.has_method("set_weapon_slot"):
+		weapon_view_model.call("set_weapon_slot", slot_index)
 
 func _on_hud_state_changed(snapshot: Dictionary) -> void:
 	combat_hud.call("update_display", snapshot)

@@ -7,6 +7,10 @@ script = ExtResource("1")
 
 [node name="GeometryRoot" type="Node3D" parent="."]
 
+[node name="VisualRoot" type="Node3D" parent="."]
+
+[node name="LightingRoot" type="Node3D" parent="."]
+
 [node name="SpawnMarker" type="Marker3D" parent="."]
 
 [node name="ExitMarker" type="Marker3D" parent="."]

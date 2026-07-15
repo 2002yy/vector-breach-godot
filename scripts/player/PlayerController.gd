@@ -1,15 +1,15 @@
 extends CharacterBody3D
 
-@export var walk_speed: float = 4.9
-@export var sprint_speed: float = 7.2
-@export var jump_velocity: float = 6.2
+@export var walk_speed: float = 5.2
+@export var sprint_speed: float = 6.2
+@export var jump_velocity: float = 3.5
 @export var mouse_sensitivity: float = 0.0022
 @export var acceleration: float = 30.0
 @export var deceleration: float = 24.0
-@export var standing_height: float = 0.95
-@export var max_step_height: float = 0.86
-@export var floor_probe_distance: float = 1.4
-@export var step_probe_distance: float = 0.75
+@export var standing_height: float = 0.9
+@export var max_step_height: float = 0.42
+@export var floor_probe_distance: float = 0.9
+@export var step_probe_distance: float = 0.55
 
 @onready var camera_pivot: Node3D = $CameraPivot
 @onready var camera: Camera3D = $CameraPivot/Camera3D
@@ -20,7 +20,7 @@ var mouse_capture_enabled: bool = false
 var _spawn_applied: bool = false
 
 func _ready() -> void:
-	floor_snap_length = 0.45
+	floor_snap_length = 0.3
 	max_slides = 8
 	set_mouse_capture_enabled(false)
 	_apply_spawn()

@@ -57,6 +57,13 @@ $scenes = @(
 Write-Host "Using Godot: $godot"
 Write-Host "Project: $projectRoot"
 
+Write-Host ""
+Write-Host "==> Importing project resources"
+& $godot --headless --path $projectRoot --import
+if ($LASTEXITCODE -ne 0) {
+    throw "Godot resource import failed."
+}
+
 foreach ($scene in $scenes) {
     Write-Host ""
     Write-Host "==> Running $scene"

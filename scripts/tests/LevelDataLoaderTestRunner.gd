@@ -69,14 +69,14 @@ func _test_all_shipped_levels_have_required_shape() -> void:
 		_assert_true(_is_vec2_array(level_data.get("start", [])), "level start should be a 2D coordinate pair for %s" % level_id)
 		_assert_true(_is_vec2_array(level_data.get("exit", [])), "level exit should be a 2D coordinate pair for %s" % level_id)
 		_assert_true(level_data.get("obstacles", []) is Array, "level obstacles should be an array for %s" % level_id)
-		for semantic_key in ["walls", "covers", "floors", "stairs", "ramps", "catwalks"]:
+		for semantic_key in ["walls", "covers", "floors", "stairs", "ramps", "catwalks", "overheads"]:
 			_assert_true(level_data.get(semantic_key, []) is Array, "level %s should expose array key %s" % [level_id, semantic_key])
 
 func _test_obstacles_reference_known_semantic_ids() -> void:
 	for level_id in _list_level_ids():
 		var level_data: Dictionary = LevelDataLoader.load_level(level_id)
 		var known_ids: Dictionary = {}
-		for semantic_key in ["walls", "covers", "floors", "stairs", "ramps", "catwalks"]:
+		for semantic_key in ["walls", "covers", "floors", "stairs", "ramps", "catwalks", "overheads"]:
 			for entry_variant in level_data.get(semantic_key, []):
 				if typeof(entry_variant) != TYPE_DICTIONARY:
 					continue

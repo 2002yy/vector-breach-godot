@@ -1,1028 +1,189 @@
 {
   "id": "depot",
-  "name": "Depot",
-  "arenaSize": 56,
-  "start": [
-    -48,
-    46
-  ],
-  "exit": [
-    50,
-    -48
-  ],
+  "name": "Foundry Depot",
+  "designRevision": "foundry-cs-scale-v1",
+  "visual_scene": "res://assets/models/foundry/foundry_depot.glb",
+  "arenaSize": 48,
+  "arenaSizeX": 48,
+  "arenaSizeZ": 42,
+  "boundaryHeight": 9,
+  "start": [-42, 34],
+  "exit": [40, -20],
   "enemies": 9,
+  "metrics": {
+    "playerHeight": 1.8,
+    "eyeHeight": 1.62,
+    "minimumDoorWidth": 1.4,
+    "standardCorridorWidth": 4.0,
+    "indoorClearance": 3.4,
+    "upperFloorHeight": 4.0,
+    "stairRiser": 0.2
+  },
   "colors": {
-    "tint": [
-      1,
-      0.72,
-      0.36
-    ],
-    "floor": [
-      0.55,
-      0.51,
-      0.44
-    ],
-    "wall": [
-      0.64,
-      0.6,
-      0.52
-    ],
-    "metal": [
-      0.28,
-      0.3,
-      0.3
-    ],
-    "sky": [
-      0.43,
-      0.44,
-      0.42
-    ],
-    "clear": [
-      0.095,
-      0.095,
-      0.085
-    ]
+    "tint": [1, 0.72, 0.36],
+    "floor": [0.55, 0.51, 0.44],
+    "wall": [0.64, 0.6, 0.52],
+    "metal": [0.28, 0.3, 0.3],
+    "sky": [0.43, 0.44, 0.42],
+    "clear": [0.095, 0.095, 0.085]
   },
   "lights": {
     "points": [
-      [
-        -34,
-        8,
-        28
-      ],
-      [
-        14,
-        9.2,
-        10
-      ],
-      [
-        34,
-        8.4,
-        -28
-      ],
-      [
-        -10,
-        8.8,
-        -18
-      ]
+      [-22, 6.2, 8],
+      [4, 8.2, 5],
+      [39, 6.2, 8],
+      [-13, 3.1, -28],
+      [32, 7.4, -26]
     ],
     "colors": [
-      [
-        1,
-        0.58,
-        0.24
-      ],
-      [
-        1,
-        0.82,
-        0.56
-      ],
-      [
-        0.65,
-        0.86,
-        1
-      ],
-      [
-        1,
-        0.5,
-        0.22
-      ]
+      [1, 0.66, 0.34],
+      [1, 0.48, 0.2],
+      [0.58, 0.82, 1],
+      [0.5, 0.78, 1],
+      [1, 0.72, 0.4]
     ]
   },
   "routes": {
-    "spawnA": [
-      -48,
-      46
-    ],
-    "spawnB": [
-      36,
-      -46
-    ],
-    "target": [
-      50,
-      -48
+    "spawnA": [-42, 34],
+    "spawnB": [40, -34],
+    "target": [40, -20],
+    "long": [
+      [-42, 34],
+      [-24, 33],
+      [4, 33],
+      [28, 33],
+      [43, 25],
+      [40, -20]
     ],
     "mid": [
-      [
-        -48,
-        46
-      ],
-      [
-        -30,
-        24
-      ],
-      [
-        -12,
-        4
-      ],
-      [
-        8,
-        -16
-      ],
-      [
-        28,
-        -34
-      ],
-      [
-        50,
-        -48
-      ]
+      [-42, 34],
+      [-26, 21],
+      [-8, 9],
+      [8, 5],
+      [24, -5],
+      [40, -20]
     ],
-    "left": [
-      [
-        -48,
-        46
-      ],
-      [
-        -48,
-        8
-      ],
-      [
-        -34,
-        -22
-      ],
-      [
-        -10,
-        -42
-      ],
-      [
-        50,
-        -48
-      ]
-    ],
-    "right": [
-      [
-        -48,
-        46
-      ],
-      [
-        -8,
-        42
-      ],
-      [
-        28,
-        28
-      ],
-      [
-        46,
-        6
-      ],
-      [
-        50,
-        -48
-      ]
-    ],
-    "flank": [
-      [
-        -48,
-        46
-      ],
-      [
-        -46,
-        -38
-      ],
-      [
-        -18,
-        -50
-      ],
-      [
-        20,
-        -50
-      ],
-      [
-        50,
-        -48
-      ]
+    "service": [
+      [-42, 34],
+      [-39, 8],
+      [-39, -28],
+      [-12, -28],
+      [12, -28],
+      [40, -20]
     ],
     "upper": [
-      [
-        -15,
-        8
-      ],
-      [
-        -10,
-        13
-      ],
-      [
-        0,
-        9
-      ],
-      [
-        5,
-        5
-      ],
-      [
-        12,
-        0
-      ],
-      [
-        17,
-        -4
-      ]
-    ],
-    "sniper": [
-      [
-        -36,
-        -34
-      ],
-      [
-        34,
-        24
-      ]
-    ],
-    "cover": [
-      [
-        -30,
-        20
-      ],
-      [
-        -6,
-        18
-      ],
-      [
-        18,
-        -20
-      ],
-      [
-        34,
-        -8
-      ]
+      [-25, 2.4],
+      [-16.5, 7.5],
+      [4, 5],
+      [21.5, 5],
+      [39.5, 5]
     ]
   },
-  "emptyRoutes": [
-    "cover",
-    "sniper",
-    "upper"
-  ],
+  "emptyRoutes": ["upper"],
   "spawnPoints": [
-    {
-      "route": "mid",
-      "x": 36,
-      "z": -46
-    },
-    {
-      "route": "flank",
-      "x": -46,
-      "z": -38
-    },
-    {
-      "route": "right",
-      "x": 46,
-      "z": 6
-    },
-    {
-      "route": "right",
-      "x": 28,
-      "z": 28
-    },
-    {
-      "route": "left",
-      "x": -34,
-      "z": -22
-    }
+    {"route": "long", "x": 43, "z": 25},
+    {"route": "mid", "x": 24, "z": -5},
+    {"route": "service", "x": 12, "z": -28},
+    {"route": "service", "x": -27, "z": -28},
+    {"route": "mid", "x": -8, "z": 9}
   ],
   "routeHints": [
-    {
-      "route": "mid",
-      "from": [
-        -30,
-        24
-      ],
-      "to": [
-        -12,
-        4
-      ]
-    },
-    {
-      "route": "left",
-      "from": [
-        -48,
-        8
-      ],
-      "to": [
-        -34,
-        -22
-      ]
-    },
-    {
-      "route": "right",
-      "from": [
-        28,
-        28
-      ],
-      "to": [
-        46,
-        6
-      ]
-    },
-    {
-      "route": "flank",
-      "from": [
-        -46,
-        -38
-      ],
-      "to": [
-        -18,
-        -50
-      ]
-    },
-    {
-      "route": "upper",
-      "from": [
-        -10,
-        13
-      ],
-      "to": [
-        5,
-        5
-      ]
-    }
+    {"route": "long", "from": [-24, 33], "to": [28, 33]},
+    {"route": "mid", "from": [-8, 9], "to": [24, -5]},
+    {"route": "service", "from": [-39, -28], "to": [12, -28]},
+    {"route": "upper", "from": [-16.5, 7.5], "to": [21.5, 5]}
   ],
   "landmarks": [
-    {
-      "name": "mid-control",
-      "route": "mid",
-      "x": -12,
-      "z": 4,
-      "h": 2.8
-    },
-    {
-      "name": "upper-gantry",
-      "route": "upper",
-      "x": 5,
-      "z": 5,
-      "h": 5.2
-    },
-    {
-      "name": "service-flank",
-      "route": "flank",
-      "x": -18,
-      "z": -50,
-      "h": 2.4
-    },
-    {
-      "name": "right-yard",
-      "route": "right",
-      "x": 28,
-      "z": 28,
-      "h": 2.4
-    },
-    {
-      "name": "exit-gantry",
-      "route": "mid",
-      "x": 50,
-      "z": -48,
-      "h": 4.2
-    }
+    {"name": "warehouse", "route": "mid", "x": -22, "z": 8, "h": 7.4},
+    {"name": "furnace", "route": "mid", "x": 4, "z": 5, "h": 8.4},
+    {"name": "control-room", "route": "long", "x": 40, "z": 8, "h": 7.4},
+    {"name": "service-tunnel", "route": "service", "x": -13, "z": -28, "h": 3.8},
+    {"name": "target-yard", "route": "mid", "x": 36, "z": -27, "h": 5.2}
   ],
   "drops": [
-    {
-      "from": [
-        17,
-        -4
-      ],
-      "to": [
-        28,
-        -18
-      ],
-      "oneWay": true
-    },
-    {
-      "from": [
-        -28,
-        -10
-      ],
-      "to": [
-        -34,
-        -22
-      ],
-      "oneWay": true
-    }
+    {"from": [11, 5], "to": [14, 0], "oneWay": true},
+    {"from": [-3, 7.5], "to": [-5, 13], "oneWay": true}
   ],
   "walls": [
-    {
-      "x": -47,
-      "z": 38,
-      "sx": 10,
-      "sz": 2,
-      "h": 3.2,
-      "role": "wall"
-    },
-    {
-      "x": -38,
-      "z": 47,
-      "sx": 2,
-      "sz": 10,
-      "h": 3.2,
-      "role": "wall"
-    },
-    {
-      "x": 42,
-      "z": -42,
-      "sx": 9,
-      "sz": 2,
-      "h": 3.2,
-      "role": "wall"
-    },
-    {
-      "x": 47,
-      "z": -34,
-      "sx": 2,
-      "sz": 9,
-      "h": 3.2,
-      "role": "wall"
-    },
-    {
-      "x": -22,
-      "z": 12,
-      "sx": 2,
-      "sz": 26,
-      "h": 4.6,
-      "role": "wall"
-    },
-    {
-      "x": 18,
-      "z": 2,
-      "sx": 2,
-      "sz": 26,
-      "h": 4.2,
-      "role": "wall"
-    },
-    {
-      "x": -2,
-      "z": -10,
-      "sx": 24,
-      "sz": 2,
-      "h": 3.8,
-      "role": "wall"
-    },
-    {
-      "x": -28,
-      "z": -30,
-      "sx": 16,
-      "sz": 2,
-      "h": 4,
-      "role": "wall"
-    },
-    {
-      "x": 34,
-      "z": 24,
-      "sx": 16,
-      "sz": 2,
-      "h": 4.2,
-      "role": "wall"
-    },
-    {
-      "x": 34,
-      "z": -34,
-      "sx": 2,
-      "sz": 16,
-      "h": 3.8,
-      "role": "wall"
-    },
-    {
-      "x": -44,
-      "z": 6,
-      "sx": 2,
-      "sz": 30,
-      "h": 4.6,
-      "role": "wall"
-    },
-    {
-      "x": 44,
-      "z": -14,
-      "sx": 2,
-      "sz": 28,
-      "h": 4.2,
-      "role": "wall"
-    },
-    {
-      "x": -8,
-      "z": 30,
-      "sx": 16,
-      "sz": 2,
-      "h": 3.6,
-      "role": "wall"
-    },
-    {
-      "x": 8,
-      "z": -42,
-      "sx": 22,
-      "sz": 2,
-      "h": 3.6,
-      "role": "wall"
-    },
-    {
-      "x": -34,
-      "z": -44,
-      "sx": 10,
-      "sz": 2,
-      "h": 4,
-      "role": "wall"
-    }
+    {"id": "spawn-south-west", "x": -44, "z": 26, "sx": 8, "sz": 1, "h": 6.4, "role": "wall"},
+    {"id": "spawn-south-east", "x": -33, "z": 26, "sx": 6, "sz": 1, "h": 6.4, "role": "wall"},
+    {"id": "spawn-east-north", "x": -29, "z": 39, "sx": 1, "sz": 6, "h": 6.4, "role": "wall"},
+    {"id": "spawn-east-south", "x": -29, "z": 28, "sx": 1, "sz": 4, "h": 6.4, "role": "wall"},
+    {"id": "long-north", "x": 0.5, "z": 37, "sx": 59, "sz": 1, "h": 6.4, "role": "wall"},
+    {"id": "long-south-west", "x": -18, "z": 29, "sx": 22, "sz": 1, "h": 6.4, "role": "wall"},
+    {"id": "long-south-mid", "x": 4, "z": 29, "sx": 12, "sz": 1, "h": 6.4, "role": "wall"},
+    {"id": "long-south-east", "x": 22, "z": 29, "sx": 16, "sz": 1, "h": 6.4, "role": "wall"},
+    {"id": "west-lane-outer", "x": -44, "z": 0, "sx": 1, "sz": 52, "h": 7.4, "role": "wall"},
+    {"id": "warehouse-west-north", "x": -34, "z": 18, "sx": 1, "sz": 12, "h": 7.4, "role": "wall"},
+    {"id": "warehouse-west-south", "x": -34, "z": 0, "sx": 1, "sz": 12, "h": 7.4, "role": "wall"},
+    {"id": "warehouse-east-north", "x": -10, "z": 17, "sx": 1, "sz": 14, "h": 7.4, "role": "wall"},
+    {"id": "warehouse-east-south", "x": -10, "z": -3, "sx": 1, "sz": 10, "h": 7.4, "role": "wall"},
+    {"id": "warehouse-north", "x": -22, "z": 24, "sx": 24, "sz": 1, "h": 7.4, "role": "wall"},
+    {"id": "warehouse-south-west", "x": -28, "z": -8, "sx": 12, "sz": 1, "h": 7.4, "role": "wall"},
+    {"id": "warehouse-south-east", "x": -14, "z": -8, "sx": 8, "sz": 1, "h": 7.4, "role": "wall"},
+    {"id": "mid-north-screen", "x": 3, "z": 20, "sx": 18, "sz": 1, "h": 5.2, "role": "wall"},
+    {"id": "mid-east-screen", "x": 17, "z": 10, "sx": 1, "sz": 14, "h": 5.2, "role": "wall"},
+    {"id": "mid-south-west", "x": -4, "z": -12, "sx": 12, "sz": 1, "h": 5.2, "role": "wall"},
+    {"id": "mid-south-east", "x": 11, "z": -12, "sx": 12, "sz": 1, "h": 5.2, "role": "wall"},
+    {"id": "control-west-north", "x": 32, "z": 14, "sx": 1, "sz": 8, "h": 7.4, "role": "wall"},
+    {"id": "control-west-south", "x": 32, "z": 0, "sx": 1, "sz": 4, "h": 7.4, "role": "wall"},
+    {"id": "control-north-west", "x": 35, "z": 18, "sx": 6, "sz": 1, "h": 7.4, "role": "wall"},
+    {"id": "control-north-east", "x": 44, "z": 18, "sx": 6, "sz": 1, "h": 7.4, "role": "wall"},
+    {"id": "control-south-west", "x": 34, "z": -2, "sx": 4, "sz": 1, "h": 7.4, "role": "wall"},
+    {"id": "control-south-east", "x": 43.5, "z": -2, "sx": 7, "sz": 1, "h": 7.4, "role": "wall"},
+    {"id": "service-drop-west", "x": -23, "z": -16, "sx": 1, "sz": 16, "h": 4.2, "role": "wall"},
+    {"id": "service-drop-east", "x": -17, "z": -16, "sx": 1, "sz": 16, "h": 4.2, "role": "wall"},
+    {"id": "service-north-west", "x": -13, "z": -24, "sx": 20, "sz": 1, "h": 4.2, "role": "wall"},
+    {"id": "service-north-east", "x": 11.5, "z": -24, "sx": 13, "sz": 1, "h": 4.2, "role": "wall"},
+    {"id": "service-south", "x": -13, "z": -32, "sx": 62, "sz": 1, "h": 4.2, "role": "wall"},
+    {"id": "service-mid-west", "x": -3, "z": -18, "sx": 1, "sz": 12, "h": 4.8, "role": "wall"},
+    {"id": "service-mid-east", "x": 5, "z": -18, "sx": 1, "sz": 12, "h": 4.8, "role": "wall"},
+    {"id": "site-north-west", "x": 24, "z": -14, "sx": 12, "sz": 1, "h": 5.6, "role": "wall"},
+    {"id": "site-north-east", "x": 40.5, "z": -14, "sx": 13, "sz": 1, "h": 5.6, "role": "wall"},
+    {"id": "site-west-south", "x": 18, "z": -35, "sx": 1, "sz": 10, "h": 5.6, "role": "wall"},
+    {"id": "site-west-north", "x": 18, "z": -20, "sx": 1, "sz": 12, "h": 5.6, "role": "wall"},
+    {"id": "site-backstop", "x": 37, "z": -24, "sx": 10, "sz": 1, "h": 4.8, "role": "wall"}
   ],
   "covers": [
-    {
-      "x": -30,
-      "z": 20,
-      "sx": 6.5,
-      "sz": 1.4,
-      "h": 1.5,
-      "role": "cover"
-    },
-    {
-      "x": -6,
-      "z": 18,
-      "sx": 7,
-      "sz": 1.3,
-      "h": 1.4,
-      "role": "cover"
-    },
-    {
-      "x": 18,
-      "z": -20,
-      "sx": 7.4,
-      "sz": 1.5,
-      "h": 1.5,
-      "role": "cover"
-    },
-    {
-      "x": 34,
-      "z": -8,
-      "sx": 1.4,
-      "sz": 7.2,
-      "h": 1.5,
-      "role": "cover"
-    },
-    {
-      "x": -36,
-      "z": -34,
-      "sx": 7.8,
-      "sz": 1.4,
-      "h": 2,
-      "role": "cover"
-    },
-    {
-      "x": 34,
-      "z": 24,
-      "sx": 1.2,
-      "sz": 8,
-      "h": 2,
-      "role": "cover"
-    }
+    {"id": "long-low-crates", "x": -8, "z": 33, "sx": 2.8, "sz": 1.4, "h": 1.15, "role": "cover"},
+    {"id": "long-tall-crate", "x": 18, "z": 33, "sx": 1.5, "sz": 3, "h": 1.6, "role": "cover"},
+    {"id": "warehouse-pallet", "x": -27, "z": 16, "sx": 2.6, "sz": 1.4, "h": 1.2, "role": "cover"},
+    {"id": "warehouse-machine", "x": -15, "z": -1, "sx": 1.5, "sz": 1.5, "h": 1.8, "role": "cover"},
+    {"id": "mid-low-cover", "x": -4, "z": 14, "sx": 2.8, "sz": 1.4, "h": 1.1, "role": "cover"},
+    {"id": "mid-tall-cover", "x": 14, "z": -5, "sx": 1.4, "sz": 3, "h": 1.55, "role": "cover"},
+    {"id": "east-yard-crates", "x": 39, "z": 26, "sx": 3, "sz": 1.5, "h": 1.35, "role": "cover"},
+    {"id": "control-console", "x": 40, "z": 10, "sx": 2.4, "sz": 1.4, "h": 1.25, "role": "cover"},
+    {"id": "service-west-crates", "x": -31, "z": -28, "sx": 1.4, "sz": 2.8, "h": 1.15, "role": "cover"},
+    {"id": "service-east-crates", "x": 10, "z": -28, "sx": 2.8, "sz": 1.4, "h": 1.15, "role": "cover"},
+    {"id": "site-low-crates", "x": 27, "z": -21, "sx": 2.8, "sz": 1.4, "h": 1.2, "role": "cover"},
+    {"id": "site-tall-crates", "x": 41, "z": -30, "sx": 1.5, "sz": 3, "h": 1.65, "role": "cover"}
   ],
   "floors": [
-    {
-      "x": 5,
-      "z": 5,
-      "sx": 13.5,
-      "sz": 10,
-      "h": 3.2,
-      "climbable": true,
-      "upper": true,
-      "role": "floor"
-    },
-    {
-      "x": -28,
-      "z": -10,
-      "sx": 8,
-      "sz": 6,
-      "h": 2.8,
-      "climbable": true,
-      "upper": true,
-      "role": "floor"
-    }
+    {"id": "site-dais", "x": 36, "z": -32, "sx": 10, "sz": 8, "h": 1, "climbable": true, "role": "floor"}
   ],
   "stairs": [
-    {
-      "x": -8,
-      "z": 12,
-      "sx": 5,
-      "sz": 3.4,
-      "h": 0.65,
-      "climbable": true,
-      "role": "stair"
-    },
-    {
-      "x": 8,
-      "z": -13,
-      "sx": 5,
-      "sz": 3.4,
-      "h": 0.82,
-      "climbable": true,
-      "role": "stair"
-    },
-    {
-      "x": 0,
-      "z": 9,
-      "sx": 4,
-      "sz": 3,
-      "h": 0.8,
-      "climbable": true,
-      "role": "stair"
-    },
-    {
-      "x": 2.8,
-      "z": 7,
-      "sx": 4,
-      "sz": 3,
-      "h": 1.6,
-      "climbable": true,
-      "role": "stair"
-    },
-    {
-      "x": 5.6,
-      "z": 5.5,
-      "sx": 4,
-      "sz": 3,
-      "h": 2.4,
-      "climbable": true,
-      "role": "stair"
-    },
-    {
-      "x": 10.4,
-      "z": 1.8,
-      "sx": 4,
-      "sz": 3,
-      "h": 1.6,
-      "climbable": true,
-      "role": "stair"
-    },
-    {
-      "x": 13.6,
-      "z": -1.2,
-      "sx": 4,
-      "sz": 3,
-      "h": 2.4,
-      "climbable": true,
-      "role": "stair"
-    },
-    {
-      "x": -24,
-      "z": -16,
-      "sx": 4,
-      "sz": 3,
-      "h": 1.4,
-      "climbable": true,
-      "role": "stair"
-    }
+    {"id": "warehouse-upper-access", "x": -25, "z": 2.4, "sx": 2.8, "sz": 7, "h": 4, "steps": 20, "direction": "z+", "climbable": true, "role": "stair", "targetId": "warehouse-upper", "targetEdge": "z-"},
+    {"id": "central-platform-access", "x": 4, "z": -4.6, "sx": 3.2, "sz": 7.2, "h": 4, "steps": 20, "direction": "z+", "climbable": true, "role": "stair", "targetId": "central-platform", "targetEdge": "z-"},
+    {"id": "control-upper-access", "x": 23, "z": -0.4, "sx": 3, "sz": 7.6, "h": 4, "steps": 20, "direction": "z+", "climbable": true, "role": "stair", "targetId": "control-bridge", "targetEdge": "z-"},
+    {"id": "site-dais-access", "x": 36, "z": -25.5, "sx": 3, "sz": 5, "h": 1, "steps": 5, "direction": "z-", "climbable": true, "role": "stair", "targetId": "site-dais", "targetEdge": "z+"}
   ],
-  "ramps": [
-    {
-      "x": -15,
-      "z": 8,
-      "sx": 5.5,
-      "sz": 4,
-      "h": 1.05,
-      "climbable": true,
-      "ramp": true,
-      "role": "ramp"
-    },
-    {
-      "x": 10.2,
-      "z": -8.4,
-      "sx": 5.5,
-      "sz": 4,
-      "h": 1.05,
-      "climbable": true,
-      "ramp": true,
-      "role": "ramp"
-    }
-  ],
+  "ramps": [],
   "catwalks": [
-    {
-      "x": -10,
-      "z": 13,
-      "sx": 11,
-      "sz": 4.2,
-      "h": 3,
-      "climbable": true,
-      "upper": true,
-      "catwalk": true,
-      "passUnder": true,
-      "role": "catwalk"
-    },
-    {
-      "x": 17,
-      "z": -4,
-      "sx": 11.5,
-      "sz": 4,
-      "h": 3,
-      "climbable": true,
-      "upper": true,
-      "catwalk": true,
-      "passUnder": true,
-      "role": "catwalk"
-    }
+    {"id": "warehouse-upper", "x": -16.5, "z": 7.5, "sx": 27, "sz": 3.2, "h": 4, "climbable": true, "upper": true, "catwalk": true, "passUnder": true, "role": "catwalk", "railOpening": "z-", "railOpeningCenter": -25, "railOpeningWidth": 3.4},
+    {"id": "central-platform", "x": 4, "z": 5, "sx": 14, "sz": 12, "h": 4, "climbable": true, "upper": true, "catwalk": true, "passUnder": true, "role": "catwalk", "railOpening": "z-", "railOpeningCenter": 4, "railOpeningWidth": 3.8},
+    {"id": "control-bridge", "x": 21.5, "z": 5, "sx": 21, "sz": 3.2, "h": 4, "climbable": true, "upper": true, "catwalk": true, "passUnder": true, "role": "catwalk", "railOpening": "z-", "railOpeningCenter": 23, "railOpeningWidth": 3.6},
+    {"id": "control-upper", "x": 39.5, "z": 5, "sx": 15, "sz": 3.2, "h": 4, "climbable": true, "upper": true, "catwalk": true, "passUnder": true, "role": "catwalk"}
   ],
-  "obstacles": [
-    {
-      "x": -47,
-      "z": 38,
-      "sx": 10,
-      "sz": 2,
-      "h": 3.2,
-      "role": "wall"
-    },
-    {
-      "x": -38,
-      "z": 47,
-      "sx": 2,
-      "sz": 10,
-      "h": 3.2,
-      "role": "wall"
-    },
-    {
-      "x": 42,
-      "z": -42,
-      "sx": 9,
-      "sz": 2,
-      "h": 3.2,
-      "role": "wall"
-    },
-    {
-      "x": 47,
-      "z": -34,
-      "sx": 2,
-      "sz": 9,
-      "h": 3.2,
-      "role": "wall"
-    },
-    {
-      "x": -22,
-      "z": 12,
-      "sx": 2,
-      "sz": 26,
-      "h": 4.6,
-      "role": "wall"
-    },
-    {
-      "x": 18,
-      "z": 2,
-      "sx": 2,
-      "sz": 26,
-      "h": 4.2,
-      "role": "wall"
-    },
-    {
-      "x": -2,
-      "z": -10,
-      "sx": 24,
-      "sz": 2,
-      "h": 3.8,
-      "role": "wall"
-    },
-    {
-      "x": -28,
-      "z": -30,
-      "sx": 16,
-      "sz": 2,
-      "h": 4,
-      "role": "wall"
-    },
-    {
-      "x": 34,
-      "z": 24,
-      "sx": 16,
-      "sz": 2,
-      "h": 4.2,
-      "role": "wall"
-    },
-    {
-      "x": 34,
-      "z": -34,
-      "sx": 2,
-      "sz": 16,
-      "h": 3.8,
-      "role": "wall"
-    },
-    {
-      "x": -44,
-      "z": 6,
-      "sx": 2,
-      "sz": 30,
-      "h": 4.6,
-      "role": "wall"
-    },
-    {
-      "x": 44,
-      "z": -14,
-      "sx": 2,
-      "sz": 28,
-      "h": 4.2,
-      "role": "wall"
-    },
-    {
-      "x": -8,
-      "z": 30,
-      "sx": 16,
-      "sz": 2,
-      "h": 3.6,
-      "role": "wall"
-    },
-    {
-      "x": 8,
-      "z": -42,
-      "sx": 22,
-      "sz": 2,
-      "h": 3.6,
-      "role": "wall"
-    },
-    {
-      "x": -34,
-      "z": -44,
-      "sx": 10,
-      "sz": 2,
-      "h": 4,
-      "role": "wall"
-    },
-    {
-      "x": -30,
-      "z": 20,
-      "sx": 6.5,
-      "sz": 1.4,
-      "h": 1.5,
-      "role": "cover"
-    },
-    {
-      "x": -6,
-      "z": 18,
-      "sx": 7,
-      "sz": 1.3,
-      "h": 1.4,
-      "role": "cover"
-    },
-    {
-      "x": 18,
-      "z": -20,
-      "sx": 7.4,
-      "sz": 1.5,
-      "h": 1.5,
-      "role": "cover"
-    },
-    {
-      "x": 34,
-      "z": -8,
-      "sx": 1.4,
-      "sz": 7.2,
-      "h": 1.5,
-      "role": "cover"
-    },
-    {
-      "x": -36,
-      "z": -34,
-      "sx": 7.8,
-      "sz": 1.4,
-      "h": 2,
-      "role": "cover"
-    },
-    {
-      "x": 34,
-      "z": 24,
-      "sx": 1.2,
-      "sz": 8,
-      "h": 2,
-      "role": "cover"
-    },
-    {
-      "x": 5,
-      "z": 5,
-      "sx": 13.5,
-      "sz": 10,
-      "h": 3.2,
-      "climbable": true,
-      "upper": true,
-      "role": "floor"
-    },
-    {
-      "x": -28,
-      "z": -10,
-      "sx": 8,
-      "sz": 6,
-      "h": 2.8,
-      "climbable": true,
-      "upper": true,
-      "role": "floor"
-    },
-    {
-      "x": -8,
-      "z": 12,
-      "sx": 5,
-      "sz": 3.4,
-      "h": 0.65,
-      "climbable": true,
-      "role": "stair"
-    },
-    {
-      "x": 8,
-      "z": -13,
-      "sx": 5,
-      "sz": 3.4,
-      "h": 0.82,
-      "climbable": true,
-      "role": "stair"
-    },
-    {
-      "x": 0,
-      "z": 9,
-      "sx": 4,
-      "sz": 3,
-      "h": 0.8,
-      "climbable": true,
-      "role": "stair"
-    },
-    {
-      "x": 2.8,
-      "z": 7,
-      "sx": 4,
-      "sz": 3,
-      "h": 1.6,
-      "climbable": true,
-      "role": "stair"
-    },
-    {
-      "x": 5.6,
-      "z": 5.5,
-      "sx": 4,
-      "sz": 3,
-      "h": 2.4,
-      "climbable": true,
-      "role": "stair"
-    },
-    {
-      "x": 10.4,
-      "z": 1.8,
-      "sx": 4,
-      "sz": 3,
-      "h": 1.6,
-      "climbable": true,
-      "role": "stair"
-    },
-    {
-      "x": 13.6,
-      "z": -1.2,
-      "sx": 4,
-      "sz": 3,
-      "h": 2.4,
-      "climbable": true,
-      "role": "stair"
-    },
-    {
-      "x": -24,
-      "z": -16,
-      "sx": 4,
-      "sz": 3,
-      "h": 1.4,
-      "climbable": true,
-      "role": "stair"
-    },
-    {
-      "x": -15,
-      "z": 8,
-      "sx": 5.5,
-      "sz": 4,
-      "h": 1.05,
-      "climbable": true,
-      "ramp": true,
-      "role": "ramp"
-    },
-    {
-      "x": 10.2,
-      "z": -8.4,
-      "sx": 5.5,
-      "sz": 4,
-      "h": 1.05,
-      "climbable": true,
-      "ramp": true,
-      "role": "ramp"
-    },
-    {
-      "x": -10,
-      "z": 13,
-      "sx": 11,
-      "sz": 4.2,
-      "h": 3,
-      "climbable": true,
-      "upper": true,
-      "catwalk": true,
-      "passUnder": true,
-      "role": "catwalk"
-    },
-    {
-      "x": 17,
-      "z": -4,
-      "sx": 11.5,
-      "sz": 4,
-      "h": 3,
-      "climbable": true,
-      "upper": true,
-      "catwalk": true,
-      "passUnder": true,
-      "role": "catwalk"
-    }
+  "overheads": [
+    {"id": "warehouse-roof", "x": -22, "z": 8, "sx": 24, "sz": 32, "y": 6.6, "thickness": 0.4, "role": "overhead"},
+    {"id": "control-roof", "x": 40, "z": 8, "sx": 16, "sz": 20, "y": 6.6, "thickness": 0.4, "role": "overhead"},
+    {"id": "service-roof-west", "x": -23.5, "z": -28, "sx": 41, "sz": 8, "y": 3.4, "thickness": 0.4, "role": "overhead"},
+    {"id": "service-roof-east", "x": 11.5, "z": -28, "sx": 13, "sz": 8, "y": 3.4, "thickness": 0.4, "role": "overhead"},
+    {"id": "service-drop-roof", "x": -20, "z": -16, "sx": 6, "sz": 16, "y": 3.4, "thickness": 0.4, "role": "overhead"}
   ],
+  "obstacles": [],
   "layout": {
-    "zh": "Depot 路线灰盒：A/B 出生点、中路、左路、右路、二层平台、楼梯、目标点、掩体区、狙击视线、绕后通道。",
-    "en": "Depot route graybox: A/B spawns, mid, left, right, upper platform, stairs, target, cover zones, sniper sightline, flank route."
+    "zh": "Foundry Depot：约 96×84 米的三路线战术地图，包含北侧长线、中央厂房与庭院、南侧低顶服务通道，以及 4 米高的连续二层环线和三处主要上下楼入口。",
+    "en": "Foundry Depot: a roughly 96 by 84 meter three-lane tactical map with a north long lane, central warehouse and yard, low south service route, and a connected four-meter upper loop with three main access stairs."
   }
 }

@@ -21,6 +21,7 @@ static func build_into(parent: Node3D, level_data: Dictionary, build_options: Di
 	_build_group(parent, level_data.get("stairs", []), "stair", options)
 	_build_group(parent, level_data.get("ramps", []), "ramp", options)
 	_build_group(parent, level_data.get("catwalks", []), "catwalk", options)
+	_build_group(parent, level_data.get("overheads", []), "overhead", options)
 
 static func _normalize_build_options(build_options: Dictionary) -> Dictionary:
 	return {
@@ -41,15 +42,23 @@ static func _build_group(parent: Node3D, entries: Array, role: String, options: 
 			continue
 		if role == "ramp":
 			parent.add_child(_make_ramp_node(entry, options))
+		elif role == "overhead":
+			parent.add_child(_make_overhead_node(entry))
+		elif role == "catwalk" and bool(entry.get("passUnder", false)):
+			parent.add_child(_make_catwalk_node(entry, options))
+		elif role == "stair" and int(entry.get("steps", 1)) > 1:
+			parent.add_child(_make_stair_node(entry))
 		else:
 			parent.add_child(_make_shape_node(entry, role, options))
 
 static func _make_arena_floor(level_data: Dictionary) -> Node3D:
 	var arena_size := float(level_data.get("arenaSize", 56.0))
+	var arena_size_x := float(level_data.get("arenaSizeX", arena_size))
+	var arena_size_z := float(level_data.get("arenaSizeZ", arena_size))
 	return _make_box_node(
 		"arena_floor",
 		Vector3(0.0, -BASE_FLOOR_HEIGHT * 0.5, 0.0),
-		Vector3(arena_size * 2.0, BASE_FLOOR_HEIGHT, arena_size * 2.0),
+		Vector3(arena_size_x * 2.0, BASE_FLOOR_HEIGHT, arena_size_z * 2.0),
 		_get_cached_color_material(Color(0.19, 0.19, 0.19), 0.9, "arena_floor")
 	)
 
@@ -57,31 +66,35 @@ static func _make_arena_bounds(level_data: Dictionary) -> Node3D:
 	var root := Node3D.new()
 	root.name = "ArenaBounds"
 	var arena_size := float(level_data.get("arenaSize", 56.0))
-	var span := arena_size * 2.0 + BOUNDARY_WALL_THICKNESS * 2.0
+	var arena_size_x := float(level_data.get("arenaSizeX", arena_size))
+	var arena_size_z := float(level_data.get("arenaSizeZ", arena_size))
+	var boundary_height := float(level_data.get("boundaryHeight", BOUNDARY_WALL_HEIGHT))
+	var span_x := arena_size_x * 2.0 + BOUNDARY_WALL_THICKNESS * 2.0
+	var span_z := arena_size_z * 2.0 + BOUNDARY_WALL_THICKNESS * 2.0
 	var bounds_material := _get_cached_color_material(Color(0.24, 0.24, 0.24), 0.9, "arena_bounds")
 
 	root.add_child(_make_box_node(
 		"bound_north",
-		Vector3(0.0, BOUNDARY_WALL_HEIGHT * 0.5, -arena_size - BOUNDARY_WALL_THICKNESS * 0.5),
-		Vector3(span, BOUNDARY_WALL_HEIGHT, BOUNDARY_WALL_THICKNESS),
+		Vector3(0.0, boundary_height * 0.5, -arena_size_z - BOUNDARY_WALL_THICKNESS * 0.5),
+		Vector3(span_x, boundary_height, BOUNDARY_WALL_THICKNESS),
 		bounds_material
 	))
 	root.add_child(_make_box_node(
 		"bound_south",
-		Vector3(0.0, BOUNDARY_WALL_HEIGHT * 0.5, arena_size + BOUNDARY_WALL_THICKNESS * 0.5),
-		Vector3(span, BOUNDARY_WALL_HEIGHT, BOUNDARY_WALL_THICKNESS),
+		Vector3(0.0, boundary_height * 0.5, arena_size_z + BOUNDARY_WALL_THICKNESS * 0.5),
+		Vector3(span_x, boundary_height, BOUNDARY_WALL_THICKNESS),
 		bounds_material
 	))
 	root.add_child(_make_box_node(
 		"bound_west",
-		Vector3(-arena_size - BOUNDARY_WALL_THICKNESS * 0.5, BOUNDARY_WALL_HEIGHT * 0.5, 0.0),
-		Vector3(BOUNDARY_WALL_THICKNESS, BOUNDARY_WALL_HEIGHT, span),
+		Vector3(-arena_size_x - BOUNDARY_WALL_THICKNESS * 0.5, boundary_height * 0.5, 0.0),
+		Vector3(BOUNDARY_WALL_THICKNESS, boundary_height, span_z),
 		bounds_material
 	))
 	root.add_child(_make_box_node(
 		"bound_east",
-		Vector3(arena_size + BOUNDARY_WALL_THICKNESS * 0.5, BOUNDARY_WALL_HEIGHT * 0.5, 0.0),
-		Vector3(BOUNDARY_WALL_THICKNESS, BOUNDARY_WALL_HEIGHT, span),
+		Vector3(arena_size_x + BOUNDARY_WALL_THICKNESS * 0.5, boundary_height * 0.5, 0.0),
+		Vector3(BOUNDARY_WALL_THICKNESS, boundary_height, span_z),
 		bounds_material
 	))
 	return root
@@ -109,6 +122,18 @@ static func _make_shape_node(entry: Dictionary, role: String, options: Dictionar
 		Vector3(x, center_y, z),
 		Vector3(sx, height, sz),
 		_get_role_material(role, pass_under, climbable)
+	)
+
+static func _make_overhead_node(entry: Dictionary) -> Node3D:
+	var x := float(entry.get("x", 0.0))
+	var z := float(entry.get("z", 0.0))
+	var underside_y := float(entry.get("y", 3.25))
+	var thickness := float(entry.get("thickness", 0.35))
+	return _make_box_node(
+		"overhead_%s" % str(entry.get("id", "")),
+		Vector3(x, underside_y + thickness * 0.5, z),
+		Vector3(float(entry.get("sx", 1.0)), thickness, float(entry.get("sz", 1.0))),
+		_get_role_material("overhead", false, false)
 	)
 
 static func _make_ramp_node(entry: Dictionary, options: Dictionary) -> Node3D:
@@ -152,6 +177,160 @@ static func _make_ramp_node(entry: Dictionary, options: Dictionary) -> Node3D:
 
 	return node
 
+static func _make_stair_node(entry: Dictionary) -> Node3D:
+	var node := Node3D.new()
+	node.name = "stair_%s" % str(entry.get("id", ""))
+
+	var x := float(entry.get("x", 0.0))
+	var z := float(entry.get("z", 0.0))
+	var sx := float(entry.get("sx", 1.0))
+	var sz := float(entry.get("sz", 1.0))
+	var top_y := float(entry.get("h", 1.0))
+	var direction := String(entry.get("direction", "x+"))
+	var along_x := direction.begins_with("x")
+	var positive := direction.ends_with("+")
+	var total_run := sx if along_x else sz
+	var cross_size := sz if along_x else sx
+	var step_count: int = maxi(2, int(entry.get("steps", 2)))
+	var step_run := total_run / float(step_count)
+	var stair_material := _get_role_material("stair", false, true)
+
+	for index in range(step_count):
+		var offset: float = -total_run * 0.5 + step_run * (float(index) + 0.5)
+		if not positive:
+			offset = -offset
+		var step_height: float = top_y * float(index + 1) / float(step_count)
+		var position := Vector3(x, step_height * 0.5, z)
+		var size := Vector3(sx, step_height, sz)
+		if along_x:
+			position.x += offset
+			size.x = step_run
+			size.z = cross_size
+		else:
+			position.z += offset
+			size.x = cross_size
+			size.z = step_run
+
+		node.add_child(_make_box_node(
+			"step_%02d" % index,
+			position,
+			size,
+			stair_material
+		))
+
+	return node
+
+static func _make_catwalk_node(entry: Dictionary, options: Dictionary) -> Node3D:
+	var node := Node3D.new()
+	node.name = "catwalk_%s" % str(entry.get("id", ""))
+
+	var x := float(entry.get("x", 0.0))
+	var z := float(entry.get("z", 0.0))
+	var sx := float(entry.get("sx", 1.0))
+	var sz := float(entry.get("sz", 1.0))
+	var deck_height := float(entry.get("h", 1.0))
+	var deck_material := _get_role_material("catwalk", true, true)
+	node.add_child(_make_box_node(
+		"deck",
+		Vector3(x, deck_height - PASS_UNDER_DECK_HEIGHT * 0.5, z),
+		Vector3(sx, PASS_UNDER_DECK_HEIGHT, sz),
+		deck_material
+	))
+
+	if bool(options.get("catwalk_support_visuals", true)):
+		var inset := 0.38
+		var support_start := x - sx * 0.5 + inset
+		var support_end := x + sx * 0.5 - inset
+		var support_spans: int = maxi(1, ceili((support_end - support_start) / 8.0))
+		var support_xs: Array[float] = []
+		for support_index in range(support_spans + 1):
+			support_xs.append(support_start + (support_end - support_start) * float(support_index) / float(support_spans))
+		var support_zs := [z - sz * 0.5 + inset, z + sz * 0.5 - inset]
+		for side_index in range(support_xs.size()):
+			for post_index in range(support_zs.size()):
+				node.add_child(_make_box_node(
+					"support_%d_%d" % [side_index, post_index],
+					Vector3(support_xs[side_index], deck_height * 0.5, support_zs[post_index]),
+					Vector3(0.22, deck_height, 0.22),
+					_get_role_material("wall", false, false)
+				))
+			node.add_child(_make_box_node(
+				"support_beam_%d" % side_index,
+				Vector3(support_xs[side_index], deck_height - 0.26, z),
+				Vector3(0.24, 0.24, maxf(0.3, sz - inset * 1.2)),
+				_get_role_material("cover", false, false)
+			))
+
+	if sx >= sz:
+		_build_catwalk_rails(node, entry, x, z, sx, sz, deck_height)
+
+	return node
+
+static func _build_catwalk_rails(
+	parent: Node3D,
+	entry: Dictionary,
+	x: float,
+	z: float,
+	sx: float,
+	sz: float,
+	deck_height: float
+) -> void:
+	var rail_material := _get_cached_color_material(Color(0.82, 0.62, 0.14), 0.55, "catwalk_rail")
+	var rail_height := 1.05
+	var post_width := 0.09
+	var rail_length := sx * 0.94
+	var start_x := x - rail_length * 0.5
+	var end_x := x + rail_length * 0.5
+
+	for side_index in range(2):
+		var side_sign := -1.0 if side_index == 0 else 1.0
+		var side_name := "z-" if side_sign < 0.0 else "z+"
+		var rail_z := z + side_sign * (sz * 0.5 - 0.1)
+		var spans: Array = [[start_x, end_x]]
+		if String(entry.get("railOpening", "")) == side_name:
+			var opening_width := float(entry.get("railOpeningWidth", 0.0))
+			var opening_center := float(entry.get("railOpeningCenter", x))
+			var opening_start: float = maxf(start_x, opening_center - opening_width * 0.5)
+			var opening_end: float = minf(end_x, opening_center + opening_width * 0.5)
+			spans = []
+			if opening_start - start_x > 0.25:
+				spans.append([start_x, opening_start])
+			if end_x - opening_end > 0.25:
+				spans.append([opening_end, end_x])
+
+		var post_positions: Array[float] = []
+		for span_variant in spans:
+			var span: Array = span_variant as Array
+			for endpoint_variant in span:
+				var endpoint := float(endpoint_variant)
+				var is_new := true
+				for existing in post_positions:
+					if absf(existing - endpoint) < 0.001:
+						is_new = false
+						break
+				if is_new:
+					post_positions.append(endpoint)
+
+		for post_index in range(post_positions.size()):
+			parent.add_child(_make_box_node(
+				"rail_%s_post_%d" % [side_name, post_index],
+				Vector3(post_positions[post_index], deck_height + rail_height * 0.5, rail_z),
+				Vector3(post_width, rail_height, post_width),
+				rail_material
+			))
+		for span_index in range(spans.size()):
+			var span: Array = spans[span_index] as Array
+			var span_start := float(span[0])
+			var span_end := float(span[1])
+			for bar_index in range(2):
+				var bar_y := deck_height + (0.55 if bar_index == 0 else rail_height)
+				parent.add_child(_make_box_node(
+					"rail_%s_bar_%d_%d" % [side_name, span_index, bar_index],
+					Vector3((span_start + span_end) * 0.5, bar_y, rail_z),
+					Vector3(span_end - span_start, 0.075, 0.075),
+					rail_material
+				))
+
 static func _make_box_node(node_name: String, position: Vector3, size: Vector3, material: StandardMaterial3D) -> Node3D:
 	var node := Node3D.new()
 	node.name = node_name
@@ -194,6 +373,8 @@ static func _get_role_material(role: String, pass_under: bool, climbable: bool) 
 			material.albedo_color = Color(0.38, 0.66, 0.44)
 		"catwalk":
 			material.albedo_color = Color(0.82, 0.74, 0.34) if pass_under else Color(0.58, 0.58, 0.62)
+		"overhead":
+			material.albedo_color = Color(0.32, 0.34, 0.35)
 		_:
 			material.albedo_color = Color(0.75, 0.75, 0.75)
 	material.roughness = 0.85 if climbable and role != "catwalk" else 0.9

@@ -40,6 +40,7 @@ This repo is still in a prototype-validation phase. The goal is not content volu
 - `assets/`: 静态资源与预览图 / Static assets and preview media
 - `data/levels/`: 地图 JSON 数据 / Level JSON data
 - `data/weapons/`: 武器资源定义 / Weapon resource definitions
+- `docs/FOUNDRY_DEPOT_DESIGN.md`: Foundry Depot 尺度、路线与验证记录 / Map scale, route, and validation record
 - `scenes/`: 场景 / Scenes
 - `scripts/`: 运行时代码与测试代码 / Runtime and test scripts
 - `tools/run_godot_tests.ps1`: 一键运行全部 Godot 测试 / One-command Godot test runner
@@ -90,7 +91,7 @@ powershell -ExecutionPolicy Bypass -File .\tools\run_godot_tests.ps1 -GodotExe "
 |---|---|
 | `LevelDataLoaderTestRunner` | JSON level data validation, loader edge cases |
 | `WeaponSystemTestRunner` | Weapon state boundaries, ammo, recoil |
-| `GrayboxLevelTestRunner` | Level assembly, collision integrity |
+| `GrayboxLevelTestRunner` | Level assembly, CS-scale metrics, stairs, route/spawn clearance |
 | `HitFeedbackLayerTestRunner` | HUD layer behavior, hit marker |
 | `MainStateFlowTestRunner` | Main menu / gameplay state transitions |
 
@@ -113,18 +114,22 @@ Prototype stage — the professional value is in the structure, not the content 
 ```
 
 - **Semantic graybox level loading**: JSON-driven level data → Godot scene assembly
+- **CS-scale multilevel combat space**: 96 × 84 m Foundry Depot with three ground routes and a 4 m upper loop
 - **Player collision & movement calibration**: First-pass physics tuning for FPS feel
 - **Weapon state boundaries**: Magazine, fire mode, recoil pattern, reload state machine
 - **Main menu / gameplay state flow**: State transitions, HUD layer management
 - **Headless regression tests**: 5 test suites running via Godot `--headless` — loader, weapon, level, hit-feedback, main state flow
 
-### What is not yet covered
+### Foundry Depot design record
 
-Stair and ramp traversal, peek rhythm, and sustained recoil feel still require editor-side tuning and human playtesting.
+The authoritative dimensions, route roles, vertical layout, asset-generation chain, and automated geometry invariants are recorded in [`docs/FOUNDRY_DEPOT_DESIGN.md`](docs/FOUNDRY_DEPOT_DESIGN.md).
+
+Automated checks now cover stair risers, target-edge alignment, upper headroom, and route/spawn clearance. Sustained combat feel, AI traversal behavior, and peek rhythm still require human playtesting.
 
 ## Roadmap
 
-- [ ] stair and ramp traversal tuning
+- [x] CS-scale multilevel Foundry Depot blockout and geometry boundaries
+- [ ] stair traversal feel playtest and movement polish
 - [ ] sustained recoil feel playtest
 - [ ] peek rhythm and movement polish
 - [ ] weapon feedback and audio
