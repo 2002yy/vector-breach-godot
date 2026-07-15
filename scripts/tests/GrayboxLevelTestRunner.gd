@@ -83,20 +83,25 @@ func _test_default_load_applies_markers_and_geometry() -> void:
 	await get_tree().physics_frame
 	await get_tree().process_frame
 
-	var level_data: Dictionary = LevelDataLoader.load_level("test-collision-room")
+	var level_data: Dictionary = LevelDataLoader.load_level("depot")
 	var geometry_root: Node3D = level.get_node("GeometryRoot")
 	var visual_root: Node3D = level.get_node("VisualRoot")
+	var lighting_root: Node3D = level.get_node("LightingRoot")
 	var spawn_marker: Marker3D = level.get_node("SpawnMarker")
 	var exit_marker: Marker3D = level.get_node("ExitMarker")
 
-	_assert_equal(String(level.call("get_current_level_data").get("id", "")), "test-collision-room", "graybox level should keep currently loaded level data")
+	_assert_equal(String(level.call("get_current_level_data").get("id", "")), "depot", "graybox level should load the portfolio map by default")
 	_assert_equal(geometry_root.get_child_count(), _expected_geometry_child_count(level_data), "geometry root should contain the expected built node count for default level")
-	_assert_true(geometry_root.visible, "levels without a visual scene should keep graybox meshes visible")
-	_assert_equal(visual_root.get_child_count(), 0, "levels without a visual scene should leave the visual root empty")
+	_assert_true(not geometry_root.visible, "the default visual scene should hide duplicate graybox meshes while preserving collision")
+	_assert_equal(visual_root.get_child_count(), 1, "the default depot should instantiate exactly one visual scene")
+	_assert_true(_count_nodes_of_type(visual_root, "MeshInstance3D") >= 300, "the imported depot GLB should contain the complete authored mesh set")
+	var depot_lights: Dictionary = level_data.get("lights", {}) as Dictionary
+	_assert_equal(lighting_root.get_child_count(), (depot_lights.get("points", []) as Array).size(), "the default depot should instantiate every authored gameplay light")
 	_assert_vec3_close(spawn_marker.position, _marker_start_position(level_data), 0.001, "spawn marker should match level start coordinate")
+	_assert_true(is_equal_approx(spawn_marker.rotation.y, deg_to_rad(float(level_data.get("startYawDegrees", 0.0)))), "spawn marker should apply the authored starting yaw")
 	_assert_vec3_close(exit_marker.position, _marker_exit_position(level_data), 0.001, "exit marker should match level exit coordinate")
 	_assert_vec3_close(GameState.player_spawn, spawn_marker.position, 0.001, "GameState spawn should mirror the spawn marker")
-	_assert_equal(String(GameState.current_level_id), "test-collision-room", "GameState should track the loaded default level id")
+	_assert_equal(String(GameState.current_level_id), "depot", "GameState should track the loaded default level id")
 	_assert_equal(String(GameState.current_level_name), String(level_data.get("name", "")), "GameState should track the loaded default level name")
 
 	await _cleanup_level(level)
@@ -109,7 +114,12 @@ func _test_load_level_rebuilds_geometry_and_updates_state() -> void:
 	var geometry_root: Node3D = level.get_node("GeometryRoot")
 	var visual_root: Node3D = level.get_node("VisualRoot")
 	var lighting_root: Node3D = level.get_node("LightingRoot")
+	level.call("load_level", "test-collision-room")
+	await get_tree().physics_frame
+	await get_tree().process_frame
 	var first_children: int = geometry_root.get_child_count()
+	_assert_true(geometry_root.visible, "switching to a level without a visual asset should restore graybox meshes")
+	_assert_equal(visual_root.get_child_count(), 0, "switching away from depot should clear its visual scene")
 	level.call("load_level", "depot")
 	await get_tree().physics_frame
 	await get_tree().process_frame
@@ -141,6 +151,7 @@ func _test_load_level_rebuilds_geometry_and_updates_state() -> void:
 		_assert_true(warehouse_catwalk.get_node_or_null("rail_z-_bar_1_0") != null, "catwalk should keep the second rail span beside its stair opening")
 	_assert_true(geometry_root.get_child_count() != first_children, "switching to depot should change built geometry count from the default room")
 	_assert_vec3_close(spawn_marker.position, _marker_start_position(depot_data), 0.001, "spawn marker should update when loading depot")
+	_assert_true(is_equal_approx(GameState.player_spawn_yaw_radians, spawn_marker.rotation.y), "GameState should mirror the authored depot spawn yaw")
 	_assert_vec3_close(exit_marker.position, _marker_exit_position(depot_data), 0.001, "exit marker should update when loading depot")
 	_assert_equal(String(GameState.current_level_id), "depot", "GameState should switch to depot after load_level")
 
@@ -262,6 +273,12 @@ func _box_edge(entry: Dictionary, edge: String) -> float:
 		"z-":
 			return float(entry.get("z", 0.0)) - float(entry.get("sz", 0.0)) * 0.5
 	return INF
+
+func _count_nodes_of_type(root: Node, type_name: StringName) -> int:
+	var count := 1 if root.is_class(type_name) else 0
+	for child in root.get_children():
+		count += _count_nodes_of_type(child, type_name)
+	return count
 
 func _test_missing_level_does_not_clobber_current_state() -> void:
 	var level: Node3D = _instantiate_level()

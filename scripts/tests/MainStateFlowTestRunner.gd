@@ -25,6 +25,7 @@ func _run_all_tests() -> void:
 	await _run_test("weapon_view_model_tracks_switch_and_shot", _test_weapon_view_model_tracks_switch_and_shot)
 	await _run_test("player_scale_matches_cs_reference", _test_player_scale_matches_cs_reference)
 	await _run_test("player_input_maps_to_local_forward_and_right", _test_player_input_maps_to_local_forward_and_right)
+	await _run_test("player_mouse_look_bypasses_gui_consumption", _test_player_mouse_look_bypasses_gui_consumption)
 	await _run_test("pause_menu_blocks_combat_commands", _test_pause_menu_blocks_combat_commands)
 
 func _run_test(test_name: String, callable: Callable) -> void:
@@ -93,13 +94,14 @@ func _test_initial_boot_shows_menu_and_default_map() -> void:
 	_assert_true(not bool(main.get("game_started")), "main should start before gameplay begins")
 	_assert_true(start_menu.visible, "start menu should be visible on boot")
 	_assert_equal(map_select.item_count, 4, "start menu should list all shipped maps")
-	_assert_equal(map_select.selected, 0, "default selected map should be the first entry")
+	_assert_equal(map_select.selected, 1, "default selected map should be Foundry Depot")
 	_assert_true(not resume_button.visible, "resume button should stay hidden before the first run")
 	_assert_true(not status_panel.visible, "debug status panel should be hidden by default")
-	_assert_equal(String(GameState.current_level_id), "test-collision-room", "boot should sync default level id into GameState")
-	_assert_equal(String(GameState.current_level_name), "测试碰撞房", "boot should sync default level name into GameState")
-	_assert_true(description_label.text.contains("测试碰撞房"), "menu description should render the default map copy")
-	_assert_equal(String(level.call("get_current_level_data").get("id", "")), "test-collision-room", "level scene should load the default test room on boot")
+	_assert_equal(String(GameState.current_level_id), "depot", "boot should sync the portfolio map id into GameState")
+	_assert_equal(String(GameState.current_level_name), "仓库站", "boot should sync the portfolio map name into GameState")
+	_assert_true(description_label.text.contains("仓库站"), "menu description should render the portfolio map copy")
+	_assert_equal(String(level.call("get_current_level_data").get("id", "")), "depot", "level scene should load Foundry Depot on boot")
+	_assert_equal(level.get_node("VisualRoot").get_child_count(), 1, "boot should instantiate the Foundry visual scene behind the menu")
 	_assert_equal(String(RoundManager.get_state_name()), "Warmup", "boot should leave round manager in warmup/menu state")
 
 	await _cleanup_main(main)
@@ -155,6 +157,7 @@ func _test_start_game_transitions_to_live_state() -> void:
 		player.global_position.y > 0.4 and player.global_position.y <= GameState.player_spawn.y + 0.06,
 		"player should remain between the floor and spawn height while initial gravity settles"
 	)
+	_assert_float_close(player.rotation.y, GameState.player_spawn_yaw_radians, 0.001, "starting should face the player along the authored route heading")
 	_assert_equal(String(RoundManager.get_state_name()), "Live", "starting should move round manager into live state")
 	_assert_equal(snapshot.get("weapon_slot"), 0, "starting should configure the default rifle slot")
 	_assert_equal(snapshot.get("ammo_in_mag"), 30, "starting should configure full rifle ammo")
@@ -243,8 +246,34 @@ func _test_player_input_maps_to_local_forward_and_right() -> void:
 
 	var forward: Vector3 = player.call("get_world_move_direction", Vector2(0.0, -1.0))
 	var right: Vector3 = player.call("get_world_move_direction", Vector2(1.0, 0.0))
-	_assert_vec3_close(forward, Vector3.FORWARD, 0.001, "forward input should follow the player's local forward axis")
-	_assert_vec3_close(right, Vector3.RIGHT, 0.001, "right input should follow the player's local right axis")
+	var expected_forward := (player.global_transform.basis * Vector3.FORWARD).normalized()
+	var expected_right := (player.global_transform.basis * Vector3.RIGHT).normalized()
+	_assert_vec3_close(forward, expected_forward, 0.001, "forward input should follow the player's local forward axis")
+	_assert_vec3_close(right, expected_right, 0.001, "right input should follow the player's local right axis")
+
+	await _cleanup_main(main)
+
+func _test_player_mouse_look_bypasses_gui_consumption() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	main.call("_on_start_pressed")
+	await _await_main_ready()
+	var player: CharacterBody3D = main.get_node("Player")
+	var camera_pivot: Node3D = player.get_node("CameraPivot")
+	var yaw_before := player.rotation.y
+	var pitch_before := camera_pivot.rotation.x
+	var look_event := InputEventMouseMotion.new()
+	look_event.relative = Vector2(40.0, -20.0)
+	player.call("_input", look_event)
+	_assert_true(not is_equal_approx(player.rotation.y, yaw_before), "captured mouse motion should rotate player yaw before GUI handling")
+	_assert_true(not is_equal_approx(camera_pivot.rotation.x, pitch_before), "captured mouse motion should rotate camera pitch before GUI handling")
+
+	main.call("_open_menu", false)
+	var paused_yaw := player.rotation.y
+	var paused_pitch := camera_pivot.rotation.x
+	player.call("_input", look_event)
+	_assert_float_close(player.rotation.y, paused_yaw, 0.0001, "pause menu should block mouse yaw")
+	_assert_float_close(camera_pivot.rotation.x, paused_pitch, 0.0001, "pause menu should block mouse pitch")
 
 	await _cleanup_main(main)
 

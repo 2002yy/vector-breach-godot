@@ -25,11 +25,11 @@ func _ready() -> void:
 	set_mouse_capture_enabled(false)
 	_apply_spawn()
 
-func _unhandled_input(event: InputEvent) -> void:
+func _input(event: InputEvent) -> void:
 	if not controls_enabled:
 		return
 
-	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+	if event is InputEventMouseMotion and mouse_capture_enabled:
 		rotate_y(-event.relative.x * mouse_sensitivity)
 		camera_pivot.rotate_x(-event.relative.y * mouse_sensitivity)
 		camera_pivot.rotation.x = clamp(camera_pivot.rotation.x, deg_to_rad(-85.0), deg_to_rad(85.0))
@@ -120,6 +120,8 @@ func _apply_spawn() -> void:
 	if GameState.player_spawn == Vector3.ZERO:
 		return
 	global_position = GameState.player_spawn
+	rotation.y = GameState.player_spawn_yaw_radians
+	camera_pivot.rotation.x = 0.0
 	velocity = Vector3.ZERO
 	_spawn_applied = true
 	reset_physics_interpolation()

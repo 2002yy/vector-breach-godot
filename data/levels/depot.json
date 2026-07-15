@@ -1,13 +1,14 @@
 {
   "id": "depot",
   "name": "Foundry Depot",
-  "designRevision": "foundry-cs-scale-v1",
+  "designRevision": "foundry-cs-scale-v2",
   "visual_scene": "res://assets/models/foundry/foundry_depot.glb",
   "arenaSize": 48,
   "arenaSizeX": 48,
   "arenaSizeZ": 42,
   "boundaryHeight": 9,
   "start": [-42, 34],
+  "startYawDegrees": -90,
   "exit": [40, -20],
   "enemies": 9,
   "metrics": {

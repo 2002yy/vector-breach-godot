@@ -50,7 +50,7 @@ const LEVEL_OPTIONS := [
 @onready var combat_sandbox: Node3D = $CombatSandbox
 @onready var shot_debug_line: Node3D = $ShotDebugLine
 
-var selected_level_index: int = 0
+var selected_level_index: int = 1
 var game_started: bool = false
 var menu_open: bool = true
 var _ui_update_timer: float = 0.0

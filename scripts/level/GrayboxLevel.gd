@@ -5,7 +5,7 @@ const ShapeBuilder = preload("res://scripts/level/ShapeBuilder.gd")
 
 signal level_loaded(level_data: Dictionary)
 
-@export var level_id: String = "test-collision-room"
+@export var level_id: String = "depot"
 
 @onready var geometry_root: Node3D = $GeometryRoot
 @onready var visual_root: Node3D = $VisualRoot
@@ -90,6 +90,8 @@ func _apply_markers(level_data: Dictionary) -> void:
 	var exit: Array = level_data.get("exit", [0.0, 0.0]) as Array
 	if start.size() >= 2:
 		spawn_marker.position = Vector3(float(start[0]), 1.05, float(start[1]))
+		spawn_marker.rotation.y = deg_to_rad(float(level_data.get("startYawDegrees", 0.0)))
 		GameState.player_spawn = spawn_marker.position
+		GameState.player_spawn_yaw_radians = spawn_marker.rotation.y
 	if exit.size() >= 2:
 		exit_marker.position = Vector3(float(exit[0]), 0.5, float(exit[1]))

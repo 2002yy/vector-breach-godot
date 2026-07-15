@@ -2,9 +2,10 @@ extends Node
 
 signal hud_state_changed(snapshot: Dictionary)
 
-var current_level_id: String = "test-collision-room"
-var current_level_name: String = "\u6d4b\u8bd5\u78b0\u649e\u623f"
+var current_level_id: String = "depot"
+var current_level_name: String = "\u4ed3\u5e93\u7ad9"
 var player_spawn: Vector3 = Vector3.ZERO
+var player_spawn_yaw_radians: float = 0.0
 
 var player_health: int = 100
 var current_weapon_name: String = "\u6b65\u67aa"

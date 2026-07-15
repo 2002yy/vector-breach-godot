@@ -1,7 +1,7 @@
 # Foundry Depot Design Record
 
 Last updated: 2026-07-15
-Data revision: `foundry-cs-scale-v1`
+Data revision: `foundry-cs-scale-v2`
 
 This document records the design constraints behind the `depot` level. It is a traceability note, not a second source of runtime state.
 
@@ -30,6 +30,7 @@ If this document and the JSON disagree, the JSON is authoritative. Update this r
 | Upper combat floor | 4.0 m | Creates meaningful high/low fights and pass-under space |
 | Full-height stair riser | 0.2 m | 20 steps over a 4 m rise |
 | Maximum player step | 0.42 m | Player controller traversal safety limit |
+| Spawn yaw | -90 degrees | Faces the first long-route anchor instead of the north boundary wall |
 
 The player and architectural reference values were calibrated against Valve's Source/Counter-Strike dimension guidance, then rounded into metric values suitable for this original layout.
 
