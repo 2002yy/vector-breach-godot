@@ -26,6 +26,9 @@ func load_level(next_level_id: String, emit_errors: bool = true) -> void:
 
 	_current_level_data = level_data
 	var build_options: Dictionary = GameState.get_shape_build_options()
+	var level_build_options: Variant = level_data.get("buildOptions", {})
+	if level_build_options is Dictionary:
+		build_options.merge(level_build_options as Dictionary, true)
 	ShapeBuilder.build_into(geometry_root, level_data, build_options)
 	_apply_visual_scene(level_data, emit_errors)
 	_apply_lights(level_data)
@@ -39,24 +42,100 @@ func get_current_level_data() -> Dictionary:
 func _apply_visual_scene(level_data: Dictionary, emit_errors: bool) -> void:
 	_clear_visual_scene()
 	geometry_root.visible = true
-	var visual_scene_path: String = String(level_data.get("visual_scene", ""))
-	if visual_scene_path.is_empty():
-		return
-	if not ResourceLoader.exists(visual_scene_path, "PackedScene"):
-		if emit_errors:
-			push_warning("Missing level visual scene: %s" % visual_scene_path)
-		return
+	var has_visible_scene := false
+	var visual_instance := _instantiate_visual_resource(
+		String(level_data.get("visual_scene", "")),
+		"LevelVisual",
+		emit_errors
+	)
+	if visual_instance != null:
+		has_visible_scene = true
+		_hide_filtered_visual_meshes(visual_instance, level_data.get("hidden_visual_name_contains", []) as Array)
+		if bool(level_data.get("runtime_collision_from_visual", false)):
+			_build_runtime_collision(visual_instance, emit_errors)
 
-	var visual_resource: Resource = load(visual_scene_path)
-	if not (visual_resource is PackedScene):
-		if emit_errors:
-			push_warning("Level visual resource is not a PackedScene: %s" % visual_scene_path)
-		return
+	var collision_instance := _instantiate_visual_resource(
+		String(level_data.get("runtime_collision_scene", "")),
+		"LevelCollisionSource",
+		emit_errors
+	)
+	if collision_instance != null:
+		_build_runtime_collision(collision_instance, emit_errors)
+		if collision_instance is Node3D:
+			(collision_instance as Node3D).visible = false
 
-	var visual_instance: Node = (visual_resource as PackedScene).instantiate()
-	visual_instance.name = "LevelVisual"
-	visual_root.add_child(visual_instance)
-	geometry_root.visible = false
+	var overlay_instance := _instantiate_visual_resource(
+		String(level_data.get("overlay_visual_scene", "")),
+		"LevelOverlay",
+		emit_errors
+	)
+	if overlay_instance != null:
+		has_visible_scene = true
+
+	geometry_root.visible = not has_visible_scene
+
+func _instantiate_visual_resource(scene_path: String, stable_name: String, emit_errors: bool) -> Node:
+	if scene_path.is_empty():
+		return null
+	if not ResourceLoader.exists(scene_path, "PackedScene"):
+		if emit_errors:
+			push_warning("Missing level scene layer: %s" % scene_path)
+		return null
+
+	var scene_resource: Resource = load(scene_path)
+	if not (scene_resource is PackedScene):
+		if emit_errors:
+			push_warning("Level scene layer is not a PackedScene: %s" % scene_path)
+		return null
+
+	var scene_instance: Node = (scene_resource as PackedScene).instantiate()
+	scene_instance.name = stable_name
+	visual_root.add_child(scene_instance)
+	return scene_instance
+
+func _hide_filtered_visual_meshes(root: Node, name_filters: Array) -> void:
+	if name_filters.is_empty():
+		return
+	_hide_filtered_visual_meshes_recursive(root, name_filters)
+
+func _hide_filtered_visual_meshes_recursive(node: Node, name_filters: Array) -> void:
+	if node is Node3D:
+		var normalized_name := String(node.name).to_lower()
+		for filter_variant in name_filters:
+			var name_filter := String(filter_variant).to_lower()
+			if not name_filter.is_empty() and normalized_name.contains(name_filter):
+				(node as Node3D).visible = false
+				return
+	for child in node.get_children():
+		_hide_filtered_visual_meshes_recursive(child, name_filters)
+
+func _build_runtime_collision(root: Node, emit_errors: bool) -> void:
+	var collision_mesh_count: int = _build_runtime_collision_recursive(root)
+	if collision_mesh_count == 0 and emit_errors:
+		push_warning("Runtime collision requested, but no COLLISION_* meshes were found")
+
+func _build_runtime_collision_recursive(node: Node) -> int:
+	var collision_mesh_count: int = 0
+	if node is MeshInstance3D:
+		var mesh_instance := node as MeshInstance3D
+		var mesh_name: String = String(mesh_instance.name)
+		if mesh_name.begins_with("COLLISION_") and mesh_instance.mesh != null:
+			var collision_shape: Shape3D = mesh_instance.mesh.create_trimesh_shape()
+			if collision_shape != null:
+				var static_body := StaticBody3D.new()
+				static_body.name = "RuntimeCollision"
+				var shape_node := CollisionShape3D.new()
+				shape_node.name = "CollisionShape3D"
+				shape_node.shape = collision_shape
+				mesh_instance.add_child(static_body)
+				static_body.add_child(shape_node)
+				collision_mesh_count += 1
+			if mesh_name.begins_with("COLLISION_ONLY_"):
+				mesh_instance.visible = false
+
+	for child in node.get_children():
+		collision_mesh_count += _build_runtime_collision_recursive(child)
+	return collision_mesh_count
 
 func _clear_visual_scene() -> void:
 	for child in visual_root.get_children():
@@ -89,9 +168,9 @@ func _apply_markers(level_data: Dictionary) -> void:
 	var start: Array = level_data.get("start", [0.0, 0.0]) as Array
 	var exit: Array = level_data.get("exit", [0.0, 0.0]) as Array
 	if start.size() >= 2:
-		spawn_marker.position = Vector3(float(start[0]), 1.05, float(start[1]))
+		spawn_marker.position = Vector3(float(start[0]), float(level_data.get("startHeight", 1.05)), float(start[1]))
 		spawn_marker.rotation.y = deg_to_rad(float(level_data.get("startYawDegrees", 0.0)))
 		GameState.player_spawn = spawn_marker.position
 		GameState.player_spawn_yaw_radians = spawn_marker.rotation.y
 	if exit.size() >= 2:
-		exit_marker.position = Vector3(float(exit[0]), 0.5, float(exit[1]))
+		exit_marker.position = Vector3(float(exit[0]), float(level_data.get("exitHeight", 0.5)), float(exit[1]))

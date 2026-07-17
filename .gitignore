@@ -3,3 +3,18 @@
 __pycache__/
 *.py[cod]
 *.blend[0-9]
+assets/local_reference/
+data/levels/*-local.json
+
+# Local-only Dustline reference reconstruction. Its collision source is Valve map data.
+assets/maps/dustline-depths-preview.png*
+assets/models/dustline/
+assets/textures/dustline/
+data/levels/dustline-depths.json
+docs/map-data/dustline-depths-audit.json
+scenes/tests/DustlineVisualProbe.tscn
+scripts/tests/DustlineVisualProbe.gd*
+tools/blender/audit_dustline_clearance.py
+tools/blender/build_dustline_assets.py
+tools/blender/export_dustline_skywalk.py
+tools/blender/source/dustline_depths_source.blend

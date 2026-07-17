@@ -1,0 +1,31 @@
+{
+  "id": "depot",
+  "displayName": "Foundry Depot v2",
+  "designRevision": "foundry-cs-scale-v2",
+  "status": "frozen",
+  "frozenAt": "2026-07-16",
+  "successor": "foundry-reforged",
+  "policy": "Do not overwrite these files. Future layout work belongs to Foundry Reforged.",
+  "files": [
+    {
+      "path": "res://data/levels/depot.json",
+      "bytes": 10445,
+      "sha256": "EFA093E95EEFC292DEE19B514BCA4EA2A420C752669B50F3AB79F242C5F72466"
+    },
+    {
+      "path": "res://assets/models/foundry/foundry_depot.glb",
+      "bytes": 4792916,
+      "sha256": "2971A062AF4C8D4B4FEA85CFED8BAF640C924E876771AEDBEF3DF005690D77FF"
+    },
+    {
+      "path": "res://assets/maps/foundry-depot-preview.png",
+      "bytes": 970328,
+      "sha256": "1D6EED0AFEDFA6207947AD0BF7BDCFA2BAA521599F45A39CD97DADC4DC22537C"
+    },
+    {
+      "path": "res://tools/blender/source/foundry_asset_source.blend",
+      "bytes": 8673327,
+      "sha256": "13E91A8A29774D197151AA5E4CB9499F59B2677E5B964F89F7F86C78C8A2C7B6"
+    }
+  ]
+}

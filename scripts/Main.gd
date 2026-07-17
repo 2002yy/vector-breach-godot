@@ -1,6 +1,6 @@
 extends Node3D
 
-const LEVEL_OPTIONS := [
+const SHIPPED_LEVEL_OPTIONS := [
 	{
 		"id": "test-collision-room",
 		"name": "\u6d4b\u8bd5\u78b0\u649e\u623f",
@@ -12,12 +12,12 @@ const LEVEL_OPTIONS := [
 	},
 	{
 		"id": "depot",
-		"name": "\u4ed3\u5e93\u7ad9",
+		"name": "Foundry Depot v2 \uff08\u51bb\u7ed3\uff09",
 		"preview": "res://assets/maps/foundry-depot-preview.png",
-		"description": "\u504f CS \u8282\u594f\u7684\u7070\u76d2\u5730\u56fe\uff0c\u5305\u542b\u4e2d\u8def\u3001\u4fa7\u8def\u548c\u4e0a\u5c42\u538b\u5236\u8def\u7ebf\u3002",
+		"description": "\u5df2\u51bb\u7ed3\u7684 Foundry Depot v2\uff1a\u4fdd\u7559\u73b0\u6709\u4e2d\u8def\u3001\u4fa7\u8def\u548c\u4e0a\u5c42\u538b\u5236\u7ed3\u6784\uff0c\u540e\u7eed\u8bbe\u8ba1\u4e0d\u518d\u8986\u76d6\u6b64\u7248\u3002",
 		"route_profile": "\u4e2d\u8def\u3001\u4fa7\u7ffc\u8def\u3001\u4e0a\u5c42\u538b\u5236\u7ebf",
-		"recommended_use": "\u6e05\u70b9\u3001\u5f00\u5c40\u4ea4\u6218\u8282\u594f\u3001\u8f6c\u70b9\u65f6\u95f4\u6d4b\u8bd5",
-		"test_focus": "Peek \u8282\u594f\u3001\u8def\u7ebf\u65f6\u5e8f\u3001\u67aa\u7ebf\u9a8c\u8bc1"
+		"recommended_use": "\u65e7\u7248\u5bf9\u7167\u3001\u56de\u5f52\u9a8c\u8bc1\u4e0e\u4f5c\u54c1\u96c6\u5386\u53f2\u7559\u75d5",
+		"test_focus": "\u51bb\u7ed3\u57fa\u7ebf\u3001Peek \u8282\u594f\u3001\u8def\u7ebf\u65f6\u5e8f\u3001\u67aa\u7ebf\u9a8c\u8bc1"
 	},
 	{
 		"id": "gatehouse",
@@ -36,11 +36,46 @@ const LEVEL_OPTIONS := [
 		"route_profile": "\u9ad8\u5bc6\u5ea6\u5ba4\u5185\u8def\u7ebf\u4e0e\u5206\u5c42\u63a9\u4f53",
 		"recommended_use": "\u5bc6\u96c6\u51e0\u4f55\u538b\u529b\u6d4b\u8bd5",
 		"test_focus": "\u53ef\u89c6\u6027\u3001\u63a9\u4f53\u8282\u594f\u3001\u8fd1\u8ddd\u79bb\u6218\u6597\u95f4\u8ddd"
+	},
+	{
+		"id": "foundry-reforged",
+		"name": "\u94f8\u9020\u5382\u00b7\u91cd\u6784",
+		"preview": "res://assets/maps/foundry-reforged-preview.png",
+		"description": "\u51bb\u7ed3 Depot v2 \u540e\u72ec\u7acb\u91cd\u5efa\u7684\u53cc\u76ee\u6807\u5bf9\u6297\u7070\u76d2\uff1b\u4e09\u6761\u5730\u9762\u4e3b\u8def\u56f4\u7ed5\u4e2d\u8def\u8f6c\u70b9\uff0c\u53ea\u5728 B \u533a\u4fdd\u7559\u4e00\u6bb5\u5c40\u90e8\u9ad8\u53f0\u9009\u62e9\u3002",
+		"route_profile": "A \u957f\u8def\u3001\u4e2d\u8def\u8f6c\u70b9\u3001B \u7ef4\u4fee\u901a\u9053 + B \u533a\u5c40\u90e8\u9ad8\u53f0",
+		"recommended_use": "\u53cc\u76ee\u6807\u8fdb\u653b\u9009\u62e9\u3001\u56de\u9632\u8f6c\u70b9\u4e0e\u4ea4\u706b\u8ddd\u79bb\u9a8c\u8bc1",
+		"test_focus": "\u9996\u8f6e\u63a5\u89e6\u65f6\u5e8f\u3001\u4e09\u8def\u4e92\u901a\u3001\u76ee\u6807\u533a\u6e05\u70b9\u4e0e\u5c40\u90e8\u9ad8\u5dee"
 	}
 ]
 
+const LOCAL_DUSTLINE_LEVEL_PATH := "res://data/levels/dustline-depths.json"
+const LOCAL_DUSTLINE_VISUAL_PATH := "res://assets/models/dustline/dustline_depths.glb"
+const LOCAL_DUSTLINE_OPTION := {
+	"id": "dustline-depths",
+	"name": "\u6c99\u7ebf\u6df1\u5c42\uff08\u672c\u673a\u53c2\u8003\uff09",
+	"preview": "res://assets/maps/dustline-depths-preview.png",
+	"description": "\u672c\u673a\u53c2\u8003\u8bd5\u73a9\uff1a\u9501\u5b9a de_dust2 \u5730\u9762\u62d3\u6251\uff0c\u4ec5\u5728 B \u533a\u589e\u52a0\u4e00\u6761 Skywalk\u3002\u6d3e\u751f\u78b0\u649e\u4e0e\u53c2\u8003\u8d44\u6e90\u4e0d\u8fdb\u5165 Git\u3002",
+	"route_profile": "\u53c2\u8003\u5730\u9762\u4e09\u8def\u7ebf + B \u533a\u5355\u6761\u53ef\u9009\u9ad8\u53f0",
+	"recommended_use": "\u6bd4\u4f8b\u3001\u906e\u6321\u3001\u8def\u7ebf\u4e0e\u4ea4\u706b\u8ddd\u79bb\u5bf9\u7167",
+	"test_focus": "\u5173\u952e\u95e8\u6d1e\u3001\u5761\u5ea6\u3001\u63a9\u4f53\u5c3a\u5ea6\u4e0e Skywalk \u5dee\u5f02\u5c42"
+}
+
+const LOCAL_REFERENCE_LEVEL_PATH := "res://data/levels/dustline-depths-original-local.json"
+const LOCAL_REFERENCE_VISUAL_PATH := "res://assets/local_reference/dustline/de_dust2_original.glb"
+const LOCAL_REFERENCE_OPTION := {
+	"id": "dustline-depths-original-local",
+	"name": "Dustline \u539f\u59cb\u6750\u8d28\uff08\u672c\u673a\uff09",
+	"preview": "res://assets/maps/dustline-depths-preview.png",
+	"description": "\u4ec5\u672c\u673a\u8bd5\u73a9\uff1a\u539f\u59cb Dust2 \u5b8c\u6574\u89c6\u89c9 + Dustline \u5df2\u5ba1\u8ba1\u78b0\u649e + B \u533a Skywalk\uff1bValve \u8d44\u6e90\u4e0d\u4f1a\u8fdb\u5165 Git\u3002",
+	"route_profile": "\u539f\u59cb\u5730\u9762\u5c42\u89c6\u89c9 + \u5355\u6761 B \u533a\u53ef\u9009\u9ad8\u53f0",
+	"recommended_use": "\u5bf9\u9f50\u539f\u59cb\u6750\u8d28\u3001\u6bd4\u4f8b\u3001\u906e\u6321\u548c\u8def\u7ebf\u8fa8\u8bc6\u5ea6",
+	"test_focus": "\u89c6\u89c9/\u78b0\u649e\u5bf9\u9f50\u3001\u6750\u8d28\u5bfc\u5165\u3001Skywalk \u5dee\u5f02\u5c42"
+}
+
 @onready var level: Node3D = $Level
 @onready var player: CharacterBody3D = $Player
+@onready var world_environment: WorldEnvironment = $WorldEnvironment
+@onready var sun: DirectionalLight3D = $Sun
 @onready var start_menu: CanvasLayer = $StartMenu
 @onready var combat_hud: CanvasLayer = $CombatHud
 @onready var status_panel: CanvasLayer = $StatusPanel
@@ -51,13 +86,22 @@ const LEVEL_OPTIONS := [
 @onready var shot_debug_line: Node3D = $ShotDebugLine
 
 var selected_level_index: int = 1
+var level_options: Array = []
 var game_started: bool = false
 var menu_open: bool = true
 var _ui_update_timer: float = 0.0
+var _default_ambient_light_energy: float = 0.0
+var _default_sun_energy: float = 0.0
 const UI_UPDATE_INTERVAL: float = 0.18
 
 func _ready() -> void:
+	_capture_default_environment()
 	GameState.set_graphics_preset("prototype")
+	level_options = SHIPPED_LEVEL_OPTIONS.duplicate(true)
+	if _has_local_level(LOCAL_DUSTLINE_LEVEL_PATH, LOCAL_DUSTLINE_VISUAL_PATH):
+		level_options.append(LOCAL_DUSTLINE_OPTION.duplicate(true))
+	if _has_local_level(LOCAL_REFERENCE_LEVEL_PATH, LOCAL_REFERENCE_VISUAL_PATH):
+		level_options.append(LOCAL_REFERENCE_OPTION.duplicate(true))
 	if level.has_signal("level_loaded"):
 		level.connect("level_loaded", _on_level_loaded)
 	if weapon_system.has_signal("shot_resolved"):
@@ -66,7 +110,7 @@ func _ready() -> void:
 		weapon_system.connect("weapon_switched", _on_weapon_switched)
 	if not GameState.hud_state_changed.is_connected(_on_hud_state_changed):
 		GameState.hud_state_changed.connect(_on_hud_state_changed)
-	start_menu.call("set_map_options", LEVEL_OPTIONS, selected_level_index)
+	start_menu.call("set_map_options", level_options, selected_level_index)
 	start_menu.connect("start_pressed", _on_start_pressed)
 	start_menu.connect("resume_pressed", _on_resume_pressed)
 	start_menu.connect("map_selected", _on_map_selected)
@@ -126,17 +170,17 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 func _apply_selected_map() -> void:
-	var option: Dictionary = LEVEL_OPTIONS[selected_level_index]
+	var option: Dictionary = level_options[selected_level_index]
 	start_menu.call("set_map_details", option, game_started)
 	GameState.set_level(String(option["id"]), String(option["name"]))
 	_update_ui(true)
 
 func _on_map_selected(index: int) -> void:
-	selected_level_index = index
+	selected_level_index = clampi(index, 0, level_options.size() - 1)
 	_apply_selected_map()
 
 func _on_start_pressed() -> void:
-	var option: Dictionary = LEVEL_OPTIONS[selected_level_index]
+	var option: Dictionary = level_options[selected_level_index]
 	level.call("load_level", option["id"])
 	if player.has_method("reset_to_spawn"):
 		player.call("reset_to_spawn")
@@ -173,7 +217,7 @@ func _open_menu(initial_open: bool) -> void:
 	else:
 		RoundManager.set_paused_menu()
 	start_menu.call("set_menu_visible", true)
-	start_menu.call("set_map_details", LEVEL_OPTIONS[selected_level_index], game_started and not initial_open)
+	start_menu.call("set_map_details", level_options[selected_level_index], game_started and not initial_open)
 	if player.has_method("set_controls_enabled"):
 		player.call("set_controls_enabled", false)
 	if player.has_method("set_mouse_capture_enabled"):
@@ -190,8 +234,29 @@ func _toggle_fullscreen() -> void:
 	_update_ui(true)
 
 func _on_level_loaded(level_data: Dictionary) -> void:
+	_apply_level_environment(level_data)
 	if combat_sandbox.has_method("load_for_level"):
 		combat_sandbox.call("load_for_level", level_data)
+
+func _capture_default_environment() -> void:
+	_default_sun_energy = sun.light_energy
+	if world_environment.environment != null:
+		_default_ambient_light_energy = world_environment.environment.ambient_light_energy
+
+func _apply_level_environment(level_data: Dictionary) -> void:
+	var settings: Dictionary = level_data.get("environment", {}) as Dictionary
+	sun.light_energy = clampf(
+		float(settings.get("sun_energy", _default_sun_energy)),
+		0.0,
+		8.0
+	)
+	if world_environment.environment == null:
+		return
+	world_environment.environment.ambient_light_energy = clampf(
+		float(settings.get("ambient_light_energy", _default_ambient_light_energy)),
+		0.0,
+		8.0
+	)
 
 func _on_shot_resolved(result: Dictionary) -> void:
 	if weapon_view_model.has_method("play_shot"):
@@ -210,6 +275,19 @@ func _on_hud_state_changed(snapshot: Dictionary) -> void:
 
 func _can_accept_combat_input() -> bool:
 	return game_started and not menu_open
+
+func find_level_option_index(target_level_id: String) -> int:
+	for index in range(level_options.size()):
+		var option: Dictionary = level_options[index] as Dictionary
+		if String(option.get("id", "")) == target_level_id:
+			return index
+	return -1
+
+func _has_local_level(level_path: String, visual_path: String) -> bool:
+	if DisplayServer.get_name() == "headless":
+		return false
+	return FileAccess.file_exists(level_path) \
+		and ResourceLoader.exists(visual_path, "PackedScene")
 
 func _update_ui(force: bool) -> void:
 	if force:

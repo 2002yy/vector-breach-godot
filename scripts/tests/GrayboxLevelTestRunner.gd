@@ -24,6 +24,10 @@ func _run_all_tests() -> void:
 	await _run_test("depot_uses_cs_scale_metrics", _test_depot_uses_cs_scale_metrics)
 	await _run_test("depot_stairs_align_with_target_edges", _test_depot_stairs_align_with_target_edges)
 	await _run_test("depot_route_points_clear_player_collision", _test_depot_route_points_clear_player_collision)
+	await _run_test("optional_local_dustline_builds_imported_collision", _test_dustline_builds_imported_collision_and_custom_markers)
+	await _run_test("foundry_reforged_builds_independent_ground_graybox", _test_foundry_reforged_builds_independent_ground_graybox)
+	await _run_test("foundry_reforged_routes_clear_solids_and_interfaces", _test_foundry_reforged_routes_clear_solids_and_interfaces)
+	await _run_test("visual_name_filters_hide_helpers_only", _test_visual_name_filters_hide_helpers_only)
 	await _run_test("missing_level_does_not_clobber_current_state", _test_missing_level_does_not_clobber_current_state)
 
 func _run_test(test_name: String, callable: Callable) -> void:
@@ -61,7 +65,13 @@ func _cleanup_level(level: Node3D) -> void:
 	await get_tree().process_frame
 
 func _expected_geometry_child_count(level_data: Dictionary) -> int:
-	return 2 \
+	var build_options: Dictionary = level_data.get("buildOptions", {}) as Dictionary
+	var generated_base_count: int = 0
+	if bool(build_options.get("arena_floor_enabled", true)):
+		generated_base_count += 1
+	if bool(build_options.get("arena_bounds_enabled", true)):
+		generated_base_count += 1
+	return generated_base_count \
 		+ (level_data.get("walls", []) as Array).size() \
 		+ (level_data.get("covers", []) as Array).size() \
 		+ (level_data.get("floors", []) as Array).size() \
@@ -72,11 +82,11 @@ func _expected_geometry_child_count(level_data: Dictionary) -> int:
 
 func _marker_start_position(level_data: Dictionary) -> Vector3:
 	var start: Array = level_data.get("start", [0.0, 0.0]) as Array
-	return Vector3(float(start[0]), 1.05, float(start[1]))
+	return Vector3(float(start[0]), float(level_data.get("startHeight", 1.05)), float(start[1]))
 
 func _marker_exit_position(level_data: Dictionary) -> Vector3:
 	var exit: Array = level_data.get("exit", [0.0, 0.0]) as Array
-	return Vector3(float(exit[0]), 0.5, float(exit[1]))
+	return Vector3(float(exit[0]), float(level_data.get("exitHeight", 0.5)), float(exit[1]))
 
 func _test_default_load_applies_markers_and_geometry() -> void:
 	var level: Node3D = _instantiate_level()
@@ -279,6 +289,172 @@ func _count_nodes_of_type(root: Node, type_name: StringName) -> int:
 	for child in root.get_children():
 		count += _count_nodes_of_type(child, type_name)
 	return count
+
+func _count_nodes_with_name_prefix(root: Node, prefix: String) -> int:
+	var count := 1 if String(root.name).begins_with(prefix) else 0
+	for child in root.get_children():
+		count += _count_nodes_with_name_prefix(child, prefix)
+	return count
+
+func _all_prefixed_meshes_hidden(root: Node, prefix: String) -> bool:
+	if root is MeshInstance3D and String(root.name).begins_with(prefix):
+		if (root as MeshInstance3D).visible:
+			return false
+	for child in root.get_children():
+		if not _all_prefixed_meshes_hidden(child, prefix):
+			return false
+	return true
+
+func _test_dustline_builds_imported_collision_and_custom_markers() -> void:
+	if not FileAccess.file_exists("res://data/levels/dustline-depths.json"):
+		return
+	var level: Node3D = _instantiate_level()
+	await get_tree().physics_frame
+	level.call("load_level", "dustline-depths")
+	await get_tree().physics_frame
+	await get_tree().process_frame
+
+	var level_data: Dictionary = LevelDataLoader.load_level("dustline-depths")
+	var geometry_root: Node3D = level.get_node("GeometryRoot")
+	var visual_root: Node3D = level.get_node("VisualRoot")
+	var spawn_marker: Marker3D = level.get_node("SpawnMarker")
+	var exit_marker: Marker3D = level.get_node("ExitMarker")
+
+	_assert_equal(String(level.call("get_current_level_data").get("id", "")), "dustline-depths", "dustline should load as an independent level")
+	_assert_equal(geometry_root.get_child_count(), 0, "dustline should not overlay generated graybox floor or boundary nodes")
+	_assert_equal(visual_root.get_child_count(), 1, "dustline should instantiate exactly one authored visual scene")
+	if visual_root.get_child_count() == 1:
+		var level_visual: Node = visual_root.get_child(0)
+		var collision_mesh_count: int = _count_nodes_with_name_prefix(level_visual, "COLLISION_")
+		var runtime_body_count: int = _count_nodes_of_type(level_visual, "StaticBody3D")
+		_assert_equal(collision_mesh_count, 35, "dustline should expose 32 locked base collision groups plus three skywalk collision parts")
+		_assert_equal(runtime_body_count, collision_mesh_count, "every authored collision mesh should receive one runtime StaticBody3D")
+		_assert_equal(_count_nodes_with_name_prefix(level_visual, "COLLISION_ONLY_"), 2, "dustline should retain both player-clip groups")
+		_assert_true(_all_prefixed_meshes_hidden(level_visual, "COLLISION_ONLY_"), "player-clip meshes should remain collidable without rendering")
+		_assert_true(level_visual.find_child("VISUAL_NAV_FLOOR_DUST2_BASE", true, false) != null, "dustline should retain the exact nav-derived floor overlay")
+		_assert_true(level_visual.find_child("COLLISION_VISIBLE_SKYBRIDGE_deck_00", true, false) != null, "dustline should retain its single authored high-route deck")
+	_assert_vec3_close(spawn_marker.position, _marker_start_position(level_data), 0.001, "dustline spawn should preserve the authored T-side height")
+	_assert_vec3_close(exit_marker.position, _marker_exit_position(level_data), 0.001, "dustline exit should preserve the authored A-site height")
+	_assert_vec3_close(GameState.player_spawn, spawn_marker.position, 0.001, "GameState should mirror the elevated dustline spawn")
+
+	await _cleanup_level(level)
+
+func _test_foundry_reforged_builds_independent_ground_graybox() -> void:
+	var level: Node3D = _instantiate_level()
+	await get_tree().physics_frame
+	level.call("load_level", "foundry-reforged")
+	await get_tree().physics_frame
+	await get_tree().process_frame
+
+	var level_data: Dictionary = LevelDataLoader.load_level("foundry-reforged")
+	var geometry_root: Node3D = level.get_node("GeometryRoot")
+	var visual_root: Node3D = level.get_node("VisualRoot")
+	_assert_equal(String(level.call("get_current_level_data").get("id", "")), "foundry-reforged", "Foundry Reforged should load independently from Depot v2")
+	_assert_true(not geometry_root.visible, "Foundry Reforged should hide duplicate graybox rendering while retaining its collision")
+	_assert_equal(visual_root.get_child_count(), 1, "Foundry Reforged should instantiate exactly one independent industrial visual")
+	_assert_equal(geometry_root.get_child_count(), _expected_geometry_child_count(level_data), "Foundry Reforged should build every authored graybox group")
+	_assert_true(geometry_root.get_node_or_null("catwalk_b-local-catwalk") != null, "Foundry Reforged should build its single localized B catwalk")
+	_assert_true(geometry_root.get_node_or_null("stair_b-catwalk-access") != null, "the localized B catwalk should keep one measured stair access")
+	_assert_true(geometry_root.get_node_or_null("ramp_a-long-ramp") != null, "A long should build its authored ground ramp")
+	if visual_root.get_child_count() == 1:
+		var level_visual: Node = visual_root.get_child(0)
+		_assert_equal(String(level_visual.name), "LevelVisual", "Foundry Reforged visual should use the stable integration name")
+		_assert_true(_count_nodes_of_type(level_visual, "MeshInstance3D") >= 180, "Foundry Reforged visual should retain the complete industrial asset set")
+
+	await _cleanup_level(level)
+
+func _test_foundry_reforged_routes_clear_solids_and_interfaces() -> void:
+	var level_data: Dictionary = LevelDataLoader.load_level("foundry-reforged")
+	var routes: Dictionary = level_data.get("routes", {}) as Dictionary
+	var solids: Array = []
+	solids.append_array(level_data.get("walls", []) as Array)
+	solids.append_array(level_data.get("covers", []) as Array)
+	var player_margin := 0.45
+
+	for route_name in ["aLong", "mid", "midToA", "midToB", "bServiceDock", "bServiceControl", "defenderRotation"]:
+		var points: Array = routes.get(route_name, []) as Array
+		for point_index in range(points.size() - 1):
+			var from_point: Array = points[point_index] as Array
+			var to_point: Array = points[point_index + 1] as Array
+			for solid_variant in solids:
+				var solid: Dictionary = solid_variant as Dictionary
+				_assert_true(
+					not _segment_intersects_expanded_box(from_point, to_point, solid, player_margin),
+					"route %s segment %d should clear %s by one player radius" % [route_name, point_index, String(solid.get("id", ""))]
+				)
+
+	var entries_by_id: Dictionary = {}
+	for group_name in ["floors", "stairs", "ramps", "catwalks"]:
+		for entry_variant in level_data.get(group_name, []):
+			var entry: Dictionary = entry_variant as Dictionary
+			entries_by_id[String(entry.get("id", ""))] = entry
+	_assert_connected_x_edges(entries_by_id, "a-long-ramp", "x+", "a-ramp-landing", "x-", "A ramp should seat exactly against its landing")
+	_assert_connected_x_edges(entries_by_id, "a-ramp-landing", "x+", "a-ramp-descent", "x-", "A landing should seat exactly against its descent")
+	_assert_connected_x_edges(entries_by_id, "b-catwalk-access", "x+", "b-local-catwalk", "x-", "B stair should seat exactly against its local catwalk")
+
+func _assert_connected_x_edges(entries: Dictionary, first_id: String, first_edge: String, second_id: String, second_edge: String, message: String) -> void:
+	_assert_true(entries.has(first_id) and entries.has(second_id), "%s should reference existing geometry" % message)
+	if not entries.has(first_id) or not entries.has(second_id):
+		return
+	_assert_true(is_equal_approx(_box_edge(entries[first_id] as Dictionary, first_edge), _box_edge(entries[second_id] as Dictionary, second_edge)), message)
+
+func _segment_intersects_expanded_box(from_point: Array, to_point: Array, entry: Dictionary, margin: float) -> bool:
+	if from_point.size() < 2 or to_point.size() < 2:
+		return true
+	var start := Vector2(float(from_point[0]), float(from_point[1]))
+	var finish := Vector2(float(to_point[0]), float(to_point[1]))
+	var minimum := Vector2(
+		float(entry.get("x", 0.0)) - float(entry.get("sx", 0.0)) * 0.5 - margin,
+		float(entry.get("z", 0.0)) - float(entry.get("sz", 0.0)) * 0.5 - margin
+	)
+	var maximum := Vector2(
+		float(entry.get("x", 0.0)) + float(entry.get("sx", 0.0)) * 0.5 + margin,
+		float(entry.get("z", 0.0)) + float(entry.get("sz", 0.0)) * 0.5 + margin
+	)
+	var lower := 0.0
+	var upper := 1.0
+	for axis in range(2):
+		var delta := finish[axis] - start[axis]
+		if absf(delta) < 0.000001:
+			if start[axis] < minimum[axis] or start[axis] > maximum[axis]:
+				return false
+			continue
+		var axis_lower := (minimum[axis] - start[axis]) / delta
+		var axis_upper := (maximum[axis] - start[axis]) / delta
+		if axis_lower > axis_upper:
+			var swap := axis_lower
+			axis_lower = axis_upper
+			axis_upper = swap
+		lower = maxf(lower, axis_lower)
+		upper = minf(upper, axis_upper)
+		if lower > upper:
+			return false
+	return true
+
+func _test_visual_name_filters_hide_helpers_only() -> void:
+	var level: Node3D = _instantiate_level()
+	await get_tree().physics_frame
+	var visual_fixture := Node3D.new()
+	var helper_mesh := MeshInstance3D.new()
+	helper_mesh.name = "n0_cb_bl_mesh_blocklight_fixture"
+	visual_fixture.add_child(helper_mesh)
+	var authored_mesh := MeshInstance3D.new()
+	authored_mesh.name = "dust_kasbah_wall_fixture"
+	visual_fixture.add_child(authored_mesh)
+	var imported_light := DirectionalLight3D.new()
+	imported_light.name = "light_environment"
+	visual_fixture.add_child(imported_light)
+
+	level.call(
+		"_hide_filtered_visual_meshes",
+		visual_fixture,
+		["_cb_bl_mesh_blocklight", "light_environment"]
+	)
+	_assert_true(not helper_mesh.visible, "visual filters should hide exported blocklight helper meshes")
+	_assert_true(authored_mesh.visible, "visual filters should preserve authored map meshes")
+	_assert_true(not imported_light.visible, "visual filters should disable exported environment lights")
+	visual_fixture.free()
+	await _cleanup_level(level)
 
 func _test_missing_level_does_not_clobber_current_state() -> void:
 	var level: Node3D = _instantiate_level()

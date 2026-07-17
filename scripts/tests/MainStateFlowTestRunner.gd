@@ -22,6 +22,7 @@ func _run_all_tests() -> void:
 	await _run_test("map_selection_updates_game_state_and_menu_copy", _test_map_selection_updates_game_state_and_menu_copy)
 	await _run_test("start_game_transitions_to_live_state", _test_start_game_transitions_to_live_state)
 	await _run_test("pause_then_resume_restores_live_state", _test_pause_then_resume_restores_live_state)
+	await _run_test("level_environment_overrides_restore_defaults", _test_level_environment_overrides_restore_defaults)
 	await _run_test("weapon_view_model_tracks_switch_and_shot", _test_weapon_view_model_tracks_switch_and_shot)
 	await _run_test("player_scale_matches_cs_reference", _test_player_scale_matches_cs_reference)
 	await _run_test("player_input_maps_to_local_forward_and_right", _test_player_input_maps_to_local_forward_and_right)
@@ -93,13 +94,14 @@ func _test_initial_boot_shows_menu_and_default_map() -> void:
 	_assert_true(bool(main.get("menu_open")), "main should start with menu open")
 	_assert_true(not bool(main.get("game_started")), "main should start before gameplay begins")
 	_assert_true(start_menu.visible, "start menu should be visible on boot")
-	_assert_equal(map_select.item_count, 4, "start menu should list all shipped maps")
+	_assert_equal(map_select.item_count, 5, "headless start menu should list only the five publishable maps")
+	_assert_equal((main.get("level_options") as Array).size(), 5, "local reference maps should stay out of automated headless runs")
 	_assert_equal(map_select.selected, 1, "default selected map should be Foundry Depot")
 	_assert_true(not resume_button.visible, "resume button should stay hidden before the first run")
 	_assert_true(not status_panel.visible, "debug status panel should be hidden by default")
 	_assert_equal(String(GameState.current_level_id), "depot", "boot should sync the portfolio map id into GameState")
-	_assert_equal(String(GameState.current_level_name), "仓库站", "boot should sync the portfolio map name into GameState")
-	_assert_true(description_label.text.contains("仓库站"), "menu description should render the portfolio map copy")
+	_assert_true(String(GameState.current_level_name).contains("Foundry Depot v2"), "boot should label the frozen portfolio map as Foundry Depot v2")
+	_assert_true(description_label.text.contains("Foundry Depot v2"), "menu description should render the frozen Foundry baseline copy")
 	_assert_equal(String(level.call("get_current_level_data").get("id", "")), "depot", "level scene should load Foundry Depot on boot")
 	_assert_equal(level.get_node("VisualRoot").get_child_count(), 1, "boot should instantiate the Foundry visual scene behind the menu")
 	_assert_equal(String(RoundManager.get_state_name()), "Warmup", "boot should leave round manager in warmup/menu state")
@@ -113,14 +115,19 @@ func _test_map_selection_updates_game_state_and_menu_copy() -> void:
 	var start_menu: CanvasLayer = main.get_node("StartMenu")
 	var map_select: OptionButton = start_menu.get_node("MenuPanel/Margin/VBox/Controls/MapRow/MapSelect")
 	var description_label: RichTextLabel = start_menu.get_node("MenuPanel/Margin/VBox/Description")
-	map_select.select(2)
-	main.call("_on_map_selected", 2)
+	var reforged_index := int(main.call("find_level_option_index", "foundry-reforged"))
+	_assert_true(reforged_index >= 0, "Foundry Reforged should be available as a shipped map")
+	if reforged_index < 0:
+		await _cleanup_main(main)
+		return
+	map_select.select(reforged_index)
+	main.call("_on_map_selected", reforged_index)
 	await get_tree().process_frame
 
-	_assert_equal(int(main.get("selected_level_index")), 2, "main should store the newly selected level index")
-	_assert_equal(String(GameState.current_level_id), "gatehouse", "selecting map 3 should update GameState level id")
-	_assert_equal(String(GameState.current_level_name), "门厅区", "selecting map 3 should update GameState level name")
-	_assert_true(description_label.text.contains("门厅区"), "menu description should update to the selected map")
+	_assert_equal(int(main.get("selected_level_index")), reforged_index, "main should store the newly selected level index")
+	_assert_equal(String(GameState.current_level_id), "foundry-reforged", "selecting Reforged should update GameState level id")
+	_assert_true(String(GameState.current_level_name).contains("\u91cd\u6784"), "selecting Reforged should update GameState level name")
+	_assert_true(description_label.text.contains("\u91cd\u6784"), "menu description should update to the Reforged copy")
 
 	await _cleanup_main(main)
 
@@ -128,7 +135,12 @@ func _test_start_game_transitions_to_live_state() -> void:
 	var main: Node3D = _instantiate_main()
 	await _await_main_ready()
 
-	main.call("_on_map_selected", 1)
+	var reforged_index := int(main.call("find_level_option_index", "foundry-reforged"))
+	_assert_true(reforged_index >= 0, "Foundry Reforged should be available to the start flow")
+	if reforged_index < 0:
+		await _cleanup_main(main)
+		return
+	main.call("_on_map_selected", reforged_index)
 	await get_tree().process_frame
 	main.call("_on_start_pressed")
 	await _await_main_ready()
@@ -144,8 +156,8 @@ func _test_start_game_transitions_to_live_state() -> void:
 	_assert_true(not start_menu.visible, "start menu should hide after starting")
 	_assert_true(bool(player.get("controls_enabled")), "player controls should enable after starting")
 	_assert_true(bool(player.get("mouse_capture_enabled")), "mouse capture should enable after starting")
-	_assert_equal(String(GameState.current_level_id), "depot", "starting from map selection should load the selected level id")
-	_assert_equal(String(level.call("get_current_level_data").get("id", "")), "depot", "level scene should swap to depot on start")
+	_assert_equal(String(GameState.current_level_id), "foundry-reforged", "starting from map selection should load Reforged")
+	_assert_equal(String(level.call("get_current_level_data").get("id", "")), "foundry-reforged", "level scene should swap to Reforged on start")
 	_assert_true(GameState.player_spawn != Vector3.ZERO, "starting the game should populate a non-zero player spawn")
 	_assert_vec2_close(
 		Vector2(player.global_position.x, player.global_position.z),
@@ -163,6 +175,8 @@ func _test_start_game_transitions_to_live_state() -> void:
 	_assert_equal(snapshot.get("ammo_in_mag"), 30, "starting should configure full rifle ammo")
 	_assert_true(bool(GameState.game_started), "GameState should reflect started gameplay")
 	_assert_true(not bool(GameState.menu_open), "GameState should reflect closed menu after start")
+	var combat_sandbox: Node3D = main.get_node("CombatSandbox")
+	_assert_equal(combat_sandbox.get_child_count(), 5, "Reforged should spawn its dedicated off-route combat targets")
 
 	await _cleanup_main(main)
 
@@ -192,6 +206,27 @@ func _test_pause_then_resume_restores_live_state() -> void:
 	_assert_true(bool(player.get("controls_enabled")), "resume should restore controls")
 	_assert_true(bool(player.get("mouse_capture_enabled")), "resume should restore mouse capture")
 	_assert_equal(String(RoundManager.get_state_name()), "Live", "resume should restore live round state")
+
+	await _cleanup_main(main)
+
+func _test_level_environment_overrides_restore_defaults() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	var environment_node: WorldEnvironment = main.get_node("WorldEnvironment")
+	var sun: DirectionalLight3D = main.get_node("Sun")
+
+	main.call("_apply_level_environment", {
+		"environment": {
+			"ambient_light_energy": 0.3,
+			"sun_energy": 0.65
+		}
+	})
+	_assert_float_close(environment_node.environment.ambient_light_energy, 0.3, 0.001, "level data should override ambient light energy")
+	_assert_float_close(sun.light_energy, 0.65, 0.001, "level data should override sun energy")
+
+	main.call("_apply_level_environment", {})
+	_assert_float_close(environment_node.environment.ambient_light_energy, 0.7, 0.001, "maps without overrides should restore default ambient light")
+	_assert_float_close(sun.light_energy, 1.4, 0.001, "maps without overrides should restore default sun energy")
 
 	await _cleanup_main(main)
 

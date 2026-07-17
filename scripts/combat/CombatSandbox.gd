@@ -45,6 +45,21 @@ func _clear_targets() -> void:
 
 func _build_spawn_records(level_data: Dictionary) -> Array:
 	var records: Array = []
+	var combat_targets: Array = level_data.get("combatTargets", []) as Array
+	for index in range(mini(max_targets, combat_targets.size())):
+		var target_variant: Variant = combat_targets[index]
+		if typeof(target_variant) != TYPE_DICTIONARY:
+			continue
+		var target: Dictionary = target_variant as Dictionary
+		records.append({
+			"name": String(target.get("name", "CombatTarget%d" % (index + 1))),
+			"x": float(target.get("x", 0.0)),
+			"y": float(target.get("y", dummy_height)),
+			"z": float(target.get("z", 0.0))
+		})
+	if not records.is_empty():
+		return records
+
 	if use_spawn_points:
 		var spawn_points: Array = level_data.get("spawnPoints", []) as Array
 		for index in range(mini(max_targets, spawn_points.size())):
@@ -55,7 +70,7 @@ func _build_spawn_records(level_data: Dictionary) -> Array:
 			records.append({
 				"name": "SpawnDummy%d" % (index + 1),
 				"x": float(point.get("x", 0.0)),
-				"y": dummy_height,
+				"y": float(point.get("y", dummy_height)),
 				"z": float(point.get("z", 0.0))
 			})
 	if not records.is_empty():
@@ -71,7 +86,7 @@ func _build_spawn_records(level_data: Dictionary) -> Array:
 			records.append({
 				"name": String(landmark.get("name", "LandmarkDummy%d" % (index + 1))),
 				"x": float(landmark.get("x", 0.0)),
-				"y": dummy_height,
+				"y": float(landmark.get("y", dummy_height)),
 				"z": float(landmark.get("z", 0.0))
 			})
 	if not records.is_empty():

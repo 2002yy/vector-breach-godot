@@ -1,0 +1,265 @@
+{
+  "id": "foundry-reforged",
+  "name": "Foundry Reforged",
+  "designRevision": "reforged-ground-combat-v0.2",
+  "predecessor": "depot",
+  "predecessorStatus": "frozen-as-foundry-depot-v2",
+  "visual_scene": "res://assets/models/foundry/foundry_reforged.glb",
+  "runtime_collision_from_visual": false,
+  "arenaSize": 50,
+  "arenaSizeX": 50,
+  "arenaSizeZ": 40,
+  "boundaryHeight": 8,
+  "start": [-44, 0],
+  "startHeight": 1.05,
+  "startYawDegrees": -90,
+  "exit": [37, -24],
+  "exitHeight": 1.3,
+  "enemies": 12,
+  "designIntent": {
+    "groundLayerPriority": true,
+    "groundRouteCount": 3,
+    "continuousUpperLoop": false,
+    "localizedHighRouteCount": 1,
+    "midSupportsRotation": true,
+    "notes": "A long uses two interrupted rifle lanes around a relative low pit and ramp. Mid owns rotations through controlled doors. B service uses short clearing chambers and two exits. The B catwalk remains local."
+  },
+  "sourceTrace": {
+    "predecessor": "res://data/levels/depot.json",
+    "predecessorFreeze": "res://docs/map-data/foundry-depot-v2-freeze.json",
+    "visualSource": "res://tools/blender/source/foundry_reforged_source.blend",
+    "visualAsset": "res://assets/models/foundry/foundry_reforged.glb"
+  },
+  "metrics": {
+    "playerHeight": 1.8,
+    "eyeHeight": 1.62,
+    "minimumLaneWidth": 4.0,
+    "objectiveSeparationMeters": 48.0,
+    "localizedCatwalkHeight": 3.2,
+    "stairRiser": 0.2,
+    "sprintSpeedMetersPerSecond": 6.2
+  },
+  "timingTargets": {
+    "attackerFirstContactSeconds": [10.0, 13.0],
+    "siteToSiteRotationSeconds": [12.0, 18.0],
+    "measurementStatus": "player-collider-sweep-2026-07-17"
+  },
+  "timingMeasurements": {
+    "method": "Player capsule move_and_collide sweep at 0.2 meter increments",
+    "measuredAt": "2026-07-17",
+    "aFirstContactSeconds": 11.53,
+    "midFirstContactSeconds": 11.24,
+    "bFirstContactSeconds": 10.58,
+    "siteToSiteRotationSeconds": 12.09,
+    "allSweepsClear": true
+  },
+  "objectives": [
+    {
+      "id": "site-a",
+      "x": 37,
+      "z": -24,
+      "radius": 5.5,
+      "approaches": ["aLong", "midToA"],
+      "defenderRotation": "defenderRotation"
+    },
+    {
+      "id": "site-b",
+      "x": 37,
+      "z": 24,
+      "radius": 5.5,
+      "approaches": ["bServiceDock", "bServiceControl", "midToB"],
+      "defenderRotation": "defenderRotation"
+    }
+  ],
+  "doorways": [
+    {"id": "a-long-entry", "x": -37, "z": -12, "width": 6.0, "routes": ["aLong"]},
+    {"id": "mid-to-a", "x": 28, "z": -12, "width": 6.0, "routes": ["midToA"]},
+    {"id": "b-service-entry", "x": -37, "z": 12, "width": 6.0, "routes": ["bServiceDock", "bServiceControl"]},
+    {"id": "mid-to-b", "x": 28, "z": 12, "width": 6.0, "routes": ["midToB"]},
+    {"id": "a-defense-return", "x": 44, "z": -12, "width": 6.0, "routes": ["defenderRotation"]},
+    {"id": "b-defense-return", "x": 44, "z": 12, "width": 6.0, "routes": ["defenderRotation"]},
+    {"id": "b-dock-exit", "x": 30, "z": 19.5, "width": 5.0, "routes": ["bServiceDock", "midToB"]},
+    {"id": "b-control-exit", "x": 30, "z": 29.5, "width": 5.0, "routes": ["bServiceControl"]}
+  ],
+  "relativeLowAreas": [
+    {
+      "id": "a-long-pit",
+      "x": -8,
+      "z": -28,
+      "sx": 32,
+      "sz": 6,
+      "relativeDepth": 0.65,
+      "raisedEdges": ["a-pit-north-shoulder", "a-pit-south-shoulder"]
+    }
+  ],
+  "combatLanes": [
+    {
+      "id": "a-long-west-rifle",
+      "route": "aLong",
+      "from": [-31, -28],
+      "to": [8, -28],
+      "distanceMeters": 39.0,
+      "targetRangeMeters": [35.0, 55.0],
+      "interrupters": ["a-pit-screen", "a-long-spool"]
+    },
+    {
+      "id": "a-long-east-rifle",
+      "route": "aLong",
+      "from": [-8, -28],
+      "to": [34, -24],
+      "distanceMeters": 42.19,
+      "targetRangeMeters": [35.0, 55.0],
+      "interrupters": ["a-ramp-baffle", "a-site-crates"]
+    },
+    {
+      "id": "b-service-chambers",
+      "routes": ["bServiceDock", "bServiceControl"],
+      "targetRangeMeters": [8.0, 20.0],
+      "interrupters": ["b-baffle-1", "b-baffle-2", "b-baffle-3", "b-baffle-4"]
+    }
+  ],
+  "contactAudits": [
+    {"id": "a-first-contact", "route": "aLong", "pointIndex": 6, "targetSeconds": [10.0, 13.0]},
+    {"id": "mid-first-contact", "route": "mid", "pointIndex": 6, "targetSeconds": [10.0, 13.0]},
+    {"id": "b-first-contact", "route": "bServiceDock", "pointIndex": 6, "targetSeconds": [10.0, 13.0]}
+  ],
+  "colors": {
+    "tint": [0.95, 0.58, 0.24],
+    "floor": [0.36, 0.35, 0.32],
+    "wall": [0.46, 0.44, 0.4],
+    "metal": [0.18, 0.24, 0.27],
+    "sky": [0.34, 0.42, 0.46],
+    "clear": [0.07, 0.075, 0.07]
+  },
+  "lights": {
+    "points": [[-34, 7, 0], [-8, 7, -28], [-8, 7, 24], [10, 7, 0], [37, 7, -24], [37, 7, 24], [46, 7, 0]],
+    "colors": [[1, 0.64, 0.32], [0.62, 0.82, 1], [0.62, 0.82, 1], [1, 0.52, 0.24], [1, 0.72, 0.42], [0.48, 0.76, 1], [1, 0.48, 0.2]]
+  },
+  "routes": {
+    "attackerSpawn": [-44, 0],
+    "defenderSpawn": [46, 0],
+    "siteA": [37, -24],
+    "siteB": [37, 24],
+    "aLong": [[-44, 0], [-38, -10], [-36, -16], [-31, -24], [-24, -28], [-4, -28], [12, -27], [22, -25], [31, -24], [37, -24]],
+    "mid": [[-44, 0], [-34, 0], [-22, 0], [-8, 0], [0, -6], [10, 0], [22, 0], [28, 0]],
+    "midToA": [[-44, 0], [-34, 0], [-22, 0], [-8, 0], [0, -6], [10, 0], [22, 0], [26, -6], [28, -13], [31, -19], [37, -24]],
+    "midToB": [[-44, 0], [-34, 0], [-22, 0], [-8, 0], [0, 6], [10, 0], [22, 0], [26, 6], [28, 13], [28, 18], [31, 20], [37, 24]],
+    "bServiceDock": [[-44, 0], [-38, 8], [-34, 16], [-24, 20], [-14, 25], [-2, 24], [10, 28], [20, 22], [28, 20], [37, 24]],
+    "bServiceControl": [[-44, 0], [-38, 8], [-34, 16], [-24, 20], [-14, 25], [-2, 24], [10, 28], [20, 22], [27, 30], [37, 24]],
+    "defenderRotation": [[37, -24], [44, -28], [47, -18], [44, -8], [47, 0], [44, 8], [47, 18], [44, 28], [37, 24]],
+    "bHigh": [[16, 32], [21, 32], [28, 32], [35, 29]]
+  },
+  "emptyRoutes": ["bHigh"],
+  "combatTargets": [
+    {"name": "A Pit Shoulder", "route": "aLong", "x": -16, "z": -22.5},
+    {"name": "A Ramp Shoulder", "route": "aLong", "x": 7, "z": -22.5},
+    {"name": "Mid West Angle", "route": "mid", "x": -12, "z": 6},
+    {"name": "Mid East Angle", "route": "mid", "x": 10, "z": 6},
+    {"name": "B Chamber Angle", "route": "bServiceDock", "x": 2, "z": 20}
+  ],
+  "spawnPoints": [
+    {"route": "aLong", "x": -22, "z": -28},
+    {"route": "aLong", "x": 8, "z": -28},
+    {"route": "mid", "x": -12, "z": 0},
+    {"route": "midToA", "x": 27, "z": -10},
+    {"route": "midToB", "x": 27, "z": 10},
+    {"route": "bServiceDock", "x": -18, "z": 24},
+    {"route": "bServiceControl", "x": 14, "z": 25},
+    {"route": "siteA", "x": 39, "y": 1.3, "z": -24},
+    {"route": "siteB", "x": 39, "y": 1.3, "z": 24},
+    {"route": "bHigh", "x": 28, "y": 4.15, "z": 32}
+  ],
+  "routeHints": [
+    {"route": "aLong", "from": [-31, -28], "to": [8, -28]},
+    {"route": "aLong", "from": [-8, -28], "to": [34, -24]},
+    {"route": "mid", "from": [-22, 0], "to": [22, 0]},
+    {"route": "bServiceDock", "from": [-34, 16], "to": [28, 20]},
+    {"route": "bServiceControl", "from": [-34, 16], "to": [27, 30]},
+    {"route": "defenderRotation", "from": [37, -24], "to": [37, 24]},
+    {"route": "bHigh", "from": [16, 32], "to": [35, 29]}
+  ],
+  "landmarks": [
+    {"name": "attacker-yard", "route": "mid", "x": -40, "z": 0, "h": 3.8},
+    {"name": "a-long-pit", "route": "aLong", "x": -8, "z": -28, "h": 3.0},
+    {"name": "mid-furnace", "route": "mid", "x": 0, "z": 0, "h": 5.5},
+    {"name": "site-a", "route": "aLong", "x": 37, "z": -24, "h": 4.2},
+    {"name": "site-b", "route": "bServiceDock", "x": 37, "z": 24, "h": 4.2},
+    {"name": "b-control-catwalk", "route": "bHigh", "x": 28, "y": 4.15, "z": 32, "h": 4.2}
+  ],
+  "drops": [
+    {"from": [35, 29], "to": [37, 26], "oneWay": true}
+  ],
+  "walls": [
+    {"id": "north-partition-west", "x": -45, "z": -12, "sx": 10, "sz": 1.2, "h": 4.2, "role": "wall"},
+    {"id": "north-partition-west-center", "x": -25.5, "z": -12, "sx": 17, "sz": 1.2, "h": 4.2, "role": "wall"},
+    {"id": "north-partition-center", "x": -8.5, "z": -12, "sx": 17, "sz": 1.2, "h": 4.2, "role": "wall"},
+    {"id": "north-partition-east-center-a", "x": 6.25, "z": -12, "sx": 12.5, "sz": 1.2, "h": 4.2, "role": "wall"},
+    {"id": "north-partition-east-center-b", "x": 18.75, "z": -12, "sx": 12.5, "sz": 1.2, "h": 4.2, "role": "wall"},
+    {"id": "north-partition-east-a", "x": 36, "z": -12, "sx": 10, "sz": 1.2, "h": 4.2, "role": "wall"},
+    {"id": "north-partition-east-b", "x": 48.5, "z": -12, "sx": 3, "sz": 1.2, "h": 4.2, "role": "wall"},
+    {"id": "south-partition-west", "x": -45, "z": 12, "sx": 10, "sz": 1.2, "h": 4.2, "role": "wall"},
+    {"id": "south-partition-west-center", "x": -25.5, "z": 12, "sx": 17, "sz": 1.2, "h": 4.2, "role": "wall"},
+    {"id": "south-partition-center", "x": -8.5, "z": 12, "sx": 17, "sz": 1.2, "h": 4.2, "role": "wall"},
+    {"id": "south-partition-east-center-a", "x": 6.25, "z": 12, "sx": 12.5, "sz": 1.2, "h": 4.2, "role": "wall"},
+    {"id": "south-partition-east-center-b", "x": 18.75, "z": 12, "sx": 12.5, "sz": 1.2, "h": 4.2, "role": "wall"},
+    {"id": "south-partition-east-a", "x": 36, "z": 12, "sx": 10, "sz": 1.2, "h": 4.2, "role": "wall"},
+    {"id": "south-partition-east-b", "x": 48.5, "z": 12, "sx": 3, "sz": 1.2, "h": 4.2, "role": "wall"},
+    {"id": "a-pit-screen", "x": -9, "z": -24.5, "sx": 1.2, "sz": 5, "h": 3.2, "role": "wall"},
+    {"id": "a-long-outer-baffle", "x": 7, "z": -35, "sx": 1.2, "sz": 6, "h": 3.2, "role": "wall"},
+    {"id": "a-site-entry-screen", "x": 24, "z": -19, "sx": 8, "sz": 1.2, "h": 3.6, "role": "wall"},
+    {"id": "mid-furnace-core", "x": 0, "z": 0, "sx": 5, "sz": 6, "h": 5.5, "role": "wall"},
+    {"id": "b-baffle-1", "x": -19, "z": 32, "sx": 1.2, "sz": 16, "h": 3.6, "role": "wall"},
+    {"id": "b-baffle-2", "x": -7, "z": 17.5, "sx": 1.2, "sz": 11, "h": 3.6, "role": "wall"},
+    {"id": "b-baffle-3", "x": 5, "z": 34.5, "sx": 1.2, "sz": 11, "h": 3.6, "role": "wall"},
+    {"id": "b-baffle-4", "x": 15, "z": 16.5, "sx": 1.2, "sz": 9, "h": 3.6, "role": "wall"},
+    {"id": "b-site-exit-south", "x": 30, "z": 14.5, "sx": 1.2, "sz": 5, "h": 4.0, "role": "wall"},
+    {"id": "b-site-exit-center", "x": 30, "z": 24.5, "sx": 1.2, "sz": 5, "h": 4.0, "role": "wall"},
+    {"id": "b-site-exit-north", "x": 30, "z": 36, "sx": 1.2, "sz": 8, "h": 4.0, "role": "wall"},
+    {"id": "defender-spine-screen", "x": 42, "z": 0, "sx": 1.2, "sz": 18, "h": 4.5, "role": "wall"}
+  ],
+  "covers": [
+    {"id": "a-entry-crates", "x": -30, "z": -31, "sx": 2.6, "sz": 2.2, "h": 1.25, "role": "cover"},
+    {"id": "a-long-spool", "x": -12, "z": -25.5, "sx": 2.2, "sz": 2.2, "h": 1.45, "role": "cover"},
+    {"id": "a-second-line-crate", "x": 5, "z": -30.5, "sx": 2.6, "sz": 2.2, "h": 1.3, "role": "cover"},
+    {"id": "a-ramp-baffle", "x": 17, "z": -23.5, "sx": 2.4, "sz": 2.4, "h": 1.5, "role": "cover"},
+    {"id": "a-site-crates", "x": 40, "z": -20, "sx": 2.8, "sz": 2.2, "h": 1.55, "role": "cover"},
+    {"id": "mid-west-console", "x": -14, "z": 3.5, "sx": 3.0, "sz": 1.6, "h": 1.25, "role": "cover"},
+    {"id": "mid-east-console", "x": 10, "z": -4.5, "sx": 3.0, "sz": 1.6, "h": 1.25, "role": "cover"},
+    {"id": "mid-rotation-crate", "x": 21, "z": 4.5, "sx": 2.4, "sz": 2.4, "h": 1.4, "role": "cover"},
+    {"id": "b-entry-crates", "x": -29, "z": 26, "sx": 2.6, "sz": 2.2, "h": 1.25, "role": "cover"},
+    {"id": "b-chamber-spool", "x": -12, "z": 20, "sx": 2.2, "sz": 2.2, "h": 1.45, "role": "cover"},
+    {"id": "b-pump-crate", "x": 0, "z": 28, "sx": 2.6, "sz": 2.2, "h": 1.3, "role": "cover"},
+    {"id": "b-valve-cover", "x": 13, "z": 22, "sx": 2.4, "sz": 2.4, "h": 1.5, "role": "cover"},
+    {"id": "b-exit-crates", "x": 24, "z": 16.5, "sx": 2.6, "sz": 2.2, "h": 1.45, "role": "cover"},
+    {"id": "b-site-crates", "x": 39, "z": 21, "sx": 2.8, "sz": 2.2, "h": 1.55, "role": "cover"}
+  ],
+  "floors": [
+    {"id": "a-pit-north-shoulder", "x": -8, "z": -33, "sx": 32, "sz": 4, "h": 0.65, "climbable": true, "role": "floor"},
+    {"id": "a-pit-south-shoulder", "x": -8, "z": -23, "sx": 32, "sz": 4, "h": 0.65, "climbable": true, "role": "floor"},
+    {"id": "a-ramp-landing", "x": 25, "z": -28, "sx": 6, "sz": 6, "h": 0.8, "climbable": true, "role": "floor"},
+    {"id": "site-a-dais", "x": 37, "z": -24, "sx": 12, "sz": 12, "h": 0.4, "climbable": true, "role": "floor"},
+    {"id": "site-b-dais", "x": 37, "z": 24, "sx": 12, "sz": 12, "h": 0.4, "climbable": true, "role": "floor"},
+    {"id": "b-control-platform", "x": 35, "z": 32, "sx": 6, "sz": 4, "h": 3.2, "climbable": true, "upper": true, "role": "floor"}
+  ],
+  "stairs": [
+    {"id": "a-ramp-descent", "x": 30, "z": -28, "sx": 4, "sz": 6, "h": 0.8, "steps": 4, "direction": "x-", "climbable": true, "role": "stair", "targetId": "a-ramp-landing", "targetEdge": "x+"},
+    {"id": "b-catwalk-access", "x": 18.5, "z": 32, "sx": 5, "sz": 2.8, "h": 3.2, "steps": 16, "direction": "x+", "climbable": true, "role": "stair", "targetId": "b-local-catwalk", "targetEdge": "x-"}
+  ],
+  "ramps": [
+    {"id": "a-long-ramp", "x": 17, "z": -28, "sx": 10, "sz": 6, "h": 0.8, "climbable": true, "role": "ramp", "targetId": "a-ramp-landing", "targetEdge": "x-"}
+  ],
+  "catwalks": [
+    {"id": "b-local-catwalk", "x": 28, "z": 32, "sx": 14, "sz": 2.8, "h": 3.2, "climbable": true, "upper": true, "catwalk": true, "passUnder": true, "role": "catwalk", "railOpening": "z-", "railOpeningCenter": 35, "railOpeningWidth": 3.2}
+  ],
+  "overheads": [
+    {"id": "a-long-entry-frame", "x": -37, "z": -12, "sx": 6, "sz": 1.5, "y": 3.2, "thickness": 0.55, "role": "overhead"},
+    {"id": "mid-a-frame", "x": 28, "z": -12, "sx": 6, "sz": 1.5, "y": 3.2, "thickness": 0.55, "role": "overhead"},
+    {"id": "a-defense-return-frame", "x": 44, "z": -12, "sx": 6, "sz": 1.5, "y": 3.2, "thickness": 0.55, "role": "overhead"},
+    {"id": "b-service-entry-frame", "x": -37, "z": 12, "sx": 6, "sz": 1.5, "y": 3.2, "thickness": 0.55, "role": "overhead"},
+    {"id": "mid-b-frame", "x": 28, "z": 12, "sx": 6, "sz": 1.5, "y": 3.2, "thickness": 0.55, "role": "overhead"},
+    {"id": "b-defense-return-frame", "x": 44, "z": 12, "sx": 6, "sz": 1.5, "y": 3.2, "thickness": 0.55, "role": "overhead"},
+    {"id": "b-dock-exit-frame", "x": 30, "z": 19.5, "sx": 1.5, "sz": 5, "y": 3.2, "thickness": 0.55, "role": "overhead"},
+    {"id": "b-control-exit-frame", "x": 30, "z": 29.5, "sx": 1.5, "sz": 5, "y": 3.2, "thickness": 0.55, "role": "overhead"}
+  ],
+  "obstacles": []
+}
