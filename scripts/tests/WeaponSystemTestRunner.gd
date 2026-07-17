@@ -33,6 +33,7 @@ func _run_all_tests() -> void:
 	await _run_test("empty_mag_fire_triggers_reload", _test_empty_mag_fire_triggers_reload)
 	await _run_test("switch_to_slot_cancels_reload_and_respects_equip_lock", _test_switch_to_slot_cancels_reload_and_respects_equip_lock)
 	await _run_test("pattern_index_resets_after_recovery_delay", _test_pattern_index_resets_after_recovery_delay)
+	await _run_test("hud_uses_familiar_information_zones", _test_hud_uses_familiar_information_zones)
 	await _run_test("hits_dummy_registers_damage_and_updates_hud", _test_hits_dummy_registers_damage_and_updates_hud)
 	await _run_test("kill_shot_registers_kill_and_updates_hud", _test_kill_shot_registers_kill_and_updates_hud)
 	await _run_test("terrain_hit_does_not_increment_hit_count", _test_terrain_hit_does_not_increment_hit_count)
@@ -271,6 +272,36 @@ func _test_pattern_index_resets_after_recovery_delay(fixture: Dictionary) -> voi
 	var recovered_state: Dictionary = _current_state(weapon_system)
 	_assert_equal(recovered_state.get("pattern_index"), 0, "pattern should reset after enough idle recovery time")
 
+func _test_hud_uses_familiar_information_zones(fixture: Dictionary) -> void:
+	var hud: CanvasLayer = _spawn_combat_hud(fixture)
+	GameState.player_health = 74
+	GameState.sync_weapon_state("\u624b\u67aa", 4, 24, "", 0.0, 0.0, 1)
+	hud.call("update_display", GameState.get_hud_snapshot())
+
+	var hud_root: Control = hud.get_node("HudRoot")
+	var health_value: Label = hud.get_node("HudRoot/BottomLeft/Margin/Row/HealthText/Value")
+	var weapon_label: Label = hud.get_node("HudRoot/BottomRight/Margin/Row/WeaponBlock/Weapon")
+	var magazine_label: Label = hud.get_node("HudRoot/BottomRight/Margin/Row/AmmoMagazine")
+	var reserve_label: Label = hud.get_node("HudRoot/BottomRight/Margin/Row/AmmoReserve")
+	var round_state_label: Label = hud.get_node("HudRoot/TopCenter/Margin/Stack/RoundState")
+	var round_panel: PanelContainer = hud.get_node("HudRoot/TopCenter")
+	var health_panel: PanelContainer = hud.get_node("HudRoot/BottomLeft")
+	var ammo_panel: PanelContainer = hud.get_node("HudRoot/BottomRight")
+
+	_assert_true(hud_root.visible, "combat HUD should be visible during live play")
+	_assert_equal(health_value.text, "74", "health should use a concise numeric value in the lower-left zone")
+	_assert_true(weapon_label.text.contains("[2]") and weapon_label.text.contains("\u624b\u67aa"), "weapon slot and name should stay together in the lower-right zone")
+	_assert_equal(magazine_label.text, "4", "magazine count should remain the dominant ammo number")
+	_assert_equal(reserve_label.text, "24", "reserve count should remain separate from magazine ammo")
+	_assert_equal(round_state_label.text, "LIVE", "round state should use the compact classic HUD label")
+	_assert_float_close(round_panel.anchor_left, 0.5, 0.001, "round context should stay centered at the top")
+	_assert_float_close(health_panel.anchor_bottom, 1.0, 0.001, "health should stay anchored to the lower-left")
+	_assert_float_close(ammo_panel.anchor_left, 1.0, 0.001, "ammo should stay anchored to the lower-right")
+
+	GameState.set_menu_state(true)
+	hud.call("update_display", GameState.get_hud_snapshot())
+	_assert_true(not hud_root.visible, "combat HUD should hide while the menu is open")
+
 func _test_hits_dummy_registers_damage_and_updates_hud(fixture: Dictionary) -> void:
 	var weapon_system: Node = fixture["weapon_system"]
 	var player: CharacterBody3D = fixture["player"]
@@ -288,10 +319,12 @@ func _test_hits_dummy_registers_damage_and_updates_hud(fixture: Dictionary) -> v
 	_assert_equal(int(GameState.hit_count), 1, "dummy hit should increment GameState hit counter")
 	_assert_equal(int(GameState.kill_count), 0, "non-lethal dummy hit should not increment kill counter")
 	hud.call("update_display", GameState.get_hud_snapshot())
-	var ammo_label: Label = hud.get_node("Panel/Margin/VBox/Ammo")
-	var state_label: Label = hud.get_node("Panel/Margin/VBox/MenuState")
-	_assert_true(ammo_label.text.contains("29 / 90"), "HUD ammo should reflect one rifle round spent after hit")
-	_assert_true(state_label.text.contains("命中：1"), "HUD state should show one registered hit")
+	var magazine_label: Label = hud.get_node("HudRoot/BottomRight/Margin/Row/AmmoMagazine")
+	var reserve_label: Label = hud.get_node("HudRoot/BottomRight/Margin/Row/AmmoReserve")
+	var stats_label: Label = hud.get_node("HudRoot/TopRight/Margin/Stats")
+	_assert_equal(magazine_label.text, "29", "HUD magazine should reflect one rifle round spent after hit")
+	_assert_equal(reserve_label.text, "90", "HUD reserve should remain unchanged after a normal shot")
+	_assert_true(stats_label.text.contains("HITS 1"), "HUD stats should show one registered hit")
 
 func _test_kill_shot_registers_kill_and_updates_hud(fixture: Dictionary) -> void:
 	var weapon_system: Node = fixture["weapon_system"]
@@ -311,9 +344,9 @@ func _test_kill_shot_registers_kill_and_updates_hud(fixture: Dictionary) -> void
 	_assert_equal(int(GameState.hit_count), 1, "kill shot should still count as a hit")
 	_assert_equal(int(GameState.kill_count), 1, "kill shot should increment GameState kill counter")
 	hud.call("update_display", GameState.get_hud_snapshot())
-	var state_label: Label = hud.get_node("Panel/Margin/VBox/MenuState")
-	_assert_true(state_label.text.contains("命中：1"), "HUD state should keep hit counter after kill shot")
-	_assert_true(state_label.text.contains("击倒：1"), "HUD state should show one kill after lethal hit")
+	var stats_label: Label = hud.get_node("HudRoot/TopRight/Margin/Stats")
+	_assert_true(stats_label.text.contains("HITS 1"), "HUD stats should keep hit counter after kill shot")
+	_assert_true(stats_label.text.contains("KILLS 1"), "HUD stats should show one kill after lethal hit")
 
 func _test_terrain_hit_does_not_increment_hit_count(fixture: Dictionary) -> void:
 	var weapon_system: Node = fixture["weapon_system"]
@@ -332,8 +365,8 @@ func _test_terrain_hit_does_not_increment_hit_count(fixture: Dictionary) -> void
 	_assert_equal(int(GameState.hit_count), 0, "terrain hit should not increment GameState hit counter")
 	_assert_equal(int(GameState.kill_count), 0, "terrain hit should not increment kill counter")
 	hud.call("update_display", GameState.get_hud_snapshot())
-	var state_label: Label = hud.get_node("Panel/Margin/VBox/MenuState")
-	_assert_true(state_label.text.contains("命中：0"), "HUD state should stay at zero hits after terrain shot")
+	var stats_label: Label = hud.get_node("HudRoot/TopRight/Margin/Stats")
+	_assert_true(stats_label.text.contains("HITS 0"), "HUD stats should stay at zero hits after terrain shot")
 
 func _test_invalid_profile_does_not_shift_runtime_slots(fixture: Dictionary) -> void:
 	var weapon_system: Node = fixture["weapon_system"]

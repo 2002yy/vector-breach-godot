@@ -109,6 +109,7 @@ func get_hud_snapshot() -> Dictionary:
 		"level_name": current_level_name,
 		"game_started": game_started,
 		"menu_open": menu_open,
+		"round_state": RoundManager.get_state_name(),
 		"round_label": RoundManager.get_state_label()
 	}
 

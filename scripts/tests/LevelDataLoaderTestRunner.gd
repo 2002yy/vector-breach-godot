@@ -167,12 +167,18 @@ func _test_foundry_reforged_prioritizes_three_ground_routes() -> void:
 	var metrics: Dictionary = level_data.get("metrics", {}) as Dictionary
 	var timing_targets: Dictionary = level_data.get("timingTargets", {}) as Dictionary
 	var timing_measurements: Dictionary = level_data.get("timingMeasurements", {}) as Dictionary
+	var environment: Dictionary = level_data.get("environment", {}) as Dictionary
 	var sprint_speed := float(metrics.get("sprintSpeedMetersPerSecond", 0.0))
 
 	_assert_equal(String(level_data.get("predecessor", "")), "depot", "Foundry Reforged should retain an explicit predecessor trace")
 	_assert_equal(String(level_data.get("designRevision", "")), "reforged-ground-combat-v0.2", "Foundry Reforged should expose the current ground-combat revision")
 	_assert_equal(String(level_data.get("visual_scene", "")), "res://assets/models/foundry/foundry_reforged.glb", "Foundry Reforged should use its own industrial visual")
 	_assert_true(String(level_data.get("visual_scene", "")) != "res://assets/models/foundry/foundry_depot.glb", "Foundry Reforged must not reuse the frozen Depot visual")
+	_assert_equal(String(environment.get("sky_panorama", "")), "res://assets/environment/overcast_industrial_courtyard_1k.hdr", "Foundry Reforged should retain its licensed industrial panorama")
+	_assert_true(FileAccess.file_exists(String(environment.get("sky_panorama", ""))), "Foundry Reforged panorama should exist in the project")
+	_assert_true(bool(environment.get("sun_shadow_enabled", false)), "Foundry Reforged should retain one shadowed directional key light")
+	_assert_true(float(environment.get("fog_density", 1.0)) <= 0.003, "Foundry Reforged should keep lightweight distance fog for the MX330 baseline")
+	_assert_true(not bool(environment.get("volumetric_fog_enabled", false)), "Foundry Reforged should not require volumetric fog")
 	_assert_true(bool(intent.get("groundLayerPriority", false)), "Foundry Reforged should prioritize the ground combat layer")
 	_assert_equal(int(intent.get("groundRouteCount", 0)), 3, "Foundry Reforged should commit to three primary ground routes")
 	_assert_true(not bool(intent.get("continuousUpperLoop", true)), "Foundry Reforged should not recreate a continuous upper map")

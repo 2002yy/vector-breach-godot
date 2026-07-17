@@ -19,6 +19,8 @@ from blender_build_utils import (  # noqa: E402
     add_cylinder,
     add_pipe,
     add_text,
+    assign_material,
+    cube_project_uv,
     ensure_collection,
     export_collection_glb,
     look_at,
@@ -74,19 +76,50 @@ def _add_boundary(
         collection,
     )
     spans = (
-        ("north", (0.0, arena_z + 0.5, height * 0.5), (arena_x * 2.0 + 2.0, 1.0, height)),
-        ("south", (0.0, -arena_z - 0.5, height * 0.5), (arena_x * 2.0 + 2.0, 1.0, height)),
-        ("west", (-arena_x - 0.5, 0.0, height * 0.5), (1.0, arena_z * 2.0 + 2.0, height)),
-        ("east", (arena_x + 0.5, 0.0, height * 0.5), (1.0, arena_z * 2.0 + 2.0, height)),
+        ("north", (0.0, arena_z + 0.5, height * 0.5), (arena_x * 2.0 + 2.0, 1.0, height), materials["concrete_light"]),
+        ("south", (0.0, -arena_z - 0.5, height * 0.5), (arena_x * 2.0 + 2.0, 1.0, height), materials["green_metal"]),
+        ("west", (-arena_x - 0.5, 0.0, height * 0.5), (1.0, arena_z * 2.0 + 2.0, height), materials["corrugated_rust"]),
+        ("east", (arena_x + 0.5, 0.0, height * 0.5), (1.0, arena_z * 2.0 + 2.0, height), materials["corrugated_rust"]),
     )
-    for name, location, dimensions in spans:
+    for name, location, dimensions, material in spans:
         add_box(
             f"GEO-reforged-boundary-{name}",
             location,
             dimensions,
-            materials["concrete_light"],
+            material,
             collection,
         )
+
+
+def _wall_material(materials: dict, entry: dict, index: int) -> bpy.types.Material:
+    wall_id = str(entry["id"])
+    if wall_id.startswith("b-"):
+        return materials["green_metal" if index % 2 == 0 else "corrugated_rust"]
+    if wall_id in {"a-pit-screen", "a-site-entry-screen"}:
+        return materials["damaged_concrete"]
+    if wall_id.startswith("a-"):
+        return materials["concrete"]
+    if wall_id.startswith("south-partition") and index % 3 == 0:
+        return materials["green_metal"]
+    if wall_id.startswith("defender-"):
+        return materials["metal_mid"]
+    return materials["concrete_light" if index % 3 else "concrete"]
+
+
+def _project_reforged_uvs(collection: bpy.types.Collection) -> None:
+    for obj in collection.objects:
+        name = obj.name.lower()
+        if "floor" in name or "boundary" in name:
+            cube_size = 4.0
+        elif "wall" in name:
+            cube_size = 3.0
+        elif "cover" in name or "furnace" in name or "equipment" in name:
+            cube_size = 1.35
+        elif "frame" in name or "panel" in name or "drain" in name:
+            cube_size = 1.0
+        else:
+            cube_size = 1.8
+        cube_project_uv(obj, cube_size)
 
 
 def _add_box_entry(
@@ -147,18 +180,26 @@ def build_blockout() -> dict:
     for index, entry in enumerate(level.get("walls", [])):
         if entry["id"] == "mid-furnace-core":
             continue
-        material = materials["concrete" if index % 3 == 0 else "concrete_light"]
+        material = _wall_material(materials, entry, index)
         _add_box_entry(collection, material, entry, "wall")
 
     for index, entry in enumerate(level.get("covers", [])):
         foundry._build_cover(collection, materials, entry, index)
+        cover = collection.objects.get(f"GEO-map_cover_{index:02d}")
+        if cover is not None:
+            zone_material = materials["green_metal"] if float(entry["z"]) > 12.0 else materials["rust"]
+            assign_material(cover, zone_material)
 
     for entry in level.get("floors", []):
-        material = materials["metal_mid"] if entry.get("upper") else materials["concrete"]
+        material = materials["corrugated_rust"] if entry.get("upper") else materials["concrete"]
         _add_box_entry(collection, material, entry, "floor")
 
     for index, entry in enumerate(level.get("stairs", [])):
         foundry._build_stair_run(collection, materials, entry, index)
+        if str(entry["id"]).startswith("b-"):
+            for obj in collection.objects:
+                if obj.name.startswith(f"GEO-map_stair_{index:02d}_"):
+                    assign_material(obj, materials["green_metal"])
 
     for entry in level.get("ramps", []):
         _add_ramp(collection, materials, entry)
@@ -169,7 +210,7 @@ def build_blockout() -> dict:
             f"GEO-reforged-catwalk-{entry['id']}",
             _map_point(float(entry["x"]), float(entry["z"]), deck_height - 0.14),
             (float(entry["sx"]), float(entry["sz"]), 0.28),
-            materials["metal_mid"],
+            materials["corrugated_rust"],
             collection,
         )
         foundry._build_catwalk_supports(collection, materials, entry, index)
@@ -185,7 +226,7 @@ def build_blockout() -> dict:
             collection,
         )
 
-    foundry._project_collection_uvs(collection, 2.5)
+    _project_reforged_uvs(collection)
     return validate_collection(MAP_COLLECTION)
 
 
@@ -216,6 +257,16 @@ def _build_furnace(collection: bpy.types.Collection, materials: dict) -> None:
             (math.cos(angle) * 2.37, math.sin(angle) * 2.37, 2.75),
             (0.14, 0.14, 4.7),
             materials["metal"],
+            collection,
+            rotation=(0.0, 0.0, angle),
+        )
+    for index in range(4):
+        angle = index * math.tau / 4.0
+        add_box(
+            f"GEO-reforged-furnace-glow-{index:02d}",
+            (math.cos(angle) * 2.38, math.sin(angle) * 2.38, 2.75),
+            (0.05, 0.82, 2.6),
+            materials["light"],
             collection,
             rotation=(0.0, 0.0, angle),
         )
@@ -263,7 +314,7 @@ def _build_equipment(collection: bpy.types.Collection, materials: dict) -> None:
         _map_point(0.0, 28.0, 0.65),
         0.95,
         1.3,
-        materials["metal_mid"],
+        materials["green_metal"],
         collection,
         vertices=12,
     )
@@ -272,10 +323,101 @@ def _build_equipment(collection: bpy.types.Collection, materials: dict) -> None:
         _map_point(13.0, 22.0, 0.75),
         0.9,
         1.5,
-        materials["rust"],
+        materials["corrugated_rust"],
         collection,
         vertices=12,
     )
+
+
+def _build_door_frames(collection: bpy.types.Collection, materials: dict, level: dict) -> None:
+    frame_height = 3.2
+    post_width = 0.22
+    wall_depth = 0.38
+    for index, entry in enumerate(level.get("doorways", [])):
+        x = float(entry["x"])
+        z = float(entry["z"])
+        width = float(entry["width"])
+        doorway_id = str(entry["id"])
+        material = materials["green_metal"] if doorway_id.startswith("b-") or z > 12.0 else materials["corrugated_rust"]
+        runs_along_x = abs(z) <= 12.01
+        if runs_along_x:
+            for side, post_x in enumerate((x - width * 0.5, x + width * 0.5)):
+                add_box(
+                    f"GEO-reforged-door-frame-{index:02d}-post-{side}",
+                    _map_point(post_x, z, frame_height * 0.5),
+                    (post_width, wall_depth, frame_height),
+                    material,
+                    collection,
+                )
+            header_dimensions = (width + post_width * 2.0, wall_depth, 0.24)
+        else:
+            for side, post_z in enumerate((z - width * 0.5, z + width * 0.5)):
+                add_box(
+                    f"GEO-reforged-door-frame-{index:02d}-post-{side}",
+                    _map_point(x, post_z, frame_height * 0.5),
+                    (wall_depth, post_width, frame_height),
+                    material,
+                    collection,
+                )
+            header_dimensions = (wall_depth, width + post_width * 2.0, 0.24)
+        add_box(
+            f"GEO-reforged-door-frame-{index:02d}-header",
+            _map_point(x, z, frame_height - 0.12),
+            header_dimensions,
+            material,
+            collection,
+        )
+
+
+def _build_service_panels(collection: bpy.types.Collection, materials: dict) -> None:
+    specs = (
+        ("mid-a-west", -12.0, -12.0, 1.35, materials["light"]),
+        ("mid-a-east", 10.0, -12.0, 1.35, materials["light"]),
+        ("mid-b-west", -12.0, 12.0, 1.35, materials["light_cool"]),
+        ("mid-b-east", 10.0, 12.0, 1.35, materials["light_cool"]),
+    )
+    for name, x, z, height, screen_material in specs:
+        face_y = 11.34 if z < 0.0 else -11.34
+        add_box(
+            f"GEO-reforged-service-panel-{name}-body",
+            (x, face_y, height),
+            (1.1, 0.14, 1.7),
+            materials["green_metal" if z > 0.0 else "metal_mid"],
+            collection,
+        )
+        screen_y = face_y - 0.085 if z < 0.0 else face_y + 0.085
+        add_box(
+            f"GEO-reforged-service-panel-{name}-screen",
+            (x, screen_y, height + 0.2),
+            (0.62, 0.035, 0.36),
+            screen_material,
+            collection,
+        )
+
+
+def _build_floor_drains(collection: bpy.types.Collection, materials: dict) -> None:
+    drains = (
+        ("a-long", -8.0, -28.0, 30.0, 0.34),
+        ("b-service", 1.0, 24.0, 28.0, 0.34),
+    )
+    for name, x, z, length, width in drains:
+        add_box(
+            f"GEO-reforged-drain-{name}-bed",
+            _map_point(x, z, 0.015),
+            (length, width, 0.03),
+            materials["dark"],
+            collection,
+        )
+        bar_count = max(2, int(length // 1.2))
+        for index in range(bar_count):
+            bar_x = x - length * 0.5 + length * (index + 0.5) / bar_count
+            add_box(
+                f"GEO-reforged-drain-{name}-bar-{index:02d}",
+                _map_point(bar_x, z, 0.034),
+                (0.055, width * 0.92, 0.018),
+                materials["metal_mid"],
+                collection,
+            )
 
 
 def _build_route_markings(collection: bpy.types.Collection, materials: dict) -> None:
@@ -334,9 +476,12 @@ def build_details() -> dict:
     _build_furnace(collection, materials)
     _build_pipes(collection, materials)
     _build_equipment(collection, materials)
+    _build_door_frames(collection, materials, level)
+    _build_service_panels(collection, materials)
+    _build_floor_drains(collection, materials)
     _build_route_markings(collection, materials)
     _build_catwalk_rails(collection, materials, level)
-    foundry._project_collection_uvs(collection, 2.5)
+    _project_reforged_uvs(collection)
     return validate_collection(MAP_COLLECTION)
 
 
@@ -366,6 +511,9 @@ def validate_interfaces() -> dict:
             - (catwalk_stair["x"] + catwalk_stair["sx"] * 0.5),
             4,
         ),
+        "door_frame_wall_overlap": 0.11,
+        "service_panel_wall_overlap": 0.01,
+        "floor_drain_height": 0.03,
     }
 
 

@@ -82,12 +82,38 @@ def _materials() -> dict[str, bpy.types.Material]:
         metallic=0.28,
         normal_strength=0.7,
     )
+    green_metal = make_pbr_texture_material(
+        "MAT_green_metal_rust",
+        texture_root / "green_metal_rust_diffuse.jpg",
+        texture_root / "green_metal_rust_rough.jpg",
+        texture_root / "green_metal_rust_nor_gl.jpg",
+        metallic=0.35,
+        normal_strength=0.72,
+    )
+    corrugated_rust = make_pbr_texture_material(
+        "MAT_corrugated_rust",
+        texture_root / "corrugated_rusty_metal_diffuse.jpg",
+        texture_root / "corrugated_rusty_metal_rough.jpg",
+        texture_root / "corrugated_rusty_metal_nor_gl.jpg",
+        metallic=0.3,
+        normal_strength=0.78,
+    )
+    damaged_concrete = make_pbr_texture_material(
+        "MAT_damaged_concrete",
+        texture_root / "rebar_reinforced_concrete_diffuse.jpg",
+        texture_root / "rebar_reinforced_concrete_rough.jpg",
+        texture_root / "rebar_reinforced_concrete_nor_gl.jpg",
+        normal_strength=0.68,
+    )
     return {
         "concrete": concrete,
         "concrete_light": concrete_light,
         "metal": metal,
         "metal_mid": metal_mid,
         "rust": rust,
+        "green_metal": green_metal,
+        "corrugated_rust": corrugated_rust,
+        "damaged_concrete": damaged_concrete,
         "orange": make_material("MAT_hazard_orange", (0.95, 0.42, 0.08, 1.0), roughness=0.5),
         "yellow": make_material("MAT_hazard_yellow", (0.92, 0.67, 0.12, 1.0), roughness=0.55),
         "teal": make_material("MAT_route_teal", (0.04, 0.42, 0.44, 1.0), metallic=0.15, roughness=0.5),
@@ -99,6 +125,13 @@ def _materials() -> dict[str, bpy.types.Material]:
             roughness=0.35,
             emission=(1.0, 0.18, 0.03, 1.0),
             emission_strength=4.0,
+        ),
+        "light_cool": make_material(
+            "MAT_emissive_cool",
+            (0.16, 0.62, 0.92, 1.0),
+            roughness=0.35,
+            emission=(0.04, 0.32, 1.0, 1.0),
+            emission_strength=3.0,
         ),
         "glove": make_material("MAT_glove", (0.085, 0.095, 0.085, 1.0), roughness=0.9),
         "skin": make_material("MAT_sleeve", (0.11, 0.16, 0.17, 1.0), roughness=0.88),

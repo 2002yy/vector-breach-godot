@@ -24,18 +24,21 @@ func set_map_options(options: Array, selected_index: int) -> void:
 	map_select.select(selected_index)
 
 func set_map_details(option: Dictionary, can_resume: bool) -> void:
-	title_label.text = "Vector Breach Godot"
-	description_label.text = (
-		"[b]%s[/b]\n%s\n\n[b]\u8def\u7ebf\u7279\u70b9[/b]\uff1a%s\n[b]\u63a8\u8350\u7528\u9014[/b]\uff1a%s\n[b]\u6d4b\u8bd5\u91cd\u70b9[/b]\uff1a%s"
-		% [
-			String(option["name"]),
-			String(option["description"]),
-			String(option["route_profile"]),
-			String(option["recommended_use"]),
-			String(option["test_focus"])
-		]
+	title_label.text = "VECTOR BREACH"
+	var description_template := (
+		"[color=#dbc774][font_size=14]ACTIVE MAP[/font_size][/color]\n"
+		+ "[font_size=23][b]%s[/b][/font_size]\n%s\n\n"
+		+ "[color=#aaa98f]\u6838\u5fc3\u8def\u7ebf[/color]  %s\n"
+		+ "[color=#aaa98f]\u8bad\u7ec3\u7528\u9014[/color]  %s"
 	)
-	hint_label.text = "Esc / P  \u83dc\u5355\u4e0e\u7ee7\u7eed   |   F  \u5168\u5c4f   |   F3  \u8c03\u8bd5\u9762\u677f"
+	description_label.text = description_template % [
+		String(option["name"]),
+		String(option["description"]),
+		String(option["route_profile"]),
+		String(option["recommended_use"])
+	]
+	start_button.text = "\u91cd\u65b0\u5f00\u59cb" if can_resume else "\u5f00\u59cb\u8bad\u7ec3"
+	hint_label.text = "WASD \u79fb\u52a8  \u00b7  MOUSE \u7784\u51c6  \u00b7  1/2 \u5207\u67aa  \u00b7  ESC \u83dc\u5355"
 	var preview_path: String = String(option["preview"])
 	if ResourceLoader.exists(preview_path):
 		preview_rect.texture = load(preview_path)

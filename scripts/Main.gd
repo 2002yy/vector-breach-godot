@@ -90,11 +90,11 @@ var level_options: Array = []
 var game_started: bool = false
 var menu_open: bool = true
 var _ui_update_timer: float = 0.0
-var _default_ambient_light_energy: float = 0.0
-var _default_sun_energy: float = 0.0
+var _default_environment_state: Dictionary = {}
 const UI_UPDATE_INTERVAL: float = 0.18
 
 func _ready() -> void:
+	_isolate_environment_resource()
 	_capture_default_environment()
 	GameState.set_graphics_preset("prototype")
 	level_options = SHIPPED_LEVEL_OPTIONS.duplicate(true)
@@ -117,6 +117,10 @@ func _ready() -> void:
 	_apply_selected_map()
 	_open_menu(true)
 	_update_ui(true)
+
+func _isolate_environment_resource() -> void:
+	if world_environment.environment != null:
+		world_environment.environment = world_environment.environment.duplicate(true) as Environment
 
 func _process(delta: float) -> void:
 	if game_started and not menu_open:
@@ -239,24 +243,154 @@ func _on_level_loaded(level_data: Dictionary) -> void:
 		combat_sandbox.call("load_for_level", level_data)
 
 func _capture_default_environment() -> void:
-	_default_sun_energy = sun.light_energy
-	if world_environment.environment != null:
-		_default_ambient_light_energy = world_environment.environment.ambient_light_energy
+	var environment := world_environment.environment
+	if environment == null:
+		return
+	_default_environment_state = {
+		"sun_energy": sun.light_energy,
+		"sun_color": sun.light_color,
+		"sun_rotation": sun.rotation,
+		"sun_shadow_enabled": sun.shadow_enabled,
+		"ambient_light_energy": environment.ambient_light_energy,
+		"ambient_light_color": environment.ambient_light_color,
+		"sky": environment.sky,
+		"sky_rotation": environment.sky_rotation,
+		"fog_enabled": environment.fog_enabled,
+		"fog_light_color": environment.fog_light_color,
+		"fog_light_energy": environment.fog_light_energy,
+		"fog_density": environment.fog_density,
+		"fog_sky_affect": environment.fog_sky_affect,
+		"tonemap_mode": environment.tonemap_mode,
+		"tonemap_exposure": environment.tonemap_exposure,
+		"ssao_enabled": environment.ssao_enabled,
+		"ssao_radius": environment.ssao_radius,
+		"ssao_intensity": environment.ssao_intensity
+	}
 
 func _apply_level_environment(level_data: Dictionary) -> void:
 	var settings: Dictionary = level_data.get("environment", {}) as Dictionary
-	sun.light_energy = clampf(
-		float(settings.get("sun_energy", _default_sun_energy)),
-		0.0,
-		8.0
-	)
-	if world_environment.environment == null:
+	_restore_default_environment()
+	var environment := world_environment.environment
+	if environment == null:
 		return
-	world_environment.environment.ambient_light_energy = clampf(
-		float(settings.get("ambient_light_energy", _default_ambient_light_energy)),
+
+	sun.light_energy = clampf(float(settings.get("sun_energy", sun.light_energy)), 0.0, 8.0)
+	sun.light_color = _color_from_array(settings.get("sun_color"), sun.light_color)
+	sun.shadow_enabled = bool(settings.get("sun_shadow_enabled", sun.shadow_enabled))
+	if settings.has("sun_rotation_degrees"):
+		sun.rotation_degrees = _vector3_from_array(
+			settings.get("sun_rotation_degrees"),
+			sun.rotation_degrees
+		)
+
+	environment.ambient_light_energy = clampf(
+		float(settings.get("ambient_light_energy", environment.ambient_light_energy)),
 		0.0,
 		8.0
 	)
+	environment.ambient_light_color = _color_from_array(
+		settings.get("ambient_light_color"),
+		environment.ambient_light_color
+	)
+
+	var panorama_path := String(settings.get("sky_panorama", ""))
+	if not panorama_path.is_empty() and ResourceLoader.exists(panorama_path):
+		var panorama := load(panorama_path) as Texture2D
+		if panorama != null:
+			var sky_material := PanoramaSkyMaterial.new()
+			sky_material.panorama = panorama
+			sky_material.energy_multiplier = clampf(
+				float(settings.get("sky_energy_multiplier", 1.0)),
+				0.0,
+				8.0
+			)
+			var sky := Sky.new()
+			sky.sky_material = sky_material
+			environment.sky = sky
+	environment.sky_rotation.y = deg_to_rad(
+		float(settings.get("sky_rotation_y_degrees", rad_to_deg(environment.sky_rotation.y)))
+	)
+
+	environment.fog_enabled = bool(settings.get("fog_enabled", environment.fog_enabled))
+	environment.fog_light_color = _color_from_array(
+		settings.get("fog_light_color"),
+		environment.fog_light_color
+	)
+	environment.fog_light_energy = clampf(
+		float(settings.get("fog_light_energy", environment.fog_light_energy)),
+		0.0,
+		8.0
+	)
+	environment.fog_density = clampf(
+		float(settings.get("fog_density", environment.fog_density)),
+		0.0,
+		1.0
+	)
+	environment.fog_sky_affect = clampf(
+		float(settings.get("fog_sky_affect", environment.fog_sky_affect)),
+		0.0,
+		1.0
+	)
+
+	match String(settings.get("tonemap", "")).to_lower():
+		"aces":
+			environment.tonemap_mode = Environment.TONE_MAPPER_ACES
+		"filmic":
+			environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	environment.tonemap_exposure = clampf(
+		float(settings.get("tonemap_exposure", environment.tonemap_exposure)),
+		0.1,
+		8.0
+	)
+	environment.ssao_enabled = bool(settings.get("ssao_enabled", environment.ssao_enabled))
+	environment.ssao_radius = clampf(
+		float(settings.get("ssao_radius", environment.ssao_radius)),
+		0.01,
+		16.0
+	)
+	environment.ssao_intensity = clampf(
+		float(settings.get("ssao_intensity", environment.ssao_intensity)),
+		0.0,
+		8.0
+	)
+
+func _restore_default_environment() -> void:
+	if _default_environment_state.is_empty() or world_environment.environment == null:
+		return
+	var environment := world_environment.environment
+	sun.light_energy = float(_default_environment_state["sun_energy"])
+	sun.light_color = _default_environment_state["sun_color"] as Color
+	sun.rotation = _default_environment_state["sun_rotation"] as Vector3
+	sun.shadow_enabled = bool(_default_environment_state["sun_shadow_enabled"])
+	environment.ambient_light_energy = float(_default_environment_state["ambient_light_energy"])
+	environment.ambient_light_color = _default_environment_state["ambient_light_color"] as Color
+	environment.sky = _default_environment_state["sky"] as Sky
+	environment.sky_rotation = _default_environment_state["sky_rotation"] as Vector3
+	environment.fog_enabled = bool(_default_environment_state["fog_enabled"])
+	environment.fog_light_color = _default_environment_state["fog_light_color"] as Color
+	environment.fog_light_energy = float(_default_environment_state["fog_light_energy"])
+	environment.fog_density = float(_default_environment_state["fog_density"])
+	environment.fog_sky_affect = float(_default_environment_state["fog_sky_affect"])
+	environment.tonemap_mode = int(_default_environment_state["tonemap_mode"]) as Environment.ToneMapper
+	environment.tonemap_exposure = float(_default_environment_state["tonemap_exposure"])
+	environment.ssao_enabled = bool(_default_environment_state["ssao_enabled"])
+	environment.ssao_radius = float(_default_environment_state["ssao_radius"])
+	environment.ssao_intensity = float(_default_environment_state["ssao_intensity"])
+
+func _color_from_array(value: Variant, fallback: Color) -> Color:
+	if value is Array and value.size() >= 3:
+		return Color(
+			clampf(float(value[0]), 0.0, 1.0),
+			clampf(float(value[1]), 0.0, 1.0),
+			clampf(float(value[2]), 0.0, 1.0),
+			clampf(float(value[3]), 0.0, 1.0) if value.size() >= 4 else 1.0
+		)
+	return fallback
+
+func _vector3_from_array(value: Variant, fallback: Vector3) -> Vector3:
+	if value is Array and value.size() >= 3:
+		return Vector3(float(value[0]), float(value[1]), float(value[2]))
+	return fallback
 
 func _on_shot_resolved(result: Dictionary) -> void:
 	if weapon_view_model.has_method("play_shot"):

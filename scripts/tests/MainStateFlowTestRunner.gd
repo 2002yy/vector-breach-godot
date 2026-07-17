@@ -86,6 +86,9 @@ func _test_initial_boot_shows_menu_and_default_map() -> void:
 
 	var start_menu: CanvasLayer = main.get_node("StartMenu")
 	var map_select: OptionButton = start_menu.get_node("MenuPanel/Margin/VBox/Controls/MapRow/MapSelect")
+	var menu_panel: PanelContainer = start_menu.get_node("MenuPanel")
+	var title_label: Label = start_menu.get_node("MenuPanel/Margin/VBox/Title")
+	var start_button: Button = start_menu.get_node("MenuPanel/Margin/VBox/Buttons/StartButton")
 	var resume_button: Button = start_menu.get_node("MenuPanel/Margin/VBox/Buttons/ResumeButton")
 	var description_label: RichTextLabel = start_menu.get_node("MenuPanel/Margin/VBox/Description")
 	var level: Node3D = main.get_node("Level")
@@ -96,6 +99,9 @@ func _test_initial_boot_shows_menu_and_default_map() -> void:
 	_assert_true(start_menu.visible, "start menu should be visible on boot")
 	_assert_equal(map_select.item_count, 5, "headless start menu should list only the five publishable maps")
 	_assert_equal((main.get("level_options") as Array).size(), 5, "local reference maps should stay out of automated headless runs")
+	_assert_equal(title_label.text, "VECTOR BREACH", "menu should expose a concise tactical title")
+	_assert_equal(start_button.text, "\u5f00\u59cb\u8bad\u7ec3", "initial primary action should clearly start training")
+	_assert_float_close(menu_panel.anchor_bottom, 1.0, 0.001, "menu panel should remain a full-height left navigation surface")
 	_assert_equal(map_select.selected, 1, "default selected map should be Foundry Depot")
 	_assert_true(not resume_button.visible, "resume button should stay hidden before the first run")
 	_assert_true(not status_panel.visible, "debug status panel should be hidden by default")
@@ -214,19 +220,46 @@ func _test_level_environment_overrides_restore_defaults() -> void:
 	await _await_main_ready()
 	var environment_node: WorldEnvironment = main.get_node("WorldEnvironment")
 	var sun: DirectionalLight3D = main.get_node("Sun")
+	var default_sky := environment_node.environment.sky
+	var default_sun_color := sun.light_color
+	var default_sun_rotation := sun.rotation
 
 	main.call("_apply_level_environment", {
 		"environment": {
 			"ambient_light_energy": 0.3,
-			"sun_energy": 0.65
+			"ambient_light_color": [0.5, 0.6, 0.7],
+			"sun_energy": 0.65,
+			"sun_color": [1.0, 0.8, 0.6],
+			"sun_rotation_degrees": [-52.0, -34.0, 0.0],
+			"sun_shadow_enabled": true,
+			"sky_panorama": "res://assets/environment/overcast_industrial_courtyard_1k.hdr",
+			"sky_energy_multiplier": 0.6,
+			"fog_enabled": true,
+			"fog_density": 0.0025,
+			"tonemap": "aces",
+			"tonemap_exposure": 1.05,
+			"ssao_enabled": true,
+			"ssao_radius": 1.8,
+			"ssao_intensity": 1.35
 		}
 	})
 	_assert_float_close(environment_node.environment.ambient_light_energy, 0.3, 0.001, "level data should override ambient light energy")
 	_assert_float_close(sun.light_energy, 0.65, 0.001, "level data should override sun energy")
+	_assert_true(sun.shadow_enabled, "level data should enable the single directional shadow caster")
+	_assert_true(environment_node.environment.sky.sky_material is PanoramaSkyMaterial, "level data should load the configured panorama sky")
+	_assert_true(environment_node.environment.fog_enabled, "level data should enable lightweight distance fog")
+	_assert_true(environment_node.environment.ssao_enabled, "level data should enable ambient occlusion")
+	_assert_float_close(environment_node.environment.ssao_radius, 1.8, 0.001, "level data should apply the authored SSAO radius")
+	_assert_equal(environment_node.environment.tonemap_mode, Environment.TONE_MAPPER_ACES, "level data should select ACES tonemapping")
 
 	main.call("_apply_level_environment", {})
 	_assert_float_close(environment_node.environment.ambient_light_energy, 0.7, 0.001, "maps without overrides should restore default ambient light")
 	_assert_float_close(sun.light_energy, 1.4, 0.001, "maps without overrides should restore default sun energy")
+	_assert_true(environment_node.environment.sky == default_sky, "maps without overrides should restore the procedural sky")
+	_assert_true(sun.light_color.is_equal_approx(default_sun_color), "maps without overrides should restore default sun color")
+	_assert_vec3_close(sun.rotation, default_sun_rotation, 0.001, "maps without overrides should restore default sun rotation")
+	_assert_true(not environment_node.environment.fog_enabled, "maps without overrides should restore default fog state")
+	_assert_true(not environment_node.environment.ssao_enabled, "maps without overrides should restore default SSAO state")
 
 	await _cleanup_main(main)
 

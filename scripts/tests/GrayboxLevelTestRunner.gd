@@ -359,7 +359,7 @@ func _test_foundry_reforged_builds_independent_ground_graybox() -> void:
 	if visual_root.get_child_count() == 1:
 		var level_visual: Node = visual_root.get_child(0)
 		_assert_equal(String(level_visual.name), "LevelVisual", "Foundry Reforged visual should use the stable integration name")
-		_assert_true(_count_nodes_of_type(level_visual, "MeshInstance3D") >= 180, "Foundry Reforged visual should retain the complete industrial asset set")
+		_assert_true(_count_nodes_of_type(level_visual, "MeshInstance3D") >= 280, "Foundry Reforged visual should retain the complete material and environment asset pass")
 
 	await _cleanup_level(level)
 

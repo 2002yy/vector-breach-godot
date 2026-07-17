@@ -52,7 +52,8 @@ func _ready() -> void:
 		"spawn": await _capture_route_view(player, "spawn", routes.get("aLong", []) as Array, 0, 1.05),
 		"aLong": await _capture_route_view(player, "a-long", routes.get("aLong", []) as Array, 6, 1.05),
 		"mid": await _capture_route_view(player, "mid", routes.get("mid", []) as Array, 6, 1.05),
-		"bService": await _capture_route_view(player, "b-service", routes.get("bServiceDock", []) as Array, 6, 1.05)
+		"bService": await _capture_route_view(player, "b-service", routes.get("bServiceDock", []) as Array, 6, 1.05),
+		"bHigh": await _capture_route_view(player, "b-high", routes.get("bHigh", []) as Array, 2, 4.15)
 	}
 	var visual_root: Node3D = level.get_node("VisualRoot")
 	var all_clear := true
