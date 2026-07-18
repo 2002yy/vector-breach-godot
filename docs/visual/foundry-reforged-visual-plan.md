@@ -10,7 +10,7 @@ The visual target is a restrained tactical foundry rather than a cinematic furna
 
 - Warm furnace focal lighting: https://newsroom.ubisoft-press.com/tom-clancys-the-divisionr-2-zweiter-8-spieler-raid-operation-stahlross-ab-dem-30-juni-spielbar
 - Compact tactical foundry language: https://wraith-ops.com/
-- Neutral industrial sky and image-based lighting: https://polyhaven.com/a/overcast_industrial_courtyard
+- Architecture-free overcast sky: https://polyhaven.com/a/overcast_soil_puresky
 - Weathered painted metal: https://polyhaven.com/a/green_metal_rust
 - Corrugated rusted metal: https://polyhaven.com/a/rusty_metal
 - Damaged concrete hero surface: https://polyhaven.com/a/rebar_reinforced_concrete
@@ -37,7 +37,9 @@ These references define lighting ratios, material breakup, and industrial anatom
 ## Lighting Budget
 
 - One shadowed directional key light.
-- Low-contrast CC0 industrial HDRI for sky and reflections.
+- Architecture-free CC0 cloud HDRI for sky color and diffuse reflections; no photographed structures in the visible sky.
+- Godot PhysicalSky remains the resource-free fallback for maps without a sky asset.
+- Low-saturation 3D industrial skyline outside the playable boundary for real perspective and parallax.
 - Ambient energy near 0.30 instead of the prototype default 0.70.
 - Warm A-site and cool B-site local accents, but no permanent light directly behind common enemy positions.
 - Lightweight distance fog only; volumetric fog remains disabled for the MX330 baseline.
@@ -63,6 +65,6 @@ Every view must be checked for material scale, shadow continuity, enemy contrast
 
 ## Delivery Status
 
-The playable visual pass is implemented: the independent environment, material zoning, box-projected UVs, doorway and drain details, route markings, hazard bands, localized props, and all five first-person acceptance views are generated and validated without changing collision.
+The playable visual pass is implemented: the independent environment, architecture-free cloud sky, non-colliding 3D skyline, material zoning, box-projected UVs, doorway and drain details, route markings, hazard bands, localized props, and all five first-person acceptance views are generated and validated without changing collision. The rejected industrial courtyard HDRI was removed because its photographed structures had no gameplay-scale parallax.
 
 Optional polish remains intentionally separate from this gameplay-safe pass: non-colliding oil, rust-run, and weld decals plus additional pallet and barrel dressing. These must be reviewed for silhouette noise and cover readability before entering the shipped GLB.

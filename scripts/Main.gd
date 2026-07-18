@@ -293,8 +293,52 @@ func _apply_level_environment(level_data: Dictionary) -> void:
 		environment.ambient_light_color
 	)
 
+	var sky_mode := String(settings.get("sky_mode", "")).to_lower()
+	if sky_mode == "physical":
+		var physical_material := PhysicalSkyMaterial.new()
+		physical_material.energy_multiplier = clampf(
+			float(settings.get("sky_energy_multiplier", 1.0)),
+			0.0,
+			8.0
+		)
+		physical_material.turbidity = clampf(
+			float(settings.get("sky_turbidity", physical_material.turbidity)),
+			0.0,
+			1000.0
+		)
+		physical_material.ground_color = _color_from_array(
+			settings.get("sky_ground_color"),
+			physical_material.ground_color
+		)
+		physical_material.mie_coefficient = clampf(
+			float(settings.get("sky_mie_coefficient", physical_material.mie_coefficient)),
+			0.0,
+			1.0
+		)
+		physical_material.mie_color = _color_from_array(
+			settings.get("sky_mie_color"),
+			physical_material.mie_color
+		)
+		physical_material.rayleigh_coefficient = clampf(
+			float(settings.get("sky_rayleigh_coefficient", physical_material.rayleigh_coefficient)),
+			0.0,
+			64.0
+		)
+		physical_material.rayleigh_color = _color_from_array(
+			settings.get("sky_rayleigh_color"),
+			physical_material.rayleigh_color
+		)
+		physical_material.sun_disk_scale = clampf(
+			float(settings.get("sky_sun_disk_scale", physical_material.sun_disk_scale)),
+			0.0,
+			16.0
+		)
+		physical_material.use_debanding = bool(settings.get("sky_use_debanding", true))
+		var physical_sky := Sky.new()
+		physical_sky.sky_material = physical_material
+		environment.sky = physical_sky
 	var panorama_path := String(settings.get("sky_panorama", ""))
-	if not panorama_path.is_empty() and ResourceLoader.exists(panorama_path):
+	if sky_mode != "physical" and not panorama_path.is_empty() and ResourceLoader.exists(panorama_path):
 		var panorama := load(panorama_path) as Texture2D
 		if panorama != null:
 			var sky_material := PanoramaSkyMaterial.new()

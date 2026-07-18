@@ -2,14 +2,14 @@
 
 The HDRI in this directory is from [Poly Haven](https://polyhaven.com/) and is published under CC0.
 
-- `overcast_industrial_courtyard_1k.hdr`: https://polyhaven.com/a/overcast_industrial_courtyard
+- `overcast_soil_puresky_1k.hdr`: https://polyhaven.com/a/overcast_soil_puresky
 
-Only the 1K Radiance HDR file is included. It provides a low-contrast industrial sky and image-based lighting without adding high-resolution background detail to the repository.
+Only the 1K Radiance HDR file is included. This edited pure-sky version provides low-contrast cloud detail and diffuse lighting without photographed buildings, terrain, or other structures that would conflict with the map's 3D perspective.
 
 ## Integrity
 
 The source download was checked against the MD5 value published by the Poly Haven API:
 
 ```text
-747b3f17edca5daca1ec63c9cf843c3b  overcast_industrial_courtyard_1k.hdr
+7fbca6264f4618a787092b9e1679a578  overcast_soil_puresky_1k.hdr
 ```

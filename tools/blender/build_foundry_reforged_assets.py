@@ -329,6 +329,81 @@ def _build_equipment(collection: bpy.types.Collection, materials: dict) -> None:
     )
 
 
+def _build_distant_skyline(collection: bpy.types.Collection, materials: dict) -> None:
+    material = materials["skyline"]
+    warehouses = (
+        ("west-plant", -72.0, -18.0, 18.0, 24.0, 9.0),
+        ("east-warehouse", 72.0, 18.0, 22.0, 28.0, 8.0),
+        ("north-hall", 6.0, -62.0, 38.0, 18.0, 7.0),
+        ("south-hall", -10.0, 62.0, 42.0, 18.0, 7.5),
+    )
+    for name, x, z, sx, sz, height in warehouses:
+        add_box(
+            f"GEO-reforged-skyline-{name}-hall",
+            _map_point(x, z, height * 0.5),
+            (sx, sz, height),
+            material,
+            collection,
+        )
+        add_box(
+            f"GEO-reforged-skyline-{name}-roof",
+            _map_point(x, z, height + 0.3),
+            (sx + 0.8, sz + 0.8, 0.6),
+            material,
+            collection,
+        )
+
+    stacks = (
+        ("west-main", -72.0, -20.0, 1.45, 25.0),
+        ("west-secondary", -66.0, -16.0, 1.05, 19.0),
+        ("north-stack", 24.0, -65.0, 1.2, 23.0),
+    )
+    for name, x, z, radius, height in stacks:
+        add_cylinder(
+            f"GEO-reforged-skyline-{name}-stack",
+            _map_point(x, z, height * 0.5),
+            radius,
+            height,
+            material,
+            collection,
+            vertices=12,
+        )
+        add_cylinder(
+            f"GEO-reforged-skyline-{name}-crown",
+            _map_point(x, z, height - 0.15),
+            radius + 0.28,
+            0.5,
+            material,
+            collection,
+            vertices=12,
+        )
+
+    silos = (
+        ("east-silo-a", 64.0, -24.0, 2.4, 12.0),
+        ("east-silo-b", 70.0, -24.0, 2.4, 14.0),
+        ("east-silo-c", 76.0, -24.0, 2.4, 11.0),
+    )
+    for name, x, z, radius, height in silos:
+        add_cylinder(
+            f"GEO-reforged-skyline-{name}-silo",
+            _map_point(x, z, height * 0.5),
+            radius,
+            height,
+            material,
+            collection,
+            vertices=12,
+        )
+        add_cylinder(
+            f"GEO-reforged-skyline-{name}-cap",
+            _map_point(x, z, height - 0.2),
+            radius + 0.24,
+            0.5,
+            material,
+            collection,
+            vertices=12,
+        )
+
+
 def _build_door_frames(collection: bpy.types.Collection, materials: dict, level: dict) -> None:
     frame_height = 3.2
     post_width = 0.22
@@ -476,6 +551,7 @@ def build_details() -> dict:
     _build_furnace(collection, materials)
     _build_pipes(collection, materials)
     _build_equipment(collection, materials)
+    _build_distant_skyline(collection, materials)
     _build_door_frames(collection, materials, level)
     _build_service_panels(collection, materials)
     _build_floor_drains(collection, materials)
@@ -497,6 +573,16 @@ def validate_interfaces() -> dict:
     descent = by_id["a-ramp-descent"]
     catwalk = by_id["b-local-catwalk"]
     catwalk_stair = by_id["b-catwalk-access"]
+    skyline_objects = [
+        obj
+        for obj in bpy.data.collections[MAP_COLLECTION].objects
+        if obj.name.startswith("GEO-reforged-skyline-")
+    ]
+    skyline_grounded = [
+        obj
+        for obj in skyline_objects
+        if obj.name.endswith(("-hall", "-stack", "-silo"))
+    ]
     return {
         "ramp_to_landing_gap": round(
             landing["x"] - landing["sx"] * 0.5 - (ramp["x"] + ramp["sx"] * 0.5),
@@ -514,6 +600,11 @@ def validate_interfaces() -> dict:
         "door_frame_wall_overlap": 0.11,
         "service_panel_wall_overlap": 0.01,
         "floor_drain_height": 0.03,
+        "skyline_object_count": len(skyline_objects),
+        "skyline_ground_gap_max": round(
+            max(abs(obj.location.z - obj.dimensions.z * 0.5) for obj in skyline_grounded),
+            4,
+        ),
     }
 
 

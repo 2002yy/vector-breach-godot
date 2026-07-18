@@ -117,6 +117,7 @@ def _materials() -> dict[str, bpy.types.Material]:
         "orange": make_material("MAT_hazard_orange", (0.95, 0.42, 0.08, 1.0), roughness=0.5),
         "yellow": make_material("MAT_hazard_yellow", (0.92, 0.67, 0.12, 1.0), roughness=0.55),
         "teal": make_material("MAT_route_teal", (0.04, 0.42, 0.44, 1.0), metallic=0.15, roughness=0.5),
+        "skyline": make_material("MAT_distant_skyline", (0.12, 0.17, 0.19, 1.0), roughness=0.95),
         "dark": make_material("MAT_polymer_dark", (0.025, 0.03, 0.032, 1.0), roughness=0.62),
         "glass": make_material("MAT_screen_glass", (0.02, 0.08, 0.085, 1.0), metallic=0.2, roughness=0.2),
         "light": make_material(

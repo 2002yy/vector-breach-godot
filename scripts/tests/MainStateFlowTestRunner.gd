@@ -232,10 +232,15 @@ func _test_level_environment_overrides_restore_defaults() -> void:
 			"sun_color": [1.0, 0.8, 0.6],
 			"sun_rotation_degrees": [-52.0, -34.0, 0.0],
 			"sun_shadow_enabled": true,
-			"sky_panorama": "res://assets/environment/overcast_industrial_courtyard_1k.hdr",
-			"sky_energy_multiplier": 0.6,
+			"sky_mode": "physical",
+			"sky_energy_multiplier": 0.72,
+			"sky_turbidity": 13.5,
+			"sky_ground_color": [0.11, 0.13, 0.14],
+			"sky_mie_coefficient": 0.009,
+			"sky_rayleigh_coefficient": 1.45,
+			"sky_sun_disk_scale": 0.65,
 			"fog_enabled": true,
-			"fog_density": 0.0025,
+			"fog_density": 0.0012,
 			"tonemap": "aces",
 			"tonemap_exposure": 1.05,
 			"ssao_enabled": true,
@@ -246,11 +251,21 @@ func _test_level_environment_overrides_restore_defaults() -> void:
 	_assert_float_close(environment_node.environment.ambient_light_energy, 0.3, 0.001, "level data should override ambient light energy")
 	_assert_float_close(sun.light_energy, 0.65, 0.001, "level data should override sun energy")
 	_assert_true(sun.shadow_enabled, "level data should enable the single directional shadow caster")
-	_assert_true(environment_node.environment.sky.sky_material is PanoramaSkyMaterial, "level data should load the configured panorama sky")
+	_assert_true(environment_node.environment.sky.sky_material is PhysicalSkyMaterial, "level data should build the configured physical sky")
+	var physical_sky := environment_node.environment.sky.sky_material as PhysicalSkyMaterial
+	_assert_float_close(physical_sky.turbidity, 13.5, 0.001, "level data should apply the physical sky turbidity")
+	_assert_float_close(physical_sky.sun_disk_scale, 0.65, 0.001, "level data should apply the physical sun disk scale")
 	_assert_true(environment_node.environment.fog_enabled, "level data should enable lightweight distance fog")
 	_assert_true(environment_node.environment.ssao_enabled, "level data should enable ambient occlusion")
 	_assert_float_close(environment_node.environment.ssao_radius, 1.8, 0.001, "level data should apply the authored SSAO radius")
 	_assert_equal(environment_node.environment.tonemap_mode, Environment.TONE_MAPPER_ACES, "level data should select ACES tonemapping")
+	main.call("_apply_level_environment", {
+		"environment": {
+			"sky_panorama": "res://assets/environment/overcast_soil_puresky_1k.hdr",
+			"sky_energy_multiplier": 0.62
+		}
+	})
+	_assert_true(environment_node.environment.sky.sky_material is PanoramaSkyMaterial, "level data should retain a pure-sky panorama option")
 
 	main.call("_apply_level_environment", {})
 	_assert_float_close(environment_node.environment.ambient_light_energy, 0.7, 0.001, "maps without overrides should restore default ambient light")
