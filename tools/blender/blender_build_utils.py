@@ -294,6 +294,20 @@ def duplicate_single_user(
     return obj
 
 
+def join_mesh_objects(objects: Sequence[bpy.types.Object], name: str) -> bpy.types.Object:
+    meshes = [obj for obj in objects if obj is not None and obj.type == "MESH"]
+    if not meshes:
+        raise ValueError(f"Cannot join empty mesh assembly: {name}")
+    bpy.ops.object.select_all(action="DESELECT")
+    for obj in meshes:
+        obj.select_set(True)
+    bpy.context.view_layer.objects.active = meshes[0]
+    bpy.ops.object.join()
+    joined = bpy.context.active_object
+    joined.name = name
+    return joined
+
+
 def collection_objects(collection: bpy.types.Collection) -> list[bpy.types.Object]:
     return [obj for obj in collection.all_objects if obj is not None]
 

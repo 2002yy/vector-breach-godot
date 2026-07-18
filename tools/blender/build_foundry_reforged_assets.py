@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 import bpy
+from mathutils import Vector
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -23,6 +24,7 @@ from blender_build_utils import (  # noqa: E402
     cube_project_uv,
     ensure_collection,
     export_collection_glb,
+    join_mesh_objects,
     look_at,
     remove_collection,
     validate_collection,
@@ -418,6 +420,267 @@ def _build_wall_bases(collection: bpy.types.Collection, materials: dict, level: 
         )
 
 
+def _build_wall_modules(collection: bpy.types.Collection, materials: dict, level: dict) -> None:
+    max_bay_span = 4.5
+    rib_width = 0.16
+    cap_height = 0.18
+    for entry in level.get("walls", []):
+        if entry["id"] == "mid-furnace-core":
+            continue
+        x = float(entry["x"])
+        z = float(entry["z"])
+        sx = float(entry["sx"])
+        sz = float(entry["sz"])
+        height = float(entry["h"])
+        runs_along_x = sx >= sz
+        span = sx if runs_along_x else sz
+        if span < 8.0:
+            continue
+
+        bay_count = max(2, math.ceil(span / max_bay_span))
+        material = materials["dark"] if str(entry["id"]).startswith("b-") else materials["metal_mid"]
+        parts: list[bpy.types.Object] = []
+        for divider in range(1, bay_count):
+            offset = -span * 0.5 + span * divider / bay_count
+            rib_x = x + (offset if runs_along_x else 0.0)
+            rib_z = z + (0.0 if runs_along_x else offset)
+            dimensions = (
+                (rib_width, sz + 0.08, height)
+                if runs_along_x
+                else (sx + 0.08, rib_width, height)
+            )
+            parts.append(
+                add_box(
+                    f"TMP-reforged-wall-rib-{entry['id']}-{divider:02d}",
+                    _map_point(rib_x, rib_z, height * 0.5),
+                    dimensions,
+                    material,
+                    collection,
+                )
+            )
+
+        cap_dimensions = (
+            (sx + 0.06, sz + 0.08, cap_height)
+            if runs_along_x
+            else (sx + 0.08, sz + 0.06, cap_height)
+        )
+        parts.append(
+            add_box(
+                f"TMP-reforged-wall-cap-{entry['id']}",
+                _map_point(x, z, height - cap_height * 0.5),
+                cap_dimensions,
+                material,
+                collection,
+            )
+        )
+        join_mesh_objects(parts, f"GEO-reforged-wall-module-{entry['id']}")
+
+
+def _build_boundary_modules(collection: bpy.types.Collection, materials: dict, level: dict) -> None:
+    arena_x = float(level["arenaSizeX"])
+    arena_z = float(level["arenaSizeZ"])
+    height = float(level["boundaryHeight"])
+    rib_width = 0.22
+    cap_height = 0.20
+    specs = (
+        ("north", (0.0, arena_z + 0.5), (arena_x * 2.0 + 2.0, 1.0), True, materials["metal_mid"]),
+        ("south", (0.0, -arena_z - 0.5), (arena_x * 2.0 + 2.0, 1.0), True, materials["dark"]),
+        ("west", (-arena_x - 0.5, 0.0), (1.0, arena_z * 2.0 + 2.0), False, materials["dark"]),
+        ("east", (arena_x + 0.5, 0.0), (1.0, arena_z * 2.0 + 2.0), False, materials["dark"]),
+    )
+    for name, center, dimensions_2d, runs_along_x, material in specs:
+        center_x, center_y = center
+        size_x, size_y = dimensions_2d
+        span = size_x if runs_along_x else size_y
+        bay_count = max(2, math.ceil(span / 9.0))
+        parts: list[bpy.types.Object] = []
+        for divider in range(1, bay_count):
+            offset = -span * 0.5 + span * divider / bay_count
+            rib_location = (
+                (center_x + offset, center_y, height * 0.5)
+                if runs_along_x
+                else (center_x, center_y + offset, height * 0.5)
+            )
+            rib_dimensions = (
+                (rib_width, size_y + 0.08, height)
+                if runs_along_x
+                else (size_x + 0.08, rib_width, height)
+            )
+            parts.append(
+                add_box(
+                    f"TMP-reforged-boundary-rib-{name}-{divider:02d}",
+                    rib_location,
+                    rib_dimensions,
+                    material,
+                    collection,
+                )
+            )
+        cap_dimensions = (
+            (size_x + 0.06, size_y + 0.08, cap_height)
+            if runs_along_x
+            else (size_x + 0.08, size_y + 0.06, cap_height)
+        )
+        parts.append(
+            add_box(
+                f"TMP-reforged-boundary-cap-{name}",
+                (center_x, center_y, height - cap_height * 0.5),
+                cap_dimensions,
+                material,
+                collection,
+            )
+        )
+        join_mesh_objects(parts, f"GEO-reforged-boundary-module-{name}")
+
+
+def _build_wall_vent(
+    collection: bpy.types.Collection,
+    materials: dict,
+    wall: dict,
+    name: str,
+    face_sign: float,
+    accent_material: bpy.types.Material,
+) -> None:
+    width = 1.8
+    height = 1.0
+    body_depth = 0.12
+    detail_depth = 0.035
+    center_height = 2.45
+    runs_along_x = float(wall["sx"]) >= float(wall["sz"])
+    parts: list[bpy.types.Object] = []
+
+    if runs_along_x:
+        wall_face = float(wall["z"]) + face_sign * float(wall["sz"]) * 0.5
+        body_center = wall_face + face_sign * body_depth * 0.5
+        front_face = wall_face + face_sign * body_depth
+        detail_center = front_face + face_sign * detail_depth * 0.5
+        anchor_x = float(wall["x"])
+        parts.append(
+            add_box(
+                f"TMP-reforged-vent-{name}-body",
+                _map_point(anchor_x, body_center, center_height),
+                (width, body_depth, height),
+                materials["green_metal" if float(wall["z"]) > 0.0 else "metal_mid"],
+                collection,
+            )
+        )
+        for side, offset in enumerate((-width * 0.5 + 0.055, width * 0.5 - 0.055)):
+            parts.append(
+                add_box(
+                    f"TMP-reforged-vent-{name}-side-{side}",
+                    _map_point(anchor_x + offset, detail_center, center_height),
+                    (0.11, detail_depth, height),
+                    materials["dark"],
+                    collection,
+                )
+            )
+        for edge, height_offset in enumerate((-height * 0.5 + 0.055, height * 0.5 - 0.055)):
+            parts.append(
+                add_box(
+                    f"TMP-reforged-vent-{name}-edge-{edge}",
+                    _map_point(anchor_x, detail_center, center_height + height_offset),
+                    (width - 0.22, detail_depth, 0.11),
+                    materials["dark"],
+                    collection,
+                )
+            )
+        for slat in range(5):
+            slat_height = center_height - 0.30 + slat * 0.15
+            parts.append(
+                add_box(
+                    f"TMP-reforged-vent-{name}-slat-{slat}",
+                    _map_point(anchor_x, detail_center, slat_height),
+                    (width - 0.34, detail_depth, 0.065),
+                    materials["dark"],
+                    collection,
+                )
+            )
+        accent_center = front_face + face_sign * (detail_depth + 0.018)
+        parts.append(
+            add_box(
+                f"TMP-reforged-vent-{name}-accent",
+                _map_point(anchor_x, accent_center, center_height + 0.34),
+                (width * 0.48, 0.036, 0.055),
+                accent_material,
+                collection,
+            )
+        )
+        face_axis = "z"
+    else:
+        wall_face = float(wall["x"]) + face_sign * float(wall["sx"]) * 0.5
+        body_center = wall_face + face_sign * body_depth * 0.5
+        front_face = wall_face + face_sign * body_depth
+        detail_center = front_face + face_sign * detail_depth * 0.5
+        anchor_z = float(wall["z"])
+        parts.append(
+            add_box(
+                f"TMP-reforged-vent-{name}-body",
+                _map_point(body_center, anchor_z, center_height),
+                (body_depth, width, height),
+                materials["green_metal" if float(wall["z"]) > 0.0 else "metal_mid"],
+                collection,
+            )
+        )
+        for side, offset in enumerate((-width * 0.5 + 0.055, width * 0.5 - 0.055)):
+            parts.append(
+                add_box(
+                    f"TMP-reforged-vent-{name}-side-{side}",
+                    _map_point(detail_center, anchor_z + offset, center_height),
+                    (detail_depth, 0.11, height),
+                    materials["dark"],
+                    collection,
+                )
+            )
+        for edge, height_offset in enumerate((-height * 0.5 + 0.055, height * 0.5 - 0.055)):
+            parts.append(
+                add_box(
+                    f"TMP-reforged-vent-{name}-edge-{edge}",
+                    _map_point(detail_center, anchor_z, center_height + height_offset),
+                    (detail_depth, width - 0.22, 0.11),
+                    materials["dark"],
+                    collection,
+                )
+            )
+        for slat in range(5):
+            slat_height = center_height - 0.30 + slat * 0.15
+            parts.append(
+                add_box(
+                    f"TMP-reforged-vent-{name}-slat-{slat}",
+                    _map_point(detail_center, anchor_z, slat_height),
+                    (detail_depth, width - 0.34, 0.065),
+                    materials["dark"],
+                    collection,
+                )
+            )
+        accent_center = front_face + face_sign * (detail_depth + 0.018)
+        parts.append(
+            add_box(
+                f"TMP-reforged-vent-{name}-accent",
+                _map_point(accent_center, anchor_z, center_height + 0.34),
+                (0.036, width * 0.48, 0.055),
+                accent_material,
+                collection,
+            )
+        )
+        face_axis = "x"
+
+    vent = join_mesh_objects(parts, f"GEO-reforged-wall-vent-{name}")
+    vent["wall_id"] = str(wall["id"])
+    vent["wall_face_axis"] = face_axis
+    vent["wall_face_sign"] = face_sign
+
+
+def _build_wall_vents(collection: bpy.types.Collection, materials: dict, level: dict) -> None:
+    walls = {str(entry["id"]): entry for entry in level.get("walls", [])}
+    specs = (
+        ("a-long", "north-partition-east-center-a", -1.0, materials["orange"]),
+        ("mid-a", "north-partition-east-center-b", 1.0, materials["orange"]),
+        ("mid-b", "south-partition-east-center-b", -1.0, materials["teal"]),
+        ("b-service", "south-partition-center", 1.0, materials["teal"]),
+    )
+    for name, wall_id, face_sign, accent_material in specs:
+        _build_wall_vent(collection, materials, walls[wall_id], name, face_sign, accent_material)
+
+
 def _build_door_frames(collection: bpy.types.Collection, materials: dict, level: dict) -> None:
     frame_height = 3.2
     post_width = 0.22
@@ -601,6 +864,9 @@ def build_details() -> dict:
     _build_equipment(collection, materials)
     _build_distant_skyline(collection, materials)
     _build_wall_bases(collection, materials, level)
+    _build_boundary_modules(collection, materials, level)
+    _build_wall_modules(collection, materials, level)
+    _build_wall_vents(collection, materials, level)
     _build_door_frames(collection, materials, level)
     _build_service_panels(collection, materials)
     _build_floor_drains(collection, materials)
@@ -642,6 +908,35 @@ def validate_interfaces() -> dict:
         for obj in bpy.data.collections[MAP_COLLECTION].objects
         if obj.name.startswith("GEO-reforged-door-kick-")
     ]
+    wall_modules = [
+        obj
+        for obj in bpy.data.collections[MAP_COLLECTION].objects
+        if obj.name.startswith("GEO-reforged-wall-module-")
+    ]
+    wall_vents = [
+        obj
+        for obj in bpy.data.collections[MAP_COLLECTION].objects
+        if obj.name.startswith("GEO-reforged-wall-vent-")
+    ]
+    boundary_modules = [
+        obj
+        for obj in bpy.data.collections[MAP_COLLECTION].objects
+        if obj.name.startswith("GEO-reforged-boundary-module-")
+    ]
+    wall_by_id = {str(entry["id"]): entry for entry in level.get("walls", [])}
+    vent_contact_gaps: list[float] = []
+    for vent in wall_vents:
+        wall = wall_by_id[str(vent["wall_id"])]
+        face_sign = float(vent["wall_face_sign"])
+        corners = [vent.matrix_world @ Vector(corner) for corner in vent.bound_box]
+        if str(vent["wall_face_axis"]) == "x":
+            coordinates = [corner.x for corner in corners]
+            wall_face = float(wall["x"]) + face_sign * float(wall["sx"]) * 0.5
+        else:
+            coordinates = [-corner.y for corner in corners]
+            wall_face = float(wall["z"]) + face_sign * float(wall["sz"]) * 0.5
+        contact_face = min(coordinates) if face_sign > 0.0 else max(coordinates)
+        vent_contact_gaps.append(abs(contact_face - wall_face))
     return {
         "ramp_to_landing_gap": round(
             landing["x"] - landing["sx"] * 0.5 - (ramp["x"] + ramp["sx"] * 0.5),
@@ -667,6 +962,24 @@ def validate_interfaces() -> dict:
         "door_kick_count": len(door_kicks),
         "door_kick_ground_gap_max": round(
             max(abs(obj.location.z - obj.dimensions.z * 0.5) for obj in door_kicks),
+            4,
+        ),
+        "wall_module_count": len(wall_modules),
+        "wall_module_ground_gap_max": round(
+            max(
+                abs(min((obj.matrix_world @ Vector(corner)).z for corner in obj.bound_box))
+                for obj in wall_modules
+            ),
+            4,
+        ),
+        "wall_vent_count": len(wall_vents),
+        "wall_vent_contact_gap_max": round(max(vent_contact_gaps), 4),
+        "boundary_module_count": len(boundary_modules),
+        "boundary_module_ground_gap_max": round(
+            max(
+                abs(min((obj.matrix_world @ Vector(corner)).z for corner in obj.bound_box))
+                for obj in boundary_modules
+            ),
             4,
         ),
         "skyline_object_count": len(skyline_objects),

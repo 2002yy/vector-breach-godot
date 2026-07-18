@@ -69,4 +69,6 @@ The playable visual pass is implemented: the independent environment, architectu
 
 The material and scale pass adds exported glTF base-color factors instead of Blender-only viewport tinting, 25 grounded wall bases, 16 grounded doorway kick sleeves, and 16 two-sided route accents across eight doorways. Blender interface validation reports `0.0m` maximum ground gap for both wall bases and kick sleeves, while Godot continues to build collision exclusively from the audited level JSON.
 
+The structural rhythm pass adds 19 joined modules to long interior walls, four joined modules to the arena boundaries, and four wall-contact louver vents that distinguish A, Mid, and B without becoming cover. Each assembly is joined before export to limit object and draw-call growth; the completed map GLB contains 398 objects. Blender interface validation reports `0.0m` maximum ground gap for both module families and `0.0m` maximum wall-contact gap for the vents. These additions remain visual-only and do not change collision, route widths, or measured encounter timing.
+
 Optional polish remains intentionally separate from this gameplay-safe pass: non-colliding oil, rust-run, and weld decals plus additional pallet and barrel dressing. These must be reviewed for silhouette noise and cover readability before entering the shipped GLB.
