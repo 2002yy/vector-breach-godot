@@ -77,6 +77,7 @@ def make_pbr_texture_material(
     roughness_path: Path,
     normal_path: Path,
     *,
+    base_color_factor: Sequence[float] = (1.0, 1.0, 1.0, 1.0),
     metallic: float = 0.0,
     normal_strength: float = 0.75,
 ) -> bpy.types.Material:
@@ -94,12 +95,23 @@ def make_pbr_texture_material(
     output.location = (520.0, 0.0)
     principled = nodes.new("ShaderNodeBsdfPrincipled")
     principled.location = (260.0, 0.0)
+    principled.inputs["Base Color"].default_value = tuple(base_color_factor)
     principled.inputs["Metallic"].default_value = metallic
+    material.diffuse_color = tuple(base_color_factor)
 
     base_node = nodes.new("ShaderNodeTexImage")
     base_node.name = f"{name}_BaseColor"
     base_node.location = (-360.0, 180.0)
     base_node.image = bpy.data.images.load(str(base_color_path), check_existing=True)
+
+    base_mix_node = nodes.new("ShaderNodeMix")
+    base_mix_node.name = f"{name}_BaseColorFactor"
+    base_mix_node.label = "glTF Base Color Factor"
+    base_mix_node.location = (-40.0, 180.0)
+    base_mix_node.data_type = "RGBA"
+    base_mix_node.blend_type = "MULTIPLY"
+    base_mix_node.inputs["Factor"].default_value = 1.0
+    base_mix_node.inputs[7].default_value = tuple(base_color_factor)
 
     roughness_node = nodes.new("ShaderNodeTexImage")
     roughness_node.name = f"{name}_Roughness"
@@ -118,7 +130,8 @@ def make_pbr_texture_material(
     normal_map_node.inputs["Strength"].default_value = normal_strength
 
     links = material.node_tree.links
-    links.new(base_node.outputs["Color"], principled.inputs["Base Color"])
+    links.new(base_node.outputs["Color"], base_mix_node.inputs[6])
+    links.new(base_mix_node.outputs[2], principled.inputs["Base Color"])
     links.new(roughness_node.outputs["Color"], principled.inputs["Roughness"])
     links.new(normal_texture_node.outputs["Color"], normal_map_node.inputs["Color"])
     links.new(normal_map_node.outputs["Normal"], principled.inputs["Normal"])

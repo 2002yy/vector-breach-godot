@@ -49,6 +49,7 @@ def _materials() -> dict[str, bpy.types.Material]:
         texture_root / "concrete_floor_worn_001_diffuse.jpg",
         texture_root / "concrete_floor_worn_001_rough.jpg",
         texture_root / "concrete_floor_worn_001_nor_gl.jpg",
+        base_color_factor=(0.72, 0.74, 0.76, 1.0),
         normal_strength=0.52,
     )
     concrete_light = make_pbr_texture_material(
@@ -56,6 +57,7 @@ def _materials() -> dict[str, bpy.types.Material]:
         texture_root / "concrete_floor_worn_001_diffuse.jpg",
         texture_root / "concrete_floor_worn_001_rough.jpg",
         texture_root / "concrete_floor_worn_001_nor_gl.jpg",
+        base_color_factor=(0.82, 0.83, 0.82, 1.0),
         normal_strength=0.42,
     )
     metal = make_pbr_texture_material(
@@ -63,6 +65,7 @@ def _materials() -> dict[str, bpy.types.Material]:
         texture_root / "blue_metal_plate_diffuse.jpg",
         texture_root / "blue_metal_plate_rough.jpg",
         texture_root / "blue_metal_plate_nor_gl.jpg",
+        base_color_factor=(0.70, 0.76, 0.82, 1.0),
         metallic=0.72,
         normal_strength=0.62,
     )
@@ -71,6 +74,7 @@ def _materials() -> dict[str, bpy.types.Material]:
         texture_root / "blue_metal_plate_diffuse.jpg",
         texture_root / "blue_metal_plate_rough.jpg",
         texture_root / "blue_metal_plate_nor_gl.jpg",
+        base_color_factor=(0.62, 0.68, 0.74, 1.0),
         metallic=0.58,
         normal_strength=0.48,
     )
@@ -79,6 +83,7 @@ def _materials() -> dict[str, bpy.types.Material]:
         texture_root / "rusty_metal_02_diffuse.jpg",
         texture_root / "rusty_metal_02_rough.jpg",
         texture_root / "rusty_metal_02_nor_gl.jpg",
+        base_color_factor=(0.58, 0.42, 0.28, 1.0),
         metallic=0.28,
         normal_strength=0.7,
     )
@@ -87,6 +92,7 @@ def _materials() -> dict[str, bpy.types.Material]:
         texture_root / "green_metal_rust_diffuse.jpg",
         texture_root / "green_metal_rust_rough.jpg",
         texture_root / "green_metal_rust_nor_gl.jpg",
+        base_color_factor=(0.62, 0.72, 0.62, 1.0),
         metallic=0.35,
         normal_strength=0.72,
     )
@@ -95,6 +101,7 @@ def _materials() -> dict[str, bpy.types.Material]:
         texture_root / "corrugated_rusty_metal_diffuse.jpg",
         texture_root / "corrugated_rusty_metal_rough.jpg",
         texture_root / "corrugated_rusty_metal_nor_gl.jpg",
+        base_color_factor=(0.55, 0.40, 0.28, 1.0),
         metallic=0.3,
         normal_strength=0.78,
     )
@@ -103,6 +110,7 @@ def _materials() -> dict[str, bpy.types.Material]:
         texture_root / "rebar_reinforced_concrete_diffuse.jpg",
         texture_root / "rebar_reinforced_concrete_rough.jpg",
         texture_root / "rebar_reinforced_concrete_nor_gl.jpg",
+        base_color_factor=(0.72, 0.72, 0.72, 1.0),
         normal_strength=0.68,
     )
     return {
@@ -114,9 +122,9 @@ def _materials() -> dict[str, bpy.types.Material]:
         "green_metal": green_metal,
         "corrugated_rust": corrugated_rust,
         "damaged_concrete": damaged_concrete,
-        "orange": make_material("MAT_hazard_orange", (0.95, 0.42, 0.08, 1.0), roughness=0.5),
-        "yellow": make_material("MAT_hazard_yellow", (0.92, 0.67, 0.12, 1.0), roughness=0.55),
-        "teal": make_material("MAT_route_teal", (0.04, 0.42, 0.44, 1.0), metallic=0.15, roughness=0.5),
+        "orange": make_material("MAT_hazard_orange", (0.68, 0.22, 0.04, 1.0), roughness=0.65),
+        "yellow": make_material("MAT_hazard_yellow", (0.72, 0.48, 0.07, 1.0), roughness=0.68),
+        "teal": make_material("MAT_route_teal", (0.035, 0.30, 0.32, 1.0), metallic=0.15, roughness=0.62),
         "skyline": make_material("MAT_distant_skyline", (0.12, 0.17, 0.19, 1.0), roughness=0.95),
         "dark": make_material("MAT_polymer_dark", (0.025, 0.03, 0.032, 1.0), roughness=0.62),
         "glass": make_material("MAT_screen_glass", (0.02, 0.08, 0.085, 1.0), metallic=0.2, roughness=0.2),

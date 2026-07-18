@@ -404,16 +404,32 @@ def _build_distant_skyline(collection: bpy.types.Collection, materials: dict) ->
         )
 
 
+def _build_wall_bases(collection: bpy.types.Collection, materials: dict, level: dict) -> None:
+    base_height = 0.24
+    for entry in level.get("walls", []):
+        if entry["id"] == "mid-furnace-core":
+            continue
+        add_box(
+            f"GEO-reforged-wall-base-{entry['id']}",
+            _map_point(float(entry["x"]), float(entry["z"]), base_height * 0.5),
+            (float(entry["sx"]) + 0.04, float(entry["sz"]) + 0.04, base_height),
+            materials["dark"],
+            collection,
+        )
+
+
 def _build_door_frames(collection: bpy.types.Collection, materials: dict, level: dict) -> None:
     frame_height = 3.2
     post_width = 0.22
     wall_depth = 0.38
+    kick_height = 0.64
     for index, entry in enumerate(level.get("doorways", [])):
         x = float(entry["x"])
         z = float(entry["z"])
         width = float(entry["width"])
         doorway_id = str(entry["id"])
         material = materials["green_metal"] if doorway_id.startswith("b-") or z > 12.0 else materials["corrugated_rust"]
+        accent_material = materials["orange"] if doorway_id.startswith("a-") or doorway_id.endswith("-a") else materials["teal"]
         runs_along_x = abs(z) <= 12.01
         if runs_along_x:
             for side, post_x in enumerate((x - width * 0.5, x + width * 0.5)):
@@ -424,7 +440,19 @@ def _build_door_frames(collection: bpy.types.Collection, materials: dict, level:
                     material,
                     collection,
                 )
+                add_box(
+                    f"GEO-reforged-door-kick-{index:02d}-{side}",
+                    _map_point(post_x, z, kick_height * 0.5),
+                    (post_width + 0.08, wall_depth + 0.08, kick_height),
+                    materials["dark"],
+                    collection,
+                )
             header_dimensions = (width + post_width * 2.0, wall_depth, 0.24)
+            accent_dimensions = (min(width * 0.42, 2.4), 0.035, 0.10)
+            accent_locations = (
+                (x, -z - wall_depth * 0.5 - 0.018, frame_height - 0.12),
+                (x, -z + wall_depth * 0.5 + 0.018, frame_height - 0.12),
+            )
         else:
             for side, post_z in enumerate((z - width * 0.5, z + width * 0.5)):
                 add_box(
@@ -434,7 +462,19 @@ def _build_door_frames(collection: bpy.types.Collection, materials: dict, level:
                     material,
                     collection,
                 )
+                add_box(
+                    f"GEO-reforged-door-kick-{index:02d}-{side}",
+                    _map_point(x, post_z, kick_height * 0.5),
+                    (wall_depth + 0.08, post_width + 0.08, kick_height),
+                    materials["dark"],
+                    collection,
+                )
             header_dimensions = (wall_depth, width + post_width * 2.0, 0.24)
+            accent_dimensions = (0.035, min(width * 0.42, 2.4), 0.10)
+            accent_locations = (
+                (x - wall_depth * 0.5 - 0.018, -z, frame_height - 0.12),
+                (x + wall_depth * 0.5 + 0.018, -z, frame_height - 0.12),
+            )
         add_box(
             f"GEO-reforged-door-frame-{index:02d}-header",
             _map_point(x, z, frame_height - 0.12),
@@ -442,6 +482,14 @@ def _build_door_frames(collection: bpy.types.Collection, materials: dict, level:
             material,
             collection,
         )
+        for face, accent_location in enumerate(accent_locations):
+            add_box(
+                f"GEO-reforged-door-accent-{index:02d}-{face}",
+                accent_location,
+                accent_dimensions,
+                accent_material,
+                collection,
+            )
 
 
 def _build_service_panels(collection: bpy.types.Collection, materials: dict) -> None:
@@ -552,6 +600,7 @@ def build_details() -> dict:
     _build_pipes(collection, materials)
     _build_equipment(collection, materials)
     _build_distant_skyline(collection, materials)
+    _build_wall_bases(collection, materials, level)
     _build_door_frames(collection, materials, level)
     _build_service_panels(collection, materials)
     _build_floor_drains(collection, materials)
@@ -583,6 +632,16 @@ def validate_interfaces() -> dict:
         for obj in skyline_objects
         if obj.name.endswith(("-hall", "-stack", "-silo"))
     ]
+    wall_bases = [
+        obj
+        for obj in bpy.data.collections[MAP_COLLECTION].objects
+        if obj.name.startswith("GEO-reforged-wall-base-")
+    ]
+    door_kicks = [
+        obj
+        for obj in bpy.data.collections[MAP_COLLECTION].objects
+        if obj.name.startswith("GEO-reforged-door-kick-")
+    ]
     return {
         "ramp_to_landing_gap": round(
             landing["x"] - landing["sx"] * 0.5 - (ramp["x"] + ramp["sx"] * 0.5),
@@ -600,6 +659,16 @@ def validate_interfaces() -> dict:
         "door_frame_wall_overlap": 0.11,
         "service_panel_wall_overlap": 0.01,
         "floor_drain_height": 0.03,
+        "wall_base_count": len(wall_bases),
+        "wall_base_ground_gap_max": round(
+            max(abs(obj.location.z - obj.dimensions.z * 0.5) for obj in wall_bases),
+            4,
+        ),
+        "door_kick_count": len(door_kicks),
+        "door_kick_ground_gap_max": round(
+            max(abs(obj.location.z - obj.dimensions.z * 0.5) for obj in door_kicks),
+            4,
+        ),
         "skyline_object_count": len(skyline_objects),
         "skyline_ground_gap_max": round(
             max(abs(obj.location.z - obj.dimensions.z * 0.5) for obj in skyline_grounded),

@@ -361,6 +361,9 @@ func _test_foundry_reforged_builds_independent_ground_graybox() -> void:
 		_assert_equal(String(level_visual.name), "LevelVisual", "Foundry Reforged visual should use the stable integration name")
 		_assert_true(_count_nodes_of_type(level_visual, "MeshInstance3D") >= 280, "Foundry Reforged visual should retain the complete material and environment asset pass")
 		_assert_true(_count_nodes_with_name_prefix(level_visual, "GEO-reforged-skyline-") >= 20, "Foundry Reforged should retain its perspective-correct distant industrial skyline")
+		_assert_true(_count_nodes_with_name_prefix(level_visual, "GEO-reforged-wall-base-") >= 25, "every authored wall except the furnace core should keep a grounded visual base")
+		_assert_true(_count_nodes_with_name_prefix(level_visual, "GEO-reforged-door-kick-") >= 16, "all eight doorways should keep two grounded protective sleeves")
+		_assert_true(_count_nodes_with_name_prefix(level_visual, "GEO-reforged-door-accent-") >= 16, "doorways should expose route color on both approach faces")
 		_assert_equal(_count_nodes_of_type(level_visual, "StaticBody3D"), 0, "the visual-only skyline should not add collision outside the audited graybox")
 
 	await _cleanup_level(level)
