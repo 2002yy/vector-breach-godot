@@ -53,7 +53,10 @@ func _ready() -> void:
 		"aLong": await _capture_route_view(player, "a-long", routes.get("aLong", []) as Array, 6, 1.05),
 		"mid": await _capture_route_view(player, "mid", routes.get("mid", []) as Array, 6, 1.05),
 		"bService": await _capture_route_view(player, "b-service", routes.get("bServiceDock", []) as Array, 6, 1.05),
-		"bHigh": await _capture_route_view(player, "b-high", routes.get("bHigh", []) as Array, 2, 4.15)
+		"bHigh": await _capture_route_view(player, "b-high", routes.get("bHigh", []) as Array, 2, 4.15),
+		"aSpool": await _capture_target_view(player, "a-spool", Vector3(-16.0, 1.05, -28.0), Vector3(-12.0, 0.72, -25.5)),
+		"bPump": await _capture_target_view(player, "b-pump", Vector3(-4.0, 1.05, 25.5), Vector3(0.0, 0.65, 28.0)),
+		"bValve": await _capture_target_view(player, "b-valve", Vector3(9.5, 1.05, 25.5), Vector3(13.0, 0.75, 22.0))
 	}
 	var visual_root: Node3D = level.get_node("VisualRoot")
 	var all_clear := true
@@ -140,6 +143,25 @@ func _capture_route_view(
 	)
 	player.velocity = Vector3.ZERO
 	player.look_at(Vector3(float(look_point[0]), center_height, float(look_point[1])), Vector3.UP)
+	var camera_pivot: Node3D = player.get_node("CameraPivot")
+	camera_pivot.rotation.x = 0.0
+	await get_tree().process_frame
+	await RenderingServer.frame_post_draw
+	var output_path := ProjectSettings.globalize_path(
+		"user://foundry-reforged-%s-first-person.png" % label
+	)
+	var save_error := get_viewport().get_texture().get_image().save_png(output_path)
+	return output_path if save_error == OK else ""
+
+func _capture_target_view(
+	player: CharacterBody3D,
+	label: String,
+	position: Vector3,
+	target: Vector3
+) -> String:
+	player.global_position = position
+	player.velocity = Vector3.ZERO
+	player.look_at(target, Vector3.UP)
 	var camera_pivot: Node3D = player.get_node("CameraPivot")
 	camera_pivot.rotation.x = 0.0
 	await get_tree().process_frame

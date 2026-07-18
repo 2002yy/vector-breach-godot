@@ -206,6 +206,34 @@ def add_cylinder(
     return obj
 
 
+def add_torus(
+    name: str,
+    location: Sequence[float],
+    major_radius: float,
+    minor_radius: float,
+    material: bpy.types.Material,
+    collection: bpy.types.Collection,
+    *,
+    major_segments: int = 12,
+    minor_segments: int = 6,
+    rotation: Sequence[float] = (0.0, 0.0, 0.0),
+) -> bpy.types.Object:
+    bpy.ops.mesh.primitive_torus_add(
+        major_segments=major_segments,
+        minor_segments=minor_segments,
+        major_radius=major_radius,
+        minor_radius=minor_radius,
+        location=location,
+        rotation=rotation,
+    )
+    obj = bpy.context.active_object
+    obj.name = name
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    assign_material(obj, material)
+    move_to_collection(obj, collection)
+    return obj
+
+
 def add_ico_sphere(
     name: str,
     location: Sequence[float],

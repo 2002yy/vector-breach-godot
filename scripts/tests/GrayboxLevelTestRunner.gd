@@ -367,6 +367,10 @@ func _test_foundry_reforged_builds_independent_ground_graybox() -> void:
 		_assert_true(_count_nodes_with_name_prefix(level_visual, "GEO-reforged-wall-module-") >= 19, "long walls should retain their joined structural bay modules")
 		_assert_true(_count_nodes_with_name_prefix(level_visual, "GEO-reforged-wall-vent-") >= 4, "A, Mid, and B should retain four wall-contact ventilation landmarks")
 		_assert_true(_count_nodes_with_name_prefix(level_visual, "GEO-reforged-boundary-module-") >= 4, "the four arena boundaries should retain joined long-span structure modules")
+		_assert_equal(_count_nodes_with_name_prefix(level_visual, "GEO-reforged-equipment-"), 3, "the cable spool, pump, and valve should replace their generic cover visuals")
+		_assert_equal(_count_nodes_with_name_prefix(level_visual, "GEO-reforged-surface-oil-"), 3, "surface dressing should retain three low-profile oil stains")
+		_assert_equal(_count_nodes_with_name_prefix(level_visual, "GEO-reforged-surface-rust-"), 3, "surface dressing should retain three wall-contact rust runs")
+		_assert_equal(_count_nodes_with_name_prefix(level_visual, "GEO-reforged-surface-weld-"), 3, "surface dressing should retain three wall-contact weld seams")
 		_assert_equal(_count_nodes_of_type(level_visual, "StaticBody3D"), 0, "the visual-only skyline should not add collision outside the audited graybox")
 
 	await _cleanup_level(level)

@@ -20,12 +20,14 @@ from blender_build_utils import (  # noqa: E402
     add_cylinder,
     add_pipe,
     add_text,
+    add_torus,
     assign_material,
     cube_project_uv,
     ensure_collection,
     export_collection_glb,
     join_mesh_objects,
     look_at,
+    make_material,
     remove_collection,
     validate_collection,
 )
@@ -33,6 +35,7 @@ from blender_build_utils import (  # noqa: E402
 
 MAP_COLLECTION = "VB_MAP_FOUNDRY_REFORGED"
 PRESENTATION_COLLECTION = "VB_PRESENTATION_REFORGED"
+EQUIPMENT_COVER_IDS = {"a-long-spool", "b-pump-crate", "b-valve-cover"}
 
 
 def _load_level() -> dict:
@@ -186,6 +189,8 @@ def build_blockout() -> dict:
         _add_box_entry(collection, material, entry, "wall")
 
     for index, entry in enumerate(level.get("covers", [])):
+        if str(entry["id"]) in EQUIPMENT_COVER_IDS:
+            continue
         foundry._build_cover(collection, materials, entry, index)
         cover = collection.objects.get(f"GEO-map_cover_{index:02d}")
         if cover is not None:
@@ -300,35 +305,401 @@ def _build_pipes(collection: bpy.types.Collection, materials: dict) -> None:
             )
 
 
-def _build_equipment(collection: bpy.types.Collection, materials: dict) -> None:
-    add_cylinder(
-        "GEO-reforged-a-spool",
-        _map_point(-12.0, -25.5, 0.72),
-        0.66,
-        1.8,
-        materials["rust"],
-        collection,
-        vertices=12,
-        rotation=(math.radians(90.0), 0.0, 0.0),
+def _finish_equipment(parts: list[bpy.types.Object], name: str, cover_id: str) -> None:
+    equipment = join_mesh_objects(parts, f"GEO-reforged-equipment-{name}")
+    equipment["cover_id"] = cover_id
+
+
+def _build_cable_spool(
+    collection: bpy.types.Collection,
+    materials: dict,
+    cover: dict,
+) -> None:
+    center_x, center_y, _ = _map_point(float(cover["x"]), float(cover["z"]), 0.0)
+    center_height = 0.72
+    parts = [
+        add_cylinder(
+            "TMP-reforged-spool-core",
+            (center_x, center_y, center_height),
+            0.58,
+            1.55,
+            materials["dark"],
+            collection,
+            vertices=12,
+            rotation=(math.radians(90.0), 0.0, 0.0),
+        )
+    ]
+    for side, offset in enumerate((-0.84, 0.84)):
+        parts.append(
+            add_cylinder(
+                f"TMP-reforged-spool-flange-{side}",
+                (center_x, center_y + offset, center_height),
+                0.72,
+                0.12,
+                materials["rust"],
+                collection,
+                vertices=12,
+                rotation=(math.radians(90.0), 0.0, 0.0),
+            )
+        )
+    parts.append(
+        add_cylinder(
+            "TMP-reforged-spool-hub",
+            (center_x, center_y, center_height),
+            0.20,
+            1.88,
+            materials["metal_mid"],
+            collection,
+            vertices=12,
+            rotation=(math.radians(90.0), 0.0, 0.0),
+        )
     )
-    add_cylinder(
-        "GEO-reforged-b-pump",
-        _map_point(0.0, 28.0, 0.65),
-        0.95,
-        1.3,
-        materials["green_metal"],
-        collection,
-        vertices=12,
+    for band, offset in enumerate((-0.42, 0.0, 0.42)):
+        parts.append(
+            add_cylinder(
+                f"TMP-reforged-spool-cable-band-{band}",
+                (center_x, center_y + offset, center_height),
+                0.61,
+                0.065,
+                materials["dark"],
+                collection,
+                vertices=12,
+                rotation=(math.radians(90.0), 0.0, 0.0),
+            )
+        )
+    _finish_equipment(parts, "a-cable-spool", str(cover["id"]))
+
+
+def _build_pump(
+    collection: bpy.types.Collection,
+    materials: dict,
+    cover: dict,
+) -> None:
+    center_x, center_y, _ = _map_point(float(cover["x"]), float(cover["z"]), 0.0)
+    parts = [
+        add_box(
+            "TMP-reforged-pump-plinth",
+            (center_x, center_y, 0.08),
+            (2.2, 1.65, 0.16),
+            materials["dark"],
+            collection,
+        ),
+        add_cylinder(
+            "TMP-reforged-pump-motor",
+            (center_x - 0.32, center_y, 0.68),
+            0.45,
+            1.20,
+            materials["green_metal"],
+            collection,
+            vertices=12,
+            rotation=(0.0, math.radians(90.0), 0.0),
+        ),
+        add_cylinder(
+            "TMP-reforged-pump-housing",
+            (center_x + 0.65, center_y, 0.58),
+            0.48,
+            0.78,
+            materials["metal_mid"],
+            collection,
+            vertices=12,
+        ),
+    ]
+    for cap, offset in enumerate((-0.96, 0.32)):
+        parts.append(
+            add_cylinder(
+                f"TMP-reforged-pump-motor-cap-{cap}",
+                (center_x + offset, center_y, 0.68),
+                0.50,
+                0.12,
+                materials["metal_mid"],
+                collection,
+                vertices=12,
+                rotation=(0.0, math.radians(90.0), 0.0),
+            )
+        )
+    parts.extend(
+        (
+            add_cylinder(
+                "TMP-reforged-pump-neck",
+                (center_x + 0.65, center_y, 1.08),
+                0.18,
+                0.22,
+                materials["metal_mid"],
+                collection,
+                vertices=12,
+            ),
+            add_cylinder(
+                "TMP-reforged-pump-top-flange",
+                (center_x + 0.65, center_y, 1.23),
+                0.28,
+                0.08,
+                materials["rust"],
+                collection,
+                vertices=12,
+            ),
+            add_cylinder(
+                "TMP-reforged-pump-side-nozzle",
+                (center_x + 0.65, center_y - 0.55, 0.58),
+                0.18,
+                0.52,
+                materials["metal_mid"],
+                collection,
+                vertices=12,
+                rotation=(math.radians(90.0), 0.0, 0.0),
+            ),
+            add_cylinder(
+                "TMP-reforged-pump-side-flange",
+                (center_x + 0.65, center_y - 0.84, 0.58),
+                0.28,
+                0.10,
+                materials["rust"],
+                collection,
+                vertices=12,
+                rotation=(math.radians(90.0), 0.0, 0.0),
+            ),
+        )
     )
-    add_cylinder(
-        "GEO-reforged-b-valve",
-        _map_point(13.0, 22.0, 0.75),
-        0.9,
-        1.5,
-        materials["corrugated_rust"],
-        collection,
-        vertices=12,
+    _finish_equipment(parts, "b-pump", str(cover["id"]))
+
+
+def _build_valve(
+    collection: bpy.types.Collection,
+    materials: dict,
+    cover: dict,
+) -> None:
+    center_x, center_y, _ = _map_point(float(cover["x"]), float(cover["z"]), 0.0)
+    parts = [
+        add_box(
+            "TMP-reforged-valve-plinth",
+            (center_x, center_y, 0.07),
+            (2.05, 1.65, 0.14),
+            materials["dark"],
+            collection,
+        ),
+        add_cylinder(
+            "TMP-reforged-valve-pipe",
+            (center_x, center_y, 0.45),
+            0.24,
+            1.90,
+            materials["metal_mid"],
+            collection,
+            vertices=12,
+            rotation=(0.0, math.radians(90.0), 0.0),
+        ),
+        add_cylinder(
+            "TMP-reforged-valve-body",
+            (center_x, center_y, 0.54),
+            0.48,
+            0.70,
+            materials["green_metal"],
+            collection,
+            vertices=12,
+        ),
+        add_cylinder(
+            "TMP-reforged-valve-collar",
+            (center_x, center_y, 0.88),
+            0.32,
+            0.16,
+            materials["rust"],
+            collection,
+            vertices=12,
+        ),
+        add_cylinder(
+            "TMP-reforged-valve-neck",
+            (center_x, center_y, 1.13),
+            0.15,
+            0.45,
+            materials["metal_mid"],
+            collection,
+            vertices=12,
+        ),
+        add_torus(
+            "TMP-reforged-valve-wheel-rim",
+            (center_x, center_y, 1.37),
+            0.39,
+            0.055,
+            materials["yellow"],
+            collection,
+        ),
+        add_cylinder(
+            "TMP-reforged-valve-wheel-hub",
+            (center_x, center_y, 1.37),
+            0.11,
+            0.09,
+            materials["yellow"],
+            collection,
+            vertices=12,
+        ),
+    ]
+    for flange, offset in enumerate((-0.82, 0.82)):
+        parts.append(
+            add_cylinder(
+                f"TMP-reforged-valve-flange-{flange}",
+                (center_x + offset, center_y, 0.45),
+                0.38,
+                0.16,
+                materials["rust"],
+                collection,
+                vertices=12,
+                rotation=(0.0, math.radians(90.0), 0.0),
+            )
+        )
+    for spoke, angle in enumerate((0.0, math.radians(90.0))):
+        parts.append(
+            add_box(
+                f"TMP-reforged-valve-wheel-spoke-{spoke}",
+                (center_x, center_y, 1.37),
+                (0.72, 0.055, 0.055),
+                materials["yellow"],
+                collection,
+                rotation=(0.0, 0.0, angle),
+            )
+        )
+    _finish_equipment(parts, "b-valve", str(cover["id"]))
+
+
+def _build_equipment(
+    collection: bpy.types.Collection,
+    materials: dict,
+    level: dict,
+) -> None:
+    covers = {str(entry["id"]): entry for entry in level.get("covers", [])}
+    _build_cable_spool(collection, materials, covers["a-long-spool"])
+    _build_pump(collection, materials, covers["b-pump-crate"])
+    _build_valve(collection, materials, covers["b-valve-cover"])
+
+
+def _add_floor_stain(
+    collection: bpy.types.Collection,
+    material: bpy.types.Material,
+    name: str,
+    x: float,
+    z: float,
+    radius: float,
+    aspect: float,
+    rotation: float,
+) -> None:
+    radii = (1.0, 0.78, 0.92, 0.70, 0.88, 0.74, 0.95, 0.80)
+    center_y = -z
+    vertices = []
+    for index, variation in enumerate(radii):
+        angle = rotation + math.tau * index / len(radii)
+        vertices.append(
+            (
+                x + math.cos(angle) * radius * variation,
+                center_y + math.sin(angle) * radius * aspect * variation,
+                0.008,
+            )
+        )
+    mesh = bpy.data.meshes.new(f"{name}_mesh")
+    mesh.from_pydata(vertices, [], [list(range(len(vertices)))])
+    mesh.update()
+    stain = bpy.data.objects.new(name, mesh)
+    collection.objects.link(stain)
+    stain.data.materials.append(material)
+
+
+def _finish_wall_detail(
+    parts: list[bpy.types.Object],
+    name: str,
+    wall: dict,
+    face_sign: float,
+) -> None:
+    detail = join_mesh_objects(parts, name)
+    detail["wall_id"] = str(wall["id"])
+    detail["wall_face_axis"] = "z"
+    detail["wall_face_sign"] = face_sign
+
+
+def _build_rust_run(
+    collection: bpy.types.Collection,
+    materials: dict,
+    name: str,
+    wall: dict,
+    face_sign: float,
+    anchor_x: float,
+) -> None:
+    thickness = 0.012
+    wall_face = float(wall["z"]) + face_sign * float(wall["sz"]) * 0.5
+    detail_z = wall_face + face_sign * thickness * 0.5
+    parts: list[bpy.types.Object] = []
+    runs = ((-0.25, 0.13, 0.86), (0.0, 0.18, 1.18), (0.29, 0.10, 0.64))
+    for index, (offset, width, height) in enumerate(runs):
+        parts.append(
+            add_box(
+                f"TMP-reforged-rust-run-{name}-{index}",
+                _map_point(anchor_x + offset, detail_z, float(wall["h"]) - 0.32 - height * 0.5),
+                (width, thickness, height),
+                materials["rust"],
+                collection,
+            )
+        )
+    _finish_wall_detail(parts, f"GEO-reforged-surface-rust-{name}", wall, face_sign)
+
+
+def _build_weld_seam(
+    collection: bpy.types.Collection,
+    materials: dict,
+    name: str,
+    wall: dict,
+    face_sign: float,
+    anchor_x: float,
+) -> None:
+    thickness = 0.012
+    wall_face = float(wall["z"]) + face_sign * float(wall["sz"]) * 0.5
+    detail_z = wall_face + face_sign * thickness * 0.5
+    parts: list[bpy.types.Object] = []
+    for index in range(5):
+        parts.append(
+            add_box(
+                f"TMP-reforged-weld-{name}-{index}",
+                _map_point(anchor_x - 0.62 + index * 0.31, detail_z, 0.46),
+                (0.22, thickness, 0.028),
+                materials["weld"],
+                collection,
+            )
+        )
+    _finish_wall_detail(parts, f"GEO-reforged-surface-weld-{name}", wall, face_sign)
+
+
+def _build_surface_details(
+    collection: bpy.types.Collection,
+    materials: dict,
+    level: dict,
+) -> None:
+    stains = (
+        ("a-spool", -11.65, -25.70, 1.0, 0.62, 0.18),
+        ("b-pump", 0.25, 28.15, 1.15, 0.68, 0.42),
+        ("b-valve", 13.20, 22.10, 0.90, 0.60, -0.20),
     )
+    for name, x, z, radius, aspect, rotation in stains:
+        _add_floor_stain(
+            collection,
+            materials["oil"],
+            f"GEO-reforged-surface-oil-{name}",
+            x,
+            z,
+            radius,
+            aspect,
+            rotation,
+        )
+
+    walls = {str(entry["id"]): entry for entry in level.get("walls", [])}
+    rust_specs = (
+        ("a-long", "north-partition-east-center-a", -1.0, 4.4),
+        ("mid-a", "north-partition-east-center-b", 1.0, 17.2),
+        ("b-service", "south-partition-center", 1.0, -10.2),
+    )
+    for name, wall_id, face_sign, anchor_x in rust_specs:
+        _build_rust_run(collection, materials, name, walls[wall_id], face_sign, anchor_x)
+
+    weld_specs = (
+        ("spawn-a", "north-partition-west-center", 1.0, -29.0),
+        ("mid-b", "south-partition-east-center-b", -1.0, 18.2),
+        ("b-site", "south-partition-east-a", 1.0, 35.0),
+    )
+    for name, wall_id, face_sign, anchor_x in weld_specs:
+        _build_weld_seam(collection, materials, name, walls[wall_id], face_sign, anchor_x)
 
 
 def _build_distant_skyline(collection: bpy.types.Collection, materials: dict) -> None:
@@ -855,18 +1226,35 @@ def _build_catwalk_rails(collection: bpy.types.Collection, materials: dict, leve
 def build_details() -> dict:
     collection = bpy.data.collections[MAP_COLLECTION]
     materials = foundry._materials()
+    materials.update(
+        {
+            "oil": make_material(
+                "MAT_surface_oil",
+                (0.018, 0.016, 0.012, 1.0),
+                metallic=0.08,
+                roughness=0.28,
+            ),
+            "weld": make_material(
+                "MAT_surface_weld",
+                (0.34, 0.38, 0.40, 1.0),
+                metallic=0.72,
+                roughness=0.38,
+            ),
+        }
+    )
     level = _load_level()
     for index, entry in enumerate(level.get("walls", [])):
         if entry["id"] != "mid-furnace-core":
             foundry._add_hazard_band(collection, materials, entry, index)
     _build_furnace(collection, materials)
     _build_pipes(collection, materials)
-    _build_equipment(collection, materials)
+    _build_equipment(collection, materials, level)
     _build_distant_skyline(collection, materials)
     _build_wall_bases(collection, materials, level)
     _build_boundary_modules(collection, materials, level)
     _build_wall_modules(collection, materials, level)
     _build_wall_vents(collection, materials, level)
+    _build_surface_details(collection, materials, level)
     _build_door_frames(collection, materials, level)
     _build_service_panels(collection, materials)
     _build_floor_drains(collection, materials)
@@ -874,6 +1262,39 @@ def build_details() -> dict:
     _build_catwalk_rails(collection, materials, level)
     _project_reforged_uvs(collection)
     return validate_collection(MAP_COLLECTION)
+
+
+def _world_bounds(obj: bpy.types.Object) -> tuple[Vector, Vector]:
+    corners = [obj.matrix_world @ Vector(corner) for corner in obj.bound_box]
+    return (
+        Vector(
+            (
+                min(corner.x for corner in corners),
+                min(corner.y for corner in corners),
+                min(corner.z for corner in corners),
+            )
+        ),
+        Vector(
+            (
+                max(corner.x for corner in corners),
+                max(corner.y for corner in corners),
+                max(corner.z for corner in corners),
+            )
+        ),
+    )
+
+
+def _wall_contact_gap(obj: bpy.types.Object, wall: dict) -> float:
+    face_sign = float(obj["wall_face_sign"])
+    corners = [obj.matrix_world @ Vector(corner) for corner in obj.bound_box]
+    if str(obj["wall_face_axis"]) == "x":
+        coordinates = [corner.x for corner in corners]
+        wall_face = float(wall["x"]) + face_sign * float(wall["sx"]) * 0.5
+    else:
+        coordinates = [-corner.y for corner in corners]
+        wall_face = float(wall["z"]) + face_sign * float(wall["sz"]) * 0.5
+    contact_face = min(coordinates) if face_sign > 0.0 else max(coordinates)
+    return abs(contact_face - wall_face)
 
 
 def validate_interfaces() -> dict:
@@ -923,20 +1344,67 @@ def validate_interfaces() -> dict:
         for obj in bpy.data.collections[MAP_COLLECTION].objects
         if obj.name.startswith("GEO-reforged-boundary-module-")
     ]
+    equipment_modules = [
+        obj
+        for obj in bpy.data.collections[MAP_COLLECTION].objects
+        if obj.name.startswith("GEO-reforged-equipment-")
+    ]
+    oil_stains = [
+        obj
+        for obj in bpy.data.collections[MAP_COLLECTION].objects
+        if obj.name.startswith("GEO-reforged-surface-oil-")
+    ]
+    rust_runs = [
+        obj
+        for obj in bpy.data.collections[MAP_COLLECTION].objects
+        if obj.name.startswith("GEO-reforged-surface-rust-")
+    ]
+    weld_seams = [
+        obj
+        for obj in bpy.data.collections[MAP_COLLECTION].objects
+        if obj.name.startswith("GEO-reforged-surface-weld-")
+    ]
     wall_by_id = {str(entry["id"]): entry for entry in level.get("walls", [])}
-    vent_contact_gaps: list[float] = []
-    for vent in wall_vents:
-        wall = wall_by_id[str(vent["wall_id"])]
-        face_sign = float(vent["wall_face_sign"])
-        corners = [vent.matrix_world @ Vector(corner) for corner in vent.bound_box]
-        if str(vent["wall_face_axis"]) == "x":
-            coordinates = [corner.x for corner in corners]
-            wall_face = float(wall["x"]) + face_sign * float(wall["sx"]) * 0.5
-        else:
-            coordinates = [-corner.y for corner in corners]
-            wall_face = float(wall["z"]) + face_sign * float(wall["sz"]) * 0.5
-        contact_face = min(coordinates) if face_sign > 0.0 else max(coordinates)
-        vent_contact_gaps.append(abs(contact_face - wall_face))
+    vent_contact_gaps = [
+        _wall_contact_gap(vent, wall_by_id[str(vent["wall_id"])])
+        for vent in wall_vents
+    ]
+    surface_contact_gaps = [
+        _wall_contact_gap(detail, wall_by_id[str(detail["wall_id"])])
+        for detail in rust_runs + weld_seams
+    ]
+    cover_by_id = {str(entry["id"]): entry for entry in level.get("covers", [])}
+    equipment_overruns: list[float] = []
+    equipment_ground_gaps: list[float] = []
+    for equipment in equipment_modules:
+        cover = cover_by_id[str(equipment["cover_id"])]
+        bounds_min, bounds_max = _world_bounds(equipment)
+        cover_min = Vector(
+            (
+                float(cover["x"]) - float(cover["sx"]) * 0.5,
+                -float(cover["z"]) - float(cover["sz"]) * 0.5,
+                0.0,
+            )
+        )
+        cover_max = Vector(
+            (
+                float(cover["x"]) + float(cover["sx"]) * 0.5,
+                -float(cover["z"]) + float(cover["sz"]) * 0.5,
+                float(cover["h"]),
+            )
+        )
+        equipment_overruns.append(
+            max(
+                0.0,
+                cover_min.x - bounds_min.x,
+                cover_min.y - bounds_min.y,
+                cover_min.z - bounds_min.z,
+                bounds_max.x - cover_max.x,
+                bounds_max.y - cover_max.y,
+                bounds_max.z - cover_max.z,
+            )
+        )
+        equipment_ground_gaps.append(abs(bounds_min.z))
     return {
         "ramp_to_landing_gap": round(
             landing["x"] - landing["sx"] * 0.5 - (ramp["x"] + ramp["sx"] * 0.5),
@@ -982,6 +1450,17 @@ def validate_interfaces() -> dict:
             ),
             4,
         ),
+        "equipment_module_count": len(equipment_modules),
+        "equipment_cover_overrun_max": round(max(equipment_overruns), 4),
+        "equipment_ground_gap_max": round(max(equipment_ground_gaps), 4),
+        "surface_oil_count": len(oil_stains),
+        "surface_oil_height_max": round(
+            max(_world_bounds(stain)[1].z for stain in oil_stains),
+            4,
+        ),
+        "surface_rust_count": len(rust_runs),
+        "surface_weld_count": len(weld_seams),
+        "surface_wall_contact_gap_max": round(max(surface_contact_gaps), 4),
         "skyline_object_count": len(skyline_objects),
         "skyline_ground_gap_max": round(
             max(abs(obj.location.z - obj.dimensions.z * 0.5) for obj in skyline_grounded),
