@@ -8,6 +8,8 @@ var player_spawn: Vector3 = Vector3.ZERO
 var player_spawn_yaw_radians: float = 0.0
 
 var player_health: int = 100
+var player_armor: int = 0
+var player_money: int = 800
 var current_weapon_name: String = "\u6b65\u67aa"
 var current_weapon_slot: int = 0
 var ammo_in_mag: int = 30
@@ -20,6 +22,14 @@ var recoil_display_value: float = 0.0
 var graphics_preset: String = "prototype"
 var menu_open: bool = true
 var game_started: bool = false
+var friendly_score: int = 0
+var enemy_score: int = 0
+var friendly_alive: int = 1
+var enemy_alive: int = 0
+var initial_target_count: int = 0
+var training_complete: bool = false
+var player_team: String = "T"
+var round_result_text: String = ""
 
 func set_level(level_id: String, level_name: String = "") -> void:
 	var changed := current_level_id != level_id
@@ -32,6 +42,8 @@ func set_level(level_id: String, level_name: String = "") -> void:
 
 func reset_runtime_state() -> void:
 	player_health = 100
+	player_armor = 0
+	player_money = 800
 	current_weapon_name = "\u6b65\u67aa"
 	current_weapon_slot = 0
 	ammo_in_mag = 30
@@ -41,6 +53,57 @@ func reset_runtime_state() -> void:
 	kill_count = 0
 	current_spread_degrees = 0.0
 	recoil_display_value = 0.0
+	friendly_score = 0
+	enemy_score = 0
+	friendly_alive = 1
+	enemy_alive = initial_target_count
+	training_complete = false
+	round_result_text = ""
+	_emit_hud_state_changed()
+
+func prepare_next_round() -> void:
+	if friendly_alive == 0:
+		player_armor = 0
+	player_health = 100
+	friendly_alive = 1
+	enemy_alive = initial_target_count
+	training_complete = false
+	round_result_text = ""
+	_emit_hud_state_changed()
+
+func purchase(item_id: String) -> Dictionary:
+	if not RoundManager.can_buy():
+		return {"success": false, "reason": "只能在冻结期购买"}
+	var prices := {"rifle": 2700, "pistol": 500, "armor": 650, "armor_helmet": 1000}
+	if not prices.has(item_id):
+		return {"success": false, "reason": "未知商品"}
+	var price := int(prices[item_id])
+	if player_money < price:
+		return {"success": false, "reason": "金钱不足"}
+	player_money -= price
+	if item_id in ["armor", "armor_helmet"]:
+		player_armor = 100
+	_emit_hud_state_changed()
+	return {"success": true, "price": price, "item_id": item_id}
+
+func complete_round(winner: String, reason: String) -> void:
+	if winner == "T":
+		enemy_score += 1
+	else:
+		friendly_score += 1
+	var player_won := winner == player_team
+	player_money += 3250 if player_won else 1400
+	round_result_text = "%s 获胜  ·  %s" % [winner, reason]
+	training_complete = true
+	_emit_hud_state_changed()
+
+func set_training_target_count(count: int) -> void:
+	initial_target_count = maxi(0, count)
+	enemy_alive = initial_target_count
+	training_complete = initial_target_count == 0
+	_emit_hud_state_changed()
+
+func notify_player_vitals_changed() -> void:
 	_emit_hud_state_changed()
 
 func set_graphics_preset(preset: String) -> void:
@@ -97,6 +160,8 @@ func get_graphics_preset_label() -> String:
 func get_hud_snapshot() -> Dictionary:
 	return {
 		"health": player_health,
+		"armor": player_armor,
+		"money": player_money,
 		"weapon_name": current_weapon_name,
 		"weapon_slot": current_weapon_slot,
 		"ammo_in_mag": ammo_in_mag,
@@ -110,7 +175,16 @@ func get_hud_snapshot() -> Dictionary:
 		"game_started": game_started,
 		"menu_open": menu_open,
 		"round_state": RoundManager.get_state_name(),
-		"round_label": RoundManager.get_state_label()
+		"round_label": RoundManager.get_state_label(),
+		"round_time": RoundManager.get_time_label(),
+		"friendly_score": friendly_score,
+		"enemy_score": enemy_score,
+		"friendly_alive": friendly_alive,
+		"enemy_alive": enemy_alive,
+		"training_complete": training_complete,
+		"player_team": player_team,
+		"round_result_text": round_result_text,
+		"bomb": RoundManager.get_objective_snapshot(),
 	}
 
 func sync_weapon_state(weapon_name: String, next_ammo_in_mag: int, next_ammo_reserve: int, status_text: String = "", spread_degrees: float = 0.0, recoil_value: float = 0.0, slot_index: int = 0) -> void:
@@ -137,6 +211,8 @@ func register_hit(killed: bool) -> void:
 	hit_count += 1
 	if killed:
 		kill_count += 1
+		player_money += 300
+		enemy_alive = maxi(0, enemy_alive - 1)
 	_emit_hud_state_changed()
 
 func _emit_hud_state_changed() -> void:

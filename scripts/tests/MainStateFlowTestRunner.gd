@@ -20,17 +20,25 @@ func _ready() -> void:
 func _run_all_tests() -> void:
 	await _run_test("initial_boot_shows_menu_and_default_map", _test_initial_boot_shows_menu_and_default_map)
 	await _run_test("map_selection_updates_game_state_and_menu_copy", _test_map_selection_updates_game_state_and_menu_copy)
-	await _run_test("start_game_transitions_to_live_state", _test_start_game_transitions_to_live_state)
+	await _run_test("start_game_enters_freeze_buy_state", _test_start_game_transitions_to_live_state)
 	await _run_test("pause_then_resume_restores_live_state", _test_pause_then_resume_restores_live_state)
 	await _run_test("level_environment_overrides_restore_defaults", _test_level_environment_overrides_restore_defaults)
 	await _run_test("weapon_view_model_tracks_switch_and_shot", _test_weapon_view_model_tracks_switch_and_shot)
 	await _run_test("player_scale_matches_cs_reference", _test_player_scale_matches_cs_reference)
 	await _run_test("player_input_maps_to_local_forward_and_right", _test_player_input_maps_to_local_forward_and_right)
 	await _run_test("player_counter_strafe_and_air_control_are_bounded", _test_player_counter_strafe_and_air_control_are_bounded)
+	await _run_test("classic_shift_walk_and_settings_apply", _test_classic_shift_walk_and_settings_apply)
 	await _run_test("player_traverses_authored_height_step", _test_player_traverses_authored_height_step)
+	await _run_test("player_uses_crouch_hull_without_double_jump", _test_player_uses_crouch_hull_without_double_jump)
+	await _run_test("player_clears_classic_cs_height_tiers", _test_player_clears_classic_cs_height_tiers)
+	await _run_test("rotating_radar_tracks_bounds_targets_and_heading", _test_rotating_radar_tracks_bounds_targets_and_heading)
+	await _run_test("movement_and_radar_scale_are_map_invariant", _test_movement_and_radar_scale_are_map_invariant)
 	await _run_test("combat_audio_tracks_shot_hit_reload_and_switch", _test_combat_audio_tracks_shot_hit_reload_and_switch)
+	await _run_test("scoreboard_kill_feed_and_training_summary_work", _test_scoreboard_kill_feed_and_training_summary_work)
 	await _run_test("player_mouse_look_bypasses_gui_consumption", _test_player_mouse_look_bypasses_gui_consumption)
 	await _run_test("pause_menu_blocks_combat_commands", _test_pause_menu_blocks_combat_commands)
+	await _run_test("player_damage_tags_and_death_ends_round", _test_player_damage_tags_and_death_ends_round)
+	await _run_test("buy_plant_defuse_round_loop", _test_buy_plant_defuse_round_loop)
 
 func _run_test(test_name: String, callable: Callable) -> void:
 	var failed_before: int = _failures.size()
@@ -179,9 +187,11 @@ func _test_start_game_transitions_to_live_state() -> void:
 		"player should remain between the floor and spawn height while initial gravity settles"
 	)
 	_assert_float_close(player.rotation.y, GameState.player_spawn_yaw_radians, 0.001, "starting should face the player along the authored route heading")
-	_assert_equal(String(RoundManager.get_state_name()), "Live", "starting should move round manager into live state")
-	_assert_equal(snapshot.get("weapon_slot"), 0, "starting should configure the default rifle slot")
-	_assert_equal(snapshot.get("ammo_in_mag"), 30, "starting should configure full rifle ammo")
+	_assert_true(not bool(player.get("movement_enabled")), "freeze time should block movement while keeping mouse look enabled")
+	_assert_equal(String(RoundManager.get_state_name()), "Freeze", "starting should enter the freeze/buy state")
+	_assert_equal(snapshot.get("weapon_slot"), 1, "competitive loadout should start with the owned pistol")
+	_assert_equal(snapshot.get("ammo_in_mag"), 12, "starting pistol should have a full magazine")
+	_assert_true(bool(RoundManager.can_buy()), "freeze time should permit purchases")
 	_assert_true(bool(GameState.game_started), "GameState should reflect started gameplay")
 	_assert_true(not bool(GameState.menu_open), "GameState should reflect closed menu after start")
 	var combat_sandbox: Node3D = main.get_node("CombatSandbox")
@@ -194,6 +204,8 @@ func _test_pause_then_resume_restores_live_state() -> void:
 	await _await_main_ready()
 	main.call("_on_start_pressed")
 	await _await_main_ready()
+	RoundManager.set_live()
+	await get_tree().process_frame
 
 	var start_menu: CanvasLayer = main.get_node("StartMenu")
 	var resume_button: Button = start_menu.get_node("MenuPanel/Margin/VBox/Buttons/ResumeButton")
@@ -291,15 +303,16 @@ func _test_weapon_view_model_tracks_switch_and_shot() -> void:
 	var view_model: Node3D = main.get_node("Player/CameraPivot/Camera3D/WeaponViewModel")
 	var initial_snapshot: Dictionary = view_model.call("get_debug_snapshot")
 	_assert_true(view_model.visible, "starting gameplay should show the first-person weapon view model")
-	_assert_equal(initial_snapshot.get("weapon_slot"), 0, "the view model should start on the rifle slot")
-	_assert_true(bool(initial_snapshot.get("rifle_visible", false)), "the rifle model should be visible for slot 1")
-	_assert_true(not bool(initial_snapshot.get("pistol_visible", true)), "the pistol model should be hidden for slot 1")
+	_assert_equal(initial_snapshot.get("weapon_slot"), 1, "the competitive view model should start on the pistol slot")
+	_assert_true(not bool(initial_snapshot.get("rifle_visible", true)), "the unowned rifle should be hidden initially")
+	_assert_true(bool(initial_snapshot.get("pistol_visible", false)), "the owned pistol should be visible initially")
 
-	weapon_system.call("switch_to_slot", 1)
+	GameState.player_money = 4000
+	main.call("_purchase_item", "rifle")
 	var switched_snapshot: Dictionary = view_model.call("get_debug_snapshot")
-	_assert_equal(switched_snapshot.get("weapon_slot"), 1, "the WeaponSystem switch signal should select the pistol view model")
-	_assert_true(not bool(switched_snapshot.get("rifle_visible", true)), "the rifle model should hide after switching to slot 2")
-	_assert_true(bool(switched_snapshot.get("pistol_visible", false)), "the pistol model should show after switching to slot 2")
+	_assert_equal(switched_snapshot.get("weapon_slot"), 0, "buying a rifle should equip its view model")
+	_assert_true(bool(switched_snapshot.get("rifle_visible", false)), "the purchased rifle model should become visible")
+	_assert_true(not bool(switched_snapshot.get("pistol_visible", true)), "the pistol model should hide after equipping the rifle")
 
 	main.call("_on_shot_resolved", {"hit": false})
 	var shot_snapshot: Dictionary = view_model.call("get_debug_snapshot")
@@ -373,6 +386,147 @@ func _test_player_traverses_authored_height_step() -> void:
 	_assert_true(player.global_position.y >= 101.04, "the player capsule should settle on top of the authored stair step")
 	await _cleanup_main(main)
 
+func _test_classic_shift_walk_and_settings_apply() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	var player: CharacterBody3D = main.get_node("Player")
+	var hud: CanvasLayer = main.get_node("CombatHud")
+	_assert_float_close(float(player.call("resolve_move_speed", false)), 6.2, 0.001, "default movement should use the classic run speed")
+	_assert_float_close(float(player.call("resolve_move_speed", true)), 3.2, 0.001, "holding Shift should reduce speed for quiet walking")
+	player.set("is_crouching", true)
+	_assert_float_close(float(player.call("resolve_move_speed", false)), 2.2, 0.001, "crouching should remain slower than quiet walking")
+	player.set("is_crouching", false)
+	var original_settings: Dictionary = UserSettings.get_snapshot()
+	UserSettings.apply_snapshot({
+		"mouse_sensitivity_multiplier": 1.5,
+		"master_volume": 0.65,
+		"crosshair_gap": 10.0,
+		"crosshair_size": 9.0,
+		"dynamic_crosshair": false,
+	}, false)
+	_assert_float_close(float(player.get("mouse_sensitivity")), 0.0033, 0.00001, "sensitivity setting should update the player controller")
+	_assert_float_close(float(hud.get("crosshair_gap_base")), 10.0, 0.001, "crosshair gap setting should update the HUD")
+	_assert_true(not bool(hud.get("_dynamic_crosshair")), "crosshair dynamic setting should update the HUD")
+	UserSettings.apply_snapshot(original_settings, false)
+	await _cleanup_main(main)
+
+func _test_player_uses_crouch_hull_without_double_jump() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	var player: CharacterBody3D = main.get_node("Player")
+	var collision: CollisionShape3D = player.get_node("CollisionShape3D")
+	var capsule := collision.shape as CapsuleShape3D
+	player.call("set_controls_enabled", true)
+	Input.action_press("crouch")
+	for _frame in range(3):
+		await get_tree().physics_frame
+	_assert_true(bool(player.get("is_crouching")), "held crouch should enter the crouched stance")
+	_assert_float_close(capsule.height, 1.2, 0.001, "crouch should shrink the player collision hull to 1.2 meters")
+	Input.action_press("jump")
+	for _frame in range(2):
+		await get_tree().physics_frame
+	Input.action_release("jump")
+	var first_jump_velocity := player.velocity.y
+	for _frame in range(5):
+		await get_tree().physics_frame
+	var velocity_before_second_press := player.velocity.y
+	Input.action_press("jump")
+	await get_tree().physics_frame
+	Input.action_release("jump")
+	_assert_true(first_jump_velocity > float(player.get("jump_velocity")), "crouch-jump should use the dedicated higher impulse")
+	_assert_true(player.velocity.y < velocity_before_second_press, "pressing jump in mid-air must not add a second jump impulse")
+	Input.action_release("crouch")
+	await _cleanup_main(main)
+
+func _test_player_clears_classic_cs_height_tiers() -> void:
+	var tiers := [
+		{"height": 0.4, "jump": true, "crouch": false, "start_z": 2.0},
+		{"height": 0.65, "jump": true, "crouch": false, "start_z": 2.0},
+		{"height": 0.8, "jump": true, "crouch": false, "start_z": 2.1},
+		{"height": 1.3, "jump": true, "crouch": false, "start_z": 2.55},
+		{"height": 1.55, "jump": true, "crouch": true, "start_z": 1.75},
+	]
+	for tier_variant in tiers:
+		var tier: Dictionary = tier_variant as Dictionary
+		var reached := await _run_height_tier(float(tier.height), bool(tier.jump), bool(tier.crouch), float(tier.start_z))
+		_assert_true(reached, "player should clear the %.2f m tier with the authored stance" % float(tier.height))
+
+func _run_height_tier(height: float, should_jump: bool, crouch_jump: bool, start_z: float) -> bool:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	var player: CharacterBody3D = main.get_node("Player")
+	var fixture := Node3D.new()
+	fixture.name = "HeightTierFixture"
+	main.add_child(fixture)
+	_add_static_box(fixture, Vector3(0.0, 99.95, 0.0), Vector3(8.0, 0.1, 14.0))
+	_add_static_box(fixture, Vector3(0.0, 100.0 + height * 0.5, -2.0), Vector3(3.0, height, 4.0))
+	player.global_position = Vector3(0.0, 100.9, start_z)
+	player.rotation.y = 0.0
+	player.velocity = Vector3.ZERO
+	player.call("set_controls_enabled", true)
+	for _frame in range(3):
+		await get_tree().physics_frame
+	if crouch_jump:
+		Input.action_press("crouch")
+		for _frame in range(2):
+			await get_tree().physics_frame
+	Input.action_press("move_forward")
+	if should_jump:
+		Input.action_press("jump")
+		for _frame in range(2):
+			await get_tree().physics_frame
+		Input.action_release("jump")
+	var movement_released := false
+	for _frame in range(100):
+		await get_tree().physics_frame
+		if not movement_released and player.global_position.z < -1.25:
+			Input.action_release("move_forward")
+			movement_released = true
+	Input.action_release("move_forward")
+	Input.action_release("jump")
+	Input.action_release("crouch")
+	var reached := player.global_position.z < -0.25 and player.global_position.y >= 100.9 + height - 0.09
+	await _cleanup_main(main)
+	return reached
+
+func _test_rotating_radar_tracks_bounds_targets_and_heading() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	var reforged_index := int(main.call("find_level_option_index", "foundry-reforged"))
+	main.call("_on_map_selected", reforged_index)
+	main.call("_on_start_pressed")
+	await _await_main_ready()
+	var player: CharacterBody3D = main.get_node("Player")
+	player.rotation.y = 0.75
+	var radar_snapshot: Dictionary = main.call("_build_radar_snapshot")
+	var radar: Control = main.get_node("CombatHud/HudRoot/Radar")
+	radar.call("set_snapshot", radar_snapshot)
+	var debug_snapshot: Dictionary = radar.call("get_debug_snapshot")
+	_assert_vec2_close(debug_snapshot.get("bounds", Vector2.ZERO), Vector2(50.0, 40.0), 0.001, "radar should use the authored Foundry map bounds")
+	_assert_equal(debug_snapshot.get("target_count"), 2, "Foundry radar should expose both objective zones")
+	_assert_float_close(float(debug_snapshot.get("range_meters", 0.0)), 24.0, 0.001, "radar should use the shared 24 meter local range")
+	_assert_true(int(debug_snapshot.get("feature_count", 0)) > 0, "radar should expose nearby authored map geometry")
+	_assert_float_close(float(debug_snapshot.get("width_fraction", 0.0)), 0.48, 0.001, "Foundry radar diameter should cover 48 percent of map width")
+	_assert_float_close(float(debug_snapshot.get("height_fraction", 0.0)), 0.6, 0.001, "Foundry radar diameter should cover 60 percent of map height")
+	_assert_float_close(float(debug_snapshot.get("player_yaw", 0.0)), 0.75, 0.001, "radar should track player heading for map rotation")
+	_assert_vec2_close(debug_snapshot.get("player_position", Vector2.ZERO), Vector2(player.global_position.x, player.global_position.z), 0.001, "radar should track the live player position")
+	await _cleanup_main(main)
+
+func _test_movement_and_radar_scale_are_map_invariant() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	var level: Node3D = main.get_node("Level")
+	var player: CharacterBody3D = main.get_node("Player")
+	var baseline_profile: Dictionary = player.call("get_movement_profile")
+	for level_id in ["test-collision-room", "depot", "gatehouse", "core-vault", "foundry-reforged"]:
+		level.call("load_level", level_id)
+		await get_tree().process_frame
+		var current_profile: Dictionary = player.call("get_movement_profile")
+		var radar_snapshot: Dictionary = main.call("_build_radar_snapshot")
+		_assert_equal(current_profile, baseline_profile, "%s should retain the shared movement profile" % level_id)
+		_assert_float_close(float(radar_snapshot.get("range_meters", 0.0)), 24.0, 0.001, "%s should retain the shared radar range" % level_id)
+	await _cleanup_main(main)
+
 func _add_static_box(parent: Node3D, position: Vector3, size: Vector3) -> void:
 	var body := StaticBody3D.new()
 	var collision := CollisionShape3D.new()
@@ -391,12 +545,17 @@ func _test_combat_audio_tracks_shot_hit_reload_and_switch() -> void:
 	main.call("_on_reload_started")
 	main.call("_on_reload_finished")
 	main.call("_on_weapon_switched", "pistol", 1)
+	main.call("_on_player_footstep", Vector3(1.0, 0.0, 2.0), "metal", true)
+	main.call("_on_player_landed", Vector3(1.0, 0.0, 2.0), "concrete", 0.8)
 	var snapshot: Dictionary = audio.call("get_debug_snapshot")
 	_assert_equal(snapshot.get("shots"), 1, "shot feedback should count the resolved shot")
 	_assert_equal(snapshot.get("hits"), 1, "hit feedback should layer an impact cue")
 	_assert_equal(snapshot.get("reloads"), 1, "reload start should play a mechanical cue")
 	_assert_equal(snapshot.get("switches"), 1, "weapon switching should play an equip cue")
-	_assert_equal(snapshot.get("players"), 3, "combat audio should use separate shot, impact, and mechanical players")
+	_assert_equal(snapshot.get("footsteps"), 1, "quiet material footsteps should reach the movement audio channel")
+	_assert_equal(snapshot.get("landings"), 1, "landing impacts should reach the movement audio channel")
+	_assert_equal(snapshot.get("players"), 4, "combat audio should separate shot, impact, movement, and mechanical channels")
+	_assert_equal(snapshot.get("spatial_players"), 3, "shot, impact, and movement sounds should be spatialized")
 	await _cleanup_main(main)
 
 func _test_player_mouse_look_bypasses_gui_consumption() -> void:
@@ -406,6 +565,9 @@ func _test_player_mouse_look_bypasses_gui_consumption() -> void:
 	await _await_main_ready()
 	var player: CharacterBody3D = main.get_node("Player")
 	var camera_pivot: Node3D = player.get_node("CameraPivot")
+	player.call("set_controls_enabled", true)
+	player.call("set_movement_enabled", false)
+	player.call("set_mouse_capture_enabled", true)
 	var yaw_before := player.rotation.y
 	var pitch_before := camera_pivot.rotation.x
 	var look_event := InputEventMouseMotion.new()
@@ -421,6 +583,26 @@ func _test_player_mouse_look_bypasses_gui_consumption() -> void:
 	_assert_float_close(player.rotation.y, paused_yaw, 0.0001, "pause menu should block mouse yaw")
 	_assert_float_close(camera_pivot.rotation.x, paused_pitch, 0.0001, "pause menu should block mouse pitch")
 
+	await _cleanup_main(main)
+
+func _test_scoreboard_kill_feed_and_training_summary_work() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	main.call("_on_start_pressed")
+	await _await_main_ready()
+	var hud: CanvasLayer = main.get_node("CombatHud")
+	var scoreboard: PanelContainer = hud.get_node("HudRoot/Scoreboard")
+	Input.action_press("show_scoreboard")
+	await get_tree().process_frame
+	_assert_true(scoreboard.visible, "holding Tab should reveal the scoreboard during live play")
+	Input.action_release("show_scoreboard")
+	hud.call("add_kill_feed", "YOU", "TARGET", "RIFLE")
+	_assert_equal(hud.get_node("HudRoot/KillFeed").get_child_count(), 1, "a kill should add a transient kill-feed entry")
+	GameState.set_training_target_count(1)
+	GameState.register_hit(true)
+	RoundManager.end_round("T", "ELIMINATION")
+	hud.call("update_display", GameState.get_hud_snapshot())
+	_assert_true(hud.get_node("HudRoot/TrainingEnd").visible, "round completion should show the training summary")
 	await _cleanup_main(main)
 
 func _test_pause_menu_blocks_combat_commands() -> void:
@@ -442,4 +624,65 @@ func _test_pause_menu_blocks_combat_commands() -> void:
 	var snapshot: Dictionary = weapon_system.call("get_runtime_snapshot")
 	_assert_true(not bool(snapshot.get("is_reloading", false)), "reload input should be ignored while the pause menu is open")
 
+	await _cleanup_main(main)
+
+func _test_player_damage_tags_and_death_ends_round() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	main.call("_on_start_pressed")
+	await _await_main_ready()
+	RoundManager.set_live()
+	await get_tree().process_frame
+	var player: CharacterBody3D = main.get_node("Player")
+	GameState.player_armor = 100
+	var damage_result: Dictionary = player.call("apply_hitscan_damage", 20, player.global_position, 0.5, false)
+	_assert_equal(damage_result.get("remaining_health"), 90, "armor penetration should split incoming damage from health")
+	_assert_true(float(player.call("resolve_move_speed", false)) < 3.1, "taking damage should apply classic tagging slowdown")
+	var death_result: Dictionary = player.call("apply_hitscan_damage", 250, player.global_position, 1.0, false)
+	_assert_true(bool(death_result.get("killed", false)), "lethal damage should mark the player dead")
+	_assert_true(bool(player.get("is_dead")), "player controller should retain the dead state")
+	_assert_equal(String(RoundManager.get_state_name()), "Round End", "player death should end the round")
+	_assert_equal(String(RoundManager.round_winner), "CT", "player death should award the CT side")
+	await _cleanup_main(main)
+
+func _test_buy_plant_defuse_round_loop() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	main.call("_on_start_pressed")
+	await _await_main_ready()
+	var weapon_system: Node = main.get_node("WeaponSystem")
+	GameState.player_money = 4000
+	main.call("_purchase_item", "rifle")
+	var purchased: Dictionary = weapon_system.call("get_runtime_snapshot")
+	_assert_equal(purchased.get("weapon_slot"), 0, "buying a rifle during freeze should own and equip it")
+	_assert_equal(GameState.player_money, 1300, "rifle purchase should deduct its classic-style price")
+	RoundManager.set_live()
+	await get_tree().process_frame
+	var radar: Dictionary = main.call("_build_radar_snapshot")
+	var targets: Array = radar.get("targets", [])
+	_assert_true(not targets.is_empty(), "selected map should expose a bomb target")
+	if not targets.is_empty():
+		var target: Dictionary = targets[0]
+		var player: CharacterBody3D = main.get_node("Player")
+		player.global_position.x = float(target.get("x", 0.0))
+		player.global_position.z = float(target.get("z", 0.0))
+		_assert_true(bool(main.call("_try_plant_c4")), "T player should plant C4 inside an objective zone")
+		_assert_equal(String(RoundManager.get_state_name()), "Bomb Planted", "planting should enter the bomb timer state")
+		_assert_true(RoundManager.defuse_bomb(), "CT defuse interface should resolve a planted bomb")
+		_assert_equal(String(RoundManager.get_state_name()), "Round End", "defuse should close the round")
+		_assert_equal(String(RoundManager.round_winner), "CT", "successful defuse should award CT")
+		_assert_equal(GameState.friendly_score, 1, "CT score should increment after defuse")
+		main.call("_on_round_restart_requested")
+		await _await_main_ready()
+		_assert_equal(String(RoundManager.get_state_name()), "Freeze", "round restart should return to freeze/buy time")
+		_assert_equal(GameState.player_health, 100, "new round should restore player health")
+		_assert_equal(weapon_system.call("get_runtime_snapshot").get("weapon_slot"), 0, "surviving player should retain the purchased rifle next round")
+		RoundManager.set_live()
+		await get_tree().process_frame
+		player.global_position.x = float(target.get("x", 0.0))
+		player.global_position.z = float(target.get("z", 0.0))
+		_assert_true(bool(main.call("_try_plant_c4")), "next round should provide a fresh carried C4")
+		RoundManager.call("_process", RoundManager.bomb_duration + 0.1)
+		_assert_equal(String(RoundManager.round_winner), "T", "expired bomb timer should award T")
+		_assert_equal(GameState.enemy_score, 1, "T score should increment after bomb explosion")
 	await _cleanup_main(main)

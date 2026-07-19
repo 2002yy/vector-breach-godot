@@ -35,15 +35,26 @@ func _ready() -> void:
 	GameState.register_hit(true)
 	main.get_node("CombatHud").call("update_display", GameState.get_hud_snapshot())
 	await get_tree().process_frame
+	main.get_node("CombatHud").call("set_buy_menu_visible", true)
+	print("UI_PROBE_STAGE=capture_buy_menu")
+	var buy_menu_path := await _capture("ui-buy-menu-reference")
+	main.get_node("CombatHud").call("set_buy_menu_visible", false)
 	print("UI_PROBE_STAGE=capture_combat")
 	var combat_path := await _capture("ui-combat-reference")
+	Input.action_press("show_scoreboard")
+	await get_tree().process_frame
+	print("UI_PROBE_STAGE=capture_scoreboard")
+	var scoreboard_path := await _capture("ui-scoreboard-reference")
+	Input.action_release("show_scoreboard")
 
 	print("UI_VISUAL_PROBE=" + JSON.stringify({
 		"menu": menu_path,
+		"buy_menu": buy_menu_path,
 		"combat": combat_path,
+		"scoreboard": scoreboard_path,
 		"viewport": [get_viewport().size.x, get_viewport().size.y]
 	}))
-	get_tree().quit(0 if not menu_path.is_empty() and not combat_path.is_empty() else 1)
+	get_tree().quit(0 if not menu_path.is_empty() and not buy_menu_path.is_empty() and not combat_path.is_empty() and not scoreboard_path.is_empty() else 1)
 
 func _capture(file_stem: String) -> String:
 	await RenderingServer.frame_post_draw

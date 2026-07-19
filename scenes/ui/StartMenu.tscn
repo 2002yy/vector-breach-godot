@@ -142,7 +142,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.86, 0.78, 0.44, 1)
 theme_override_fonts/font = ExtResource("3_semibold")
 theme_override_font_sizes/font_size = 14
-text = "SELECT MAP"
+text = "选择地图"
 
 [node name="MapRow" type="HBoxContainer" parent="MenuPanel/Margin/VBox/Controls"]
 custom_minimum_size = Vector2(0, 44)
@@ -155,7 +155,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.63, 0.64, 0.58, 1)
 theme_override_fonts/font = ExtResource("3_semibold")
 theme_override_font_sizes/font_size = 15
-text = "MAP"
+text = "地图"
 vertical_alignment = 1
 
 [node name="MapSelect" type="OptionButton" parent="MenuPanel/Margin/VBox/Controls/MapRow"]
@@ -168,6 +168,101 @@ theme_override_font_sizes/font_size = 17
 theme_override_styles/normal = SubResource("SelectNormal")
 theme_override_styles/hover = SubResource("SelectNormal")
 theme_override_styles/pressed = SubResource("SelectNormal")
+
+[node name="Settings" type="VBoxContainer" parent="MenuPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="SectionLabel" type="Label" parent="MenuPanel/Margin/VBox/Settings"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.78, 0.44, 1)
+theme_override_fonts/font = ExtResource("3_semibold")
+theme_override_font_sizes/font_size = 14
+text = "游戏设置"
+
+[node name="SensitivityRow" type="HBoxContainer" parent="MenuPanel/Margin/VBox/Settings"]
+custom_minimum_size = Vector2(0, 27)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MenuPanel/Margin/VBox/Settings/SensitivityRow"]
+custom_minimum_size = Vector2(106, 0)
+layout_mode = 2
+text = "鼠标灵敏度"
+
+[node name="Sensitivity" type="HSlider" parent="MenuPanel/Margin/VBox/Settings/SensitivityRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.35
+max_value = 3.0
+step = 0.05
+value = 1.0
+
+[node name="Value" type="Label" parent="MenuPanel/Margin/VBox/Settings/SensitivityRow"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+text = "1.00x"
+horizontal_alignment = 2
+
+[node name="VolumeRow" type="HBoxContainer" parent="MenuPanel/Margin/VBox/Settings"]
+custom_minimum_size = Vector2(0, 27)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MenuPanel/Margin/VBox/Settings/VolumeRow"]
+custom_minimum_size = Vector2(106, 0)
+layout_mode = 2
+text = "主音量"
+
+[node name="Volume" type="HSlider" parent="MenuPanel/Margin/VBox/Settings/VolumeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 100.0
+step = 1.0
+value = 80.0
+
+[node name="Value" type="Label" parent="MenuPanel/Margin/VBox/Settings/VolumeRow"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+text = "80%"
+horizontal_alignment = 2
+
+[node name="CrosshairGapRow" type="HBoxContainer" parent="MenuPanel/Margin/VBox/Settings"]
+custom_minimum_size = Vector2(0, 27)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MenuPanel/Margin/VBox/Settings/CrosshairGapRow"]
+custom_minimum_size = Vector2(106, 0)
+layout_mode = 2
+text = "准星间距"
+
+[node name="Gap" type="HSlider" parent="MenuPanel/Margin/VBox/Settings/CrosshairGapRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 2.0
+max_value = 16.0
+step = 1.0
+value = 7.0
+
+[node name="CrosshairSizeRow" type="HBoxContainer" parent="MenuPanel/Margin/VBox/Settings"]
+custom_minimum_size = Vector2(0, 27)
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MenuPanel/Margin/VBox/Settings/CrosshairSizeRow"]
+custom_minimum_size = Vector2(106, 0)
+layout_mode = 2
+text = "准星长度"
+
+[node name="Size" type="HSlider" parent="MenuPanel/Margin/VBox/Settings/CrosshairSizeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 2.0
+max_value = 14.0
+step = 1.0
+value = 6.0
+
+[node name="DynamicCrosshair" type="CheckButton" parent="MenuPanel/Margin/VBox/Settings"]
+layout_mode = 2
+text = "动态准星"
+button_pressed = true
 
 [node name="Spacer" type="Control" parent="MenuPanel/Margin/VBox"]
 layout_mode = 2

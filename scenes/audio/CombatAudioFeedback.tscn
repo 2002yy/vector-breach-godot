@@ -2,5 +2,5 @@
 
 [ext_resource type="Script" path="res://scripts/audio/CombatAudioFeedback.gd" id="1"]
 
-[node name="CombatAudioFeedback" type="Node"]
+[node name="CombatAudioFeedback" type="Node3D"]
 script = ExtResource("1")

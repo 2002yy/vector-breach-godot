@@ -15,7 +15,7 @@ var _weapon_states: Array[Dictionary] = []
 var _runtime_profiles: Array[Resource] = []
 var _current_weapon_index: int = 0
 
-func configure_default_loadout(emit_warnings: bool = true) -> void:
+func configure_default_loadout(emit_warnings: bool = true, competitive_loadout: bool = false) -> void:
 	_weapon_states.clear()
 	_runtime_profiles.clear()
 	for profile_variant in weapon_profiles:
@@ -31,6 +31,7 @@ func configure_default_loadout(emit_warnings: bool = true) -> void:
 			continue
 		_runtime_profiles.append(profile)
 		_weapon_states.append({
+			"owned": not competitive_loadout or profile.slot_index == 1,
 			"ammo_in_mag": profile.magazine_size,
 			"ammo_reserve": profile.reserve_ammo_on_spawn,
 			"fire_cooldown": 0.0,
@@ -49,6 +50,11 @@ func configure_default_loadout(emit_warnings: bool = true) -> void:
 		return
 
 	_current_weapon_index = clampi(starting_weapon_index, 0, _weapon_states.size() - 1)
+	if competitive_loadout:
+		for index in range(_weapon_states.size()):
+			if bool((_weapon_states[index] as Dictionary).get("owned", false)):
+				_current_weapon_index = index
+				break
 	_sync_game_state("")
 
 func tick(delta: float, fire_pressed: bool, fire_held: bool, player: CharacterBody3D) -> void:
@@ -73,6 +79,8 @@ func request_reload() -> void:
 		return
 
 	var current_state: Dictionary = _current_state()
+	if not bool(current_state.get("owned", true)):
+		return
 	if bool(current_state.get("is_reloading", false)):
 		return
 	if bool(current_state.get("is_equipping", false)):
@@ -94,6 +102,8 @@ func try_fire(player: CharacterBody3D) -> void:
 		return
 
 	var current_state: Dictionary = _current_state()
+	if not bool(current_state.get("owned", true)):
+		return
 	if bool(current_state.get("is_reloading", false)):
 		return
 	if bool(current_state.get("is_equipping", false)):
@@ -131,18 +141,14 @@ func try_fire(player: CharacterBody3D) -> void:
 	current_state["pattern_index"] = shot_index + 1
 
 	if bool(hit_result.get("hit", false)):
-		var collider: Variant = hit_result.get("collider", null)
-		if collider != null and collider.has_method("apply_hitscan_damage"):
-			var damage_result: Variant = collider.call(
-				"apply_hitscan_damage",
-				current_profile.damage,
-				hit_result.get("position", Vector3.ZERO)
-			)
-			if typeof(damage_result) == TYPE_DICTIONARY:
-				var damage_dict: Dictionary = damage_result as Dictionary
-				if bool(damage_dict.get("hit", false)):
-					GameState.register_hit(bool(damage_dict.get("killed", false)))
-					hit_result["damage_result"] = damage_dict
+		var damage_dict := _apply_damage_to_hit(hit_result, camera.global_position, current_profile, false)
+		if damage_dict.is_empty() and current_profile.max_penetrations > 0:
+			var penetration_result := _try_penetrating_hit(hit_result, shot_direction, current_profile, exclude, camera.get_world_3d().direct_space_state)
+			if not penetration_result.is_empty():
+				hit_result["penetration_result"] = penetration_result
+				damage_dict = penetration_result.get("damage_result", {}) as Dictionary
+		if not damage_dict.is_empty():
+			hit_result["damage_result"] = damage_dict
 		else:
 			hit_result["damage_result"] = {}
 
@@ -156,10 +162,51 @@ func try_fire(player: CharacterBody3D) -> void:
 	else:
 		_sync_game_state("")
 
+func _apply_damage_to_hit(hit_result: Dictionary, shot_origin: Vector3, profile, penetrated: bool) -> Dictionary:
+	var collider: Variant = hit_result.get("collider", null)
+	if collider == null or not collider.has_method("apply_hitscan_damage"):
+		return {}
+	var distance := shot_origin.distance_to(hit_result.get("position", shot_origin) as Vector3)
+	var falloff := pow(profile.range_modifier, distance / 10.0)
+	var penetration_scale: float = profile.penetration_damage_multiplier if penetrated else 1.0
+	var resolved_damage := maxi(1, int(round(float(profile.damage) * falloff * penetration_scale)))
+	var damage_result: Variant = collider.call(
+		"apply_hitscan_damage",
+		resolved_damage,
+		hit_result.get("position", Vector3.ZERO),
+		profile.armor_penetration,
+		penetrated
+	)
+	if typeof(damage_result) != TYPE_DICTIONARY:
+		return {}
+	var damage_dict := damage_result as Dictionary
+	if bool(damage_dict.get("hit", false)):
+		GameState.register_hit(bool(damage_dict.get("killed", false)))
+	return damage_dict
+
+func _try_penetrating_hit(first_hit: Dictionary, direction: Vector3, profile, exclude: Array, space_state: PhysicsDirectSpaceState3D) -> Dictionary:
+	var first_collider: Variant = first_hit.get("collider", null)
+	if not (first_collider is CollisionObject3D):
+		return {}
+	var start := (first_hit.get("position", Vector3.ZERO) as Vector3) + direction.normalized() * 0.08
+	var penetration_exclude := exclude.duplicate()
+	penetration_exclude.append((first_collider as CollisionObject3D).get_rid())
+	var next_hit := HitResolver.resolve_direction(start, direction, profile.max_range, profile.hit_collision_mask, penetration_exclude, space_state)
+	if not bool(next_hit.get("hit", false)):
+		return {}
+	var damage_dict := _apply_damage_to_hit(next_hit, start, profile, true)
+	if damage_dict.is_empty():
+		return {}
+	next_hit["damage_result"] = damage_dict
+	next_hit["penetrated"] = true
+	return next_hit
+
 func switch_to_slot(slot_index: int) -> void:
 	if slot_index < 0 or slot_index >= _weapon_states.size():
 		return
 	if slot_index == _current_weapon_index:
+		return
+	if not bool((_weapon_states[slot_index] as Dictionary).get("owned", true)):
 		return
 
 	var previous_state: Dictionary = _current_state()
@@ -192,8 +239,26 @@ func get_runtime_snapshot() -> Dictionary:
 		"is_equipping": bool(current_state.get("is_equipping", false)),
 		"spread_degrees": float(current_state.get("current_spread_degrees", current_profile.spread_min_degrees)),
 		"recoil_value": float(current_state.get("last_recoil_value", 0.0)),
-		"weapon_slot": _current_weapon_index
+		"weapon_slot": _current_weapon_index,
+		"owned": bool(current_state.get("owned", true)),
 	}
+
+func purchase_slot(slot_index: int) -> bool:
+	if slot_index < 0 or slot_index >= _weapon_states.size():
+		return false
+	var profile = _runtime_profiles[slot_index]
+	var state: Dictionary = _weapon_states[slot_index]
+	state["owned"] = true
+	state["ammo_in_mag"] = profile.magazine_size
+	state["ammo_reserve"] = profile.reserve_ammo_on_spawn
+	state["is_reloading"] = false
+	state["reload_timer"] = 0.0
+	_weapon_states[slot_index] = state
+	if slot_index != _current_weapon_index:
+		switch_to_slot(slot_index)
+	else:
+		_sync_game_state("")
+	return true
 
 func _tick_weapon_states(delta: float, player: CharacterBody3D) -> void:
 	for index in range(_weapon_states.size()):
@@ -258,12 +323,19 @@ func _recover_spread(delta: float, player: CharacterBody3D, profile, state: Dict
 	return state
 
 func _movement_spread_floor(player: CharacterBody3D, profile) -> float:
-	var spread_floor: float = profile.spread_min_degrees
-	var horizontal_speed: float = Vector2(player.velocity.x, player.velocity.z).length()
+	var accuracy_state: Dictionary = player.call("get_accuracy_state") if player.has_method("get_accuracy_state") else {}
+	var horizontal_speed := float(accuracy_state.get("speed", Vector2(player.velocity.x, player.velocity.z).length()))
+	var crouching := bool(accuracy_state.get("crouching", false))
+	var airborne := bool(accuracy_state.get("airborne", not player.is_on_floor()))
+	var landing_penalty := float(accuracy_state.get("landing_penalty", 0.0))
+	var spread_floor: float = profile.spread_min_degrees * (profile.crouch_spread_multiplier if crouching else 1.0)
 	if horizontal_speed > 0.18:
-		spread_floor += profile.spread_move_penalty_degrees
-	if not player.is_on_floor():
+		var speed_ratio := clampf((horizontal_speed - 0.18) / 6.02, 0.0, 1.0)
+		var speed_multiplier: float = profile.walk_spread_multiplier if horizontal_speed <= 3.35 else lerpf(profile.walk_spread_multiplier, 1.0, speed_ratio)
+		spread_floor += profile.spread_move_penalty_degrees * speed_multiplier
+	if airborne:
 		spread_floor += profile.spread_air_penalty_degrees
+	spread_floor += landing_penalty * profile.landing_spread_penalty_degrees
 	return spread_floor
 
 func _apply_shot_spread_growth(player: CharacterBody3D, profile, state: Dictionary) -> Dictionary:

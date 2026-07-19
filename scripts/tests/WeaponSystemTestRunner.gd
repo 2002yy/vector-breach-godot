@@ -33,10 +33,13 @@ func _run_all_tests() -> void:
 	await _run_test("empty_mag_fire_triggers_reload", _test_empty_mag_fire_triggers_reload)
 	await _run_test("switch_to_slot_cancels_reload_and_respects_equip_lock", _test_switch_to_slot_cancels_reload_and_respects_equip_lock)
 	await _run_test("pattern_index_resets_after_recovery_delay", _test_pattern_index_resets_after_recovery_delay)
+	await _run_test("rifle_uses_full_magazine_spray_pattern", _test_rifle_uses_full_magazine_spray_pattern)
 	await _run_test("hud_uses_familiar_information_zones", _test_hud_uses_familiar_information_zones)
 	await _run_test("hits_dummy_registers_damage_and_updates_hud", _test_hits_dummy_registers_damage_and_updates_hud)
 	await _run_test("kill_shot_registers_kill_and_updates_hud", _test_kill_shot_registers_kill_and_updates_hud)
 	await _run_test("terrain_hit_does_not_increment_hit_count", _test_terrain_hit_does_not_increment_hit_count)
+	await _run_test("hit_groups_and_armor_scale_damage", _test_hit_groups_and_armor_scale_damage)
+	await _run_test("rifle_penetrates_one_surface", _test_rifle_penetrates_one_surface)
 	await _run_test("invalid_profile_does_not_shift_runtime_slots", _test_invalid_profile_does_not_shift_runtime_slots)
 
 func _run_test(test_name: String, callable: Callable) -> void:
@@ -275,11 +278,13 @@ func _test_pattern_index_resets_after_recovery_delay(fixture: Dictionary) -> voi
 func _test_hud_uses_familiar_information_zones(fixture: Dictionary) -> void:
 	var hud: CanvasLayer = _spawn_combat_hud(fixture)
 	GameState.player_health = 74
+	GameState.player_armor = 100
 	GameState.sync_weapon_state("\u624b\u67aa", 4, 24, "", 0.0, 0.0, 1)
 	hud.call("update_display", GameState.get_hud_snapshot())
 
 	var hud_root: Control = hud.get_node("HudRoot")
 	var health_value: Label = hud.get_node("HudRoot/BottomLeft/Margin/Row/HealthText/Value")
+	var armor_value: Label = hud.get_node("HudRoot/BottomLeft/Margin/Row/ArmorValue")
 	var weapon_label: Label = hud.get_node("HudRoot/BottomRight/Margin/Row/WeaponBlock/Weapon")
 	var magazine_label: Label = hud.get_node("HudRoot/BottomRight/Margin/Row/AmmoMagazine")
 	var reserve_label: Label = hud.get_node("HudRoot/BottomRight/Margin/Row/AmmoReserve")
@@ -293,7 +298,8 @@ func _test_hud_uses_familiar_information_zones(fixture: Dictionary) -> void:
 	_assert_true(weapon_label.text.contains("[2]") and weapon_label.text.contains("\u624b\u67aa"), "weapon slot and name should stay together in the lower-right zone")
 	_assert_equal(magazine_label.text, "4", "magazine count should remain the dominant ammo number")
 	_assert_equal(reserve_label.text, "24", "reserve count should remain separate from magazine ammo")
-	_assert_equal(round_state_label.text, "LIVE", "round state should use the compact classic HUD label")
+	_assert_equal(armor_value.text, "100", "armor should sit beside health in the lower-left zone")
+	_assert_true(round_state_label.text.contains("CT 0") and round_state_label.text.contains("0 T"), "top center should show team scores and round time")
 	_assert_float_close(round_panel.anchor_left, 0.5, 0.001, "round context should stay centered at the top")
 	_assert_float_close(health_panel.anchor_bottom, 1.0, 0.001, "health should stay anchored to the lower-left")
 	_assert_float_close(ammo_panel.anchor_left, 1.0, 0.001, "ammo should stay anchored to the lower-right")
@@ -301,6 +307,14 @@ func _test_hud_uses_familiar_information_zones(fixture: Dictionary) -> void:
 	GameState.set_menu_state(true)
 	hud.call("update_display", GameState.get_hud_snapshot())
 	_assert_true(not hud_root.visible, "combat HUD should hide while the menu is open")
+
+func _test_rifle_uses_full_magazine_spray_pattern(fixture: Dictionary) -> void:
+	var rifle_profile: Resource = fixture["rifle_profile"]
+	var recoil_pattern: Array = rifle_profile.get("recoil_pattern_degrees") as Array
+	var shot_pattern: Array = rifle_profile.get("shot_pattern_degrees") as Array
+	_assert_equal(recoil_pattern.size(), 30, "rifle recoil should define all 30 magazine shots")
+	_assert_equal(shot_pattern.size(), 30, "rifle trajectory should define all 30 magazine shots")
+	_assert_true((shot_pattern[29] as Vector2).distance_to(shot_pattern[11] as Vector2) > 0.25, "late spray should not clamp to shot twelve")
 
 func _test_hits_dummy_registers_damage_and_updates_hud(fixture: Dictionary) -> void:
 	var weapon_system: Node = fixture["weapon_system"]
@@ -324,7 +338,7 @@ func _test_hits_dummy_registers_damage_and_updates_hud(fixture: Dictionary) -> v
 	var stats_label: Label = hud.get_node("HudRoot/TopRight/Margin/Stats")
 	_assert_equal(magazine_label.text, "29", "HUD magazine should reflect one rifle round spent after hit")
 	_assert_equal(reserve_label.text, "90", "HUD reserve should remain unchanged after a normal shot")
-	_assert_true(stats_label.text.contains("HITS 1"), "HUD stats should show one registered hit")
+	_assert_equal(stats_label.text, "$800", "live HUD should keep training hit statistics off the playfield")
 
 func _test_kill_shot_registers_kill_and_updates_hud(fixture: Dictionary) -> void:
 	var weapon_system: Node = fixture["weapon_system"]
@@ -345,8 +359,9 @@ func _test_kill_shot_registers_kill_and_updates_hud(fixture: Dictionary) -> void
 	_assert_equal(int(GameState.kill_count), 1, "kill shot should increment GameState kill counter")
 	hud.call("update_display", GameState.get_hud_snapshot())
 	var stats_label: Label = hud.get_node("HudRoot/TopRight/Margin/Stats")
-	_assert_true(stats_label.text.contains("HITS 1"), "HUD stats should keep hit counter after kill shot")
-	_assert_true(stats_label.text.contains("KILLS 1"), "HUD stats should show one kill after lethal hit")
+	var scoreboard_row: Label = hud.get_node("HudRoot/Scoreboard/Margin/Stack/FriendlyRow")
+	_assert_equal(stats_label.text, "$1100", "kill reward should update the live money readout")
+	_assert_true(scoreboard_row.text.contains("1") and scoreboard_row.text.contains("$1100"), "scoreboard should retain kills, hits, and money")
 
 func _test_terrain_hit_does_not_increment_hit_count(fixture: Dictionary) -> void:
 	var weapon_system: Node = fixture["weapon_system"]
@@ -366,7 +381,54 @@ func _test_terrain_hit_does_not_increment_hit_count(fixture: Dictionary) -> void
 	_assert_equal(int(GameState.kill_count), 0, "terrain hit should not increment kill counter")
 	hud.call("update_display", GameState.get_hud_snapshot())
 	var stats_label: Label = hud.get_node("HudRoot/TopRight/Margin/Stats")
-	_assert_true(stats_label.text.contains("HITS 0"), "HUD stats should stay at zero hits after terrain shot")
+	_assert_equal(stats_label.text, "$800", "terrain hits should not alter the money readout")
+
+func _test_hit_groups_and_armor_scale_damage(fixture: Dictionary) -> void:
+	var head_dummy := _spawn_target_dummy(fixture, 200)
+	await _await_world_ready()
+	var head_result: Dictionary = head_dummy.call(
+		"apply_hitscan_damage",
+		30,
+		head_dummy.global_position + Vector3(0.0, 0.65, 0.0),
+		0.77,
+		false
+	)
+	_assert_equal(head_result.get("hit_group"), "head", "upper collision hits should resolve as headshots")
+	_assert_true(bool(head_result.get("headshot", false)), "head hit should expose a headshot flag")
+	_assert_equal(head_result.get("damage"), 92, "helmet armor should apply penetration to the 4x head multiplier")
+	_assert_true(int(head_result.get("armor_damage", 0)) > 0, "armored head hits should consume armor")
+
+	var leg_dummy := _spawn_target_dummy(fixture, 200)
+	leg_dummy.position.x = 3.0
+	await _await_world_ready()
+	var leg_result: Dictionary = leg_dummy.call(
+		"apply_hitscan_damage",
+		40,
+		leg_dummy.global_position + Vector3(0.0, -0.5, 0.0),
+		0.1,
+		false
+	)
+	_assert_equal(leg_result.get("hit_group"), "legs", "lower collision hits should resolve as leg damage")
+	_assert_equal(leg_result.get("damage"), 30, "legs should use the 0.75 multiplier without armor reduction")
+	_assert_equal(leg_result.get("armor_damage"), 0, "leg damage should bypass armor")
+
+func _test_rifle_penetrates_one_surface(fixture: Dictionary) -> void:
+	var weapon_system: Node = fixture["weapon_system"]
+	var player: CharacterBody3D = fixture["player"]
+	_spawn_test_wall(fixture)
+	_spawn_target_dummy(fixture, 100)
+	var shot_results: Array = []
+	weapon_system.connect("shot_resolved", Callable(self, "_capture_shot_result").bind(shot_results), CONNECT_ONE_SHOT)
+	await _await_world_ready()
+	_tick_weapon_system(weapon_system, player, 0.01, true, true)
+	var result: Dictionary = shot_results[0] if not shot_results.is_empty() else {}
+	var penetration: Dictionary = result.get("penetration_result", {}) as Dictionary
+	var damage_result: Dictionary = result.get("damage_result", {}) as Dictionary
+	_assert_true(bool(result.get("hit", false)), "penetration shot should first collide with the surface")
+	_assert_true(not penetration.is_empty(), "rifle should continue one trace behind a penetrable surface")
+	_assert_true(bool(damage_result.get("penetrated", false)), "damage payload should identify a penetrated hit")
+	_assert_true(int(damage_result.get("damage", 0)) > 0, "penetrated shot should retain reduced damage")
+	_assert_equal(GameState.hit_count, 1, "penetrated target damage should count as one hit")
 
 func _test_invalid_profile_does_not_shift_runtime_slots(fixture: Dictionary) -> void:
 	var weapon_system: Node = fixture["weapon_system"]

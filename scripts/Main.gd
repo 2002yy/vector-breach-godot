@@ -91,8 +91,12 @@ var level_options: Array = []
 var game_started: bool = false
 var menu_open: bool = true
 var _ui_update_timer: float = 0.0
+var _radar_update_timer: float = 0.0
 var _default_environment_state: Dictionary = {}
+var _buy_menu_open: bool = false
 const UI_UPDATE_INTERVAL: float = 0.18
+const RADAR_UPDATE_INTERVAL: float = 0.05
+const RADAR_RANGE_METERS: float = 24.0
 
 func _ready() -> void:
 	_isolate_environment_resource()
@@ -113,22 +117,47 @@ func _ready() -> void:
 		weapon_system.connect("reload_started", _on_reload_started)
 	if weapon_system.has_signal("reload_finished"):
 		weapon_system.connect("reload_finished", _on_reload_finished)
+	if player.has_signal("footstep_emitted"):
+		player.connect("footstep_emitted", _on_player_footstep)
+	if player.has_signal("landed"):
+		player.connect("landed", _on_player_landed)
+	if combat_sandbox.has_signal("targets_spawned"):
+		combat_sandbox.connect("targets_spawned", _on_targets_spawned)
+	if player.has_signal("player_died"):
+		player.connect("player_died", _on_player_died)
+	if not RoundManager.phase_changed.is_connected(_on_round_phase_changed):
+		RoundManager.phase_changed.connect(_on_round_phase_changed)
+	if not RoundManager.round_ended.is_connected(_on_round_ended):
+		RoundManager.round_ended.connect(_on_round_ended)
+	if not RoundManager.restart_requested.is_connected(_on_round_restart_requested):
+		RoundManager.restart_requested.connect(_on_round_restart_requested)
 	if not GameState.hud_state_changed.is_connected(_on_hud_state_changed):
 		GameState.hud_state_changed.connect(_on_hud_state_changed)
 	start_menu.call("set_map_options", level_options, selected_level_index)
 	start_menu.connect("start_pressed", _on_start_pressed)
 	start_menu.connect("resume_pressed", _on_resume_pressed)
 	start_menu.connect("map_selected", _on_map_selected)
+	start_menu.connect("settings_changed", _on_settings_changed)
 	_apply_selected_map()
 	_open_menu(true)
 	_update_ui(true)
+
+func _on_settings_changed(snapshot: Dictionary) -> void:
+	UserSettings.apply_snapshot(snapshot)
+	if combat_hud.has_method("apply_settings"):
+		combat_hud.call("apply_settings", UserSettings.get_snapshot())
 
 func _isolate_environment_resource() -> void:
 	if world_environment.environment != null:
 		world_environment.environment = world_environment.environment.duplicate(true) as Environment
 
 func _process(delta: float) -> void:
-	if game_started and not menu_open:
+	var combat_enabled := _can_accept_combat_input()
+	if game_started and not menu_open and player.has_method("set_controls_enabled"):
+		player.call("set_controls_enabled", not bool(player.get("is_dead")))
+		if player.has_method("set_movement_enabled"):
+			player.call("set_movement_enabled", combat_enabled)
+	if combat_enabled:
 		var fire_pressed: bool = Input.is_action_just_pressed("fire_primary")
 		var fire_held: bool = Input.is_action_pressed("fire_primary")
 		if weapon_system.has_method("tick"):
@@ -138,6 +167,11 @@ func _process(delta: float) -> void:
 	if _ui_update_timer >= UI_UPDATE_INTERVAL:
 		_ui_update_timer = 0.0
 		_update_ui(false)
+	_radar_update_timer += delta
+	if _radar_update_timer >= RADAR_UPDATE_INTERVAL:
+		_radar_update_timer = 0.0
+		if combat_hud.has_method("update_radar"):
+			combat_hud.call("update_radar", _build_radar_snapshot())
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("fullscreen_toggle"):
@@ -157,6 +191,26 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F3:
 		status_panel.visible = not status_panel.visible
 		_update_ui(true)
+		get_viewport().set_input_as_handled()
+		return
+
+	if event.is_action_pressed("buy_menu"):
+		if game_started and not menu_open and RoundManager.can_buy():
+			_buy_menu_open = not _buy_menu_open
+			if combat_hud.has_method("set_buy_menu_visible"):
+				combat_hud.call("set_buy_menu_visible", _buy_menu_open)
+		get_viewport().set_input_as_handled()
+		return
+
+	if _buy_menu_open and event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode in [KEY_1, KEY_2, KEY_3]:
+			_purchase_item("rifle" if event.keycode == KEY_1 else ("pistol" if event.keycode == KEY_2 else "armor"))
+			get_viewport().set_input_as_handled()
+			return
+
+	if event.is_action_pressed("interact"):
+		if _can_accept_combat_input():
+			_try_plant_c4()
 		get_viewport().set_input_as_handled()
 		return
 
@@ -190,28 +244,34 @@ func _on_map_selected(index: int) -> void:
 
 func _on_start_pressed() -> void:
 	var option: Dictionary = level_options[selected_level_index]
+	GameState.reset_runtime_state()
 	level.call("load_level", option["id"])
 	if player.has_method("reset_to_spawn"):
 		player.call("reset_to_spawn")
-	GameState.reset_runtime_state()
 	game_started = true
 	GameState.set_game_started(true)
 	if weapon_system.has_method("configure_default_loadout"):
-		weapon_system.call("configure_default_loadout")
+		weapon_system.call("configure_default_loadout", true, true)
 	if weapon_view_model.has_method("set_weapon_slot"):
-		weapon_view_model.call("set_weapon_slot", 0, false)
+		var equipped_slot := int((weapon_system.call("get_runtime_snapshot") as Dictionary).get("weapon_slot", 0))
+		weapon_view_model.call("set_weapon_slot", equipped_slot, false)
+	RoundManager.start_round()
 	_resume_game()
 
 func _on_resume_pressed() -> void:
 	_resume_game()
 
 func _resume_game() -> void:
+	var was_paused := RoundManager.state == RoundManager.RoundState.PAUSED_MENU
 	menu_open = false
 	GameState.set_menu_state(false)
-	RoundManager.set_live()
+	if was_paused:
+		RoundManager.resume_round()
 	start_menu.call("set_menu_visible", false)
 	if player.has_method("set_controls_enabled"):
-		player.call("set_controls_enabled", true)
+		player.call("set_controls_enabled", game_started and not bool(player.get("is_dead")))
+	if player.has_method("set_movement_enabled"):
+		player.call("set_movement_enabled", _can_accept_combat_input())
 	if player.has_method("set_mouse_capture_enabled"):
 		player.call("set_mouse_capture_enabled", true)
 	weapon_view_model.visible = game_started
@@ -449,7 +509,67 @@ func _on_shot_resolved(result: Dictionary) -> void:
 	if shot_debug_line.has_method("show_shot"):
 		shot_debug_line.call("show_shot", result)
 	if combat_audio_feedback.has_method("play_shot"):
-		combat_audio_feedback.call("play_shot", result)
+		combat_audio_feedback.call("play_shot", result, player.global_position)
+	var damage_result: Dictionary = result.get("damage_result", {}) as Dictionary
+	if bool(damage_result.get("killed", false)) and combat_hud.has_method("add_kill_feed"):
+		combat_hud.call("add_kill_feed", "YOU", String(damage_result.get("target_name", "TARGET")), String(result.get("weapon_name", "RIFLE")))
+		if GameState.enemy_alive == 0 and RoundManager.state in [RoundManager.RoundState.LIVE, RoundManager.RoundState.BOMB_PLANTED]:
+			RoundManager.end_round("T", "ELIMINATION")
+
+func _on_targets_spawned(count: int) -> void:
+	GameState.set_training_target_count(count)
+
+func _on_player_died() -> void:
+	RoundManager.end_round("CT", "ELIMINATION")
+
+func _on_round_phase_changed(_state_name: String) -> void:
+	if not RoundManager.can_buy():
+		_buy_menu_open = false
+		if combat_hud.has_method("set_buy_menu_visible"):
+			combat_hud.call("set_buy_menu_visible", false)
+	_update_ui(true)
+
+func _on_round_ended(winner: String, reason: String) -> void:
+	GameState.complete_round(winner, reason)
+	_update_ui(true)
+
+func _on_round_restart_requested() -> void:
+	var player_survived := not bool(player.get("is_dead"))
+	GameState.prepare_next_round()
+	var option: Dictionary = level_options[selected_level_index]
+	level.call("load_level", option["id"])
+	player.call("reset_to_spawn")
+	if not player_survived:
+		weapon_system.call("configure_default_loadout", true, true)
+	RoundManager.start_round()
+
+func _purchase_item(item_id: String) -> void:
+	var result := GameState.purchase(item_id)
+	if bool(result.get("success", false)) and item_id in ["rifle", "pistol"] and weapon_system.has_method("purchase_slot"):
+		weapon_system.call("purchase_slot", 0 if item_id == "rifle" else 1)
+	if combat_hud.has_method("show_purchase_result"):
+		combat_hud.call("show_purchase_result", String(result.get("reason", "购买成功")))
+
+func _try_plant_c4() -> bool:
+	if not RoundManager.bomb_carried:
+		return false
+	var radar_snapshot := _build_radar_snapshot()
+	var player_position := Vector2(player.global_position.x, player.global_position.z)
+	for target_variant in radar_snapshot.get("targets", []):
+		var target := target_variant as Dictionary
+		var target_position := Vector2(float(target.get("x", 0.0)), float(target.get("z", 0.0)))
+		var plant_radius := maxf(3.0, minf(float(target.get("sx", 6.0)), float(target.get("sz", 6.0))) * 0.5)
+		if player_position.distance_to(target_position) <= plant_radius:
+			return RoundManager.plant_bomb(String(target.get("label", "A")))
+	return false
+
+func _on_player_footstep(world_position: Vector3, surface: String, quiet: bool) -> void:
+	if combat_audio_feedback.has_method("play_footstep"):
+		combat_audio_feedback.call("play_footstep", world_position, surface, quiet)
+
+func _on_player_landed(world_position: Vector3, surface: String, strength: float) -> void:
+	if combat_audio_feedback.has_method("play_landing"):
+		combat_audio_feedback.call("play_landing", world_position, surface, strength)
 
 func _on_weapon_switched(_weapon_name: String, slot_index: int) -> void:
 	if weapon_view_model.has_method("set_weapon_slot"):
@@ -466,10 +586,10 @@ func _on_reload_finished() -> void:
 		combat_audio_feedback.call("play_reload_finished")
 
 func _on_hud_state_changed(snapshot: Dictionary) -> void:
-	combat_hud.call("update_display", snapshot)
+	combat_hud.call("update_display", _build_hud_snapshot(snapshot))
 
 func _can_accept_combat_input() -> bool:
-	return game_started and not menu_open
+	return game_started and not menu_open and RoundManager.can_player_move() and not bool(player.get("is_dead"))
 
 func find_level_option_index(target_level_id: String) -> int:
 	for index in range(level_options.size()):
@@ -485,10 +605,82 @@ func _has_local_level(level_path: String, visual_path: String) -> bool:
 		and ResourceLoader.exists(visual_path, "PackedScene")
 
 func _update_ui(force: bool) -> void:
-	if force:
-		combat_hud.call("update_display", GameState.get_hud_snapshot())
+	combat_hud.call("update_display", _build_hud_snapshot(GameState.get_hud_snapshot()))
 	var snapshot: Dictionary = {}
 	if player.has_method("get_debug_snapshot"):
 		snapshot = player.call("get_debug_snapshot", menu_open)
 	if force or status_panel.visible:
 		status_panel.call("update_display", snapshot)
+
+func _build_hud_snapshot(snapshot: Dictionary) -> Dictionary:
+	var enriched := snapshot.duplicate(true)
+	enriched["radar"] = _build_radar_snapshot()
+	return enriched
+
+func _build_radar_snapshot() -> Dictionary:
+	var level_data: Dictionary = level.call("get_current_level_data") if level.has_method("get_current_level_data") else {}
+	var arena_size := float(level_data.get("arenaSize", 56.0))
+	var bounds := Vector2(
+		float(level_data.get("arenaSizeX", arena_size)),
+		float(level_data.get("arenaSizeZ", arena_size))
+	)
+	var targets: Array[Dictionary] = []
+	for objective_variant in level_data.get("objectives", []):
+		if not objective_variant is Dictionary:
+			continue
+		var objective := objective_variant as Dictionary
+		var objective_id := String(objective.get("id", "")).to_lower()
+		var objective_label := "A" if objective_id.contains("a") else ("B" if objective_id.contains("b") else "T")
+		var objective_radius := float(objective.get("radius", 2.0))
+		targets.append({
+			"label": objective_label,
+			"x": float(objective.get("x", 0.0)),
+			"z": float(objective.get("z", 0.0)),
+			"sx": objective_radius * 2.0,
+			"sz": objective_radius * 2.0,
+		})
+	for floor_variant in level_data.get("floors", []):
+		if not targets.is_empty():
+			break
+		if not floor_variant is Dictionary:
+			continue
+		var floor_entry := floor_variant as Dictionary
+		var floor_id := String(floor_entry.get("id", "")).to_lower()
+		if not floor_id.contains("site"):
+			continue
+		var label := "T"
+		if floor_id.contains("site-a"):
+			label = "A"
+		elif floor_id.contains("site-b"):
+			label = "B"
+		targets.append({
+			"label": label,
+			"x": float(floor_entry.get("x", 0.0)),
+			"z": float(floor_entry.get("z", 0.0)),
+			"sx": float(floor_entry.get("sx", 2.0)),
+			"sz": float(floor_entry.get("sz", 2.0)),
+		})
+	if targets.is_empty():
+		var target_route: Variant = (level_data.get("routes", {}) as Dictionary).get("target", [])
+		if target_route is Array and target_route.size() >= 2:
+			targets.append({"label": "T", "x": float(target_route[0]), "z": float(target_route[1])})
+	return {
+		"bounds": bounds,
+		"range_meters": RADAR_RANGE_METERS,
+		"player_position": Vector2(player.global_position.x, player.global_position.z),
+		"player_yaw": player.rotation.y,
+		"targets": targets,
+		"features": _collect_radar_features(level_data),
+	}
+
+func _collect_radar_features(level_data: Dictionary) -> Array[Dictionary]:
+	var features: Array[Dictionary] = []
+	for collection_name in ["walls", "covers", "obstacles", "floors", "stairs", "ramps", "catwalks"]:
+		for feature_variant in level_data.get(collection_name, []):
+			if not feature_variant is Dictionary:
+				continue
+			var feature := (feature_variant as Dictionary).duplicate(true)
+			if not feature.has("role"):
+				feature["role"] = String(collection_name).trim_suffix("s")
+			features.append(feature)
+	return features

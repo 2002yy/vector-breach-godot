@@ -32,6 +32,14 @@ This repo is still in a prototype-validation phase. The goal is not content volu
 - 步枪：可学习的固定后坐与弹道节奏 / Rifle with learnable recoil and shot rhythm
 - 手枪：半自动、副武器槽位、`1 / 2` 切枪 / Pistol with semi-auto fire and `1 / 2` weapon switching
 - HUD、命中反馈、调试线与目标假人 / HUD, hit feedback, debug lines, and target dummy
+- 左上角圆形战术雷达：玩家居中、随朝向旋转，所有地图统一显示半径 24 m 的局部边界、几何与目标方向 / Circular heading-up radar centered on the player, with a shared 24 m local range for nearby bounds, geometry, and objective directions on every map
+- 经典 CS 风格普通跳、蹲伏胶囊与蹲跳；无二段跳、无自动翻越 / Classic CS-style jump, crouch hull, and crouch-jump; no double jump or auto-mantle
+- 默认奔跑、Shift 静步、蹲伏慢行，搭配材质脚步、落地声与分层精度规则 / Default run, Shift quiet-walk, crouch movement, material footsteps, landing audio, and stance/speed accuracy bands
+- 30 发完整步枪喷射轨迹，不在中途锁死 / Full 30-round rifle spray path without mid-magazine clamping
+- 竞技 HUD：比分、时间、存活数、护甲、金钱、Tab 计分板、击杀信息与训练结算 / Competitive HUD with score, time, alive counts, armor, money, Tab scoreboard, kill feed, and training summary
+- 头/躯干/腿命中倍率、护甲减伤、距离衰减、单层穿透、受击减速与玩家死亡 / Head/torso/leg hit groups, armor mitigation, range falloff, one-surface penetration, tagging slowdown, and player death
+- T/CT 回合状态、冻结购买、胜负经济、C4 安装/拆除/爆炸及自动下一回合 / T/CT round states, freeze-time buying, win/loss economy, C4 plant/defuse/explosion, and automatic next rounds
+- 中文游戏设置：鼠标灵敏度、主音量、准星间距/长度与动态准星 / Chinese settings for mouse sensitivity, master volume, crosshair gap/size, and dynamic crosshair
 - 一套可 headless 运行的最小自动化测试 / A small headless regression test suite
 
 ## 目录结构 / Structure
@@ -98,8 +106,12 @@ powershell -ExecutionPolicy Bypass -File .\tools\run_godot_tests.ps1 -GodotExe "
 ## 当前控制 / Current Controls
 
 - `WASD`: 移动 / Move
-- `Shift`: 冲刺 / Sprint
+- `Shift`: 静步 / Quiet walk
 - `Space`: 跳跃 / Jump
+- `Ctrl / C`: 蹲伏；蹲伏状态起跳为经典蹲跳 / Crouch; jump while crouched for a classic crouch-jump
+- `Tab`: 按住显示计分板 / Hold scoreboard
+- `B`: 冻结期打开购买菜单，`1 / 2 / 3` 购买步枪、手枪补给或护甲 / Open the freeze-time buy menu; use `1 / 2 / 3` for rifle, pistol refill, or armor
+- `E`: 在目标区安装 C4 / Plant C4 inside an objective zone
 - `鼠标左键`: 开火 / Fire
 - `R`: 换弹 / Reload
 - `1 / 2`: 切枪 / Switch weapons

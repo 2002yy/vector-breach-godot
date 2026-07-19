@@ -18,6 +18,13 @@ class_name WeaponProfile
 @export var spread_air_penalty_degrees: float = 2.2
 @export var spread_shot_increment_degrees: float = 0.45
 @export var spread_recover_per_second: float = 3.6
+@export var walk_spread_multiplier: float = 0.38
+@export var crouch_spread_multiplier: float = 0.72
+@export var landing_spread_penalty_degrees: float = 1.35
+@export var range_modifier: float = 0.98
+@export var armor_penetration: float = 0.72
+@export var penetration_damage_multiplier: float = 0.55
+@export var max_penetrations: int = 1
 @export var pattern_reset_delay: float = 0.35
 @export var equip_duration: float = 0.32
 @export var camera_pitch_multiplier: float = 0.32
@@ -71,4 +78,10 @@ func get_configuration_errors() -> PackedStringArray:
 		errors.append("max_range must be greater than zero")
 	if spread_min_degrees < 0.0 or spread_max_degrees < spread_min_degrees:
 		errors.append("spread range is invalid")
+	if walk_spread_multiplier < 0.0 or crouch_spread_multiplier <= 0.0:
+		errors.append("accuracy multipliers must be positive")
+	if range_modifier <= 0.0 or range_modifier > 1.0:
+		errors.append("range_modifier must be within (0, 1]")
+	if armor_penetration < 0.0 or armor_penetration > 1.0:
+		errors.append("armor_penetration must be within [0, 1]")
 	return errors
