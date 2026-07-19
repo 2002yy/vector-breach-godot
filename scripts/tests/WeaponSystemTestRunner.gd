@@ -40,6 +40,8 @@ func _run_all_tests() -> void:
 	await _run_test("terrain_hit_does_not_increment_hit_count", _test_terrain_hit_does_not_increment_hit_count)
 	await _run_test("hit_groups_and_armor_scale_damage", _test_hit_groups_and_armor_scale_damage)
 	await _run_test("rifle_penetrates_one_surface", _test_rifle_penetrates_one_surface)
+	await _run_test("thick_concrete_blocks_penetration", _test_thick_concrete_blocks_penetration)
+	await _run_test("weapon_drop_and_pickup_preserve_ammo", _test_weapon_drop_and_pickup_preserve_ammo)
 	await _run_test("invalid_profile_does_not_shift_runtime_slots", _test_invalid_profile_does_not_shift_runtime_slots)
 
 func _run_test(test_name: String, callable: Callable) -> void:
@@ -147,17 +149,18 @@ func _spawn_combat_hud(fixture: Dictionary) -> CanvasLayer:
 	_register_cleanup_node(fixture, hud)
 	return hud
 
-func _spawn_test_wall(fixture: Dictionary) -> StaticBody3D:
+func _spawn_test_wall(fixture: Dictionary, thickness: float = 0.5, surface_type: String = "concrete") -> StaticBody3D:
 	var wall := StaticBody3D.new()
 	wall.name = "TestWall"
 	wall.collision_layer = 1
 	wall.collision_mask = 1
 	var collision := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
-	shape.size = Vector3(2.0, 2.0, 0.5)
+	shape.size = Vector3(2.0, 2.0, thickness)
 	collision.shape = shape
 	wall.add_child(collision)
 	wall.position = Vector3(0.0, 1.6, -6.0)
+	wall.set_meta("surface_type", surface_type)
 	add_child(wall)
 	_register_cleanup_node(fixture, wall)
 	return wall
@@ -386,6 +389,7 @@ func _test_terrain_hit_does_not_increment_hit_count(fixture: Dictionary) -> void
 func _test_hit_groups_and_armor_scale_damage(fixture: Dictionary) -> void:
 	var head_dummy := _spawn_target_dummy(fixture, 200)
 	await _await_world_ready()
+	head_dummy.call("configure_from_record", {"armor": 100, "helmet": true})
 	var head_result: Dictionary = head_dummy.call(
 		"apply_hitscan_damage",
 		30,
@@ -397,6 +401,13 @@ func _test_hit_groups_and_armor_scale_damage(fixture: Dictionary) -> void:
 	_assert_true(bool(head_result.get("headshot", false)), "head hit should expose a headshot flag")
 	_assert_equal(head_result.get("damage"), 92, "helmet armor should apply penetration to the 4x head multiplier")
 	_assert_true(int(head_result.get("armor_damage", 0)) > 0, "armored head hits should consume armor")
+	var kevlar_dummy := _spawn_target_dummy(fixture, 200)
+	kevlar_dummy.position.x = -3.0
+	await _await_world_ready()
+	kevlar_dummy.call("configure_from_record", {"armor": 100, "helmet": false})
+	var unhelmeted_head := kevlar_dummy.call("apply_hitscan_damage", 30, kevlar_dummy.global_position + Vector3(0.0, 0.65, 0.0), 0.1, false) as Dictionary
+	_assert_equal(unhelmeted_head.get("damage"), 120, "kevlar without a helmet must not protect the head")
+	_assert_equal(unhelmeted_head.get("armor_damage"), 0, "unhelmeted head damage must not consume armor")
 
 	var leg_dummy := _spawn_target_dummy(fixture, 200)
 	leg_dummy.position.x = 3.0
@@ -430,6 +441,20 @@ func _test_rifle_penetrates_one_surface(fixture: Dictionary) -> void:
 	_assert_true(int(damage_result.get("damage", 0)) > 0, "penetrated shot should retain reduced damage")
 	_assert_equal(GameState.hit_count, 1, "penetrated target damage should count as one hit")
 
+func _test_thick_concrete_blocks_penetration(fixture: Dictionary) -> void:
+	var weapon_system: Node = fixture["weapon_system"]
+	var player: CharacterBody3D = fixture["player"]
+	_spawn_test_wall(fixture, 2.0, "concrete")
+	_spawn_target_dummy(fixture, 100)
+	var shot_results: Array = []
+	weapon_system.connect("shot_resolved", Callable(self, "_capture_shot_result").bind(shot_results), CONNECT_ONE_SHOT)
+	await _await_world_ready()
+	_tick_weapon_system(weapon_system, player, 0.01, true, true)
+	var result: Dictionary = shot_results[0] if not shot_results.is_empty() else {}
+	_assert_true(bool(result.get("hit", false)), "thick wall test should hit the concrete surface")
+	_assert_true((result.get("penetration_result", {}) as Dictionary).is_empty(), "thick concrete should stop the rifle round")
+	_assert_equal(GameState.hit_count, 0, "blocked penetration must not damage the target")
+
 func _test_invalid_profile_does_not_shift_runtime_slots(fixture: Dictionary) -> void:
 	var weapon_system: Node = fixture["weapon_system"]
 	var rifle_profile: Resource = fixture["rifle_profile"]
@@ -442,3 +467,14 @@ func _test_invalid_profile_does_not_shift_runtime_slots(fixture: Dictionary) -> 
 	weapon_system.call("switch_to_slot", 1)
 	var pistol_snapshot: Dictionary = weapon_system.call("get_runtime_snapshot")
 	_assert_equal(pistol_snapshot.get("weapon_name"), pistol_profile.get("display_name"), "runtime slot 1 should still map to the pistol after invalid resources are skipped")
+
+func _test_weapon_drop_and_pickup_preserve_ammo(fixture: Dictionary) -> void:
+	var weapon_system: Node = fixture["weapon_system"]
+	var state: Dictionary = weapon_system.call("_current_state")
+	state["ammo_in_mag"] = 17
+	weapon_system.call("_store_current_state", state)
+	var dropped := weapon_system.call("drop_current_weapon") as Dictionary
+	_assert_equal(dropped.get("ammo_in_mag"), 17, "dropped weapon should retain magazine ammo")
+	_assert_true(int((weapon_system.call("get_runtime_snapshot") as Dictionary).get("weapon_slot", -1)) != int(dropped.get("slot_index", -1)), "dropping the rifle should fall back to another owned weapon")
+	_assert_true(bool(weapon_system.call("pickup_weapon", dropped)), "weapon record should be pickable")
+	_assert_equal((weapon_system.call("get_runtime_snapshot") as Dictionary).get("ammo_in_mag"), 17, "picked-up weapon should restore preserved ammo")

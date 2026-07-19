@@ -1,10 +1,13 @@
 extends StaticBody3D
 
+const DamageModel = preload("res://scripts/combat/DamageModel.gd")
+
 signal dummy_killed(dummy_name: String)
 
-@export var display_name: String = "Dummy"
+@export var display_name: String = "训练目标"
 @export var max_health: int = 100
-@export var max_armor: int = 100
+@export var max_armor: int = 0
+@export var has_helmet: bool = false
 @export var alive_color: Color = Color(0.88, 0.32, 0.24)
 @export var damaged_color: Color = Color(1.0, 0.78, 0.26)
 @export var dead_color: Color = Color(0.20, 0.20, 0.20)
@@ -30,6 +33,9 @@ func configure_from_record(record: Dictionary) -> void:
 	if not next_name.is_empty():
 		display_name = next_name
 	name = display_name.replace(" ", "_")
+	max_armor = clampi(int(record.get("armor", max_armor)), 0, 100)
+	has_helmet = bool(record.get("helmet", has_helmet))
+	_current_armor = max_armor
 
 func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, armor_penetration: float = 1.0, penetrated: bool = false) -> Dictionary:
 	if _is_dead:
@@ -39,23 +45,11 @@ func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, arm
 		}
 
 	var local_hit := to_local(hit_position)
-	var hit_group := "torso"
-	var multiplier := 1.0
-	var armored := true
-	if local_hit.y >= 0.52:
-		hit_group = "head"
-		multiplier = 4.0
-	elif local_hit.y <= -0.34:
-		hit_group = "legs"
-		multiplier = 0.75
-		armored = false
-	var scaled_damage := maxi(1, int(round(float(amount) * multiplier)))
-	var health_damage := scaled_damage
-	var armor_damage := 0
-	if armored and _current_armor > 0:
-		health_damage = maxi(1, int(round(float(scaled_damage) * clampf(armor_penetration, 0.0, 1.0))))
-		armor_damage = mini(_current_armor, maxi(1, int(round(float(scaled_damage - health_damage) * 0.5))))
-		_current_armor -= armor_damage
+	var hit_group := DamageModel.resolve_hit_group(local_hit)
+	var resolved := DamageModel.resolve_damage(amount, hit_group, _current_armor, has_helmet, armor_penetration)
+	var health_damage := int(resolved.damage)
+	var armor_damage := int(resolved.armor_damage)
+	_current_armor -= armor_damage
 	_current_health = maxi(0, _current_health - health_damage)
 	var killed: bool = _current_health == 0
 
@@ -75,7 +69,9 @@ func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, arm
 		"killed": killed,
 		"target_name": display_name,
 		"hit_group": hit_group,
-		"headshot": hit_group == "head",
+		"headshot": bool(resolved.headshot),
+		"armored": bool(resolved.armored),
+		"helmet": has_helmet,
 		"penetrated": penetrated,
 		"damage": health_damage,
 		"armor_damage": armor_damage,

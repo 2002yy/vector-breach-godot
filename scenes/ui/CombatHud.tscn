@@ -123,7 +123,7 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
 theme_override_constants/outline_size = 3
 theme_override_fonts/font = ExtResource("3_semibold")
 theme_override_font_sizes/font_size = 20
-text = "LIVE"
+text = "回合进行中"
 horizontal_alignment = 1
 
 [node name="LevelName" type="Label" parent="HudRoot/TopCenter/Margin/Stack"]
@@ -133,7 +133,7 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
 theme_override_constants/outline_size = 2
 theme_override_fonts/font = ExtResource("2_regular")
 theme_override_font_sizes/font_size = 14
-text = "FOUNDRY REFORGED"
+text = "铸造厂·重构"
 horizontal_alignment = 1
 text_overrun_behavior = 3
 
@@ -169,7 +169,7 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
 theme_override_constants/outline_size = 3
 theme_override_fonts/font = ExtResource("3_semibold")
 theme_override_font_sizes/font_size = 16
-text = "HITS 0    KILLS 0"
+text = "$800"
 horizontal_alignment = 2
 
 [node name="BottomLeft" type="PanelContainer" parent="HudRoot"]
@@ -211,7 +211,7 @@ theme_override_constants/separation = -8
 [node name="Caption" type="Label" parent="HudRoot/BottomLeft/Margin/Row/HealthText"]
 visible = false
 layout_mode = 2
-text = "HEALTH"
+text = "生命"
 
 [node name="Value" type="Label" parent="HudRoot/BottomLeft/Margin/Row/HealthText"]
 layout_mode = 2
@@ -283,7 +283,7 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
 theme_override_constants/outline_size = 3
 theme_override_fonts/font = ExtResource("3_semibold")
 theme_override_font_sizes/font_size = 18
-text = "[1] RIFLE"
+text = "[1] 步枪"
 horizontal_alignment = 2
 
 [node name="Status" type="Label" parent="HudRoot/BottomRight/Margin/Row/WeaponBlock"]
@@ -379,7 +379,7 @@ theme_override_constants/separation = 12
 layout_mode = 2
 theme_override_fonts/font = ExtResource("3_semibold")
 theme_override_font_sizes/font_size = 28
-text = "SCOREBOARD"
+text = "计分板"
 horizontal_alignment = 1
 
 [node name="Header" type="Label" parent="HudRoot/Scoreboard/Margin/Stack"]
@@ -387,34 +387,34 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.72, 0.68, 1)
 theme_override_fonts/font = ExtResource("2_regular")
 theme_override_font_sizes/font_size = 17
-text = "PLAYER                         K        HITS        MONEY"
+text = "玩家                            击杀       命中        金钱"
 
 [node name="FriendlyRow" type="Label" parent="HudRoot/Scoreboard/Margin/Stack"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.42, 0.75, 0.95, 1)
 theme_override_fonts/font = ExtResource("3_semibold")
 theme_override_font_sizes/font_size = 21
-text = "YOU                              0          0          $800"
+text = "你                                0          0          $800"
 
 [node name="EnemyHeader" type="Label" parent="HudRoot/Scoreboard/Margin/Stack"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.68, 0.35, 1)
 theme_override_fonts/font = ExtResource("3_semibold")
 theme_override_font_sizes/font_size = 18
-text = "TARGET TEAM"
+text = "训练目标"
 
 [node name="EnemyRow" type="Label" parent="HudRoot/Scoreboard/Margin/Stack"]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_regular")
 theme_override_font_sizes/font_size = 18
-text = "TRAINING TARGETS                  5 ALIVE"
+text = "训练目标                          5 存活"
 
 [node name="Hint" type="Label" parent="HudRoot/Scoreboard/Margin/Stack"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_colors/font_color = Color(0.62, 0.63, 0.58, 1)
 theme_override_fonts/font = ExtResource("2_regular")
-text = "Hold TAB to view"
+text = "按住 TAB 查看"
 horizontal_alignment = 1
 vertical_alignment = 2
 
@@ -439,7 +439,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.92, 0.86, 0.6, 1)
 theme_override_fonts/font = ExtResource("3_semibold")
 theme_override_font_sizes/font_size = 24
-text = "TRAINING COMPLETE"
+text = "训练完成"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -492,3 +492,53 @@ theme_override_colors/font_color = Color(0.95, 0.72, 0.36, 1)
 theme_override_fonts/font = ExtResource("2_regular")
 text = ""
 vertical_alignment = 2
+
+[node name="ObjectiveInteraction" type="PanelContainer" parent="HudRoot"]
+visible = false
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -150.0
+offset_top = -184.0
+offset_right = 150.0
+offset_bottom = -112.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("RoundStripStyle")
+
+[node name="Margin" type="MarginContainer" parent="HudRoot/ObjectiveInteraction"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 10
+
+[node name="Stack" type="VBoxContainer" parent="HudRoot/ObjectiveInteraction/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Label" type="Label" parent="HudRoot/ObjectiveInteraction/Margin/Stack"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_semibold")
+theme_override_font_sizes/font_size = 17
+text = "正在安装 C4"
+horizontal_alignment = 1
+
+[node name="Progress" type="ProgressBar" parent="HudRoot/ObjectiveInteraction/Margin/Stack"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+show_percentage = false
+
+[node name="FlashOverlay" type="ColorRect" parent="HudRoot"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 0.96, 0)

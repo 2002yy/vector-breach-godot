@@ -1,5 +1,7 @@
 extends CharacterBody3D
 
+const DamageModel = preload("res://scripts/combat/DamageModel.gd")
+
 signal footstep_emitted(world_position: Vector3, surface: String, quiet: bool)
 signal landed(world_position: Vector3, surface: String, strength: float)
 signal player_died
@@ -10,10 +12,13 @@ signal player_died
 @export var jump_velocity: float = 5.1
 @export var crouch_jump_velocity: float = 5.55
 @export var mouse_sensitivity: float = 0.0022
-@export var acceleration: float = 30.0
-@export var deceleration: float = 24.0
-@export var counter_strafe_acceleration: float = 44.0
-@export var air_acceleration: float = 8.0
+@export var acceleration: float = 44.0
+@export var deceleration: float = 34.0
+@export var counter_strafe_acceleration: float = 62.0
+@export var ground_friction: float = 6.2
+@export var stop_speed: float = 2.4
+@export var air_acceleration: float = 7.0
+@export var air_speed_cap: float = 6.5
 @export var standing_height: float = 0.9
 @export var crouching_collision_height: float = 1.2
 @export var crouching_camera_height: float = 1.02
@@ -25,6 +30,8 @@ signal player_died
 @export var walk_bob_frequency: float = 10.0
 @export var landing_kick_distance: float = 0.028
 @export var camera_recovery_speed: float = 10.0
+@export var fall_damage_threshold: float = 10.0
+@export var fall_damage_scale: float = 4.0
 
 @onready var camera_pivot: Node3D = $CameraPivot
 @onready var camera: Camera3D = $CameraPivot/Camera3D
@@ -44,6 +51,9 @@ var _landing_accuracy_penalty: float = 0.0
 var _footstep_distance: float = 0.0
 var _tagging_multiplier: float = 1.0
 var is_dead: bool = false
+var _flash_intensity: float = 0.0
+var _flash_seconds: float = 0.0
+var _last_step_probe: Dictionary = {}
 
 func _ready() -> void:
 	collision_shape.shape = collision_shape.shape.duplicate()
@@ -68,6 +78,8 @@ func _input(event: InputEvent) -> void:
 		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
 func _physics_process(delta: float) -> void:
+	_flash_seconds = maxf(0.0, _flash_seconds - delta)
+	_flash_intensity = move_toward(_flash_intensity, 0.0, delta / maxf(_flash_seconds + 0.2, 0.2))
 	if not _spawn_applied and GameState.player_spawn != Vector3.ZERO:
 		_apply_spawn()
 
@@ -94,17 +106,26 @@ func _physics_process(delta: float) -> void:
 	var input_vector: Vector2 = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 	var move_dir: Vector3 = get_world_move_direction(input_vector)
 
-	var speed := resolve_move_speed(Input.is_action_pressed("walk"))
-	var target_velocity: Vector3 = move_dir * speed
-	var blend: float = get_movement_response_acceleration(move_dir, is_on_floor())
-	velocity.x = move_toward(velocity.x, target_velocity.x, blend * delta)
-	velocity.z = move_toward(velocity.z, target_velocity.z, blend * delta)
+	var speed := resolve_move_speed(Input.is_action_pressed("walk")) * get_equipped_movement_multiplier()
+	var horizontal := simulate_tactical_horizontal_velocity(
+		Vector3(velocity.x, 0.0, velocity.z),
+		move_dir,
+		speed,
+		is_on_floor(),
+		delta
+	)
+	velocity.x = horizontal.x
+	velocity.z = horizontal.z
 
 	var step_motion: Vector3 = Vector3(velocity.x, 0.0, velocity.z) * delta
 	var position_before_move := global_position
+	var impact_speed := absf(velocity.y)
+	if velocity.y <= 0.1 and step_motion.length_squared() > 0.000001:
+		_pre_step_up(step_motion)
+		position_before_move = global_position
 	move_and_slide()
 
-	if was_on_floor and step_motion.length() > 0.001:
+	if (was_on_floor or is_on_floor()) and step_motion.length() > 0.001:
 		_try_step_up(position_before_move, step_motion)
 
 	if not is_on_floor() and velocity.y <= 0.0:
@@ -113,7 +134,8 @@ func _physics_process(delta: float) -> void:
 	if not was_on_floor and is_on_floor():
 		_landing_offset = landing_kick_distance
 		_landing_accuracy_penalty = 1.0
-		landed.emit(global_position, _detect_floor_surface(), clampf(absf(velocity.y) / 8.0, 0.35, 1.0))
+		_apply_fall_damage(impact_speed)
+		landed.emit(global_position, _detect_floor_surface(), clampf(impact_speed / 8.0, 0.35, 1.0))
 	_update_footsteps(delta, move_dir)
 	_update_camera_motion(delta, move_dir)
 
@@ -159,6 +181,50 @@ func get_movement_response_acceleration(move_dir: Vector3, grounded: bool) -> fl
 		return counter_strafe_acceleration
 	return acceleration
 
+func simulate_tactical_horizontal_velocity(
+	current_velocity: Vector3,
+	wish_direction: Vector3,
+	wish_speed: float,
+	grounded: bool,
+	delta: float
+) -> Vector3:
+	var horizontal := Vector3(current_velocity.x, 0.0, current_velocity.z)
+	if grounded:
+		horizontal = _apply_ground_friction(horizontal, delta)
+	var normalized_wish := wish_direction.normalized() if wish_direction.length_squared() > 0.0001 else Vector3.ZERO
+	if normalized_wish == Vector3.ZERO:
+		return horizontal
+	var resolved_wish_speed := minf(wish_speed, air_speed_cap) if not grounded else wish_speed
+	var accel := get_movement_response_acceleration(normalized_wish, grounded)
+	var current_along_wish := horizontal.dot(normalized_wish)
+	var add_speed := resolved_wish_speed - current_along_wish
+	if add_speed <= 0.0:
+		return horizontal
+	var accel_speed := minf(add_speed, accel * delta)
+	horizontal += normalized_wish * accel_speed
+	if not grounded and horizontal.length() > air_speed_cap:
+		horizontal = horizontal.normalized() * air_speed_cap
+	return horizontal
+
+func _apply_ground_friction(horizontal: Vector3, delta: float) -> Vector3:
+	var current_speed := horizontal.length()
+	if current_speed <= 0.001:
+		return Vector3.ZERO
+	var control := maxf(current_speed, stop_speed)
+	var next_speed := maxf(0.0, current_speed - control * ground_friction * delta)
+	return horizontal * (next_speed / current_speed)
+
+func get_equipped_movement_multiplier() -> float:
+	match GameState.current_weapon_slot:
+		0:
+			return 0.94
+		1:
+			return 1.0
+		2:
+			return 1.04
+		_:
+			return 1.0
+
 func resolve_move_speed(quiet_walk_held: bool) -> float:
 	if is_crouching:
 		return crouch_speed
@@ -172,14 +238,14 @@ func get_accuracy_state() -> Dictionary:
 		"landing_penalty": _landing_accuracy_penalty,
 	}
 
-func apply_hitscan_damage(amount: int, _hit_position: Vector3 = Vector3.ZERO, armor_penetration: float = 1.0, _penetrated: bool = false) -> Dictionary:
+func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, armor_penetration: float = 1.0, penetrated: bool = false) -> Dictionary:
 	if is_dead:
 		return {"hit": false, "killed": false}
-	var armor_damage := 0
-	var health_damage := amount
-	if GameState.player_armor > 0:
-		health_damage = maxi(1, int(round(float(amount) * clampf(armor_penetration, 0.0, 1.0))))
-		armor_damage = mini(GameState.player_armor, maxi(1, int(round(float(amount - health_damage) * 0.5))))
+	var resolved_position := global_position if hit_position == Vector3.ZERO else hit_position
+	var hit_group := DamageModel.resolve_hit_group(to_local(resolved_position))
+	var resolved := DamageModel.resolve_damage(amount, hit_group, GameState.player_armor, GameState.player_helmet, armor_penetration)
+	var health_damage := int(resolved.damage)
+	var armor_damage := int(resolved.armor_damage)
 	GameState.player_armor = maxi(0, GameState.player_armor - armor_damage)
 	GameState.player_health = maxi(0, GameState.player_health - health_damage)
 	_tagging_multiplier = minf(_tagging_multiplier, 0.48)
@@ -196,9 +262,58 @@ func apply_hitscan_damage(amount: int, _hit_position: Vector3 = Vector3.ZERO, ar
 		"killed": killed,
 		"damage": health_damage,
 		"armor_damage": armor_damage,
+		"hit_group": hit_group,
+		"headshot": bool(resolved.headshot),
+		"armored": bool(resolved.armored),
+		"penetrated": penetrated,
 		"remaining_health": GameState.player_health,
 		"remaining_armor": GameState.player_armor,
 	}
+
+func calculate_fall_damage(impact_speed: float) -> int:
+	if impact_speed <= fall_damage_threshold:
+		return 0
+	return maxi(1, int(round((impact_speed - fall_damage_threshold) * fall_damage_scale)))
+
+func apply_explosive_damage(amount: int, armor_ratio: float = 0.5) -> Dictionary:
+	if is_dead or amount <= 0:
+		return {"hit": false, "killed": is_dead}
+	var health_damage := amount
+	var armor_damage := 0
+	if GameState.player_armor > 0:
+		health_damage = maxi(1, int(round(float(amount) * clampf(armor_ratio, 0.0, 1.0))))
+		armor_damage = mini(GameState.player_armor, maxi(1, int(round(float(amount - health_damage) * 0.5))))
+		GameState.player_armor -= armor_damage
+	GameState.player_health = maxi(0, GameState.player_health - health_damage)
+	var killed := GameState.player_health == 0
+	if killed:
+		is_dead = true
+		controls_enabled = false
+		movement_enabled = false
+		GameState.friendly_alive = 0
+		player_died.emit()
+	GameState.notify_player_vitals_changed()
+	return {"hit": true, "damage": health_damage, "armor_damage": armor_damage, "killed": killed, "remaining_health": GameState.player_health}
+
+func apply_flash_effect(intensity: float, duration: float) -> void:
+	_flash_intensity = maxf(_flash_intensity, clampf(intensity, 0.0, 1.0))
+	_flash_seconds = maxf(_flash_seconds, duration)
+
+func get_flash_intensity() -> float:
+	return _flash_intensity
+
+func _apply_fall_damage(impact_speed: float) -> void:
+	var damage := calculate_fall_damage(impact_speed)
+	if damage <= 0 or is_dead:
+		return
+	GameState.player_health = maxi(0, GameState.player_health - damage)
+	if GameState.player_health == 0:
+		is_dead = true
+		controls_enabled = false
+		movement_enabled = false
+		GameState.friendly_alive = 0
+		player_died.emit()
+	GameState.notify_player_vitals_changed()
 
 func apply_recoil_kick(pitch_radians: float, yaw_radians: float) -> void:
 	camera_pivot.rotation.x = clamp(
@@ -255,7 +370,7 @@ func _apply_spawn() -> void:
 
 func _try_step_up(position_before_move: Vector3, step_motion: Vector3) -> void:
 	var actual_motion := Vector2(global_position.x - position_before_move.x, global_position.z - position_before_move.z).length()
-	if actual_motion >= step_motion.length() * 0.8:
+	if actual_motion >= step_motion.length() * 0.98:
 		return
 	var blocked_position := global_position
 	var clearance_lift := max_step_height + 0.08
@@ -271,6 +386,24 @@ func _try_step_up(position_before_move: Vector3, step_motion: Vector3) -> void:
 	if global_position.y - position_before_move.y > max_step_height + 0.01:
 		global_position = blocked_position
 		return
+	apply_floor_snap()
+
+func _pre_step_up(step_motion: Vector3) -> void:
+	var direction := step_motion.normalized()
+	var foot_y := global_position.y - standing_height
+	var probe_origin := global_position + direction * step_probe_distance + Vector3.UP * (max_step_height + 0.08)
+	var probe_end := Vector3(probe_origin.x, foot_y - 0.04, probe_origin.z)
+	var floor_hit := _raycast(probe_origin, probe_end)
+	_last_step_probe = {"origin": probe_origin, "end": probe_end, "hit": not floor_hit.is_empty(), "foot_y": foot_y}
+	if floor_hit.is_empty() or not _is_walkable_normal(floor_hit.normal):
+		return
+	var step_height := float(floor_hit.position.y) - foot_y
+	_last_step_probe["step_height"] = step_height
+	if step_height <= 0.025 or step_height > max_step_height:
+		return
+	var lift := Vector3.UP * (step_height + 0.01)
+	global_position += lift
+	_last_step_probe["lifted"] = true
 	apply_floor_snap()
 
 func _snap_to_floor() -> void:

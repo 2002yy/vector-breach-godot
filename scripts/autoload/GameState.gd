@@ -9,6 +9,8 @@ var player_spawn_yaw_radians: float = 0.0
 
 var player_health: int = 100
 var player_armor: int = 0
+var player_helmet: bool = false
+var player_defuse_kit: bool = false
 var player_money: int = 800
 var current_weapon_name: String = "\u6b65\u67aa"
 var current_weapon_slot: int = 0
@@ -30,6 +32,9 @@ var initial_target_count: int = 0
 var training_complete: bool = false
 var player_team: String = "T"
 var round_result_text: String = ""
+var loss_streak: int = 0
+const MAX_MONEY := 16000
+const LOSS_BONUSES := [1400, 1900, 2400, 2900, 3400]
 
 func set_level(level_id: String, level_name: String = "") -> void:
 	var changed := current_level_id != level_id
@@ -43,6 +48,8 @@ func set_level(level_id: String, level_name: String = "") -> void:
 func reset_runtime_state() -> void:
 	player_health = 100
 	player_armor = 0
+	player_helmet = false
+	player_defuse_kit = false
 	player_money = 800
 	current_weapon_name = "\u6b65\u67aa"
 	current_weapon_slot = 0
@@ -59,11 +66,14 @@ func reset_runtime_state() -> void:
 	enemy_alive = initial_target_count
 	training_complete = false
 	round_result_text = ""
+	loss_streak = 0
 	_emit_hud_state_changed()
 
 func prepare_next_round() -> void:
 	if friendly_alive == 0:
 		player_armor = 0
+		player_helmet = false
+		player_defuse_kit = false
 	player_health = 100
 	friendly_alive = 1
 	enemy_alive = initial_target_count
@@ -74,15 +84,33 @@ func prepare_next_round() -> void:
 func purchase(item_id: String) -> Dictionary:
 	if not RoundManager.can_buy():
 		return {"success": false, "reason": "只能在冻结期购买"}
-	var prices := {"rifle": 2700, "pistol": 500, "armor": 650, "armor_helmet": 1000}
+	var prices := {"rifle": 2700, "pistol": 500, "armor": 650, "helmet": 350, "armor_helmet": 1000, "defuse_kit": 400, "he_grenade": 300, "flash_grenade": 200, "smoke_grenade": 300}
 	if not prices.has(item_id):
 		return {"success": false, "reason": "未知商品"}
+	if item_id == "defuse_kit" and player_team != "CT":
+		return {"success": false, "reason": "只有 CT 可以购买拆弹钳"}
+	if item_id == "defuse_kit" and player_defuse_kit:
+		return {"success": false, "reason": "已拥有拆弹钳"}
+	if item_id == "armor" and player_armor >= 100:
+		return {"success": false, "reason": "护甲已满"}
+	if item_id == "armor_helmet" and player_armor >= 100 and player_helmet:
+		return {"success": false, "reason": "护甲与头盔已齐全"}
+	if item_id == "helmet" and player_helmet:
+		return {"success": false, "reason": "已拥有头盔"}
 	var price := int(prices[item_id])
+	if item_id == "armor":
+		price = ceili(float(100 - player_armor) * 6.5)
+	elif item_id == "armor_helmet":
+		price = ceili(float(100 - player_armor) * 6.5) + (0 if player_helmet else 350)
 	if player_money < price:
 		return {"success": false, "reason": "金钱不足"}
 	player_money -= price
 	if item_id in ["armor", "armor_helmet"]:
 		player_armor = 100
+	if item_id in ["helmet", "armor_helmet"]:
+		player_helmet = true
+	if item_id == "defuse_kit":
+		player_defuse_kit = true
 	_emit_hud_state_changed()
 	return {"success": true, "price": price, "item_id": item_id}
 
@@ -92,8 +120,17 @@ func complete_round(winner: String, reason: String) -> void:
 	else:
 		friendly_score += 1
 	var player_won := winner == player_team
-	player_money += 3250 if player_won else 1400
-	round_result_text = "%s 获胜  ·  %s" % [winner, reason]
+	if player_won:
+		loss_streak = 0
+		player_money = mini(MAX_MONEY, player_money + 3250)
+	else:
+		var loss_bonus := int(LOSS_BONUSES[mini(loss_streak, LOSS_BONUSES.size() - 1)])
+		loss_streak = mini(loss_streak + 1, LOSS_BONUSES.size() - 1)
+		if player_team == "T" and not RoundManager.bomb_site.is_empty():
+			loss_bonus += 800
+		player_money = mini(MAX_MONEY, player_money + loss_bonus)
+	var reason_labels := {"ELIMINATION": "全员淘汰", "TIME": "时间耗尽", "BOMB EXPLODED": "C4爆炸", "BOMB DEFUSED": "C4已拆除"}
+	round_result_text = "%s 获胜  ·  %s" % [winner, String(reason_labels.get(reason, reason))]
 	training_complete = true
 	_emit_hud_state_changed()
 
@@ -161,6 +198,8 @@ func get_hud_snapshot() -> Dictionary:
 	return {
 		"health": player_health,
 		"armor": player_armor,
+		"helmet": player_helmet,
+		"defuse_kit": player_defuse_kit,
 		"money": player_money,
 		"weapon_name": current_weapon_name,
 		"weapon_slot": current_weapon_slot,
@@ -207,12 +246,18 @@ func sync_weapon_state(weapon_name: String, next_ammo_in_mag: int, next_ammo_res
 	if changed:
 		_emit_hud_state_changed()
 
-func register_hit(killed: bool) -> void:
+func register_hit(killed: bool, weapon_id: String = "rifle") -> void:
 	hit_count += 1
 	if killed:
 		kill_count += 1
-		player_money += 300
+		var rewards := {"rifle": 300, "pistol": 300, "knife": 1500, "he_grenade": 300}
+		player_money = mini(MAX_MONEY, player_money + int(rewards.get(weapon_id, 300)))
 		enemy_alive = maxi(0, enemy_alive - 1)
+	_emit_hud_state_changed()
+
+func reward_objective_action(action: String) -> void:
+	var reward := 300 if action == "plant" else 0
+	player_money = mini(MAX_MONEY, player_money + reward)
 	_emit_hud_state_changed()
 
 func _emit_hud_state_changed() -> void:

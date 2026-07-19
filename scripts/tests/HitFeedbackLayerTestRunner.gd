@@ -105,7 +105,7 @@ func _test_nonlethal_hit_shows_marker_and_remaining_hp() -> void:
 	})
 	_assert_true(marker_label.visible, "nonlethal hit should show center marker")
 	_assert_true(message_label.visible, "nonlethal hit should show message")
-	_assert_equal(message_label.text, "命中  剩余HP 66", "nonlethal hit should show remaining hp text")
+	_assert_equal(message_label.text, "命中  剩余生命 66", "nonlethal hit should show localized remaining health text")
 	_assert_color_close(marker_label.modulate, layer.get("hit_color"), 0.001, "nonlethal hit marker should use hit color")
 	_advance_layer(layer, float(layer.get("marker_duration")) + 0.01)
 	_assert_true(not marker_label.visible, "nonlethal hit marker should hide after marker timer elapses")

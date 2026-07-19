@@ -345,6 +345,8 @@ static func _make_box_node(node_name: String, position: Vector3, size: Vector3, 
 
 	var body := StaticBody3D.new()
 	body.name = "Collision"
+	body.set_meta("surface_type", _surface_type_from_name(node_name))
+	body.set_meta("shape_size", size)
 	var collision := CollisionShape3D.new()
 	var shape := BoxShape3D.new()
 	shape.size = size
@@ -353,6 +355,18 @@ static func _make_box_node(node_name: String, position: Vector3, size: Vector3, 
 	node.add_child(body)
 
 	return node
+
+static func _surface_type_from_name(node_name: String) -> String:
+	var lowered := node_name.to_lower()
+	if lowered.contains("wood") or lowered.contains("crate") or lowered.contains("cover"):
+		return "wood"
+	if lowered.contains("glass") or lowered.contains("window"):
+		return "glass"
+	if lowered.contains("metal") or lowered.contains("rail") or lowered.contains("catwalk") or lowered.contains("stair"):
+		return "metal"
+	if lowered.contains("drywall") or lowered.contains("panel"):
+		return "drywall"
+	return "concrete"
 
 static func _get_role_material(role: String, pass_under: bool, climbable: bool) -> StandardMaterial3D:
 	var cache_key := "%s|%s|%s" % [role, str(pass_under), str(climbable)]

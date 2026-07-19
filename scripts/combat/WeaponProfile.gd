@@ -25,6 +25,8 @@ class_name WeaponProfile
 @export var armor_penetration: float = 0.72
 @export var penetration_damage_multiplier: float = 0.55
 @export var max_penetrations: int = 1
+@export var max_penetration_depth: float = 0.9
+@export var penetration_depth_damage_loss: float = 0.45
 @export var pattern_reset_delay: float = 0.35
 @export var equip_duration: float = 0.32
 @export var camera_pitch_multiplier: float = 0.32
@@ -84,4 +86,10 @@ func get_configuration_errors() -> PackedStringArray:
 		errors.append("range_modifier must be within (0, 1]")
 	if armor_penetration < 0.0 or armor_penetration > 1.0:
 		errors.append("armor_penetration must be within [0, 1]")
+	if max_penetrations < 0 or max_penetrations > 4:
+		errors.append("max_penetrations must be within [0, 4]")
+	if max_penetration_depth < 0.0:
+		errors.append("max_penetration_depth must be non-negative")
+	if penetration_depth_damage_loss < 0.0 or penetration_depth_damage_loss > 1.0:
+		errors.append("penetration_depth_damage_loss must be within [0, 1]")
 	return errors

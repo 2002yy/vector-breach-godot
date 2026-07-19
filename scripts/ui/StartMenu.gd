@@ -4,11 +4,13 @@ signal start_pressed
 signal resume_pressed
 signal map_selected(index: int)
 signal settings_changed(snapshot: Dictionary)
+signal team_selected(team: String)
 
 @onready var title_label: Label = $MenuPanel/Margin/VBox/Title
 @onready var preview_rect: TextureRect = $MenuPanel/Margin/VBox/Preview
 @onready var description_label: RichTextLabel = $MenuPanel/Margin/VBox/Description
 @onready var map_select: OptionButton = $MenuPanel/Margin/VBox/Controls/MapRow/MapSelect
+@onready var team_select: OptionButton = $MenuPanel/Margin/VBox/Controls/TeamRow/TeamSelect
 @onready var start_button: Button = $MenuPanel/Margin/VBox/Buttons/StartButton
 @onready var resume_button: Button = $MenuPanel/Margin/VBox/Buttons/ResumeButton
 @onready var hint_label: Label = $MenuPanel/Margin/VBox/Hints
@@ -19,15 +21,21 @@ signal settings_changed(snapshot: Dictionary)
 @onready var crosshair_gap_slider: HSlider = $MenuPanel/Margin/VBox/Settings/CrosshairGapRow/Gap
 @onready var crosshair_size_slider: HSlider = $MenuPanel/Margin/VBox/Settings/CrosshairSizeRow/Size
 @onready var dynamic_crosshair_toggle: CheckButton = $MenuPanel/Margin/VBox/Settings/DynamicCrosshair
+@onready var radar_range_slider: HSlider = $MenuPanel/Margin/VBox/Settings/RadarRangeRow/Range
+@onready var radar_range_value: Label = $MenuPanel/Margin/VBox/Settings/RadarRangeRow/Value
+@onready var radar_rotates_toggle: CheckButton = $MenuPanel/Margin/VBox/Settings/RadarRotates
 
 func _ready() -> void:
 	start_button.pressed.connect(func() -> void: start_pressed.emit())
 	resume_button.pressed.connect(func() -> void: resume_pressed.emit())
 	map_select.item_selected.connect(func(index: int) -> void: map_selected.emit(index))
+	team_select.item_selected.connect(func(index: int) -> void: team_selected.emit("T" if index == 0 else "CT"))
+	team_select.select(0 if GameState.player_team == "T" else 1)
 	_load_settings_controls(UserSettings.get_snapshot())
-	for slider in [sensitivity_slider, volume_slider, crosshair_gap_slider, crosshair_size_slider]:
+	for slider in [sensitivity_slider, volume_slider, crosshair_gap_slider, crosshair_size_slider, radar_range_slider]:
 		slider.value_changed.connect(_on_setting_control_changed)
 	dynamic_crosshair_toggle.toggled.connect(func(_enabled: bool) -> void: _emit_settings())
+	radar_rotates_toggle.toggled.connect(func(_enabled: bool) -> void: _emit_settings())
 
 func set_map_options(options: Array, selected_index: int) -> void:
 	map_select.clear()
@@ -36,9 +44,9 @@ func set_map_options(options: Array, selected_index: int) -> void:
 	map_select.select(selected_index)
 
 func set_map_details(option: Dictionary, can_resume: bool) -> void:
-	title_label.text = "VECTOR BREACH"
+	title_label.text = "矢量突袭"
 	var description_template := (
-		"[color=#dbc774][font_size=14]ACTIVE MAP[/font_size][/color]\n"
+		"[color=#dbc774][font_size=14]当前地图[/font_size][/color]\n"
 		+ "[font_size=23][b]%s[/b][/font_size]\n%s\n\n"
 		+ "[color=#aaa98f]\u6838\u5fc3\u8def\u7ebf[/color]  %s\n"
 		+ "[color=#aaa98f]\u8bad\u7ec3\u7528\u9014[/color]  %s"
@@ -67,6 +75,8 @@ func _load_settings_controls(snapshot: Dictionary) -> void:
 	crosshair_gap_slider.set_value_no_signal(float(snapshot.get("crosshair_gap", 7.0)))
 	crosshair_size_slider.set_value_no_signal(float(snapshot.get("crosshair_size", 6.0)))
 	dynamic_crosshair_toggle.set_pressed_no_signal(bool(snapshot.get("dynamic_crosshair", true)))
+	radar_range_slider.set_value_no_signal(float(snapshot.get("radar_range", 24.0)))
+	radar_rotates_toggle.set_pressed_no_signal(bool(snapshot.get("radar_rotates", true)))
 	_update_setting_labels()
 
 func _on_setting_control_changed(_value: float) -> void:
@@ -79,10 +89,13 @@ func _emit_settings() -> void:
 		"crosshair_gap": crosshair_gap_slider.value,
 		"crosshair_size": crosshair_size_slider.value,
 		"dynamic_crosshair": dynamic_crosshair_toggle.button_pressed,
+		"radar_range": radar_range_slider.value,
+		"radar_rotates": radar_rotates_toggle.button_pressed,
 	}
 	_update_setting_labels()
 	settings_changed.emit(snapshot)
 
 func _update_setting_labels() -> void:
-	sensitivity_value.text = "%.2fx" % sensitivity_slider.value
+	sensitivity_value.text = "%.2f 倍" % sensitivity_slider.value
 	volume_value.text = "%d%%" % int(volume_slider.value)
+	radar_range_value.text = "%d 米" % int(radar_range_slider.value)

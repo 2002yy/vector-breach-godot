@@ -27,6 +27,7 @@ func _run_all_tests() -> void:
 	await _run_test("player_scale_matches_cs_reference", _test_player_scale_matches_cs_reference)
 	await _run_test("player_input_maps_to_local_forward_and_right", _test_player_input_maps_to_local_forward_and_right)
 	await _run_test("player_counter_strafe_and_air_control_are_bounded", _test_player_counter_strafe_and_air_control_are_bounded)
+	await _run_test("tactical_movement_solver_has_sharp_stops_and_bounded_air_control", _test_tactical_movement_solver_has_sharp_stops_and_bounded_air_control)
 	await _run_test("classic_shift_walk_and_settings_apply", _test_classic_shift_walk_and_settings_apply)
 	await _run_test("player_traverses_authored_height_step", _test_player_traverses_authored_height_step)
 	await _run_test("player_uses_crouch_hull_without_double_jump", _test_player_uses_crouch_hull_without_double_jump)
@@ -37,6 +38,9 @@ func _run_all_tests() -> void:
 	await _run_test("scoreboard_kill_feed_and_training_summary_work", _test_scoreboard_kill_feed_and_training_summary_work)
 	await _run_test("player_mouse_look_bypasses_gui_consumption", _test_player_mouse_look_bypasses_gui_consumption)
 	await _run_test("pause_menu_blocks_combat_commands", _test_pause_menu_blocks_combat_commands)
+	await _run_test("freeze_allows_weapon_management", _test_freeze_allows_weapon_management)
+	await _run_test("economy_escalates_losses_and_caps_money", _test_economy_escalates_losses_and_caps_money)
+	await _run_test("knife_and_grenade_equipment_are_actionable", _test_knife_and_grenade_equipment_are_actionable)
 	await _run_test("player_damage_tags_and_death_ends_round", _test_player_damage_tags_and_death_ends_round)
 	await _run_test("buy_plant_defuse_round_loop", _test_buy_plant_defuse_round_loop)
 
@@ -110,15 +114,15 @@ func _test_initial_boot_shows_menu_and_default_map() -> void:
 	_assert_true(start_menu.visible, "start menu should be visible on boot")
 	_assert_equal(map_select.item_count, 5, "headless start menu should list only the five publishable maps")
 	_assert_equal((main.get("level_options") as Array).size(), 5, "local reference maps should stay out of automated headless runs")
-	_assert_equal(title_label.text, "VECTOR BREACH", "menu should expose a concise tactical title")
+	_assert_equal(title_label.text, "矢量突袭", "menu should expose a concise localized tactical title")
 	_assert_equal(start_button.text, "\u5f00\u59cb\u8bad\u7ec3", "initial primary action should clearly start training")
 	_assert_float_close(menu_panel.anchor_bottom, 1.0, 0.001, "menu panel should remain a full-height left navigation surface")
 	_assert_equal(map_select.selected, 1, "default selected map should be Foundry Depot")
 	_assert_true(not resume_button.visible, "resume button should stay hidden before the first run")
 	_assert_true(not status_panel.visible, "debug status panel should be hidden by default")
 	_assert_equal(String(GameState.current_level_id), "depot", "boot should sync the portfolio map id into GameState")
-	_assert_true(String(GameState.current_level_name).contains("Foundry Depot v2"), "boot should label the frozen portfolio map as Foundry Depot v2")
-	_assert_true(description_label.text.contains("Foundry Depot v2"), "menu description should render the frozen Foundry baseline copy")
+	_assert_true(String(GameState.current_level_name).contains("铸造仓库 v2"), "boot should expose the localized frozen map name")
+	_assert_true(description_label.text.contains("铸造仓库 v2"), "menu description should render the localized frozen map copy")
 	_assert_equal(String(level.call("get_current_level_data").get("id", "")), "depot", "level scene should load Foundry Depot on boot")
 	_assert_equal(level.get_node("VisualRoot").get_child_count(), 1, "boot should instantiate the Foundry visual scene behind the menu")
 	_assert_equal(String(RoundManager.get_state_name()), "Warmup", "boot should leave round manager in warmup/menu state")
@@ -365,6 +369,29 @@ func _test_player_counter_strafe_and_air_control_are_bounded() -> void:
 	_assert_true(float(player.get("max_step_height")) >= 0.4, "step-up should clear authored 20 cm stair risers with margin")
 	await _cleanup_main(main)
 
+func _test_tactical_movement_solver_has_sharp_stops_and_bounded_air_control() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	var player: CharacterBody3D = main.get_node("Player")
+	player.velocity = Vector3.ZERO
+	var launch: Vector3 = player.call("simulate_tactical_horizontal_velocity", Vector3.ZERO, Vector3.RIGHT, 6.2, true, 0.1)
+	_assert_true(launch.x > 3.5 and launch.x < 6.2, "tactical acceleration should feel immediate without snapping to full speed")
+	player.velocity = Vector3(6.2, 0.0, 0.0)
+	var released: Vector3 = player.call("simulate_tactical_horizontal_velocity", player.velocity, Vector3.ZERO, 6.2, true, 0.1)
+	_assert_true(released.length() < 2.5, "releasing movement should enter the accurate deadzone quickly")
+	player.velocity = Vector3(5.0, 0.0, 0.0)
+	var countered: Vector3 = player.call("simulate_tactical_horizontal_velocity", player.velocity, Vector3.LEFT, 6.2, true, 0.1)
+	_assert_true(countered.x < 0.0, "opposite input should cross zero quickly for deliberate counter-strafing")
+	player.velocity = Vector3(5.5, 0.0, 0.0)
+	var air_turn: Vector3 = player.call("simulate_tactical_horizontal_velocity", player.velocity, Vector3.FORWARD, 6.2, false, 0.25)
+	_assert_true(air_turn.z < 0.0, "air input should still allow a limited trajectory correction")
+	_assert_true(air_turn.length() <= float(player.get("air_speed_cap")) + 0.001, "air input must not create bunny-hop speed gain")
+	GameState.current_weapon_slot = 0
+	_assert_float_close(float(player.call("get_equipped_movement_multiplier")), 0.94, 0.001, "rifle should move slower than the pistol")
+	GameState.current_weapon_slot = 1
+	_assert_float_close(float(player.call("get_equipped_movement_multiplier")), 1.0, 0.001, "pistol should retain baseline movement speed")
+	await _cleanup_main(main)
+
 func _test_player_traverses_authored_height_step() -> void:
 	var main: Node3D = _instantiate_main()
 	await _await_main_ready()
@@ -381,9 +408,13 @@ func _test_player_traverses_authored_height_step() -> void:
 	Input.action_press("move_forward")
 	for _frame in range(45):
 		await get_tree().physics_frame
+		if player.global_position.z < -0.55:
+			break
 	Input.action_release("move_forward")
+	for _frame in range(4):
+		await get_tree().physics_frame
 	_assert_true(player.global_position.z < 0.6, "forward movement should continue across a 20 cm authored stair step")
-	_assert_true(player.global_position.y >= 101.04, "the player capsule should settle on top of the authored stair step")
+	_assert_true(player.global_position.y >= 101.04, "the player capsule should settle on top of the authored stair step (y=%.3f probe=%s)" % [player.global_position.y, str(player.get("_last_step_probe"))])
 	await _cleanup_main(main)
 
 func _test_classic_shift_walk_and_settings_apply() -> void:
@@ -626,6 +657,36 @@ func _test_pause_menu_blocks_combat_commands() -> void:
 
 	await _cleanup_main(main)
 
+func _test_freeze_allows_weapon_management() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	main.call("_on_start_pressed")
+	await _await_main_ready()
+	_assert_equal(String(RoundManager.get_state_name()), "Freeze", "fixture should remain in freeze")
+	var weapon_system: Node = main.get_node("WeaponSystem")
+	var state: Dictionary = weapon_system.call("_current_state")
+	state["ammo_in_mag"] = maxi(0, int(state.get("ammo_in_mag", 12)) - 3)
+	weapon_system.call("_store_current_state", state)
+	var reload_event := InputEventAction.new()
+	reload_event.action = "reload_weapon"
+	reload_event.pressed = true
+	main.call("_unhandled_input", reload_event)
+	_assert_true(bool((weapon_system.call("get_runtime_snapshot") as Dictionary).get("is_reloading", false)), "freeze should allow reloading an owned weapon")
+	await _cleanup_main(main)
+
+func _test_economy_escalates_losses_and_caps_money() -> void:
+	GameState.reset_runtime_state()
+	GameState.player_team = "T"
+	GameState.player_money = 0
+	RoundManager.bomb_site = ""
+	GameState.complete_round("CT", "ELIMINATION")
+	_assert_equal(GameState.player_money, 1400, "first loss should grant the base loss bonus")
+	GameState.complete_round("CT", "ELIMINATION")
+	_assert_equal(GameState.player_money, 3300, "second consecutive loss should escalate to 1900")
+	GameState.player_money = 15900
+	GameState.register_hit(true, "knife")
+	_assert_equal(GameState.player_money, GameState.MAX_MONEY, "knife reward should respect the money cap")
+
 func _test_player_damage_tags_and_death_ends_round() -> void:
 	var main: Node3D = _instantiate_main()
 	await _await_main_ready()
@@ -634,6 +695,8 @@ func _test_player_damage_tags_and_death_ends_round() -> void:
 	RoundManager.set_live()
 	await get_tree().process_frame
 	var player: CharacterBody3D = main.get_node("Player")
+	_assert_equal(int(player.call("calculate_fall_damage", 9.5)), 0, "short falls should not damage the player")
+	_assert_true(int(player.call("calculate_fall_damage", 15.0)) > 0, "high-impact falls should deal armor-bypassing damage")
 	GameState.player_armor = 100
 	var damage_result: Dictionary = player.call("apply_hitscan_damage", 20, player.global_position, 0.5, false)
 	_assert_equal(damage_result.get("remaining_health"), 90, "armor penetration should split incoming damage from health")
@@ -643,6 +706,26 @@ func _test_player_damage_tags_and_death_ends_round() -> void:
 	_assert_true(bool(player.get("is_dead")), "player controller should retain the dead state")
 	_assert_equal(String(RoundManager.get_state_name()), "Round End", "player death should end the round")
 	_assert_equal(String(RoundManager.round_winner), "CT", "player death should award the CT side")
+	await _cleanup_main(main)
+
+func _test_knife_and_grenade_equipment_are_actionable() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	main.call("_on_start_pressed")
+	await _await_main_ready()
+	RoundManager.set_live()
+	var equipment: Node = main.get_node("TacticalEquipment")
+	equipment.call("select_knife")
+	_assert_equal(GameState.current_weapon_slot, 2, "knife should occupy the third equipment slot")
+	_assert_true(float(main.get_node("Player").call("get_equipped_movement_multiplier")) > 1.0, "holding the knife should grant the fastest movement tier")
+	RoundManager.start_round()
+	GameState.player_money = 1000
+	main.call("_purchase_item", "he_grenade")
+	RoundManager.set_live()
+	_assert_true(bool(equipment.call("select_next_grenade")), "grenade slot should select a purchased grenade")
+	var result := equipment.call("use_primary", main.get_node("Player")) as Dictionary
+	_assert_true(bool(result.get("thrown", false)), "primary fire should throw the selected grenade")
+	_assert_equal(result.get("type"), "he_grenade", "first grenade selection should use HE")
 	await _cleanup_main(main)
 
 func _test_buy_plant_defuse_round_loop() -> void:
@@ -666,9 +749,17 @@ func _test_buy_plant_defuse_round_loop() -> void:
 		var player: CharacterBody3D = main.get_node("Player")
 		player.global_position.x = float(target.get("x", 0.0))
 		player.global_position.z = float(target.get("z", 0.0))
-		_assert_true(bool(main.call("_try_plant_c4")), "T player should plant C4 inside an objective zone")
+		Input.action_press("interact")
+		_assert_true(bool(main.call("_try_plant_c4")), "T player should begin planting C4 inside an objective zone")
+		main.call("_update_objective_interaction", 3.3)
+		Input.action_release("interact")
 		_assert_equal(String(RoundManager.get_state_name()), "Bomb Planted", "planting should enter the bomb timer state")
-		_assert_true(RoundManager.defuse_bomb(), "CT defuse interface should resolve a planted bomb")
+		GameState.player_team = "CT"
+		GameState.player_defuse_kit = true
+		Input.action_press("interact")
+		_assert_true(bool(main.call("_try_begin_objective_interaction")), "CT should begin defusing while holding interact near C4")
+		main.call("_update_objective_interaction", 5.1)
+		Input.action_release("interact")
 		_assert_equal(String(RoundManager.get_state_name()), "Round End", "defuse should close the round")
 		_assert_equal(String(RoundManager.round_winner), "CT", "successful defuse should award CT")
 		_assert_equal(GameState.friendly_score, 1, "CT score should increment after defuse")
@@ -677,11 +768,15 @@ func _test_buy_plant_defuse_round_loop() -> void:
 		_assert_equal(String(RoundManager.get_state_name()), "Freeze", "round restart should return to freeze/buy time")
 		_assert_equal(GameState.player_health, 100, "new round should restore player health")
 		_assert_equal(weapon_system.call("get_runtime_snapshot").get("weapon_slot"), 0, "surviving player should retain the purchased rifle next round")
+		GameState.player_team = "T"
 		RoundManager.set_live()
 		await get_tree().process_frame
 		player.global_position.x = float(target.get("x", 0.0))
 		player.global_position.z = float(target.get("z", 0.0))
+		Input.action_press("interact")
 		_assert_true(bool(main.call("_try_plant_c4")), "next round should provide a fresh carried C4")
+		main.call("_update_objective_interaction", 3.3)
+		Input.action_release("interact")
 		RoundManager.call("_process", RoundManager.bomb_duration + 0.1)
 		_assert_equal(String(RoundManager.round_winner), "T", "expired bomb timer should award T")
 		_assert_equal(GameState.enemy_score, 1, "T score should increment after bomb explosion")

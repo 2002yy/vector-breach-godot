@@ -162,13 +162,13 @@ func try_fire(player: CharacterBody3D) -> void:
 	else:
 		_sync_game_state("")
 
-func _apply_damage_to_hit(hit_result: Dictionary, shot_origin: Vector3, profile, penetrated: bool) -> Dictionary:
+func _apply_damage_to_hit(hit_result: Dictionary, shot_origin: Vector3, profile, penetrated: bool, depth_scale: float = 1.0) -> Dictionary:
 	var collider: Variant = hit_result.get("collider", null)
 	if collider == null or not collider.has_method("apply_hitscan_damage"):
 		return {}
 	var distance := shot_origin.distance_to(hit_result.get("position", shot_origin) as Vector3)
 	var falloff := pow(profile.range_modifier, distance / 10.0)
-	var penetration_scale: float = profile.penetration_damage_multiplier if penetrated else 1.0
+	var penetration_scale: float = profile.penetration_damage_multiplier * depth_scale if penetrated else 1.0
 	var resolved_damage := maxi(1, int(round(float(profile.damage) * falloff * penetration_scale)))
 	var damage_result: Variant = collider.call(
 		"apply_hitscan_damage",
@@ -181,25 +181,80 @@ func _apply_damage_to_hit(hit_result: Dictionary, shot_origin: Vector3, profile,
 		return {}
 	var damage_dict := damage_result as Dictionary
 	if bool(damage_dict.get("hit", false)):
-		GameState.register_hit(bool(damage_dict.get("killed", false)))
+		GameState.register_hit(bool(damage_dict.get("killed", false)), profile.weapon_id)
 	return damage_dict
 
 func _try_penetrating_hit(first_hit: Dictionary, direction: Vector3, profile, exclude: Array, space_state: PhysicsDirectSpaceState3D) -> Dictionary:
 	var first_collider: Variant = first_hit.get("collider", null)
 	if not (first_collider is CollisionObject3D):
 		return {}
-	var start := (first_hit.get("position", Vector3.ZERO) as Vector3) + direction.normalized() * 0.08
+	var normalized_direction := direction.normalized()
+	var entry_position := first_hit.get("position", Vector3.ZERO) as Vector3
+	var surface_type := _get_penetration_surface(first_collider as CollisionObject3D)
+	var material_resistance := _get_penetration_resistance(surface_type)
+	var probe_depth: float = maxf(0.0, float(profile.max_penetration_depth) / material_resistance)
+	if probe_depth <= 0.0:
+		return {}
+	var probe_start := entry_position + normalized_direction * probe_depth
+	var reverse_hit := HitResolver.resolve_direction(
+		probe_start,
+		-normalized_direction,
+		probe_depth - 0.015,
+		profile.hit_collision_mask,
+		exclude,
+		space_state
+	)
+	if not bool(reverse_hit.get("hit", false)) or reverse_hit.get("collider", null) != first_collider:
+		return {}
+	var exit_position := reverse_hit.get("position", entry_position) as Vector3
+	var thickness := entry_position.distance_to(exit_position)
+	var effective_thickness := thickness * material_resistance
+	if effective_thickness > float(profile.max_penetration_depth) + 0.001:
+		return {}
+	var depth_ratio := clampf(effective_thickness / maxf(float(profile.max_penetration_depth), 0.001), 0.0, 1.0)
+	var depth_scale := clampf(1.0 - depth_ratio * float(profile.penetration_depth_damage_loss), 0.2, 1.0)
+	var start := exit_position + normalized_direction * 0.04
 	var penetration_exclude := exclude.duplicate()
 	penetration_exclude.append((first_collider as CollisionObject3D).get_rid())
 	var next_hit := HitResolver.resolve_direction(start, direction, profile.max_range, profile.hit_collision_mask, penetration_exclude, space_state)
 	if not bool(next_hit.get("hit", false)):
 		return {}
-	var damage_dict := _apply_damage_to_hit(next_hit, start, profile, true)
+	var damage_dict := _apply_damage_to_hit(next_hit, start, profile, true, depth_scale)
 	if damage_dict.is_empty():
 		return {}
 	next_hit["damage_result"] = damage_dict
 	next_hit["penetrated"] = true
+	next_hit["penetration_material"] = surface_type
+	next_hit["penetration_thickness"] = thickness
+	next_hit["penetration_effective_thickness"] = effective_thickness
 	return next_hit
+
+func _get_penetration_surface(collider: CollisionObject3D) -> String:
+	if collider.has_meta("surface_type"):
+		return String(collider.get_meta("surface_type"))
+	var lowered := collider.name.to_lower()
+	if lowered.contains("wood") or lowered.contains("crate"):
+		return "wood"
+	if lowered.contains("glass") or lowered.contains("window"):
+		return "glass"
+	if lowered.contains("metal") or lowered.contains("rail"):
+		return "metal"
+	if lowered.contains("drywall") or lowered.contains("panel"):
+		return "drywall"
+	return "concrete"
+
+func _get_penetration_resistance(surface_type: String) -> float:
+	match surface_type:
+		"glass":
+			return 0.35
+		"wood":
+			return 0.65
+		"drywall":
+			return 0.75
+		"metal":
+			return 1.8
+		_:
+			return 1.35
 
 func switch_to_slot(slot_index: int) -> void:
 	if slot_index < 0 or slot_index >= _weapon_states.size():
@@ -253,6 +308,49 @@ func purchase_slot(slot_index: int) -> bool:
 	state["ammo_reserve"] = profile.reserve_ammo_on_spawn
 	state["is_reloading"] = false
 	state["reload_timer"] = 0.0
+	_weapon_states[slot_index] = state
+	if slot_index != _current_weapon_index:
+		switch_to_slot(slot_index)
+	else:
+		_sync_game_state("")
+	return true
+
+func is_slot_owned(slot_index: int) -> bool:
+	return slot_index >= 0 and slot_index < _weapon_states.size() and bool((_weapon_states[slot_index] as Dictionary).get("owned", false))
+
+func drop_current_weapon() -> Dictionary:
+	if _current_weapon_index < 0 or _current_weapon_index >= _weapon_states.size():
+		return {}
+	var state: Dictionary = _weapon_states[_current_weapon_index]
+	if not bool(state.get("owned", false)):
+		return {}
+	var profile = _runtime_profiles[_current_weapon_index]
+	var dropped := {
+		"weapon_id": profile.weapon_id,
+		"slot_index": _current_weapon_index,
+		"ammo_in_mag": int(state.get("ammo_in_mag", 0)),
+		"ammo_reserve": int(state.get("ammo_reserve", 0)),
+	}
+	state["owned"] = false
+	state["is_reloading"] = false
+	_weapon_states[_current_weapon_index] = state
+	for index in range(_weapon_states.size()):
+		if bool((_weapon_states[index] as Dictionary).get("owned", false)):
+			_current_weapon_index = index
+			_sync_game_state("")
+			weapon_switched.emit(_runtime_profiles[index].display_name, index)
+			return dropped
+	GameState.sync_weapon_state("战术刀", 0, 0, "", 0.0, 0.0, 2)
+	return dropped
+
+func pickup_weapon(record: Dictionary) -> bool:
+	var slot_index := int(record.get("slot_index", -1))
+	if slot_index < 0 or slot_index >= _weapon_states.size():
+		return false
+	var state: Dictionary = _weapon_states[slot_index]
+	state["owned"] = true
+	state["ammo_in_mag"] = int(record.get("ammo_in_mag", state.get("ammo_in_mag", 0)))
+	state["ammo_reserve"] = int(record.get("ammo_reserve", state.get("ammo_reserve", 0)))
 	_weapon_states[slot_index] = state
 	if slot_index != _current_weapon_index:
 		switch_to_slot(slot_index)

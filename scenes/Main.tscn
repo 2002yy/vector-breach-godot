@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/level/GrayboxLevel.tscn" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="2"]
@@ -11,6 +11,8 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/HitFeedbackLayer.tscn" id="9"]
 [ext_resource type="PackedScene" path="res://scenes/combat/ShotDebugLine.tscn" id="10"]
 [ext_resource type="PackedScene" path="res://scenes/audio/CombatAudioFeedback.tscn" id="11"]
+[ext_resource type="PackedScene" path="res://scenes/objective/C4Device.tscn" id="12"]
+[ext_resource type="Script" path="res://scripts/combat/TacticalEquipment.gd" id="13"]
 
 [sub_resource type="ProceduralSkyMaterial" id="1"]
 sky_top_color = Color(0.43, 0.44, 0.42, 1)
@@ -58,3 +60,8 @@ position = Vector3(0, 2, 0)
 [node name="ShotDebugLine" parent="." instance=ExtResource("10")]
 
 [node name="CombatAudioFeedback" parent="." instance=ExtResource("11")]
+
+[node name="C4Device" parent="." instance=ExtResource("12")]
+
+[node name="TacticalEquipment" type="Node" parent="."]
+script = ExtResource("13")

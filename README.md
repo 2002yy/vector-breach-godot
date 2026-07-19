@@ -40,6 +40,9 @@ This repo is still in a prototype-validation phase. The goal is not content volu
 - 头/躯干/腿命中倍率、护甲减伤、距离衰减、单层穿透、受击减速与玩家死亡 / Head/torso/leg hit groups, armor mitigation, range falloff, one-surface penetration, tagging slowdown, and player death
 - T/CT 回合状态、冻结购买、胜负经济、C4 安装/拆除/爆炸及自动下一回合 / T/CT round states, freeze-time buying, win/loss economy, C4 plant/defuse/explosion, and automatic next rounds
 - 中文游戏设置：鼠标灵敏度、主音量、准星间距/长度与动态准星 / Chinese settings for mouse sensitivity, master volume, crosshair gap/size, and dynamic crosshair
+- 独立头盔、五类命中部位、材质/厚度穿透，以及持续 C4 安装拆除 / Separate helmet, five hit groups, material/thickness penetration, and held C4 interactions
+- 刀、武器掉落拾取、HE/闪光/烟雾投掷物 / Knife, weapon drops/pickups, and HE/flash/smoke grenades
+- 可调 16–40 m 的局部雷达与旋转开关 / Configurable 16–40 m local radar and rotation toggle
 - 一套可 headless 运行的最小自动化测试 / A small headless regression test suite
 
 ## 目录结构 / Structure
@@ -110,11 +113,12 @@ powershell -ExecutionPolicy Bypass -File .\tools\run_godot_tests.ps1 -GodotExe "
 - `Space`: 跳跃 / Jump
 - `Ctrl / C`: 蹲伏；蹲伏状态起跳为经典蹲跳 / Crouch; jump while crouched for a classic crouch-jump
 - `Tab`: 按住显示计分板 / Hold scoreboard
-- `B`: 冻结期打开购买菜单，`1 / 2 / 3` 购买步枪、手枪补给或护甲 / Open the freeze-time buy menu; use `1 / 2 / 3` for rifle, pistol refill, or armor
-- `E`: 在目标区安装 C4 / Plant C4 inside an objective zone
+- `B`: 冻结期打开购买菜单，`1–8` 购买武器、护甲、拆弹钳与投掷物 / Open the freeze-time buy menu; use `1–8` for weapons, armor, kit, and grenades
+- `E`: 持续安装/拆除 C4，或拾取附近武器 / Hold to plant/defuse C4, or pick up a nearby weapon
 - `鼠标左键`: 开火 / Fire
 - `R`: 换弹 / Reload
-- `1 / 2`: 切枪 / Switch weapons
+- `1 / 2 / 3 / 4`: 主武器、副武器、刀、投掷物 / Primary, secondary, knife, and grenades
+- `G`: 丢弃当前枪械；持刀/投掷物时丢弃 C4 / Drop the current firearm; while holding knife/grenade, drop C4
 - `Esc / P`: 菜单或继续 / Pause or resume
 - `F`: 全屏切换 / Toggle fullscreen
 - `F3`: 显示或隐藏调试面板 / Toggle the debug panel

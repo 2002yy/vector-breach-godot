@@ -52,10 +52,12 @@ func _build_spawn_records(level_data: Dictionary) -> Array:
 			continue
 		var target: Dictionary = target_variant as Dictionary
 		records.append({
-			"name": String(target.get("name", "CombatTarget%d" % (index + 1))),
+			"name": "训练目标%d" % (index + 1),
 			"x": float(target.get("x", 0.0)),
 			"y": float(target.get("y", dummy_height)),
-			"z": float(target.get("z", 0.0))
+			"z": float(target.get("z", 0.0)),
+			"armor": int(target.get("armor", 0)),
+			"helmet": bool(target.get("helmet", false))
 		})
 	if not records.is_empty():
 		return records
@@ -68,7 +70,7 @@ func _build_spawn_records(level_data: Dictionary) -> Array:
 				continue
 			var point: Dictionary = point_variant as Dictionary
 			records.append({
-				"name": "SpawnDummy%d" % (index + 1),
+				"name": "训练目标%d" % (index + 1),
 				"x": float(point.get("x", 0.0)),
 				"y": float(point.get("y", dummy_height)),
 				"z": float(point.get("z", 0.0))
@@ -84,7 +86,7 @@ func _build_spawn_records(level_data: Dictionary) -> Array:
 				continue
 			var landmark: Dictionary = landmark_variant as Dictionary
 			records.append({
-				"name": String(landmark.get("name", "LandmarkDummy%d" % (index + 1))),
+				"name": "训练目标%d" % (index + 1),
 				"x": float(landmark.get("x", 0.0)),
 				"y": float(landmark.get("y", dummy_height)),
 				"z": float(landmark.get("z", 0.0))
@@ -101,7 +103,7 @@ func _build_spawn_records(level_data: Dictionary) -> Array:
 
 	for index in range(fallback_target_count):
 		records.append({
-			"name": "FallbackDummy%d" % (index + 1),
+			"name": "训练目标%d" % (index + 1),
 			"x": base_x - fallback_spacing * float(index),
 			"y": dummy_height,
 			"z": base_z

@@ -46,7 +46,7 @@ func show_shot_feedback(result: Dictionary) -> void:
 	if killed:
 		_show_message("\u51fb\u5012\u76ee\u6807", kill_color)
 	else:
-		_show_message("\u547d\u4e2d  \u5269\u4f59HP %d" % remaining_health, hit_color)
+		_show_message("\u547d\u4e2d  \u5269\u4f59\u751f\u547d %d" % remaining_health, hit_color)
 
 func _show_message(text_value: String, color_value: Color) -> void:
 	message_label.text = text_value

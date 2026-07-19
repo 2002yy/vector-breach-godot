@@ -24,11 +24,16 @@ const AMMO_WARNING_COLOR := Color(1.0, 0.38, 0.3, 1.0)
 @onready var training_summary: Label = $HudRoot/TrainingEnd/Summary
 @onready var buy_menu: PanelContainer = $HudRoot/BuyMenu
 @onready var buy_result: Label = $HudRoot/BuyMenu/Margin/Stack/Result
+@onready var buy_items: Label = $HudRoot/BuyMenu/Margin/Stack/Items
+@onready var objective_interaction: PanelContainer = $HudRoot/ObjectiveInteraction
+@onready var objective_interaction_label: Label = $HudRoot/ObjectiveInteraction/Margin/Stack/Label
+@onready var objective_interaction_progress: ProgressBar = $HudRoot/ObjectiveInteraction/Margin/Stack/Progress
 @onready var radar_display: Control = $HudRoot/Radar
 @onready var crosshair_top: ColorRect = $HudRoot/Crosshair/Top
 @onready var crosshair_bottom: ColorRect = $HudRoot/Crosshair/Bottom
 @onready var crosshair_left: ColorRect = $HudRoot/Crosshair/Left
 @onready var crosshair_right: ColorRect = $HudRoot/Crosshair/Right
+@onready var flash_overlay: ColorRect = $HudRoot/FlashOverlay
 
 @export var crosshair_gap_base: float = 7.0
 @export var crosshair_gap_per_degree: float = 4.0
@@ -38,6 +43,7 @@ var _dynamic_crosshair: bool = true
 var _crosshair_size: float = 6.0
 
 func _ready() -> void:
+	buy_items.text = "[1] 步枪 $2700  [2] 手枪 $500\n[3] 防弹衣 $650  [4] 衣+盔 $1000\n[5] 拆弹钳 $400\n[6] HE $300  [7] 闪光 $200  [8] 烟雾 $300"
 	apply_settings(UserSettings.get_snapshot())
 	if not UserSettings.settings_changed.is_connected(apply_settings):
 		UserSettings.settings_changed.connect(apply_settings)
@@ -80,7 +86,7 @@ func update_display(snapshot: Dictionary) -> void:
 		String(snapshot.get("round_time", "1:55")),
 		int(snapshot.get("enemy_score", 0)),
 	]
-	level_name_label.text = "%d ALIVE                 %d ALIVE" % [
+	level_name_label.text = "%d 存活                 %d 存活" % [
 		int(snapshot.get("enemy_alive", 0)),
 		int(snapshot.get("friendly_alive", 1)),
 	]
@@ -90,22 +96,30 @@ func update_display(snapshot: Dictionary) -> void:
 		objective_status.text = "C4已安装 · %s区" % String(bomb.get("bomb_site", "A"))
 	elif bool(bomb.get("bomb_carried", false)) and String(snapshot.get("player_team", "T")) == "T":
 		objective_status.text += "  ·  E安装C4"
+	var interaction_type := String(bomb.get("interaction_type", ""))
+	objective_interaction.visible = hud_root.visible and not interaction_type.is_empty()
+	if objective_interaction.visible:
+		objective_interaction_label.text = "正在安装 C4" if interaction_type == "plant" else "正在拆除 C4"
+		objective_interaction_progress.value = float(bomb.get("interaction_progress", 0.0)) * 100.0
 	stats_label.text = "$%d" % int(snapshot.get("money", 800))
-	scoreboard_friendly.text = "YOU                              %d          %d          $%d" % [
+	scoreboard_friendly.text = "你                                %d          %d          $%d" % [
 		int(snapshot.get("kill_count", 0)),
 		int(snapshot.get("hit_count", 0)),
 		int(snapshot.get("money", 800)),
 	]
-	scoreboard_enemy.text = "TRAINING TARGETS                  %d ALIVE" % int(snapshot.get("enemy_alive", 0))
+	scoreboard_enemy.text = "训练目标                          %d 存活" % int(snapshot.get("enemy_alive", 0))
 	training_end.visible = bool(snapshot.get("training_complete", false)) and _game_started and not _menu_open
 	var result_text := String(snapshot.get("round_result_text", ""))
-	training_summary.text = "%s\n%d HITS   %d KILLS\n$%d" % [
-		result_text if not result_text.is_empty() else "TRAINING COMPLETE",
+	training_summary.text = "%s\n%d 次命中   %d 次击杀\n$%d" % [
+		result_text if not result_text.is_empty() else "训练完成",
 		int(snapshot.get("hit_count", 0)),
 		int(snapshot.get("kill_count", 0)),
 		int(snapshot.get("money", 800)),
 	]
 	_update_crosshair(float(snapshot.get("spread_degrees", 0.0)))
+	var flash_intensity := float(snapshot.get("flash_intensity", 0.0))
+	flash_overlay.visible = flash_intensity > 0.01
+	flash_overlay.color = Color(1.0, 1.0, 0.96, flash_intensity)
 	update_radar(snapshot.get("radar", {}) as Dictionary)
 
 func update_radar(snapshot: Dictionary) -> void:

@@ -8,6 +8,9 @@ const WALL_COLOR := Color(0.75, 0.78, 0.7, 0.68)
 const COVER_COLOR := Color(0.54, 0.62, 0.57, 0.56)
 const LEVEL_COLOR := Color(0.42, 0.59, 0.64, 0.48)
 const PLAYER_COLOR := Color(0.35, 0.95, 0.42, 1.0)
+const FRIENDLY_COLOR := Color(0.32, 0.72, 1.0, 1.0)
+const ENEMY_COLOR := Color(1.0, 0.3, 0.25, 1.0)
+const C4_COLOR := Color(1.0, 0.72, 0.12, 1.0)
 
 var _snapshot: Dictionary = {}
 
@@ -30,6 +33,8 @@ func get_debug_snapshot() -> Dictionary:
 		"player_yaw": float(_snapshot.get("player_yaw", 0.0)),
 		"target_count": (_snapshot.get("targets", []) as Array).size(),
 		"feature_count": (_snapshot.get("features", []) as Array).size(),
+		"player_count": (_snapshot.get("players", []) as Array).size(),
+		"c4_state": String((_snapshot.get("c4", {}) as Dictionary).get("state", "")),
 		"width_fraction": radar_range / bounds.x if bounds.x > 0.0 else 0.0,
 		"height_fraction": radar_range / bounds.y if bounds.y > 0.0 else 0.0,
 		"area_fraction": PI * radar_range * radar_range / full_area if full_area > 0.0 else 0.0,
@@ -49,6 +54,9 @@ func _draw() -> void:
 		_draw_feature(feature_variant as Dictionary, player_world, center, radius, radar_range, yaw)
 	for target_variant in _snapshot.get("targets", []):
 		_draw_target(target_variant as Dictionary, player_world, center, radius, radar_range, yaw)
+	for player_variant in _snapshot.get("players", []):
+		_draw_player(player_variant as Dictionary, player_world, center, radius, radar_range, yaw)
+	_draw_c4(_snapshot.get("c4", {}) as Dictionary, player_world, center, radius, radar_range, yaw)
 	_draw_north(center, radius, yaw)
 	var arrow := PackedVector2Array([
 		center + Vector2(0.0, -9.0),
@@ -113,7 +121,43 @@ func _draw_north(center: Vector2, radius: float, yaw: float) -> void:
 	var north_point := center + Vector2(0.0, -radius * 0.82).rotated(yaw)
 	var color := Color(0.92, 0.88, 0.68, 0.9)
 	draw_circle(north_point, 3.0, color)
-	draw_string(ThemeDB.fallback_font, north_point + Vector2(5.0, 4.0), "N", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 10, color)
+	draw_string(ThemeDB.fallback_font, north_point + Vector2(5.0, 4.0), "北", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 10, color)
+
+func _draw_player(record: Dictionary, player_world: Vector2, center: Vector2, radius: float, radar_range: float, yaw: float) -> void:
+	if bool(record.get("local", false)):
+		return
+	var friendly := String(record.get("team", "")) == String(_snapshot.get("local_team", "T"))
+	if not friendly and not bool(record.get("spotted", false)):
+		return
+	var position := Vector2(float(record.get("x", 0.0)), float(record.get("z", 0.0)))
+	var delta := position - player_world
+	if delta.length() > radar_range:
+		return
+	var point := _transform_delta(delta, center, radius, radar_range, yaw)
+	var color := FRIENDLY_COLOR if friendly else ENEMY_COLOR
+	if not bool(record.get("alive", true)):
+		draw_line(point + Vector2(-4, -4), point + Vector2(4, 4), color, 2.0)
+		draw_line(point + Vector2(4, -4), point + Vector2(-4, 4), color, 2.0)
+		return
+	var direction := float(record.get("yaw", 0.0)) + yaw
+	var arrow := PackedVector2Array([point + Vector2(0, -6).rotated(direction), point + Vector2(-4, 4).rotated(direction), point + Vector2(4, 4).rotated(direction)])
+	draw_colored_polygon(arrow, color)
+	var height_delta := float(record.get("y", 0.0)) - float(_snapshot.get("player_height", 0.0))
+	if absf(height_delta) > 1.5:
+		draw_string(ThemeDB.fallback_font, point + Vector2(5, 4), "↑" if height_delta > 0.0 else "↓", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, color)
+
+func _draw_c4(record: Dictionary, player_world: Vector2, center: Vector2, radius: float, radar_range: float, yaw: float) -> void:
+	var state := String(record.get("state", ""))
+	if state.is_empty() or state == "carried":
+		return
+	var position := Vector2(float(record.get("x", 0.0)), float(record.get("z", 0.0)))
+	var delta := position - player_world
+	var point := _transform_delta(delta, center, radius, radar_range, yaw)
+	if delta.length() > radar_range:
+		point = center + (point - center).normalized() * radius * 0.83
+	var color := C4_COLOR if state == "dropped" else Color(1.0, 0.24, 0.12, 1.0)
+	draw_rect(Rect2(point - Vector2(4, 4), Vector2(8, 8)), color, true)
+	draw_string(ThemeDB.fallback_font, point + Vector2(6, 4), "C4", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, color)
 
 func _draw_world_rect(position: Vector2, half_size: Vector2, player_world: Vector2, center: Vector2, radius: float, radar_range: float, yaw: float, color: Color, width: float) -> void:
 	var corners := [
