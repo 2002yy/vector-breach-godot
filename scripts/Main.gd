@@ -127,7 +127,9 @@ func _ready() -> void:
 		player.connect("footstep_emitted", _on_player_footstep)
 	if player.has_signal("landed"):
 		player.connect("landed", _on_player_landed)
-	if combat_sandbox.has_signal("targets_spawned"):
+	if combat_sandbox.has_signal("combatants_spawned"):
+		combat_sandbox.connect("combatants_spawned", _on_combatants_spawned)
+	elif combat_sandbox.has_signal("targets_spawned"):
 		combat_sandbox.connect("targets_spawned", _on_targets_spawned)
 	if player.has_signal("player_died"):
 		player.connect("player_died", _on_player_died)
@@ -568,19 +570,22 @@ func _on_shot_resolved(result: Dictionary) -> void:
 	if bool(damage_result.get("killed", false)) and combat_hud.has_method("add_kill_feed"):
 		var death_position: Vector3 = result.get("position", Vector3.ZERO) as Vector3
 		_radar_death_markers.append({
-			"team": "CT" if GameState.player_team == "T" else "T", "alive": false, "spotted": true,
+			"team": String(damage_result.get("target_team", "CT" if GameState.player_team == "T" else "T")), "alive": false, "spotted": true,
 			"x": death_position.x, "y": death_position.y, "z": death_position.z,
 			"expires": Time.get_ticks_msec() + 5000,
 		})
 		combat_hud.call("add_kill_feed", "你", String(damage_result.get("target_name", "训练目标")), String(result.get("weapon_name", "步枪")))
 		if GameState.enemy_alive == 0 and RoundManager.state in [RoundManager.RoundState.LIVE, RoundManager.RoundState.BOMB_PLANTED]:
-			RoundManager.end_round("T", "ELIMINATION")
+			RoundManager.end_round(GameState.player_team, "ELIMINATION")
 
 func _on_targets_spawned(count: int) -> void:
 	GameState.set_training_target_count(count)
 
+func _on_combatants_spawned(friendly_count: int, enemy_count: int) -> void:
+	GameState.set_combatant_counts(friendly_count, enemy_count)
+
 func _on_player_died() -> void:
-	RoundManager.end_round("CT", "ELIMINATION")
+	RoundManager.end_round("CT" if GameState.player_team == "T" else "T", "ELIMINATION")
 
 func _on_round_phase_changed(_state_name: String) -> void:
 	if not RoundManager.can_buy():
@@ -838,19 +843,22 @@ func _build_radar_players() -> Array[Dictionary]:
 		"z": player.global_position.z,
 		"yaw": player.rotation.y,
 	}]
-	for target in get_tree().get_nodes_in_group("target_dummies"):
+	for target in get_tree().get_nodes_in_group("combat_actors"):
 		if target is Node3D:
 			var target_node := target as Node3D
+			var actor_snapshot: Dictionary = target_node.call("get_combat_snapshot") if target_node.has_method("get_combat_snapshot") else {}
+			var actor_team := String(actor_snapshot.get("team", "CT" if GameState.player_team == "T" else "T"))
 			var target_id := target_node.get_instance_id()
-			if _is_target_legally_spotted(target_node):
+			if actor_team != GameState.player_team and _is_target_legally_spotted(target_node):
 				_radar_spotted_until[target_id] = Time.get_ticks_msec() + 2500
 			records.append({
-				"team": "CT" if GameState.player_team == "T" else "T",
-				"alive": true,
-				"spotted": int(_radar_spotted_until.get(target_id, 0)) >= Time.get_ticks_msec(),
+				"team": actor_team,
+				"alive": bool(actor_snapshot.get("alive", true)),
+				"spotted": actor_team == GameState.player_team or int(_radar_spotted_until.get(target_id, 0)) >= Time.get_ticks_msec(),
 				"x": target_node.global_position.x,
 				"y": target_node.global_position.y,
 				"z": target_node.global_position.z,
+				"yaw": target_node.rotation.y,
 			})
 	var now := Time.get_ticks_msec()
 	var retained_markers: Array[Dictionary] = []

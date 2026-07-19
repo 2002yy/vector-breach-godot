@@ -1,0 +1,39 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/TacticalActor.gd" id="1"]
+
+[sub_resource type="CapsuleShape3D" id="1"]
+radius = 0.4
+height = 1.8
+
+[sub_resource type="CapsuleMesh" id="2"]
+radius = 0.36
+height = 1.42
+
+[sub_resource type="SphereMesh" id="3"]
+radius = 0.27
+height = 0.54
+
+[sub_resource type="BoxMesh" id="4"]
+size = Vector3(0.12, 0.12, 0.72)
+
+[node name="TacticalActor" type="CharacterBody3D"]
+script = ExtResource("1")
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("1")
+
+[node name="BodyMesh" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.08, 0)
+mesh = SubResource("2")
+
+[node name="HeadMesh" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.66, 0)
+mesh = SubResource("3")
+
+[node name="WeaponMesh" type="MeshInstance3D" parent="."]
+position = Vector3(0.28, 0.08, -0.28)
+rotation = Vector3(0, 0, 0.18)
+mesh = SubResource("4")

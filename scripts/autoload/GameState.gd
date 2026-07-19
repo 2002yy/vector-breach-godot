@@ -28,6 +28,7 @@ var friendly_score: int = 0
 var enemy_score: int = 0
 var friendly_alive: int = 1
 var enemy_alive: int = 0
+var initial_friendly_count: int = 1
 var initial_target_count: int = 0
 var training_complete: bool = false
 var player_team: String = "T"
@@ -62,7 +63,7 @@ func reset_runtime_state() -> void:
 	recoil_display_value = 0.0
 	friendly_score = 0
 	enemy_score = 0
-	friendly_alive = 1
+	friendly_alive = initial_friendly_count
 	enemy_alive = initial_target_count
 	training_complete = false
 	round_result_text = ""
@@ -75,7 +76,7 @@ func prepare_next_round() -> void:
 		player_helmet = false
 		player_defuse_kit = false
 	player_health = 100
-	friendly_alive = 1
+	friendly_alive = initial_friendly_count
 	enemy_alive = initial_target_count
 	training_complete = false
 	round_result_text = ""
@@ -136,6 +137,14 @@ func complete_round(winner: String, reason: String) -> void:
 
 func set_training_target_count(count: int) -> void:
 	initial_target_count = maxi(0, count)
+	enemy_alive = initial_target_count
+	training_complete = initial_target_count == 0
+	_emit_hud_state_changed()
+
+func set_combatant_counts(friendly_extra: int, enemy_count: int) -> void:
+	initial_friendly_count = 1 + maxi(0, friendly_extra)
+	initial_target_count = maxi(0, enemy_count)
+	friendly_alive = initial_friendly_count
 	enemy_alive = initial_target_count
 	training_complete = initial_target_count == 0
 	_emit_hud_state_changed()
@@ -246,13 +255,16 @@ func sync_weapon_state(weapon_name: String, next_ammo_in_mag: int, next_ammo_res
 	if changed:
 		_emit_hud_state_changed()
 
-func register_hit(killed: bool, weapon_id: String = "rifle") -> void:
+func register_hit(killed: bool, weapon_id: String = "rifle", target_team: String = "") -> void:
 	hit_count += 1
 	if killed:
-		kill_count += 1
-		var rewards := {"rifle": 300, "pistol": 300, "knife": 1500, "he_grenade": 300}
-		player_money = mini(MAX_MONEY, player_money + int(rewards.get(weapon_id, 300)))
-		enemy_alive = maxi(0, enemy_alive - 1)
+		if not target_team.is_empty() and target_team == player_team:
+			friendly_alive = maxi(0, friendly_alive - 1)
+		else:
+			kill_count += 1
+			var rewards := {"rifle": 300, "pistol": 300, "knife": 1500, "he_grenade": 300}
+			player_money = mini(MAX_MONEY, player_money + int(rewards.get(weapon_id, 300)))
+			enemy_alive = maxi(0, enemy_alive - 1)
 	_emit_hud_state_changed()
 
 func reward_objective_action(action: String) -> void:

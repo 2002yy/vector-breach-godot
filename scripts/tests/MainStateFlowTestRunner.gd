@@ -34,6 +34,7 @@ func _run_all_tests() -> void:
 	await _run_test("player_clears_classic_cs_height_tiers", _test_player_clears_classic_cs_height_tiers)
 	await _run_test("rotating_radar_tracks_bounds_targets_and_heading", _test_rotating_radar_tracks_bounds_targets_and_heading)
 	await _run_test("movement_and_radar_scale_are_map_invariant", _test_movement_and_radar_scale_are_map_invariant)
+	await _run_test("ladder_water_and_tactical_actors_are_runtime_systems", _test_ladder_water_and_tactical_actors_are_runtime_systems)
 	await _run_test("combat_audio_tracks_shot_hit_reload_and_switch", _test_combat_audio_tracks_shot_hit_reload_and_switch)
 	await _run_test("scoreboard_kill_feed_and_training_summary_work", _test_scoreboard_kill_feed_and_training_summary_work)
 	await _run_test("player_mouse_look_bypasses_gui_consumption", _test_player_mouse_look_bypasses_gui_consumption)
@@ -199,7 +200,9 @@ func _test_start_game_transitions_to_live_state() -> void:
 	_assert_true(bool(GameState.game_started), "GameState should reflect started gameplay")
 	_assert_true(not bool(GameState.menu_open), "GameState should reflect closed menu after start")
 	var combat_sandbox: Node3D = main.get_node("CombatSandbox")
-	_assert_equal(combat_sandbox.get_child_count(), 5, "Reforged should spawn its dedicated off-route combat targets")
+	_assert_equal(combat_sandbox.get_child_count(), 6, "Reforged should spawn five enemies plus one graybox teammate")
+	_assert_equal(GameState.friendly_alive, 2, "the competitive HUD count should include the local player and authored teammate")
+	_assert_equal(GameState.enemy_alive, 5, "the competitive HUD count should track authored enemy actors")
 
 	await _cleanup_main(main)
 
@@ -556,6 +559,100 @@ func _test_movement_and_radar_scale_are_map_invariant() -> void:
 		var radar_snapshot: Dictionary = main.call("_build_radar_snapshot")
 		_assert_equal(current_profile, baseline_profile, "%s should retain the shared movement profile" % level_id)
 		_assert_float_close(float(radar_snapshot.get("range_meters", 0.0)), 24.0, 0.001, "%s should retain the shared radar range" % level_id)
+	await _cleanup_main(main)
+
+func _test_ladder_water_and_tactical_actors_are_runtime_systems() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	main.call("_on_map_selected", int(main.call("find_level_option_index", "test-collision-room")))
+	main.call("_on_start_pressed")
+	await _await_main_ready()
+	var player := main.get_node("Player") as CharacterBody3D
+	RoundManager.set_live()
+	await get_tree().process_frame
+	player.call("set_controls_enabled", true)
+	player.call("set_movement_enabled", true)
+	var actors := get_tree().get_nodes_in_group("combat_actors")
+	_assert_equal(actors.size(), 2, "test room should spawn one friendly and one enemy tactical actor")
+	var friendly_actor: CharacterBody3D = null
+	var enemy_actor: CharacterBody3D = null
+	for actor_variant in actors:
+		var actor := actor_variant as CharacterBody3D
+		_assert_true(actor != null and actor.collision_layer == 1, "tactical actors should be CharacterBody3D capsules on the gameplay collision layer")
+		if actor != null and String(actor.get("team")) == GameState.player_team:
+			friendly_actor = actor
+		else:
+			enemy_actor = actor
+	_assert_true(friendly_actor != null and enemy_actor != null, "team-relative records should resolve into friendly and enemy teams")
+	if friendly_actor != null:
+		player.global_position = friendly_actor.global_position + Vector3(-1.0, 0.0, 0.0)
+		player.reset_physics_interpolation()
+		_assert_true(player.test_move(player.global_transform, Vector3(0.7, 0.0, 0.0)), "the authored teammate capsule should physically block the local player")
+	var radar_players: Array = main.call("_build_radar_players")
+	var friendly_visible := false
+	for record_variant in radar_players:
+		var record := record_variant as Dictionary
+		if String(record.get("team", "")) == GameState.player_team and not bool(record.get("local", false)):
+			friendly_visible = bool(record.get("spotted", false))
+	_assert_true(friendly_visible, "living teammates should always appear on the rotating radar")
+	var money_before_friendly_kill := GameState.player_money
+	GameState.register_hit(true, "rifle", GameState.player_team)
+	_assert_equal(GameState.friendly_alive, 1, "friendly casualties should decrement the friendly count without removing the local player")
+	_assert_equal(GameState.player_money, money_before_friendly_kill, "friendly casualties should not award kill money")
+	if enemy_actor != null:
+		var damage_result := enemy_actor.call("apply_hitscan_damage", 30, enemy_actor.global_position + Vector3.UP * 0.7, 1.0, false) as Dictionary
+		_assert_true(bool(damage_result.get("killed", false)) and bool(damage_result.get("headshot", false)), "graybox actors should use shared hit-group damage and death rules")
+		_assert_true(not String(damage_result.get("target_team", "")).is_empty(), "actor damage should report its team for economy and alive counts")
+
+	player.global_position = Vector3(-20.0, 1.05, 0.0)
+	player.velocity = Vector3.ZERO
+	player.reset_physics_interpolation()
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	player.call("_update_environment_state")
+	_assert_true(bool((player.call("get_environment_state") as Dictionary).get("on_ladder", false)), "entering the authored ladder area should activate ladder movement")
+	var ladder_y_before := player.global_position.y
+	Input.action_press("move_forward")
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	Input.action_release("move_forward")
+	_assert_true(player.global_position.y > ladder_y_before, "forward input on a ladder should climb upward")
+	player.global_position.y = 2.88
+	var ladder_z_before := player.global_position.z
+	Input.action_press("move_forward")
+	await get_tree().physics_frame
+	Input.action_release("move_forward")
+	_assert_true(not bool((player.call("get_environment_state") as Dictionary).get("on_ladder", true)) and player.global_position.z < ladder_z_before, "reaching the ladder top should move the player onto the authored exit side")
+	player.global_position = Vector3(-20.0, 1.05, 0.0)
+	player.velocity = Vector3.ZERO
+	player.set("_ladder_detach_cooldown", 0.0)
+	await get_tree().physics_frame
+	player.call("_update_environment_state")
+	player.call("detach_from_ladder")
+	_assert_true(not bool((player.call("get_environment_state") as Dictionary).get("on_ladder", true)), "jumping from a ladder should detach with a short reattach cooldown")
+
+	player.global_position = Vector3(-21.0, 1.05, 11.0)
+	player.velocity = Vector3.ZERO
+	player.reset_physics_interpolation()
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	player.call("_update_environment_state")
+	var shallow_state := player.call("get_environment_state") as Dictionary
+	_assert_true(bool(shallow_state.get("in_water", false)) and not bool(shallow_state.get("submerged", true)), "shallow water should slow wading without marking the camera underwater")
+	_assert_float_close(float(player.call("resolve_water_speed_multiplier")), 0.72, 0.001, "shallow water should use the authored wading speed tier")
+	_assert_equal(String(player.call("_detect_floor_surface")), "water", "water movement should emit the water footstep surface")
+
+	player.global_position = Vector3(-2.0, 1.05, 16.0)
+	player.velocity = Vector3.ZERO
+	player.reset_physics_interpolation()
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	player.call("_update_environment_state")
+	var deep_state := player.call("get_environment_state") as Dictionary
+	_assert_true(bool(deep_state.get("in_water", false)) and bool(deep_state.get("submerged", false)), "deep water should expose an underwater camera state")
+	_assert_float_close(float(player.call("resolve_water_speed_multiplier")), 0.52, 0.001, "deep water should use the swimming speed tier")
+	Input.action_release("move_forward")
+	Input.action_release("jump")
 	await _cleanup_main(main)
 
 func _add_static_box(parent: Node3D, position: Vector3, size: Vector3) -> void:

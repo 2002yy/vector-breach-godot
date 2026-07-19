@@ -21,6 +21,7 @@ func _ready() -> void:
 func _run_all_tests() -> void:
 	await _run_test("default_load_applies_markers_and_geometry", _test_default_load_applies_markers_and_geometry)
 	await _run_test("load_level_rebuilds_geometry_and_updates_state", _test_load_level_rebuilds_geometry_and_updates_state)
+	await _run_test("semantic_ladder_and_water_volumes_build_metadata", _test_semantic_ladder_and_water_volumes_build_metadata)
 	await _run_test("depot_uses_cs_scale_metrics", _test_depot_uses_cs_scale_metrics)
 	await _run_test("depot_stairs_align_with_target_edges", _test_depot_stairs_align_with_target_edges)
 	await _run_test("depot_route_points_clear_player_collision", _test_depot_route_points_clear_player_collision)
@@ -78,7 +79,9 @@ func _expected_geometry_child_count(level_data: Dictionary) -> int:
 		+ (level_data.get("stairs", []) as Array).size() \
 		+ (level_data.get("ramps", []) as Array).size() \
 		+ (level_data.get("catwalks", []) as Array).size() \
-		+ (level_data.get("overheads", []) as Array).size()
+		+ (level_data.get("overheads", []) as Array).size() \
+		+ (level_data.get("ladders", []) as Array).size() \
+		+ (level_data.get("waterVolumes", []) as Array).size()
 
 func _marker_start_position(level_data: Dictionary) -> Vector3:
 	var start: Array = level_data.get("start", [0.0, 0.0]) as Array
@@ -165,6 +168,26 @@ func _test_load_level_rebuilds_geometry_and_updates_state() -> void:
 	_assert_vec3_close(exit_marker.position, _marker_exit_position(depot_data), 0.001, "exit marker should update when loading depot")
 	_assert_equal(String(GameState.current_level_id), "depot", "GameState should switch to depot after load_level")
 
+	await _cleanup_level(level)
+
+func _test_semantic_ladder_and_water_volumes_build_metadata() -> void:
+	var level: Node3D = _instantiate_level()
+	level.call("load_level", "test-collision-room")
+	await get_tree().physics_frame
+	await get_tree().process_frame
+	var geometry_root: Node3D = level.get_node("GeometryRoot")
+	var ladder := geometry_root.get_node_or_null("Ladder_ladder-calibration") as Area3D
+	var shallow_water := geometry_root.get_node_or_null("Water_shallow-water-calibration") as Area3D
+	var deep_water := geometry_root.get_node_or_null("Water_deep-water-calibration") as Area3D
+	_assert_true(ladder != null, "test room should build its authored Ladder Area3D")
+	_assert_true(shallow_water != null and deep_water != null, "test room should build shallow and deep Water Area3D volumes")
+	if ladder != null:
+		_assert_equal(String(ladder.get_meta("environment_type", "")), "ladder", "ladder should expose stable environment metadata")
+		_assert_true(float(ladder.get_meta("ladder_top", 0.0)) > float(ladder.get_meta("ladder_bottom", 0.0)), "ladder metadata should preserve a positive climb height")
+		_assert_equal(ladder.collision_layer, 2, "ladder semantic volume should use the environment collision layer")
+	if shallow_water != null and deep_water != null:
+		_assert_true(float(shallow_water.get_meta("water_depth", 0.0)) < 1.2, "shallow water fixture should remain below the deep-water threshold")
+		_assert_true(float(deep_water.get_meta("water_depth", 0.0)) >= 1.2, "deep water fixture should reach the deep-water threshold")
 	await _cleanup_level(level)
 
 func _test_depot_stairs_align_with_target_edges() -> void:

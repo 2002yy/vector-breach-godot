@@ -63,7 +63,7 @@ func _knife_attack(player: CharacterBody3D) -> Dictionary:
 	if not hit.is_empty() and collider != null and collider.has_method("apply_hitscan_damage"):
 		var result := collider.call("apply_hitscan_damage", 40, hit.get("position", Vector3.ZERO), 1.0, false) as Dictionary
 		if bool(result.get("hit", false)):
-			GameState.register_hit(bool(result.get("killed", false)), "knife")
+			GameState.register_hit(bool(result.get("killed", false)), "knife", String(result.get("target_team", "")))
 		return result
 	return {"hit": false}
 

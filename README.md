@@ -31,10 +31,12 @@ This repo is still in a prototype-validation phase. The goal is not content volu
 - 双武器骨架 / Two-weapon scaffold
 - 步枪：可学习的固定后坐与弹道节奏 / Rifle with learnable recoil and shot rhythm
 - 手枪：半自动、副武器槽位、`1 / 2` 切枪 / Pistol with semi-auto fire and `1 / 2` weapon switching
-- HUD、命中反馈、调试线与目标假人 / HUD, hit feedback, debug lines, and target dummy
+- HUD、命中反馈、调试线与灰盒 T/CT 战术单位 / HUD, hit feedback, debug lines, and graybox T/CT tactical actors
 - 左上角圆形战术雷达：玩家居中、随朝向旋转，所有地图统一显示半径 24 m 的局部边界、几何与目标方向 / Circular heading-up radar centered on the player, with a shared 24 m local range for nearby bounds, geometry, and objective directions on every map
 - 经典 CS 风格普通跳、蹲伏胶囊与蹲跳；无二段跳、无自动翻越 / Classic CS-style jump, crouch hull, and crouch-jump; no double jump or auto-mantle
 - 默认奔跑、Shift 静步、蹲伏慢行，搭配材质脚步、落地声与分层精度规则 / Default run, Shift quiet-walk, crouch movement, material footsteps, landing audio, and stance/speed accuracy bands
+- 地图 JSON 驱动的梯子/浅水/深水语义体积：上下攀爬、横向限速、梯顶离梯、跳离、涉水减速、浮力、水下状态与涉水脚步 / JSON-authored ladder and shallow/deep-water volumes with climbing, top/jump detachment, wading, buoyancy, underwater state, and water footsteps
+- 可碰撞的灰盒 T/CT `CharacterBody3D` 单位：生命、护甲、头盔、武器、命中部位、死亡、出生、队伍存活数和雷达信息；当前不包含 AI 行为或正式角色模型 / Collidable graybox T/CT actors with health, armor, helmet, weapon, hit groups, death, spawning, alive counts, and radar data; no AI behavior or production character models yet
 - 30 发完整步枪喷射轨迹，不在中途锁死 / Full 30-round rifle spray path without mid-magazine clamping
 - 竞技 HUD：比分、时间、存活数、护甲、金钱、Tab 计分板、击杀信息与训练结算 / Competitive HUD with score, time, alive counts, armor, money, Tab scoreboard, kill feed, and training summary
 - 头/躯干/腿命中倍率、护甲减伤、距离衰减、单层穿透、受击减速与玩家死亡 / Head/torso/leg hit groups, armor mitigation, range falloff, one-surface penetration, tagging slowdown, and player death
@@ -102,9 +104,9 @@ powershell -ExecutionPolicy Bypass -File .\tools\run_godot_tests.ps1 -GodotExe "
 |---|---|
 | `LevelDataLoaderTestRunner` | JSON level data validation, loader edge cases |
 | `WeaponSystemTestRunner` | Weapon state boundaries, ammo, recoil |
-| `GrayboxLevelTestRunner` | Level assembly, CS-scale metrics, stairs, route/spawn clearance |
+| `GrayboxLevelTestRunner` | Level assembly, CS-scale metrics, stairs, route/spawn clearance, ladder/water semantic areas |
 | `HitFeedbackLayerTestRunner` | HUD layer behavior, hit marker |
-| `MainStateFlowTestRunner` | Main menu / gameplay state transitions |
+| `MainStateFlowTestRunner` | Main menu / gameplay state transitions, ladder/water traversal, tactical actors and radar |
 
 ## 当前控制 / Current Controls
 

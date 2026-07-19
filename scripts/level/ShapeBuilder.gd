@@ -22,6 +22,8 @@ static func build_into(parent: Node3D, level_data: Dictionary, build_options: Di
 	_build_group(parent, level_data.get("ramps", []), "ramp", options)
 	_build_group(parent, level_data.get("catwalks", []), "catwalk", options)
 	_build_group(parent, level_data.get("overheads", []), "overhead", options)
+	_build_ladders(parent, level_data.get("ladders", []))
+	_build_water_volumes(parent, level_data.get("waterVolumes", []))
 
 static func _normalize_build_options(build_options: Dictionary) -> Dictionary:
 	return {
@@ -355,6 +357,90 @@ static func _make_box_node(node_name: String, position: Vector3, size: Vector3, 
 	node.add_child(body)
 
 	return node
+
+static func _build_ladders(parent: Node3D, entries: Array) -> void:
+	for entry_variant in entries:
+		if not entry_variant is Dictionary:
+			continue
+		var entry := entry_variant as Dictionary
+		var height := maxf(1.0, float(entry.get("h", 3.0)))
+		var width := maxf(0.6, float(entry.get("sx", 1.2)))
+		var depth := maxf(0.35, float(entry.get("sz", 0.65)))
+		var bottom := float(entry.get("bottomY", 0.0))
+		var position := Vector3(float(entry.get("x", 0.0)), bottom + height * 0.5, float(entry.get("z", 0.0)))
+		var area := _make_environment_area("Ladder_%s" % String(entry.get("id", "volume")), position, Vector3(width, height, depth), "ladder")
+		var normal_array := entry.get("normal", [0.0, 1.0]) as Array
+		var exit_array := entry.get("exitDirection", normal_array) as Array
+		var normal := Vector3(float(normal_array[0]), 0.0, float(normal_array[1])).normalized() if normal_array.size() >= 2 else Vector3.FORWARD
+		var exit_direction := Vector3(float(exit_array[0]), 0.0, float(exit_array[1])).normalized() if exit_array.size() >= 2 else normal
+		area.set_meta("ladder_normal", normal)
+		area.set_meta("ladder_exit_direction", exit_direction)
+		area.set_meta("ladder_bottom", bottom)
+		area.set_meta("ladder_top", bottom + height)
+		area.set_meta("ladder_center", position)
+		_build_ladder_visual(area, width, height, depth)
+		parent.add_child(area)
+
+static func _build_water_volumes(parent: Node3D, entries: Array) -> void:
+	for entry_variant in entries:
+		if not entry_variant is Dictionary:
+			continue
+		var entry := entry_variant as Dictionary
+		var surface_y := float(entry.get("surfaceY", 0.7))
+		var bottom_y := float(entry.get("bottomY", 0.0))
+		var depth := maxf(0.1, surface_y - bottom_y)
+		var size := Vector3(maxf(0.5, float(entry.get("sx", 4.0))), depth, maxf(0.5, float(entry.get("sz", 4.0))))
+		var position := Vector3(float(entry.get("x", 0.0)), bottom_y + depth * 0.5, float(entry.get("z", 0.0)))
+		var area := _make_environment_area("Water_%s" % String(entry.get("id", "volume")), position, size, "water")
+		area.set_meta("water_surface_y", surface_y)
+		area.set_meta("water_bottom_y", bottom_y)
+		area.set_meta("water_depth", depth)
+		var mesh := MeshInstance3D.new()
+		var box := BoxMesh.new()
+		box.size = size
+		mesh.mesh = box
+		var material := StandardMaterial3D.new()
+		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		material.albedo_color = Color(0.12, 0.42, 0.55, 0.42)
+		material.roughness = 0.18
+		mesh.material_override = material
+		area.add_child(mesh)
+		parent.add_child(area)
+
+static func _make_environment_area(node_name: String, position: Vector3, size: Vector3, environment_type: String) -> Area3D:
+	var area := Area3D.new()
+	area.name = node_name
+	area.position = position
+	area.collision_layer = 2
+	area.collision_mask = 1
+	area.monitoring = true
+	area.monitorable = true
+	area.set_meta("environment_type", environment_type)
+	area.set_meta("shape_size", size)
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = size
+	collision.shape = shape
+	area.add_child(collision)
+	return area
+
+static func _build_ladder_visual(area: Area3D, width: float, height: float, depth: float) -> void:
+	var material := _get_cached_color_material(Color(0.82, 0.64, 0.16), 0.52, "semantic_ladder")
+	for side in [-1.0, 1.0]:
+		area.add_child(_make_visual_box(Vector3(side * width * 0.38, 0.0, 0.0), Vector3(0.09, height, maxf(0.08, depth * 0.18)), material))
+	var rung_count := maxi(3, floori(height / 0.32))
+	for index in range(rung_count):
+		var y := -height * 0.5 + (float(index) + 0.5) * height / float(rung_count)
+		area.add_child(_make_visual_box(Vector3(0.0, y, 0.0), Vector3(width * 0.82, 0.065, maxf(0.08, depth * 0.18)), material))
+
+static func _make_visual_box(position: Vector3, size: Vector3, material: StandardMaterial3D) -> MeshInstance3D:
+	var mesh_instance := MeshInstance3D.new()
+	mesh_instance.position = position
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	mesh_instance.mesh = mesh
+	mesh_instance.material_override = material
+	return mesh_instance
 
 static func _surface_type_from_name(node_name: String) -> String:
 	var lowered := node_name.to_lower()

@@ -32,10 +32,16 @@ signal player_died
 @export var camera_recovery_speed: float = 10.0
 @export var fall_damage_threshold: float = 10.0
 @export var fall_damage_scale: float = 4.0
+@export var ladder_climb_speed: float = 2.8
+@export var ladder_lateral_speed: float = 1.65
+@export var ladder_jump_push: float = 3.0
+@export var shallow_water_speed_multiplier: float = 0.72
+@export var deep_water_speed_multiplier: float = 0.52
 
 @onready var camera_pivot: Node3D = $CameraPivot
 @onready var camera: Camera3D = $CameraPivot/Camera3D
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
+@onready var environment_sensor: Area3D = $EnvironmentSensor
 
 var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var controls_enabled: bool = false
@@ -54,6 +60,14 @@ var is_dead: bool = false
 var _flash_intensity: float = 0.0
 var _flash_seconds: float = 0.0
 var _last_step_probe: Dictionary = {}
+var current_ladder: Area3D = null
+var current_water: Area3D = null
+var is_on_ladder: bool = false
+var is_in_water: bool = false
+var is_submerged: bool = false
+var _water_depth: float = 0.0
+var _water_surface_y: float = -INF
+var _ladder_detach_cooldown: float = 0.0
 
 func _ready() -> void:
 	collision_shape.shape = collision_shape.shape.duplicate()
@@ -78,6 +92,8 @@ func _input(event: InputEvent) -> void:
 		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 
 func _physics_process(delta: float) -> void:
+	_ladder_detach_cooldown = maxf(0.0, _ladder_detach_cooldown - delta)
+	_update_environment_state()
 	_flash_seconds = maxf(0.0, _flash_seconds - delta)
 	_flash_intensity = move_toward(_flash_intensity, 0.0, delta / maxf(_flash_seconds + 0.2, 0.2))
 	if not _spawn_applied and GameState.player_spawn != Vector3.ZERO:
@@ -95,8 +111,13 @@ func _physics_process(delta: float) -> void:
 	var was_on_floor: bool = is_on_floor()
 	_landing_accuracy_penalty = move_toward(_landing_accuracy_penalty, 0.0, delta * 2.8)
 	_tagging_multiplier = move_toward(_tagging_multiplier, 1.0, delta * 1.9)
+	if is_on_ladder:
+		_handle_ladder_movement(delta)
+		return
 	if not is_on_floor():
-		velocity.y -= gravity * delta
+		velocity.y -= gravity * resolve_water_gravity_multiplier() * delta
+	if is_in_water and _water_depth >= 1.2:
+		_apply_deep_water_vertical_control(delta)
 
 	_update_crouch(Input.is_action_pressed("crouch"), delta)
 
@@ -106,7 +127,7 @@ func _physics_process(delta: float) -> void:
 	var input_vector: Vector2 = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 	var move_dir: Vector3 = get_world_move_direction(input_vector)
 
-	var speed := resolve_move_speed(Input.is_action_pressed("walk")) * get_equipped_movement_multiplier()
+	var speed := resolve_move_speed(Input.is_action_pressed("walk")) * get_equipped_movement_multiplier() * resolve_water_speed_multiplier()
 	var horizontal := simulate_tactical_horizontal_velocity(
 		Vector3(velocity.x, 0.0, velocity.z),
 		move_dir,
@@ -230,6 +251,25 @@ func resolve_move_speed(quiet_walk_held: bool) -> float:
 		return crouch_speed
 	return (quiet_walk_speed if quiet_walk_held else run_speed) * _tagging_multiplier
 
+func resolve_water_speed_multiplier() -> float:
+	if not is_in_water:
+		return 1.0
+	return deep_water_speed_multiplier if _water_depth >= 1.2 else shallow_water_speed_multiplier
+
+func resolve_water_gravity_multiplier() -> float:
+	if not is_in_water:
+		return 1.0
+	return 0.16 if _water_depth >= 1.2 else 0.48
+
+func get_environment_state() -> Dictionary:
+	return {
+		"on_ladder": is_on_ladder,
+		"in_water": is_in_water,
+		"submerged": is_submerged,
+		"water_depth": _water_depth,
+		"water_surface_y": _water_surface_y,
+	}
+
 func get_accuracy_state() -> Dictionary:
 	return {
 		"speed": Vector2(velocity.x, velocity.z).length(),
@@ -254,7 +294,7 @@ func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, arm
 		is_dead = true
 		controls_enabled = false
 		movement_enabled = false
-		GameState.friendly_alive = 0
+		GameState.friendly_alive = maxi(0, GameState.friendly_alive - 1)
 		player_died.emit()
 	GameState.notify_player_vitals_changed()
 	return {
@@ -290,7 +330,7 @@ func apply_explosive_damage(amount: int, armor_ratio: float = 0.5) -> Dictionary
 		is_dead = true
 		controls_enabled = false
 		movement_enabled = false
-		GameState.friendly_alive = 0
+		GameState.friendly_alive = maxi(0, GameState.friendly_alive - 1)
 		player_died.emit()
 	GameState.notify_player_vitals_changed()
 	return {"hit": true, "damage": health_damage, "armor_damage": armor_damage, "killed": killed, "remaining_health": GameState.player_health}
@@ -311,7 +351,7 @@ func _apply_fall_damage(impact_speed: float) -> void:
 		is_dead = true
 		controls_enabled = false
 		movement_enabled = false
-		GameState.friendly_alive = 0
+		GameState.friendly_alive = maxi(0, GameState.friendly_alive - 1)
 		player_died.emit()
 	GameState.notify_player_vitals_changed()
 
@@ -345,6 +385,9 @@ func get_movement_profile() -> Dictionary:
 		"crouching_height": crouching_collision_height,
 		"double_jump": false,
 		"mantle": false,
+		"ladder_climb_speed": ladder_climb_speed,
+		"shallow_water_speed_multiplier": shallow_water_speed_multiplier,
+		"deep_water_speed_multiplier": deep_water_speed_multiplier,
 	}
 
 func _apply_spawn() -> void:
@@ -361,6 +404,14 @@ func _apply_spawn() -> void:
 	is_crouching = false
 	is_dead = false
 	_tagging_multiplier = 1.0
+	current_ladder = null
+	current_water = null
+	is_on_ladder = false
+	is_in_water = false
+	is_submerged = false
+	_water_depth = 0.0
+	_water_surface_y = -INF
+	_ladder_detach_cooldown = 0.0
 	_camera_stance_offset = 0.0
 	_set_collision_height(standing_height * 2.0)
 	if camera_pivot != null:
@@ -478,7 +529,7 @@ func _update_camera_motion(delta: float, move_dir: Vector3) -> void:
 	camera_pivot.position = _camera_pivot_origin + Vector3(bob_x, bob_y - _landing_offset + _camera_stance_offset, 0.0)
 
 func _update_footsteps(delta: float, move_dir: Vector3) -> void:
-	if not is_on_floor() or move_dir == Vector3.ZERO:
+	if (not is_on_floor() and not is_in_water) or move_dir == Vector3.ZERO:
 		_footstep_distance = 0.0
 		return
 	var horizontal_speed := Vector2(velocity.x, velocity.z).length()
@@ -492,6 +543,8 @@ func _update_footsteps(delta: float, move_dir: Vector3) -> void:
 		footstep_emitted.emit(global_position, _detect_floor_surface(), quiet)
 
 func _detect_floor_surface() -> String:
+	if is_in_water:
+		return "water"
 	var hit := _raycast(global_position + Vector3.UP * 0.1, global_position + Vector3.DOWN * 1.1)
 	if hit.is_empty():
 		return "concrete"
@@ -502,6 +555,80 @@ func _detect_floor_surface() -> String:
 	if collider_name.contains("wood") or collider_name.contains("crate"):
 		return "wood"
 	return "concrete"
+
+func _update_environment_state() -> void:
+	var next_ladder: Area3D = null
+	var next_water: Area3D = null
+	if is_instance_valid(environment_sensor):
+		for area in environment_sensor.get_overlapping_areas():
+			var environment_type := String(area.get_meta("environment_type", ""))
+			if environment_type == "ladder" and next_ladder == null:
+				next_ladder = area
+			elif environment_type == "water" and next_water == null:
+				next_water = area
+	current_water = next_water
+	is_in_water = current_water != null
+	if is_in_water:
+		_water_depth = float(current_water.get_meta("water_depth", 0.0))
+		_water_surface_y = float(current_water.get_meta("water_surface_y", global_position.y))
+		is_submerged = camera.global_position.y < _water_surface_y - 0.05
+	else:
+		_water_depth = 0.0
+		_water_surface_y = -INF
+		is_submerged = false
+	if _ladder_detach_cooldown <= 0.0:
+		current_ladder = next_ladder
+	else:
+		current_ladder = null
+	is_on_ladder = current_ladder != null
+
+func _handle_ladder_movement(delta: float) -> void:
+	var input_vector := Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
+	var normal := current_ladder.get_meta("ladder_normal", Vector3.FORWARD) as Vector3
+	var tangent := Vector3(-normal.z, 0.0, normal.x).normalized()
+	var vertical_input := -input_vector.y
+	velocity = tangent * input_vector.x * ladder_lateral_speed
+	velocity.y = vertical_input * ladder_climb_speed
+	if Input.is_action_just_pressed("jump"):
+		detach_from_ladder(normal)
+		move_and_slide()
+		_update_camera_motion(delta, Vector3.ZERO)
+		return
+	var ladder_top := float(current_ladder.get_meta("ladder_top", global_position.y + 1.0))
+	if vertical_input > 0.0 and global_position.y >= ladder_top - standing_height * 0.55:
+		var exit_direction := current_ladder.get_meta("ladder_exit_direction", -normal) as Vector3
+		global_position += exit_direction.normalized() * 0.72 + Vector3.UP * 0.12
+		velocity = exit_direction.normalized() * 1.8
+		_ladder_detach_cooldown = 0.28
+		current_ladder = null
+		is_on_ladder = false
+		reset_physics_interpolation()
+	else:
+		move_and_slide()
+	_update_footsteps(delta, Vector3(tangent.x * input_vector.x, 0.0, tangent.z * input_vector.x))
+	_update_camera_motion(delta, Vector3.ZERO)
+
+func detach_from_ladder(outward_normal: Vector3 = Vector3.ZERO) -> void:
+	if current_ladder == null and not is_on_ladder:
+		return
+	var normal := outward_normal
+	if normal == Vector3.ZERO and current_ladder != null:
+		normal = current_ladder.get_meta("ladder_normal", Vector3.FORWARD) as Vector3
+	velocity = normal.normalized() * ladder_jump_push + Vector3.UP * 3.6
+	_ladder_detach_cooldown = 0.32
+	current_ladder = null
+	is_on_ladder = false
+
+func _apply_deep_water_vertical_control(delta: float) -> void:
+	var vertical_input := 0.0
+	if Input.is_action_pressed("jump"):
+		vertical_input += 1.0
+	if Input.is_action_pressed("crouch"):
+		vertical_input -= 1.0
+	var target_vertical := vertical_input * 2.4
+	if is_zero_approx(vertical_input) and global_position.y < _water_surface_y - 0.65:
+		target_vertical = 0.55
+	velocity.y = move_toward(velocity.y, target_vertical, delta * 5.0)
 
 func _apply_user_settings(snapshot: Dictionary) -> void:
 	mouse_sensitivity = 0.0022 * float(snapshot.get("mouse_sensitivity_multiplier", 1.0))

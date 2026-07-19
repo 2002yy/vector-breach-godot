@@ -38,7 +38,9 @@ func play_footstep(world_position: Vector3, surface: String, quiet: bool) -> voi
 		base_frequency = 260.0
 	elif surface == "wood":
 		base_frequency = 170.0
-	var gain := 0.11 if quiet else 0.32
+	elif surface == "water":
+		base_frequency = 72.0
+	var gain := (0.16 if quiet else 0.38) if surface == "water" else (0.11 if quiet else 0.32)
 	_movement_player.stream = _make_step(0.075, base_frequency, gain, _shot_count + _reload_count + 31)
 	_movement_player.max_distance = 14.0 if quiet else 42.0
 	_movement_player.play()
@@ -46,7 +48,7 @@ func play_footstep(world_position: Vector3, surface: String, quiet: bool) -> voi
 func play_landing(world_position: Vector3, surface: String, strength: float) -> void:
 	_landing_count += 1
 	_movement_player.global_position = world_position
-	var frequency := 235.0 if surface == "metal" else (155.0 if surface == "wood" else 92.0)
+	var frequency := 235.0 if surface == "metal" else (155.0 if surface == "wood" else (68.0 if surface == "water" else 92.0))
 	_movement_player.stream = _make_step(0.11, frequency, lerpf(0.18, 0.42, clampf(strength, 0.0, 1.0)), 79 + _shot_count)
 	_movement_player.max_distance = 48.0
 	_movement_player.play()

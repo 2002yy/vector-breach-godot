@@ -181,7 +181,7 @@ func _apply_damage_to_hit(hit_result: Dictionary, shot_origin: Vector3, profile,
 		return {}
 	var damage_dict := damage_result as Dictionary
 	if bool(damage_dict.get("hit", false)):
-		GameState.register_hit(bool(damage_dict.get("killed", false)), profile.weapon_id)
+		GameState.register_hit(bool(damage_dict.get("killed", false)), profile.weapon_id, String(damage_dict.get("target_team", "")))
 	return damage_dict
 
 func _try_penetrating_hit(first_hit: Dictionary, direction: Vector3, profile, exclude: Array, space_state: PhysicsDirectSpaceState3D) -> Dictionary:

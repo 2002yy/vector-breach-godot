@@ -171,6 +171,9 @@
     "bHigh": [[16, 32], [21, 32], [28, 32], [35, 29]]
   },
   "emptyRoutes": ["bHigh"],
+  "teamActors": [
+    {"name": "友方前哨", "team": "friendly", "x": -47, "y": 1.15, "z": 3, "yawDegrees": -90, "armor": 100, "helmet": true, "weapon": "rifle"}
+  ],
   "combatTargets": [
     {"name": "A Pit Shoulder", "route": "aLong", "x": -16, "z": -22.5},
     {"name": "A Ramp Shoulder", "route": "aLong", "x": 7, "z": -22.5},

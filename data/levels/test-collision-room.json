@@ -95,6 +95,19 @@
   "routeHints": [],
   "landmarks": [],
   "drops": [],
+  "teamActors": [
+    {"name": "友方测试单位", "team": "friendly", "x": -21.5, "y": 1.15, "z": 24, "yawDegrees": -90, "armor": 100, "helmet": true, "weapon": "rifle"}
+  ],
+  "combatTargets": [
+    {"name": "敌方测试单位", "team": "enemy", "x": -17.5, "y": 1.15, "z": 24, "yawDegrees": 90, "armor": 50, "helmet": false, "weapon": "rifle"}
+  ],
+  "ladders": [
+    {"id": "ladder-calibration", "x": -20, "z": -0.3, "sx": 1.25, "sz": 1.4, "h": 3.2, "bottomY": 0.1, "normal": [0, 1], "exitDirection": [0, -1]}
+  ],
+  "waterVolumes": [
+    {"id": "shallow-water-calibration", "x": -21, "z": 11, "sx": 5, "sz": 5, "surfaceY": 0.62, "bottomY": 0.1},
+    {"id": "deep-water-calibration", "x": -2, "z": 16, "sx": 6, "sz": 6, "surfaceY": 2.15, "bottomY": 0.1}
+  ],
   "walls": [
     {
       "x": -12,
@@ -118,6 +131,17 @@
     }
   ],
   "floors": [
+    {
+      "x": -20,
+      "z": -4,
+      "sx": 5,
+      "sz": 6,
+      "h": 3.2,
+      "climbable": true,
+      "upper": true,
+      "role": "floor",
+      "id": "ladder-platform"
+    },
     {
       "x": 12,
       "z": -18,
