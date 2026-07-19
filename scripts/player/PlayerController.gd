@@ -6,10 +6,16 @@ extends CharacterBody3D
 @export var mouse_sensitivity: float = 0.0022
 @export var acceleration: float = 30.0
 @export var deceleration: float = 24.0
+@export var counter_strafe_acceleration: float = 44.0
+@export var air_acceleration: float = 8.0
 @export var standing_height: float = 0.9
 @export var max_step_height: float = 0.42
 @export var floor_probe_distance: float = 0.9
 @export var step_probe_distance: float = 0.55
+@export var walk_bob_amplitude: float = 0.012
+@export var walk_bob_frequency: float = 10.0
+@export var landing_kick_distance: float = 0.028
+@export var camera_recovery_speed: float = 10.0
 
 @onready var camera_pivot: Node3D = $CameraPivot
 @onready var camera: Camera3D = $CameraPivot/Camera3D
@@ -18,8 +24,12 @@ var gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
 var controls_enabled: bool = false
 var mouse_capture_enabled: bool = false
 var _spawn_applied: bool = false
+var _camera_pivot_origin: Vector3 = Vector3.ZERO
+var _bob_phase: float = 0.0
+var _landing_offset: float = 0.0
 
 func _ready() -> void:
+	_camera_pivot_origin = camera_pivot.position
 	floor_snap_length = 0.3
 	max_slides = 8
 	set_mouse_capture_enabled(false)
@@ -46,6 +56,7 @@ func _physics_process(delta: float) -> void:
 		if not is_on_floor():
 			velocity.y -= gravity * delta
 		move_and_slide()
+		_update_camera_motion(delta, Vector3.ZERO)
 		return
 
 	var was_on_floor: bool = is_on_floor()
@@ -60,7 +71,7 @@ func _physics_process(delta: float) -> void:
 
 	var speed: float = sprint_speed if Input.is_action_pressed("sprint") else walk_speed
 	var target_velocity: Vector3 = move_dir * speed
-	var blend: float = acceleration if move_dir != Vector3.ZERO else deceleration
+	var blend: float = get_movement_response_acceleration(move_dir, is_on_floor())
 	velocity.x = move_toward(velocity.x, target_velocity.x, blend * delta)
 	velocity.z = move_toward(velocity.z, target_velocity.z, blend * delta)
 
@@ -72,6 +83,10 @@ func _physics_process(delta: float) -> void:
 
 	if not is_on_floor() and velocity.y <= 0.0:
 		_snap_to_floor()
+
+	if not was_on_floor and is_on_floor():
+		_landing_offset = landing_kick_distance
+	_update_camera_motion(delta, move_dir)
 
 func set_controls_enabled(enabled: bool) -> void:
 	controls_enabled = enabled
@@ -98,6 +113,16 @@ func get_world_move_direction(input_vector: Vector2) -> Vector3:
 	world_direction.y = 0.0
 	return world_direction.normalized()
 
+func get_movement_response_acceleration(move_dir: Vector3, grounded: bool) -> float:
+	if not grounded:
+		return air_acceleration
+	if move_dir == Vector3.ZERO:
+		return deceleration
+	var horizontal_velocity := Vector3(velocity.x, 0.0, velocity.z)
+	if horizontal_velocity.length_squared() > 0.01 and horizontal_velocity.normalized().dot(move_dir) < -0.15:
+		return counter_strafe_acceleration
+	return acceleration
+
 func apply_recoil_kick(pitch_radians: float, yaw_radians: float) -> void:
 	camera_pivot.rotation.x = clamp(
 		camera_pivot.rotation.x - pitch_radians,
@@ -123,6 +148,10 @@ func _apply_spawn() -> void:
 	rotation.y = GameState.player_spawn_yaw_radians
 	camera_pivot.rotation.x = 0.0
 	velocity = Vector3.ZERO
+	_bob_phase = 0.0
+	_landing_offset = 0.0
+	if camera_pivot != null:
+		camera_pivot.position = _camera_pivot_origin
 	_spawn_applied = true
 	reset_physics_interpolation()
 
@@ -169,3 +198,15 @@ func _raycast(from: Vector3, to: Vector3) -> Dictionary:
 
 func _is_walkable_normal(normal: Vector3) -> bool:
 	return normal.dot(Vector3.UP) >= cos(floor_max_angle)
+
+func _update_camera_motion(delta: float, move_dir: Vector3) -> void:
+	var horizontal_speed := Vector2(velocity.x, velocity.z).length()
+	var bob_weight := clampf(horizontal_speed / maxf(walk_speed, 0.01), 0.0, 1.25) if is_on_floor() else 0.0
+	if move_dir != Vector3.ZERO and bob_weight > 0.05:
+		_bob_phase += delta * walk_bob_frequency * bob_weight
+	else:
+		_bob_phase = move_toward(_bob_phase, 0.0, delta * walk_bob_frequency)
+	_landing_offset = move_toward(_landing_offset, 0.0, delta * camera_recovery_speed * landing_kick_distance)
+	var bob_y := sin(_bob_phase * 2.0) * walk_bob_amplitude * bob_weight
+	var bob_x := cos(_bob_phase) * walk_bob_amplitude * 0.55 * bob_weight
+	camera_pivot.position = _camera_pivot_origin + Vector3(bob_x, bob_y - _landing_offset, 0.0)

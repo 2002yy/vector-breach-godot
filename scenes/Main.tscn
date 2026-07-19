@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" path="res://scenes/combat/CombatSandbox.tscn" id="8"]
 [ext_resource type="PackedScene" path="res://scenes/ui/HitFeedbackLayer.tscn" id="9"]
 [ext_resource type="PackedScene" path="res://scenes/combat/ShotDebugLine.tscn" id="10"]
+[ext_resource type="PackedScene" path="res://scenes/audio/CombatAudioFeedback.tscn" id="11"]
 
 [sub_resource type="ProceduralSkyMaterial" id="1"]
 sky_top_color = Color(0.43, 0.44, 0.42, 1)
@@ -55,3 +56,5 @@ position = Vector3(0, 2, 0)
 [node name="CombatSandbox" parent="." instance=ExtResource("8")]
 
 [node name="ShotDebugLine" parent="." instance=ExtResource("10")]
+
+[node name="CombatAudioFeedback" parent="." instance=ExtResource("11")]

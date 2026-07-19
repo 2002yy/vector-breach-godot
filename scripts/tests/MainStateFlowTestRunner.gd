@@ -26,6 +26,9 @@ func _run_all_tests() -> void:
 	await _run_test("weapon_view_model_tracks_switch_and_shot", _test_weapon_view_model_tracks_switch_and_shot)
 	await _run_test("player_scale_matches_cs_reference", _test_player_scale_matches_cs_reference)
 	await _run_test("player_input_maps_to_local_forward_and_right", _test_player_input_maps_to_local_forward_and_right)
+	await _run_test("player_counter_strafe_and_air_control_are_bounded", _test_player_counter_strafe_and_air_control_are_bounded)
+	await _run_test("player_traverses_authored_height_step", _test_player_traverses_authored_height_step)
+	await _run_test("combat_audio_tracks_shot_hit_reload_and_switch", _test_combat_audio_tracks_shot_hit_reload_and_switch)
 	await _run_test("player_mouse_look_bypasses_gui_consumption", _test_player_mouse_look_bypasses_gui_consumption)
 	await _run_test("pause_menu_blocks_combat_commands", _test_pause_menu_blocks_combat_commands)
 
@@ -334,6 +337,66 @@ func _test_player_input_maps_to_local_forward_and_right() -> void:
 	_assert_vec3_close(forward, expected_forward, 0.001, "forward input should follow the player's local forward axis")
 	_assert_vec3_close(right, expected_right, 0.001, "right input should follow the player's local right axis")
 
+	await _cleanup_main(main)
+
+func _test_player_counter_strafe_and_air_control_are_bounded() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	var player: CharacterBody3D = main.get_node("Player")
+	player.velocity = Vector3(5.0, 0.0, 0.0)
+	var counter_response := float(player.call("get_movement_response_acceleration", Vector3.LEFT, true))
+	var normal_response := float(player.call("get_movement_response_acceleration", Vector3.RIGHT, true))
+	var air_response := float(player.call("get_movement_response_acceleration", Vector3.LEFT, false))
+	_assert_true(counter_response > normal_response, "opposite input should brake faster for deliberate peeking")
+	_assert_true(air_response < normal_response, "air control should stay below grounded acceleration")
+	_assert_true(float(player.get("max_step_height")) >= 0.4, "step-up should clear authored 20 cm stair risers with margin")
+	await _cleanup_main(main)
+
+func _test_player_traverses_authored_height_step() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	var player: CharacterBody3D = main.get_node("Player")
+	var fixture := Node3D.new()
+	fixture.name = "MovementFixture"
+	main.add_child(fixture)
+	_add_static_box(fixture, Vector3(0.0, 99.95, 0.0), Vector3(8.0, 0.1, 12.0))
+	_add_static_box(fixture, Vector3(0.0, 100.1, -1.0), Vector3(3.0, 0.2, 2.0))
+	player.global_position = Vector3(0.0, 100.9, 2.4)
+	player.rotation.y = 0.0
+	player.velocity = Vector3.ZERO
+	player.call("set_controls_enabled", true)
+	Input.action_press("move_forward")
+	for _frame in range(45):
+		await get_tree().physics_frame
+	Input.action_release("move_forward")
+	_assert_true(player.global_position.z < 0.6, "forward movement should continue across a 20 cm authored stair step")
+	_assert_true(player.global_position.y >= 101.04, "the player capsule should settle on top of the authored stair step")
+	await _cleanup_main(main)
+
+func _add_static_box(parent: Node3D, position: Vector3, size: Vector3) -> void:
+	var body := StaticBody3D.new()
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = size
+	collision.shape = shape
+	body.position = position
+	body.add_child(collision)
+	parent.add_child(body)
+
+func _test_combat_audio_tracks_shot_hit_reload_and_switch() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	var audio: Node = main.get_node("CombatAudioFeedback")
+	main.call("_on_shot_resolved", {"hit": true, "weapon_slot": 0})
+	main.call("_on_reload_started")
+	main.call("_on_reload_finished")
+	main.call("_on_weapon_switched", "pistol", 1)
+	var snapshot: Dictionary = audio.call("get_debug_snapshot")
+	_assert_equal(snapshot.get("shots"), 1, "shot feedback should count the resolved shot")
+	_assert_equal(snapshot.get("hits"), 1, "hit feedback should layer an impact cue")
+	_assert_equal(snapshot.get("reloads"), 1, "reload start should play a mechanical cue")
+	_assert_equal(snapshot.get("switches"), 1, "weapon switching should play an equip cue")
+	_assert_equal(snapshot.get("players"), 3, "combat audio should use separate shot, impact, and mechanical players")
 	await _cleanup_main(main)
 
 func _test_player_mouse_look_bypasses_gui_consumption() -> void:

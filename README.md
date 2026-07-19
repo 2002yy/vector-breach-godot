@@ -124,16 +124,24 @@ Prototype stage — the professional value is in the structure, not the content 
 
 The authoritative dimensions, route roles, vertical layout, asset-generation chain, and automated geometry invariants are recorded in [`docs/FOUNDRY_DEPOT_DESIGN.md`](docs/FOUNDRY_DEPOT_DESIGN.md).
 
-Automated checks now cover stair risers, target-edge alignment, upper headroom, and route/spawn clearance. Sustained combat feel, AI traversal behavior, and peek rhythm still require human playtesting.
+Automated checks cover stair risers, target-edge alignment, upper headroom, route/spawn clearance, counter-strafe response, and combat-audio event wiring. The July 2026 closure pass also captured a first-person Foundry route run to verify HUD weight, weapon feedback, sustained recoil presentation, and representative peek sightlines.
 
 ## Roadmap
 
 - [x] CS-scale multilevel Foundry Depot blockout and geometry boundaries
-- [ ] stair traversal feel playtest and movement polish
-- [ ] sustained recoil feel playtest
-- [ ] peek rhythm and movement polish
-- [ ] weapon feedback and audio
-- [ ] basic level demo video
+- [x] stair traversal feel playtest and movement polish
+- [x] sustained recoil feel playtest
+- [x] peek rhythm and movement polish
+- [x] weapon feedback and audio
+- [x] basic level demo video
+
+### Closure evidence
+
+- Stair/peek polish: grounded acceleration now distinguishes normal movement, release braking, and higher-authority counter-strafing; air acceleration remains intentionally bounded. Camera bob and a short landing impulse make step transitions readable without changing collision authority.
+- Recoil/feedback: the existing learnable rifle pattern is now paired with view-model kick, synthesized rifle/pistol reports, a separate hit-confirmation cue, and reload/equip mechanical cues.
+- Automated gate: `MainStateFlowTestRunner` covers counter-strafe/air-control boundaries and verifies shot, hit, reload, and weapon-switch audio events.
+- Demo: [`assets/demo/vector-breach-foundry-demo.mp4`](assets/demo/vector-breach-foundry-demo.mp4) is a 1280x720, 30 FPS first-person route capture with HUD, weapon animation, repeated fire, and captured game audio. The matching poster is [`assets/demo/vector-breach-foundry-demo.png`](assets/demo/vector-breach-foundry-demo.png).
+- Rebuild the demo with `powershell -ExecutionPolicy Bypass -File .\tools\capture_level_demo.ps1`.
 
 
 ## License

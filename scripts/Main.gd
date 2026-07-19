@@ -84,6 +84,7 @@ const LOCAL_REFERENCE_OPTION := {
 @onready var weapon_view_model: Node3D = $Player/CameraPivot/Camera3D/WeaponViewModel
 @onready var combat_sandbox: Node3D = $CombatSandbox
 @onready var shot_debug_line: Node3D = $ShotDebugLine
+@onready var combat_audio_feedback: Node = $CombatAudioFeedback
 
 var selected_level_index: int = 1
 var level_options: Array = []
@@ -108,6 +109,10 @@ func _ready() -> void:
 		weapon_system.connect("shot_resolved", _on_shot_resolved)
 	if weapon_system.has_signal("weapon_switched"):
 		weapon_system.connect("weapon_switched", _on_weapon_switched)
+	if weapon_system.has_signal("reload_started"):
+		weapon_system.connect("reload_started", _on_reload_started)
+	if weapon_system.has_signal("reload_finished"):
+		weapon_system.connect("reload_finished", _on_reload_finished)
 	if not GameState.hud_state_changed.is_connected(_on_hud_state_changed):
 		GameState.hud_state_changed.connect(_on_hud_state_changed)
 	start_menu.call("set_map_options", level_options, selected_level_index)
@@ -443,10 +448,22 @@ func _on_shot_resolved(result: Dictionary) -> void:
 		hit_feedback_layer.call("show_shot_feedback", result)
 	if shot_debug_line.has_method("show_shot"):
 		shot_debug_line.call("show_shot", result)
+	if combat_audio_feedback.has_method("play_shot"):
+		combat_audio_feedback.call("play_shot", result)
 
 func _on_weapon_switched(_weapon_name: String, slot_index: int) -> void:
 	if weapon_view_model.has_method("set_weapon_slot"):
 		weapon_view_model.call("set_weapon_slot", slot_index)
+	if combat_audio_feedback.has_method("play_weapon_switched"):
+		combat_audio_feedback.call("play_weapon_switched")
+
+func _on_reload_started() -> void:
+	if combat_audio_feedback.has_method("play_reload_started"):
+		combat_audio_feedback.call("play_reload_started")
+
+func _on_reload_finished() -> void:
+	if combat_audio_feedback.has_method("play_reload_finished"):
+		combat_audio_feedback.call("play_reload_finished")
 
 func _on_hud_state_changed(snapshot: Dictionary) -> void:
 	combat_hud.call("update_display", snapshot)
