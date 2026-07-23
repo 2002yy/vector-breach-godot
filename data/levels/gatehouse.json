@@ -1,7 +1,10 @@
 {
   "id": "gatehouse",
   "name": "Gatehouse",
+  "designRevision": "gatehouse-visual-v1",
+  "visual_scene": "res://assets/models/gatehouse/gatehouse.glb",
   "arenaSize": 56,
+  "boundaryHeight": 6,
   "start": [
     0,
     44
@@ -95,10 +98,27 @@
   "routeHints": [],
   "landmarks": [],
   "drops": [],
-  "walls": [],
-  "covers": [],
-  "floors": [],
-  "stairs": [],
+  "walls": [
+    {"id": "gate-west", "x": -22, "z": -28, "sx": 9, "sz": 2, "h": 4.2, "role": "wall"},
+    {"id": "gate-east", "x": 22, "z": -28, "sx": 9, "sz": 2, "h": 4.2, "role": "wall"},
+    {"id": "north-west-security", "x": -25, "z": 24, "sx": 2, "sz": 14, "h": 3.8, "role": "wall"},
+    {"id": "north-east-security", "x": 25, "z": 24, "sx": 2, "sz": 14, "h": 3.8, "role": "wall"}
+  ],
+  "covers": [
+    {"id": "south-west-barrier", "x": -9, "z": -9, "sx": 4.3, "sz": 1.4, "h": 2.2, "role": "cover"},
+    {"id": "south-east-booth", "x": 10.6, "z": -6.4, "sx": 1.7, "sz": 6.2, "h": 1.8, "role": "cover"},
+    {"id": "mid-west-booth", "x": -7.2, "z": 4.2, "sx": 1.5, "sz": 6.4, "h": 1.6, "role": "cover"},
+    {"id": "north-east-barrier", "x": 12.6, "z": 11.8, "sx": 5.6, "sz": 1.2, "h": 2.4, "role": "cover"},
+    {"id": "checkpoint-barrier", "x": 0, "z": -17.2, "sx": 7, "sz": 1.1, "h": 1.4, "role": "cover"}
+  ],
+  "floors": [
+    {"id": "west-inspection-deck", "x": -16, "z": 2, "sx": 8, "sz": 7, "h": 2.8, "climbable": true, "role": "floor"}
+  ],
+  "stairs": [
+    {"id": "north-speed-table", "x": -3.5, "z": 10.5, "sx": 4.4, "sz": 3, "h": 0.58, "climbable": true, "role": "stair"},
+    {"id": "south-speed-table", "x": 4.5, "z": -11.5, "sx": 4, "sz": 2.8, "h": 0.72, "climbable": true, "role": "stair"},
+    {"id": "inspection-deck-step", "x": -11, "z": 5.5, "sx": 4, "sz": 3, "h": 1.4, "climbable": true, "role": "stair"}
+  ],
   "ramps": [],
   "catwalks": [],
   "obstacles": [

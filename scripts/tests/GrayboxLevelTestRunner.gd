@@ -25,6 +25,7 @@ func _run_all_tests() -> void:
 	await _run_test("depot_uses_cs_scale_metrics", _test_depot_uses_cs_scale_metrics)
 	await _run_test("depot_stairs_align_with_target_edges", _test_depot_stairs_align_with_target_edges)
 	await _run_test("depot_route_points_clear_player_collision", _test_depot_route_points_clear_player_collision)
+	await _run_test("gatehouse_migrates_legacy_obstacles_into_visual_collision", _test_gatehouse_migrates_legacy_obstacles_into_visual_collision)
 	await _run_test("optional_local_dustline_builds_imported_collision", _test_dustline_builds_imported_collision_and_custom_markers)
 	await _run_test("foundry_reforged_builds_independent_ground_graybox", _test_foundry_reforged_builds_independent_ground_graybox)
 	await _run_test("foundry_reforged_routes_clear_solids_and_interfaces", _test_foundry_reforged_routes_clear_solids_and_interfaces)
@@ -175,6 +176,48 @@ func _test_load_level_rebuilds_geometry_and_updates_state() -> void:
 	_assert_true(is_equal_approx(GameState.player_spawn_yaw_radians, spawn_marker.rotation.y), "GameState should mirror the authored depot spawn yaw")
 	_assert_vec3_close(exit_marker.position, _marker_exit_position(depot_data), 0.001, "exit marker should update when loading depot")
 	_assert_equal(String(GameState.current_level_id), "depot", "GameState should switch to depot after load_level")
+
+	await _cleanup_level(level)
+
+func _test_gatehouse_migrates_legacy_obstacles_into_visual_collision() -> void:
+	var level: Node3D = _instantiate_level()
+	await get_tree().physics_frame
+	level.call("load_level", "gatehouse")
+	await get_tree().physics_frame
+	await get_tree().process_frame
+
+	var level_data: Dictionary = LevelDataLoader.load_level("gatehouse")
+	var geometry_root: Node3D = level.get_node("GeometryRoot")
+	var visual_root: Node3D = level.get_node("VisualRoot")
+	var semantic_entries: Array = []
+	for group_name in ["walls", "covers", "floors", "stairs"]:
+		semantic_entries.append_array(level_data.get(group_name, []) as Array)
+	_assert_equal(semantic_entries.size(), 13, "Gatehouse should migrate all thirteen legacy obstacles into runtime semantic collision groups")
+	for obstacle_variant in level_data.get("obstacles", []):
+		var obstacle: Dictionary = obstacle_variant as Dictionary
+		var matching_semantic := false
+		for entry_variant in semantic_entries:
+			var entry: Dictionary = entry_variant as Dictionary
+			matching_semantic = matching_semantic or (
+				is_equal_approx(float(entry.get("x", 0.0)), float(obstacle.get("x", 0.0)))
+				and is_equal_approx(float(entry.get("z", 0.0)), float(obstacle.get("z", 0.0)))
+				and is_equal_approx(float(entry.get("sx", 0.0)), float(obstacle.get("sx", 0.0)))
+				and is_equal_approx(float(entry.get("sz", 0.0)), float(obstacle.get("sz", 0.0)))
+				and is_equal_approx(float(entry.get("h", 0.0)), float(obstacle.get("h", 0.0)))
+			)
+		_assert_true(matching_semantic, "every Gatehouse legacy obstacle should keep an identical semantic collision proxy")
+
+	_assert_true(not geometry_root.visible, "Gatehouse should hide duplicate graybox rendering while retaining semantic collision")
+	_assert_equal(geometry_root.get_child_count(), _expected_geometry_child_count(level_data), "Gatehouse should build every migrated collision group")
+	_assert_equal(visual_root.get_child_count(), 1, "Gatehouse should instantiate exactly one visual scene")
+	if visual_root.get_child_count() == 1:
+		var gatehouse_visual: Node = visual_root.get_child(0)
+		_assert_true(_count_nodes_of_type(gatehouse_visual, "MeshInstance3D") >= 100, "Gatehouse should retain its complete checkpoint visual pass")
+		_assert_equal(_count_nodes_with_name_prefix(gatehouse_visual, "GEO-gatehouse-wall-cladding-"), 6, "Gatehouse should retain six wall-contact cladding modules")
+		_assert_equal(_count_nodes_with_name_prefix(gatehouse_visual, "GEO-gatehouse-floor-joint-"), 14, "Gatehouse should retain fourteen floor expansion joints")
+		_assert_equal(_count_nodes_with_name_prefix(gatehouse_visual, "GEO-gatehouse-floor-wear-"), 6, "Gatehouse should retain six broad traffic wear zones")
+		_assert_equal(_count_nodes_with_name_prefix(gatehouse_visual, "GEO-gatehouse-booth-panel-"), 4, "Gatehouse should retain four inspection-booth panel layers")
+		_assert_equal(_count_nodes_of_type(gatehouse_visual, "StaticBody3D"), 0, "Gatehouse visual assets should not add collision outside the migrated graybox")
 
 	await _cleanup_level(level)
 
