@@ -1,6 +1,6 @@
 # Foundry Depot Design Record
 
-Last updated: 2026-07-15
+Last updated: 2026-07-23
 Data revision: `foundry-cs-scale-v2`
 
 This document records the design constraints behind the `depot` level. It is a traceability note, not a second source of runtime state.
@@ -68,6 +68,15 @@ These invariants are enforced in `scripts/tests/GrayboxLevelTestRunner.gd`.
 ## Asset generation and validation
 
 The Blender generator reads `depot.json`, builds the map and PBR materials, exports the GLB, renders the preview, and saves the editable `.blend`. Player-eye validation uses a 1.62 m camera height rather than the aerial presentation camera.
+
+The current visual pass keeps runtime collision entirely in the JSON-derived graybox and adds:
+
+- 38 grounded wall bases, plus structural bay ribs and caps on long wall spans.
+- 8 wall-contact maintenance cladding modules with a measured maximum contact gap of 0 m.
+- 9 floor expansion joints, 7 broad route-wear zones, and 3 route-anchored drainage grates.
+- A deterministic 568-object GLB with no shared mesh objects.
+
+`DepotVisualProbe.tscn` captures Vulkan Forward+ first-person views at spawn, north long, warehouse, mid, service, and the target site. The probe is a visual inspection gate; collision and timing remain covered by `GrayboxLevelTestRunner`.
 
 Run all regression suites from the repository root:
 

@@ -108,6 +108,14 @@ func _test_default_load_applies_markers_and_geometry() -> void:
 	_assert_true(not geometry_root.visible, "the default visual scene should hide duplicate graybox meshes while preserving collision")
 	_assert_equal(visual_root.get_child_count(), 1, "the default depot should instantiate exactly one visual scene")
 	_assert_true(_count_nodes_of_type(visual_root, "MeshInstance3D") >= 300, "the imported depot GLB should contain the complete authored mesh set")
+	if visual_root.get_child_count() == 1:
+		var depot_visual: Node = visual_root.get_child(0)
+		_assert_equal(_count_nodes_with_name_prefix(depot_visual, "GEO-detail-wall-base-"), 38, "Depot should ground every authored wall with a structural base")
+		_assert_equal(_count_nodes_with_name_prefix(depot_visual, "GEO-detail-wall-cladding-"), 8, "Depot should retain eight wall-contact maintenance cladding modules")
+		_assert_equal(_count_nodes_with_name_prefix(depot_visual, "GEO-detail-floor-joint-"), 9, "Depot should retain its nine measured floor expansion joints")
+		_assert_equal(_count_nodes_with_name_prefix(depot_visual, "GEO-detail-floor-wear-"), 7, "Depot should retain seven broad route wear zones")
+		_assert_equal(_count_nodes_with_name_prefix(depot_visual, "GEO-detail-floor-drain-"), 3, "Depot should retain three route-anchored drainage grates")
+		_assert_equal(_count_nodes_of_type(depot_visual, "StaticBody3D"), 0, "Depot's visual pass should not add collision outside the authored graybox")
 	var depot_lights: Dictionary = level_data.get("lights", {}) as Dictionary
 	_assert_equal(lighting_root.get_child_count(), (depot_lights.get("points", []) as Array).size(), "the default depot should instantiate every authored gameplay light")
 	_assert_vec3_close(spawn_marker.position, _marker_start_position(level_data), 0.001, "spawn marker should match level start coordinate")

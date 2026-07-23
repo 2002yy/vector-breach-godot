@@ -125,6 +125,8 @@ def _materials() -> dict[str, bpy.types.Material]:
         "orange": make_material("MAT_hazard_orange", (0.68, 0.22, 0.04, 1.0), roughness=0.65),
         "yellow": make_material("MAT_hazard_yellow", (0.72, 0.48, 0.07, 1.0), roughness=0.68),
         "teal": make_material("MAT_route_teal", (0.035, 0.30, 0.32, 1.0), metallic=0.15, roughness=0.62),
+        "joint": make_material("MAT_floor_joint", (0.045, 0.052, 0.052, 1.0), roughness=0.92),
+        "floor_wear": make_material("MAT_floor_wear", (0.23, 0.22, 0.19, 1.0), roughness=0.96),
         "skyline": make_material("MAT_distant_skyline", (0.12, 0.17, 0.19, 1.0), roughness=0.95),
         "dark": make_material("MAT_polymer_dark", (0.025, 0.03, 0.032, 1.0), roughness=0.62),
         "glass": make_material("MAT_screen_glass", (0.02, 0.08, 0.085, 1.0), metallic=0.2, roughness=0.2),
@@ -217,6 +219,164 @@ def _build_cover(collection: bpy.types.Collection, materials: dict, entry: dict,
             materials["yellow"],
             collection,
         )
+
+
+def _build_floor_breakup(collection: bpy.types.Collection, materials: dict) -> None:
+    joint_specs = (
+        ("x-west", -32.0, 0.0, 0.055, 82.0),
+        ("x-mid-west", -16.0, 0.0, 0.055, 82.0),
+        ("x-center", 0.0, 0.0, 0.055, 82.0),
+        ("x-mid-east", 16.0, 0.0, 0.055, 82.0),
+        ("x-east", 32.0, 0.0, 0.055, 82.0),
+        ("z-service", 0.0, -24.0, 94.0, 0.055),
+        ("z-south", 0.0, -8.0, 94.0, 0.055),
+        ("z-center", 0.0, 8.0, 94.0, 0.055),
+        ("z-north", 0.0, 24.0, 94.0, 0.055),
+    )
+    for name, x, z, sx, sz in joint_specs:
+        add_box(
+            f"GEO-detail-floor-joint-{name}",
+            _map_point(x, z, 0.009),
+            (sx, sz, 0.018),
+            materials["joint"],
+            collection,
+        )
+
+    wear_specs = (
+        ("spawn", -37.0, 33.5, 12.0, 2.6),
+        ("north-long", -2.0, 33.0, 25.0, 2.2),
+        ("warehouse", -21.5, 8.0, 10.0, 5.2),
+        ("mid", 7.0, 3.5, 18.0, 3.0),
+        ("service-west", -31.0, -28.0, 16.0, 2.4),
+        ("service-east", 5.0, -28.0, 18.0, 2.4),
+        ("site", 34.0, -24.0, 15.0, 5.0),
+    )
+    for name, x, z, sx, sz in wear_specs:
+        add_box(
+            f"GEO-detail-floor-wear-{name}",
+            _map_point(x, z, 0.016),
+            (sx, sz, 0.014),
+            materials["floor_wear"],
+            collection,
+        )
+
+    drain_specs = (
+        ("warehouse", -22.0, -5.6, 7.0, 0.34),
+        ("service", -6.0, -28.0, 0.34, 5.0),
+        ("site", 30.0, -17.2, 6.0, 0.34),
+    )
+    for name, x, z, sx, sz in drain_specs:
+        add_box(
+            f"GEO-detail-floor-drain-{name}",
+            _map_point(x, z, 0.026),
+            (sx, sz, 0.032),
+            materials["metal"],
+            collection,
+        )
+
+
+def _build_wall_structure(collection: bpy.types.Collection, materials: dict, level: dict) -> None:
+    for entry in level.get("walls", []):
+        wall_id = str(entry["id"])
+        x = float(entry["x"])
+        z = float(entry["z"])
+        sx = float(entry["sx"])
+        sz = float(entry["sz"])
+        height = float(entry["h"])
+        add_box(
+            f"GEO-detail-wall-base-{wall_id}",
+            _map_point(x, z, 0.12),
+            (sx + 0.05, sz + 0.05, 0.24),
+            materials["dark"],
+            collection,
+        )
+        span = max(sx, sz)
+        if span < 8.0:
+            continue
+        along_x = sx >= sz
+        bay_count = max(2, math.ceil(span / 5.0))
+        for divider in range(1, bay_count):
+            offset = -span * 0.5 + span * divider / bay_count
+            rib_x = x + (offset if along_x else 0.0)
+            rib_z = z + (0.0 if along_x else offset)
+            dimensions = (0.15, sz + 0.07, height) if along_x else (sx + 0.07, 0.15, height)
+            add_box(
+                f"GEO-detail-wall-rib-{wall_id}-{divider:02d}",
+                _map_point(rib_x, rib_z, height * 0.5),
+                dimensions,
+                materials["metal_mid"],
+                collection,
+            )
+        add_box(
+            f"GEO-detail-wall-cap-{wall_id}",
+            _map_point(x, z, height - 0.09),
+            (sx + 0.06, sz + 0.06, 0.18),
+            materials["metal_mid"],
+            collection,
+        )
+
+
+def _build_wall_cladding(collection: bpy.types.Collection, materials: dict, level: dict) -> None:
+    walls = {str(entry["id"]): entry for entry in level.get("walls", [])}
+    specs = (
+        ("long-north", -1.0, -15.0, 6.0, 2.3),
+        ("long-south-east", 1.0, 22.0, 5.0, 2.3),
+        ("warehouse-north", 1.0, -22.0, 6.0, 2.7),
+        ("mid-north-screen", -1.0, 3.0, 5.2, 2.2),
+        ("service-south", 1.0, -22.0, 7.0, 2.0),
+        ("service-south", 1.0, 10.0, 7.0, 2.0),
+        ("site-north-east", 1.0, 40.5, 5.0, 2.3),
+        ("site-backstop", -1.0, 37.0, 4.6, 2.0),
+    )
+    thickness = 0.08
+    for index, (wall_id, face_sign, anchor, width, height) in enumerate(specs):
+        wall = walls[wall_id]
+        x = float(wall["x"])
+        z = float(wall["z"])
+        sx = float(wall["sx"])
+        sz = float(wall["sz"])
+        along_x = sx >= sz
+        if along_x:
+            face_z = z + face_sign * sz * 0.5
+            location = _map_point(anchor, face_z + face_sign * thickness * 0.5, 0.24 + height * 0.5)
+            dimensions = (width, thickness, height)
+        else:
+            face_x = x + face_sign * sx * 0.5
+            location = _map_point(face_x + face_sign * thickness * 0.5, anchor, 0.24 + height * 0.5)
+            dimensions = (thickness, width, height)
+        panel = add_box(
+            f"GEO-detail-wall-cladding-{index:02d}-{wall_id}",
+            location,
+            dimensions,
+            materials["corrugated_rust" if index % 3 == 0 else "green_metal"],
+            collection,
+        )
+        panel["wall_id"] = wall_id
+        panel["contact_gap"] = 0.0
+
+
+def _validate_depot_details(collection: bpy.types.Collection) -> dict:
+    names = [obj.name for obj in collection.objects]
+    wall_bases = [name for name in names if name.startswith("GEO-detail-wall-base-")]
+    wall_cladding = [obj for obj in collection.objects if obj.name.startswith("GEO-detail-wall-cladding-")]
+    floor_joints = [name for name in names if name.startswith("GEO-detail-floor-joint-")]
+    floor_wear = [name for name in names if name.startswith("GEO-detail-floor-wear-")]
+    floor_drains = [name for name in names if name.startswith("GEO-detail-floor-drain-")]
+    cladding_gap = max((float(obj.get("contact_gap", 999.0)) for obj in wall_cladding), default=999.0)
+    assert len(wall_bases) == 38, f"Expected 38 grounded wall bases, got {len(wall_bases)}"
+    assert len(wall_cladding) == 8, f"Expected 8 wall cladding modules, got {len(wall_cladding)}"
+    assert len(floor_joints) == 9, f"Expected 9 floor joints, got {len(floor_joints)}"
+    assert len(floor_wear) == 7, f"Expected 7 floor wear zones, got {len(floor_wear)}"
+    assert len(floor_drains) == 3, f"Expected 3 floor drains, got {len(floor_drains)}"
+    assert cladding_gap <= 0.0001, f"Wall cladding contact gap is {cladding_gap:.4f} m"
+    return {
+        "wall_base_count": len(wall_bases),
+        "wall_cladding_count": len(wall_cladding),
+        "wall_cladding_contact_gap_max": round(cladding_gap, 4),
+        "floor_joint_count": len(floor_joints),
+        "floor_wear_count": len(floor_wear),
+        "floor_drain_count": len(floor_drains),
+    }
 
 
 def _build_rail_panel(
@@ -483,6 +643,10 @@ def build_map_details() -> dict:
     level = _load_depot()
     remove_objects_with_prefix("GEO-detail_")
 
+    _build_floor_breakup(collection, materials)
+    _build_wall_structure(collection, materials, level)
+    _build_wall_cladding(collection, materials, level)
+
     for index, entry in enumerate(level.get("walls", [])):
         _add_hazard_band(collection, materials, entry, index)
 
@@ -632,7 +796,9 @@ def build_map_details() -> dict:
         )
 
     _project_collection_uvs(collection, 2.5)
-    return validate_collection(MAP_COLLECTION)
+    validation = validate_collection(MAP_COLLECTION)
+    validation.update(_validate_depot_details(collection))
+    return validation
 
 
 def _build_arms(collection: bpy.types.Collection, materials: dict, pistol: bool = False) -> None:
@@ -873,7 +1039,10 @@ def export_map_and_save() -> dict:
     source_blend, preview = _render_map_preview_and_save()
     return {
         "exports": {"map": map_count},
-        "map_validation": validate_collection(MAP_COLLECTION),
+        "map_validation": {
+            **validate_collection(MAP_COLLECTION),
+            **_validate_depot_details(bpy.data.collections[MAP_COLLECTION]),
+        },
         "blend": str(source_blend),
         "preview": str(preview),
     }
@@ -891,7 +1060,10 @@ def export_and_save() -> dict:
     source_blend, preview = _render_map_preview_and_save()
     return {
         "exports": export_counts,
-        "map_validation": validate_collection(MAP_COLLECTION),
+        "map_validation": {
+            **validate_collection(MAP_COLLECTION),
+            **_validate_depot_details(bpy.data.collections[MAP_COLLECTION]),
+        },
         "rifle_validation": validate_collection(RIFLE_COLLECTION),
         "pistol_validation": validate_collection(PISTOL_COLLECTION),
         "blend": str(source_blend),
