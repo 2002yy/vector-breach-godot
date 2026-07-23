@@ -30,6 +30,7 @@ func _run_all_tests() -> void:
 	_run_test("optional_local_dustline_keeps_reference_boundary", _test_dustline_locks_reference_and_single_difference_layer)
 	_run_test("foundry_depot_v2_freeze_manifest_matches", _test_foundry_depot_v2_freeze_manifest_matches)
 	_run_test("foundry_reforged_prioritizes_three_ground_routes", _test_foundry_reforged_prioritizes_three_ground_routes)
+	_run_test("gatehouse_core_vault_author_tactical_routes", _test_gatehouse_core_vault_author_tactical_routes)
 
 func _run_test(test_name: String, callable: Callable) -> void:
 	var failed_before: int = _failures.size()
@@ -254,6 +255,39 @@ func _test_foundry_reforged_prioritizes_three_ground_routes() -> void:
 		for measurement_name in ["aFirstContactSeconds", "midFirstContactSeconds", "bFirstContactSeconds"]:
 			var measured_contact := float(timing_measurements.get(measurement_name, 0.0))
 			_assert_true(measured_contact >= float(contact_target[0]) and measured_contact <= float(contact_target[1]), "measured %s should stay inside the first-contact target" % measurement_name)
+
+func _test_gatehouse_core_vault_author_tactical_routes() -> void:
+	for level_id in ["gatehouse", "core-vault"]:
+		var level_data := LevelDataLoader.load_level(level_id)
+		var routes: Dictionary = level_data.get("routes", {}) as Dictionary
+		var profiles: Dictionary = level_data.get("aiRouteProfiles", {}) as Dictionary
+		var spawn_groups: Dictionary = level_data.get("spawnGroups", {}) as Dictionary
+		var spawn_points: Array = level_data.get("spawnPoints", []) as Array
+		var objectives: Array = level_data.get("objectives", []) as Array
+		var combat_targets: Array = level_data.get("combatTargets", []) as Array
+		var landmarks: Array = level_data.get("landmarks", []) as Array
+		_assert_true(String(level_data.get("gameplayRevision", "")).ends_with("tactical-routes-v1"), "%s should expose its tactical gameplay revision" % level_id)
+		for route_name in ["attackerSpawn", "defenderSpawn", "siteA", "siteB", "defenderRotation"]:
+			_assert_true(routes.has(route_name), "%s should author required route %s" % [level_id, route_name])
+		_assert_true(profiles.size() >= 5, "%s should attach traversal profiles to its main route graph" % level_id)
+		_assert_equal((spawn_groups.get("T", []) as Array).size(), 3, "%s should author three T spawn slots" % level_id)
+		_assert_equal((spawn_groups.get("CT", []) as Array).size(), 3, "%s should author three CT spawn slots" % level_id)
+		_assert_equal(spawn_points.size(), 6, "%s should expose both spawn groups to shared map systems" % level_id)
+		_assert_equal(objectives.size(), 2, "%s should expose two bomb target areas" % level_id)
+		for objective_variant in objectives:
+			var objective := objective_variant as Dictionary
+			var approaches: Array = objective.get("approaches", []) as Array
+			_assert_true(approaches.size() >= 2, "%s objective %s should have two attack approaches" % [level_id, String(objective.get("id", ""))])
+			for approach_variant in approaches:
+				_assert_true(routes.has(String(approach_variant)), "%s objective approach should reference a known route" % level_id)
+			_assert_true(routes.has(String(objective.get("defenderRotation", ""))), "%s objective should reference a known defender rotation" % level_id)
+		_assert_equal(combat_targets.size(), 3, "%s should spawn a three-bot defending group" % level_id)
+		for target_variant in combat_targets:
+			var target := target_variant as Dictionary
+			_assert_true(bool(target.get("aiEnabled", false)), "%s combat target should enable its bot brain" % level_id)
+			_assert_true(routes.has(String(target.get("route", ""))), "%s combat target should reference a known route" % level_id)
+			_assert_true(bool(target.get("helmet", false)) and int(target.get("armor", 0)) == 100, "%s defending bots should use full armor for repeatable combat tests" % level_id)
+		_assert_true(landmarks.size() >= 6, "%s should provide route callout anchors" % level_id)
 
 func _route_point_distance(a: Array, b: Array) -> float:
 	if a.size() < 2 or b.size() < 2:

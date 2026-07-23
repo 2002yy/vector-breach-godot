@@ -2,6 +2,7 @@
   "id": "gatehouse",
   "name": "Gatehouse",
   "designRevision": "gatehouse-visual-v1",
+  "gameplayRevision": "gatehouse-tactical-routes-v1",
   "visual_scene": "res://assets/models/gatehouse/gatehouse.glb",
   "arenaSize": 56,
   "boundaryHeight": 6,
@@ -92,11 +93,64 @@
       ]
     ]
   },
-  "routes": {},
+  "routes": {
+    "attackerSpawn": [0, 44],
+    "defenderSpawn": [0, -44],
+    "siteA": [-13, -39],
+    "siteB": [13, -39],
+    "westApproach": [[0, 44], [-14, 36], [-17, 30], [-17, 20], [-16, 14], [-10, 9], [-10, 0], [-10, -3], [-14, -5], [-14, -14], [-12, -22], [-12, -30], [-13, -39]],
+    "midToA": [[0, 44], [0, 34], [0, 24], [0, 15], [0, 7], [0, 0], [0, -8], [0, -13], [-5, -15], [-6, -20], [-9, -28], [-13, -39]],
+    "midToB": [[0, 44], [0, 34], [0, 24], [0, 15], [0, 7], [0, 0], [0, -8], [0, -13], [5, -15], [6, -20], [9, -28], [13, -39]],
+    "eastApproach": [[0, 44], [14, 36], [17, 30], [17, 20], [18, 15], [18, 8], [16, 2], [15, -4], [15, -12], [13, -20], [13, -30], [13, -39]],
+    "defenderRotation": [[-13, -39], [0, -44], [13, -39]]
+  },
+  "aiRouteProfiles": {
+    "westApproach": {"danger": 0.25, "cover": 0.68, "precise": true},
+    "midToA": {"danger": 0.62, "cover": 0.28},
+    "midToB": {"danger": 0.62, "cover": 0.28},
+    "eastApproach": {"danger": 0.34, "cover": 0.56, "precise": true},
+    "defenderRotation": {"danger": 0.12, "cover": 0.45, "precise": true}
+  },
   "emptyRoutes": [],
-  "spawnPoints": [],
-  "routeHints": [],
-  "landmarks": [],
+  "spawnGroups": {
+    "T": [[-4, 44], [0, 44], [4, 44]],
+    "CT": [[-13, -42], [0, -44], [13, -42]]
+  },
+  "spawnPoints": [
+    {"team": "T", "route": "westApproach", "x": -4, "z": 44},
+    {"team": "T", "route": "midToA", "x": 0, "z": 44},
+    {"team": "T", "route": "eastApproach", "x": 4, "z": 44},
+    {"team": "CT", "route": "westApproach", "x": -13, "z": -42},
+    {"team": "CT", "route": "defenderRotation", "x": 0, "z": -44},
+    {"team": "CT", "route": "eastApproach", "x": 13, "z": -42}
+  ],
+  "teamActors": [
+    {"name": "T方路线观察员", "team": "friendly", "x": -4, "y": 1.15, "z": 44, "yawDegrees": 180, "armor": 100, "helmet": true, "weapon": "rifle"}
+  ],
+  "combatTargets": [
+    {"name": "CT西侧守卫", "team": "enemy", "route": "westApproach", "x": -13, "z": -42, "armor": 100, "helmet": true, "aiEnabled": true},
+    {"name": "CT轮转守卫", "team": "enemy", "route": "defenderRotation", "x": 0, "z": -44, "armor": 100, "helmet": true, "aiEnabled": true},
+    {"name": "CT东侧守卫", "team": "enemy", "route": "eastApproach", "x": 13, "z": -42, "armor": 100, "helmet": true, "aiEnabled": true}
+  ],
+  "objectives": [
+    {"id": "site-a", "x": -13, "z": -39, "radius": 5, "approaches": ["westApproach", "midToA"], "defenderRotation": "defenderRotation"},
+    {"id": "site-b", "x": 13, "z": -39, "radius": 5, "approaches": ["eastApproach", "midToB"], "defenderRotation": "defenderRotation"}
+  ],
+  "routeHints": [
+    {"route": "westApproach", "from": [-17, 30], "to": [-10, 0]},
+    {"route": "midToA", "from": [0, 24], "to": [-6, -20]},
+    {"route": "midToB", "from": [0, 24], "to": [6, -20]},
+    {"route": "eastApproach", "from": [17, 30], "to": [15, -12]},
+    {"route": "defenderRotation", "from": [-13, -39], "to": [13, -39]}
+  ],
+  "landmarks": [
+    {"name": "north-security", "route": "midToA", "x": 0, "z": 28, "h": 4},
+    {"name": "west-inspection", "route": "westApproach", "x": -10, "z": 8, "h": 3},
+    {"name": "central-checkpoint", "route": "midToA", "x": 0, "z": -8, "h": 3},
+    {"name": "east-booth", "route": "eastApproach", "x": 15, "z": -4, "h": 3},
+    {"name": "site-a", "route": "westApproach", "x": -13, "z": -39, "h": 3},
+    {"name": "site-b", "route": "eastApproach", "x": 13, "z": -39, "h": 3}
+  ],
   "drops": [],
   "walls": [
     {"id": "gate-west", "x": -22, "z": -28, "sx": 9, "sz": 2, "h": 4.2, "role": "wall"},

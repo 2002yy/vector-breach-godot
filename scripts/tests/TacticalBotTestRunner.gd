@@ -12,6 +12,8 @@ func _ready() -> void:
 	await _run_test("freeze_holds_then_live_patrols", _test_freeze_holds_then_live_patrols)
 	await _run_test("opponent_sound_triggers_investigation", _test_opponent_sound_triggers_investigation)
 	await _run_test("investigation_uses_connected_navigation_graph", _test_investigation_uses_connected_navigation_graph)
+	await _run_test("navigation_attributes_prefer_cover_and_apply_crouch", _test_navigation_attributes_prefer_cover_and_apply_crouch)
+	await _run_test("blocked_bot_detects_stall_and_recovers", _test_blocked_bot_detects_stall_and_recovers)
 	await _run_test("visible_enemy_is_acquired_then_burst_fired", _test_visible_enemy_is_acquired_then_burst_fired)
 	await _run_test("bot_uses_ladder_and_water_semantics", _test_bot_uses_ladder_and_water_semantics)
 	if _failures.is_empty():
@@ -150,6 +152,66 @@ func _test_investigation_uses_connected_navigation_graph() -> void:
 	_assert_true(actor.global_position.x > 0.45, "investigation should follow the connected route around a blocking wall")
 	await _cleanup_fixture(fixture)
 
+func _test_navigation_attributes_prefer_cover_and_apply_crouch() -> void:
+	var fixture := await _make_fixture()
+	var player := fixture.player as CharacterBody3D
+	var actor := fixture.actor as CharacterBody3D
+	player.set("is_dead", true)
+	actor.global_position = Vector3(0.0, 1.15, 8.0)
+	actor.call("configure_from_record", {
+		"name": "掩体路线测试敌人", "team": "enemy", "aiEnabled": true,
+		"navigationGraph": {
+			"points": [
+				[0.0, 1.15, 8.0], [-4.0, 1.15, 4.0], [-4.0, 1.15, -4.0], [0.0, 1.15, -8.0],
+				[4.0, 1.15, 4.0], [4.0, 1.15, -4.0],
+			],
+			"links": [
+				{"from": 0, "to": 1, "route": "covered", "cover": 0.9, "precise": true, "crouch": true},
+				{"from": 1, "to": 2, "route": "covered", "cover": 0.9, "precise": true},
+				{"from": 2, "to": 3, "route": "covered", "cover": 0.7},
+				{"from": 0, "to": 4, "route": "exposed", "danger": 1.0},
+				{"from": 4, "to": 5, "route": "exposed", "danger": 1.0},
+				{"from": 5, "to": 3, "route": "exposed", "danger": 1.0},
+			],
+		},
+	})
+	RoundManager.set_live()
+	actor.call("notify_ai_sound", Vector3(0.0, 1.0, -8.0), 24.0, "T")
+	for _frame in range(18):
+		await get_tree().physics_frame
+	var actor_snapshot := actor.call("get_combat_snapshot") as Dictionary
+	var ai := actor_snapshot.get("ai", {}) as Dictionary
+	var active_link := ai.get("active_navigation_link", {}) as Dictionary
+	_assert_true(actor.global_position.x < -0.05, "danger-weighted A* should choose the safer covered branch")
+	_assert_equal(String(active_link.get("route", "")), "covered", "active edge metadata should preserve its authored route")
+	_assert_true(bool(actor_snapshot.get("crouching", false)), "crouch navigation edges should lower the tactical actor hull")
+	_assert_equal(int(ai.get("navigation_links", 0)), 6, "bot should retain all attributed navigation links")
+	var crouched_head_hit := actor.call("apply_hitscan_damage", 1, actor.global_position + Vector3.UP * 0.34, 1.0, false) as Dictionary
+	_assert_equal(String(crouched_head_hit.get("hit_group", "")), "head", "crouched visual head position should retain head-hit semantics")
+	await _cleanup_fixture(fixture)
+
+func _test_blocked_bot_detects_stall_and_recovers() -> void:
+	var fixture := await _make_fixture()
+	var world := fixture.world as Node3D
+	var player := fixture.player as CharacterBody3D
+	var actor := fixture.actor as CharacterBody3D
+	player.set("is_dead", true)
+	_add_test_wall(world, Vector3(0.0, 1.5, 7.2), Vector3(4.0, 3.0, 0.5))
+	_add_test_wall(world, Vector3(-0.85, 1.5, 8.0), Vector3(0.3, 3.0, 2.0))
+	_add_test_wall(world, Vector3(0.85, 1.5, 8.0), Vector3(0.3, 3.0, 2.0))
+	actor.global_position = Vector3(0.0, 1.15, 8.0)
+	actor.call("configure_from_record", {
+		"name": "脱困测试敌人", "team": "enemy", "aiEnabled": true,
+		"routePoints": [[0.0, 8.0], [0.0, 0.0]],
+	})
+	RoundManager.set_live()
+	for _frame in range(100):
+		await get_tree().physics_frame
+	var ai := (actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
+	_assert_true(int(ai.get("stuck_recoveries", 0)) >= 1, "bot should count a recovery after sustained navigation stall")
+	_assert_true(actor.global_position.z > 8.15, "recovery steering should back the bot out of a three-sided obstruction")
+	await _cleanup_fixture(fixture)
+
 func _test_visible_enemy_is_acquired_then_burst_fired() -> void:
 	var fixture := await _make_fixture()
 	var player := fixture.player as CharacterBody3D
@@ -197,3 +259,14 @@ func _test_bot_uses_ladder_and_water_semantics() -> void:
 	_assert_true(bool(environment.get("in_water", false)), "bot environment sensor should enter authored water volumes")
 	_assert_equal(float(environment.get("speed_multiplier", 1.0)), 0.52, "deep water should apply the shared deep-water speed tier")
 	await _cleanup_fixture(fixture)
+
+func _add_test_wall(parent: Node3D, position: Vector3, size: Vector3) -> void:
+	var wall := StaticBody3D.new()
+	wall.collision_layer = 1
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = size
+	collision.shape = shape
+	wall.add_child(collision)
+	wall.position = position
+	parent.add_child(wall)

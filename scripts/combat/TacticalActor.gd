@@ -23,6 +23,7 @@ signal ai_footstep(world_position: Vector3, surface: String, quiet: bool)
 var current_health: int = 100
 var current_armor: int = 0
 var is_dead: bool = false
+var ai_crouching: bool = false
 var spawn_position: Vector3 = Vector3.ZERO
 var spawn_yaw: float = 0.0
 var _material: StandardMaterial3D = StandardMaterial3D.new()
@@ -31,6 +32,9 @@ var _current_ladder: Area3D
 var _current_water: Area3D
 var _water_depth: float = 0.0
 var _footstep_distance: float = 0.0
+var _body_mesh_y: float = 0.0
+var _head_mesh_y: float = 0.0
+var _weapon_mesh_y: float = 0.0
 
 func _ready() -> void:
 	add_to_group("combat_actors")
@@ -39,6 +43,10 @@ func _ready() -> void:
 	spawn_yaw = rotation.y
 	current_health = max_health
 	current_armor = max_armor
+	collision_shape.shape = collision_shape.shape.duplicate()
+	_body_mesh_y = body_mesh.position.y
+	_head_mesh_y = head_mesh.position.y
+	_weapon_mesh_y = weapon_mesh.position.y
 	bot_brain.call("setup", self)
 	_apply_team_visual()
 
@@ -79,7 +87,10 @@ func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, arm
 	if is_dead:
 		return {"hit": false, "killed": false, "target_team": team}
 	var resolved_position := global_position if hit_position == Vector3.ZERO else hit_position
-	var hit_group := DamageModel.resolve_hit_group(to_local(resolved_position))
+	var local_hit := to_local(resolved_position)
+	if ai_crouching:
+		local_hit.y += 0.32
+	var hit_group := DamageModel.resolve_hit_group(local_hit)
 	var resolved := DamageModel.resolve_damage(amount, hit_group, current_armor, has_helmet, armor_penetration)
 	var health_damage := int(resolved.damage)
 	var armor_damage := int(resolved.armor_damage)
@@ -109,7 +120,7 @@ func get_combat_snapshot() -> Dictionary:
 		"name": display_name, "team": team, "alive": not is_dead,
 		"health": current_health, "armor": current_armor, "helmet": has_helmet,
 		"weapon": equipped_weapon_id, "x": global_position.x, "y": global_position.y,
-		"z": global_position.z, "yaw": rotation.y,
+		"z": global_position.z, "yaw": rotation.y, "crouching": ai_crouching,
 	}
 	if bot_brain != null:
 		snapshot["ai"] = bot_brain.call("get_snapshot")
@@ -122,6 +133,7 @@ func reset_actor() -> void:
 	current_health = max_health
 	current_armor = max_armor
 	is_dead = false
+	set_ai_crouching(false)
 	collision_layer = 1
 	collision_mask = 1
 	collision_shape.disabled = false
@@ -130,7 +142,7 @@ func reset_actor() -> void:
 	_apply_team_visual()
 
 func get_eye_position() -> Vector3:
-	return global_position + Vector3.UP * 0.62
+	return global_position + Vector3.UP * (0.30 if ai_crouching else 0.62)
 
 func notify_ai_sound(world_position: Vector3, audible_radius: float, source_team: String) -> bool:
 	return bool(bot_brain.call("notify_sound", world_position, audible_radius, source_team))
@@ -157,6 +169,20 @@ func apply_ai_navigation(direction: Vector3, speed: float, target_y: float, delt
 	velocity.z = move_toward(velocity.z, target_velocity.z, 18.0 * delta)
 	if _water_depth >= 1.2 and global_position.y < float(_current_water.get_meta("water_surface_y", global_position.y)) - 0.7:
 		velocity.y = move_toward(velocity.y, 0.45, 4.0 * delta)
+
+func set_ai_crouching(wants_crouch: bool) -> bool:
+	if not wants_crouch and ai_crouching and not _has_ai_standing_clearance():
+		return false
+	ai_crouching = wants_crouch
+	var capsule := collision_shape.shape as CapsuleShape3D
+	if capsule != null:
+		capsule.height = 1.2 if ai_crouching else 1.8
+	collision_shape.position.y = -0.30 if ai_crouching else 0.0
+	var visual_drop := -0.32 if ai_crouching else 0.0
+	body_mesh.position.y = _body_mesh_y + visual_drop
+	head_mesh.position.y = _head_mesh_y + visual_drop
+	weapon_mesh.position.y = _weapon_mesh_y + visual_drop
+	return true
 
 func get_ai_environment_snapshot() -> Dictionary:
 	return {
@@ -214,3 +240,14 @@ func _detect_floor_surface() -> String:
 	var collider: Object = hit.get("collider")
 	var surface_type := String(collider.get_meta("surface_type", "")) if collider != null else ""
 	return surface_type if not surface_type.is_empty() else "concrete"
+
+func _has_ai_standing_clearance() -> bool:
+	var standing_shape := CapsuleShape3D.new()
+	standing_shape.radius = 0.4
+	standing_shape.height = 1.8
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.shape = standing_shape
+	query.transform = Transform3D(global_transform.basis, global_position)
+	query.collision_mask = collision_mask
+	query.exclude = [get_rid()]
+	return get_world_3d().direct_space_state.intersect_shape(query, 1).is_empty()

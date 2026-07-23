@@ -2,6 +2,7 @@
   "id": "core-vault",
   "name": "Core Vault",
   "designRevision": "core-vault-visual-v1",
+  "gameplayRevision": "core-vault-tactical-routes-v1",
   "visual_scene": "res://assets/models/core_vault/core_vault.glb",
   "arenaSize": 56,
   "boundaryHeight": 6,
@@ -92,11 +93,64 @@
       ]
     ]
   },
-  "routes": {},
+  "routes": {
+    "attackerSpawn": [0, 50],
+    "defenderSpawn": [0, -27],
+    "siteA": [-10, -9],
+    "siteB": [10, -9],
+    "westOuter": [[0, 50], [-12, 40], [-16, 34], [-16, 25], [-18, 20], [-21, 14], [-22, 7], [-22, 0], [-22, -8], [-18, -12], [-15, -12], [-10, -9]],
+    "vaultWest": [[0, 50], [-12, 40], [-16, 34], [-16, 25], [-8, 22], [-5, 17], [-5, 11], [-3.8, 9], [-3.8, 4], [-3.8, 0], [-4, -4], [-7, -7], [-10, -9]],
+    "vaultEast": [[0, 50], [12, 40], [16, 34], [16, 25], [8, 22], [5, 17], [5, 11], [3.8, 9], [3.8, 4], [3.8, 0], [4, -3], [10, -3], [10, -9]],
+    "eastOuter": [[0, 50], [12, 40], [16, 34], [16, 25], [18, 20], [21, 14], [22, 7], [22, 0], [22, -8], [18, -12], [15, -12], [10, -9]],
+    "defenderRotation": [[-10, -9], [-15, -12], [-16, -18], [-12, -24], [0, -27], [12, -24], [16, -18], [15, -12], [10, -9]]
+  },
+  "aiRouteProfiles": {
+    "westOuter": {"danger": 0.22, "cover": 0.62},
+    "vaultWest": {"danger": 0.58, "cover": 0.32, "precise": true},
+    "vaultEast": {"danger": 0.58, "cover": 0.32, "precise": true},
+    "eastOuter": {"danger": 0.22, "cover": 0.62},
+    "defenderRotation": {"danger": 0.18, "cover": 0.5, "precise": true}
+  },
   "emptyRoutes": [],
-  "spawnPoints": [],
-  "routeHints": [],
-  "landmarks": [],
+  "spawnGroups": {
+    "T": [[-5, 48], [0, 50], [5, 48]],
+    "CT": [[-15, -24], [0, -27], [15, -24]]
+  },
+  "spawnPoints": [
+    {"team": "T", "route": "westOuter", "x": -5, "z": 48},
+    {"team": "T", "route": "vaultWest", "x": 0, "z": 50},
+    {"team": "T", "route": "eastOuter", "x": 5, "z": 48},
+    {"team": "CT", "route": "westOuter", "x": -15, "z": -24},
+    {"team": "CT", "route": "defenderRotation", "x": 0, "z": -27},
+    {"team": "CT", "route": "eastOuter", "x": 15, "z": -24}
+  ],
+  "teamActors": [
+    {"name": "T方路线观察员", "team": "friendly", "x": -5, "y": 1.15, "z": 48, "yawDegrees": 180, "armor": 100, "helmet": true, "weapon": "rifle"}
+  ],
+  "combatTargets": [
+    {"name": "CT西环守卫", "team": "enemy", "route": "westOuter", "x": -15, "z": -24, "armor": 100, "helmet": true, "aiEnabled": true},
+    {"name": "CT轮转守卫", "team": "enemy", "route": "defenderRotation", "x": 0, "z": -27, "armor": 100, "helmet": true, "aiEnabled": true},
+    {"name": "CT东环守卫", "team": "enemy", "route": "eastOuter", "x": 15, "z": -24, "armor": 100, "helmet": true, "aiEnabled": true}
+  ],
+  "objectives": [
+    {"id": "site-a", "x": -10, "z": -9, "radius": 4.5, "approaches": ["westOuter", "vaultWest"], "defenderRotation": "defenderRotation"},
+    {"id": "site-b", "x": 10, "z": -9, "radius": 4.5, "approaches": ["eastOuter", "vaultEast"], "defenderRotation": "defenderRotation"}
+  ],
+  "routeHints": [
+    {"route": "westOuter", "from": [-16, 34], "to": [-22, -8]},
+    {"route": "vaultWest", "from": [-16, 25], "to": [-3.8, 0]},
+    {"route": "vaultEast", "from": [16, 25], "to": [3.8, 0]},
+    {"route": "eastOuter", "from": [16, 34], "to": [22, -8]},
+    {"route": "defenderRotation", "from": [-10, -9], "to": [10, -9]}
+  ],
+  "landmarks": [
+    {"name": "north-split", "route": "vaultWest", "x": 0, "z": 35, "h": 4},
+    {"name": "west-ring", "route": "westOuter", "x": -22, "z": 7, "h": 4},
+    {"name": "vault-core", "route": "vaultWest", "x": -3.8, "z": 0, "h": 4},
+    {"name": "east-ring", "route": "eastOuter", "x": 22, "z": 7, "h": 4},
+    {"name": "site-a", "route": "westOuter", "x": -10, "z": -9, "h": 3},
+    {"name": "site-b", "route": "eastOuter", "x": 10, "z": -9, "h": 3}
+  ],
   "drops": [],
   "walls": [
     {"id": "vault-core", "x": 0, "z": 0, "sx": 6, "sz": 6, "h": 3.4, "role": "wall"},

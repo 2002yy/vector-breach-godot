@@ -27,6 +27,7 @@ func _run_all_tests() -> void:
 	await _run_test("depot_route_points_clear_player_collision", _test_depot_route_points_clear_player_collision)
 	await _run_test("gatehouse_migrates_legacy_obstacles_into_visual_collision", _test_gatehouse_migrates_legacy_obstacles_into_visual_collision)
 	await _run_test("core_vault_migrates_legacy_obstacles_into_visual_collision", _test_core_vault_migrates_legacy_obstacles_into_visual_collision)
+	await _run_test("gatehouse_core_vault_routes_clear_solids", _test_gatehouse_core_vault_routes_clear_solids)
 	await _run_test("optional_local_dustline_builds_imported_collision", _test_dustline_builds_imported_collision_and_custom_markers)
 	await _run_test("foundry_reforged_builds_independent_ground_graybox", _test_foundry_reforged_builds_independent_ground_graybox)
 	await _run_test("foundry_reforged_routes_clear_solids_and_interfaces", _test_foundry_reforged_routes_clear_solids_and_interfaces)
@@ -264,6 +265,33 @@ func _test_core_vault_migrates_legacy_obstacles_into_visual_collision() -> void:
 		_assert_equal(_count_nodes_of_type(vault_visual, "StaticBody3D"), 0, "Core Vault visual assets should not add collision outside the migrated graybox")
 
 	await _cleanup_level(level)
+
+func _test_gatehouse_core_vault_routes_clear_solids() -> void:
+	var player_margin := 0.45
+	for level_id in ["gatehouse", "core-vault"]:
+		var level_data := LevelDataLoader.load_level(level_id)
+		var routes: Dictionary = level_data.get("routes", {}) as Dictionary
+		var solids: Array = []
+		solids.append_array(level_data.get("walls", []) as Array)
+		solids.append_array(level_data.get("covers", []) as Array)
+		solids.append_array(level_data.get("floors", []) as Array)
+		for route_name_variant in routes.keys():
+			var route_name := String(route_name_variant)
+			var points_variant: Variant = routes.get(route_name, [])
+			if not points_variant is Array:
+				continue
+			var points := points_variant as Array
+			if points.is_empty() or not points[0] is Array:
+				continue
+			for point_index in range(points.size() - 1):
+				var from_point := points[point_index] as Array
+				var to_point := points[point_index + 1] as Array
+				for solid_variant in solids:
+					var solid := solid_variant as Dictionary
+					_assert_true(
+						not _segment_intersects_expanded_box(from_point, to_point, solid, player_margin),
+						"%s route %s segment %d should clear %s by one player radius" % [level_id, route_name, point_index, String(solid.get("id", ""))]
+					)
 
 func _test_semantic_ladder_and_water_volumes_build_metadata() -> void:
 	var level: Node3D = _instantiate_level()

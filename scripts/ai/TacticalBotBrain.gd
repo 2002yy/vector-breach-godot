@@ -36,6 +36,14 @@ var _navigation_path: Array[int] = []
 var _navigation_path_index: int = 0
 var _navigation_destination: Vector3 = Vector3.INF
 var _repath_seconds: float = 0.0
+var _active_navigation_link: Dictionary = {}
+var _navigation_link_count: int = 0
+var _last_progress_position: Vector3 = Vector3.ZERO
+var _no_progress_seconds: float = 0.0
+var _recovery_seconds: float = 0.0
+var _recovery_direction: Vector3 = Vector3.ZERO
+var _recovery_flip: bool = false
+var _stuck_recoveries: int = 0
 var _target: CharacterBody3D
 var _last_known_position: Vector3 = Vector3.ZERO
 var _heard_seconds: float = 999.0
@@ -126,7 +134,12 @@ func get_snapshot() -> Dictionary:
 		"shots": _shot_count,
 		"route_points": _route_points.size(),
 		"navigation_nodes": _navigation_points.size(),
+		"navigation_links": _navigation_link_count,
 		"navigation_path_nodes": maxi(0, _navigation_path.size() - _navigation_path_index),
+		"active_navigation_link": _active_navigation_link.duplicate(true),
+		"stuck_seconds": _no_progress_seconds,
+		"stuck_recoveries": _stuck_recoveries,
+		"recovering": _recovery_seconds > 0.0,
 		"last_known_position": _last_known_position,
 		"heard_seconds": _heard_seconds,
 		"target_visible_seconds": _visible_seconds,
@@ -150,6 +163,13 @@ func _reset_runtime() -> void:
 	_navigation_path_index = 0
 	_navigation_destination = Vector3.INF
 	_repath_seconds = 0.0
+	_active_navigation_link.clear()
+	_last_progress_position = actor.global_position if actor != null else Vector3.ZERO
+	_no_progress_seconds = 0.0
+	_recovery_seconds = 0.0
+	_recovery_direction = Vector3.ZERO
+	_recovery_flip = false
+	_stuck_recoveries = 0
 
 func _find_local_target() -> CharacterBody3D:
 	var candidate := actor.get_tree().get_first_node_in_group("local_player")
@@ -262,17 +282,34 @@ func _move_toward(destination: Vector3, delta: float) -> void:
 	if planar.length_squared() <= 0.01:
 		_stop(delta)
 		return
-	var direction := planar.normalized()
-	if actor.test_move(actor.global_transform, direction * 0.45):
+	var desired_direction := planar.normalized()
+	_update_navigation_progress(delta, desired_direction)
+	var direction := desired_direction
+	if _recovery_seconds > 0.0:
+		_recovery_seconds = maxf(0.0, _recovery_seconds - delta)
+		direction = _choose_open_recovery_direction(_recovery_direction, desired_direction)
+	elif actor.test_move(actor.global_transform, direction * 0.45):
 		var left := direction.rotated(Vector3.UP, PI * 0.5)
 		var right := direction.rotated(Vector3.UP, -PI * 0.5)
-		direction = left if not actor.test_move(actor.global_transform, left * 0.45) else right
+		if not actor.test_move(actor.global_transform, left * 0.45):
+			direction = left
+		elif not actor.test_move(actor.global_transform, right * 0.45):
+			direction = right
+	var precise := bool(_active_navigation_link.get("precise", false))
+	var crouch := bool(_active_navigation_link.get("crouch", false))
+	var movement_scale := 0.54 if crouch else (0.72 if precise else 1.0)
+	actor.call("set_ai_crouching", crouch)
 	_aim_at(actor.global_position + direction, delta, 0.18)
-	actor.call("apply_ai_navigation", direction, move_speed, steering_target.y, delta)
+	actor.call("apply_ai_navigation", direction, move_speed * movement_scale, steering_target.y, delta)
 
 func _stop(delta: float) -> void:
+	if actor != null and actor.has_method("set_ai_crouching"):
+		actor.call("set_ai_crouching", false)
 	actor.velocity.x = move_toward(actor.velocity.x, 0.0, 22.0 * delta)
 	actor.velocity.z = move_toward(actor.velocity.z, 0.0, 22.0 * delta)
+	_last_progress_position = actor.global_position
+	_no_progress_seconds = 0.0
+	_recovery_seconds = 0.0
 
 func _aim_at(target_position: Vector3, delta: float, duration: float) -> void:
 	var direction := target_position - actor.global_position
@@ -284,6 +321,7 @@ func _aim_at(target_position: Vector3, delta: float, duration: float) -> void:
 
 func _resolve_navigation_target(destination: Vector3) -> Vector3:
 	if _navigation_points.is_empty() or actor.global_position.distance_to(destination) <= 2.2:
+		_active_navigation_link.clear()
 		return destination
 	var destination_changed := (
 		not _navigation_destination.is_finite()
@@ -299,9 +337,16 @@ func _resolve_navigation_target(destination: Vector3) -> Vector3:
 		_repath_seconds = 0.65
 	while _navigation_path_index < _navigation_path.size():
 		var point := _navigation_points[_navigation_path[_navigation_path_index]]
-		if actor.global_position.distance_to(point) > 1.05:
+		var arrival_radius := 0.55 if bool(_active_navigation_link.get("precise", false)) else 1.05
+		if actor.global_position.distance_to(point) > arrival_radius:
+			if _navigation_path_index > 0:
+				_active_navigation_link = _find_navigation_link(
+					_navigation_path[_navigation_path_index - 1],
+					_navigation_path[_navigation_path_index]
+				)
 			return point
 		_navigation_path_index += 1
+	_active_navigation_link.clear()
 	return destination
 
 func _find_navigation_path(start_index: int, goal_index: int) -> Array[int]:
@@ -332,8 +377,11 @@ func _find_navigation_path(start_index: int, goal_index: int) -> Array[int]:
 			return path
 		open.erase(current)
 		for neighbor_variant in _navigation_links[current]:
-			var neighbor := int(neighbor_variant)
-			var tentative := float(g_score.get(current, INF)) + _navigation_points[current].distance_to(_navigation_points[neighbor])
+			var neighbor_record: Dictionary = neighbor_variant as Dictionary
+			var neighbor := int(neighbor_record.get("to", -1))
+			if neighbor < 0 or neighbor >= _navigation_points.size():
+				continue
+			var tentative := float(g_score.get(current, INF)) + _navigation_edge_cost(current, neighbor, neighbor_record)
 			if tentative >= float(g_score.get(neighbor, INF)):
 				continue
 			came_from[neighbor] = current
@@ -358,6 +406,7 @@ func _nearest_navigation_index(world_position: Vector3) -> int:
 func _parse_navigation_graph(graph_variant: Variant) -> void:
 	_navigation_points.clear()
 	_navigation_links.clear()
+	_navigation_link_count = 0
 	if not graph_variant is Dictionary:
 		return
 	var graph := graph_variant as Dictionary
@@ -366,23 +415,106 @@ func _parse_navigation_graph(graph_variant: Variant) -> void:
 	for index in range(_navigation_links.size()):
 		_navigation_links[index] = []
 	for link_variant in graph.get("links", []):
-		if not link_variant is Array:
+		var from_index := -1
+		var to_index := -1
+		var attributes: Dictionary = {}
+		if link_variant is Array:
+			var link := link_variant as Array
+			if link.size() < 2:
+				continue
+			from_index = int(link[0])
+			to_index = int(link[1])
+		elif link_variant is Dictionary:
+			var link := link_variant as Dictionary
+			from_index = int(link.get("from", -1))
+			to_index = int(link.get("to", -1))
+			attributes = link.duplicate(true)
+		else:
 			continue
-		var link := link_variant as Array
-		if link.size() < 2:
-			continue
-		var from_index := int(link[0])
-		var to_index := int(link[1])
 		if (
 			from_index < 0 or from_index >= _navigation_links.size()
 			or to_index < 0 or to_index >= _navigation_links.size()
 			or from_index == to_index
 		):
 			continue
-		if not _navigation_links[from_index].has(to_index):
-			_navigation_links[from_index].append(to_index)
-		if not _navigation_links[to_index].has(from_index):
-			_navigation_links[to_index].append(from_index)
+		_navigation_links[from_index].append(_normalize_navigation_link(to_index, attributes))
+		_navigation_links[to_index].append(_normalize_navigation_link(from_index, attributes))
+		_navigation_link_count += 1
+
+func _normalize_navigation_link(to_index: int, attributes: Dictionary) -> Dictionary:
+	return {
+		"to": to_index,
+		"route": String(attributes.get("route", "")),
+		"danger": clampf(float(attributes.get("danger", 0.0)), 0.0, 1.0),
+		"cover": clampf(float(attributes.get("cover", 0.0)), 0.0, 1.0),
+		"costMultiplier": clampf(float(attributes.get("costMultiplier", 1.0)), 0.25, 4.0),
+		"precise": bool(attributes.get("precise", false)),
+		"crouch": bool(attributes.get("crouch", false)),
+		"ladder": bool(attributes.get("ladder", false)),
+	}
+
+func _navigation_edge_cost(from_index: int, to_index: int, link: Dictionary) -> float:
+	var distance := _navigation_points[from_index].distance_to(_navigation_points[to_index])
+	var danger_multiplier := 1.0 + clampf(float(link.get("danger", 0.0)), 0.0, 1.0) * 1.6
+	var cover_multiplier := 1.0 - clampf(float(link.get("cover", 0.0)), 0.0, 1.0) * 0.24
+	var traversal_multiplier := clampf(float(link.get("costMultiplier", 1.0)), 0.25, 4.0)
+	if bool(link.get("crouch", false)):
+		traversal_multiplier += 0.35
+	if bool(link.get("ladder", false)):
+		traversal_multiplier += 0.45
+	return distance * danger_multiplier * cover_multiplier * traversal_multiplier
+
+func _find_navigation_link(from_index: int, to_index: int) -> Dictionary:
+	if from_index < 0 or from_index >= _navigation_links.size():
+		return {}
+	var best_link: Dictionary = {}
+	var best_cost := INF
+	for link_variant in _navigation_links[from_index]:
+		var link: Dictionary = link_variant as Dictionary
+		if int(link.get("to", -1)) != to_index:
+			continue
+		var cost := _navigation_edge_cost(from_index, to_index, link)
+		if cost < best_cost:
+			best_cost = cost
+			best_link = link.duplicate(true)
+	return best_link
+
+func _update_navigation_progress(delta: float, desired_direction: Vector3) -> void:
+	var traveled := Vector2(
+		actor.global_position.x - _last_progress_position.x,
+		actor.global_position.z - _last_progress_position.z
+	).length()
+	if traveled >= 0.18:
+		_last_progress_position = actor.global_position
+		_no_progress_seconds = 0.0
+		return
+	_no_progress_seconds += delta
+	if _no_progress_seconds < 0.75 or _recovery_seconds > 0.0:
+		return
+	_recovery_flip = not _recovery_flip
+	var side_angle := PI * 0.5 if _recovery_flip else -PI * 0.5
+	var lateral := desired_direction.rotated(Vector3.UP, side_angle)
+	_recovery_direction = (-desired_direction + lateral * 0.65).normalized()
+	_recovery_seconds = 0.68
+	_stuck_recoveries += 1
+	_no_progress_seconds = 0.0
+	_last_progress_position = actor.global_position
+	_navigation_path.clear()
+	_navigation_path_index = 0
+	_repath_seconds = 0.0
+
+func _choose_open_recovery_direction(preferred: Vector3, desired_direction: Vector3) -> Vector3:
+	var candidates := [
+		preferred,
+		-desired_direction,
+		desired_direction.rotated(Vector3.UP, PI * 0.5),
+		desired_direction.rotated(Vector3.UP, -PI * 0.5),
+	]
+	for candidate_variant in candidates:
+		var candidate := candidate_variant as Vector3
+		if not actor.test_move(actor.global_transform, candidate * 0.45):
+			return candidate
+	return preferred
 
 func _parse_route_points(points_variant: Variant) -> Array[Vector3]:
 	var parsed: Array[Vector3] = []

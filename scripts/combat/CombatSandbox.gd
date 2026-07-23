@@ -74,18 +74,22 @@ func _build_navigation_graph(level_data: Dictionary) -> Dictionary:
 	var links: Array = []
 	var point_indices: Dictionary = {}
 	var link_keys: Dictionary = {}
+	var route_profiles: Dictionary = level_data.get("aiRouteProfiles", {}) as Dictionary
 	var route_sources: Array[Dictionary] = []
 	var routes := level_data.get("routes", {}) as Dictionary
 	var ai_routes := level_data.get("aiRoutes", {}) as Dictionary
 	route_sources.append(routes)
 	route_sources.append(ai_routes)
 	for source in route_sources:
-		for route_variant in source.values():
+		for route_name_variant in source.keys():
+			var route_name := String(route_name_variant)
+			var route_variant: Variant = source.get(route_name, [])
 			if not route_variant is Array:
 				continue
 			var route := route_variant as Array
 			if route.is_empty() or not route[0] is Array:
 				continue
+			var profile: Dictionary = route_profiles.get(route_name, {}) as Dictionary
 			var previous_index := -1
 			for point_variant in route:
 				if not point_variant is Array:
@@ -113,12 +117,26 @@ func _build_navigation_graph(level_data: Dictionary) -> Dictionary:
 				if previous_index >= 0 and previous_index != point_index:
 					var low := mini(previous_index, point_index)
 					var high := maxi(previous_index, point_index)
-					var link_key := "%d|%d" % [low, high]
+					var link_record := _build_navigation_link(low, high, route_name, profile)
+					var link_key := "%d|%d|%s" % [low, high, JSON.stringify(link_record)]
 					if not link_keys.has(link_key):
 						link_keys[link_key] = true
-						links.append([low, high])
+						links.append(link_record)
 				previous_index = point_index
 	return {"points": points, "links": links}
+
+func _build_navigation_link(from_index: int, to_index: int, route_name: String, profile: Dictionary) -> Dictionary:
+	var link := {
+		"from": from_index,
+		"to": to_index,
+		"route": route_name,
+		"danger": clampf(float(profile.get("danger", 0.0)), 0.0, 1.0),
+		"cover": clampf(float(profile.get("cover", 0.0)), 0.0, 1.0),
+		"costMultiplier": clampf(float(profile.get("costMultiplier", 1.0)), 0.25, 4.0),
+	}
+	for flag_name in ["precise", "crouch", "ladder"]:
+		link[flag_name] = bool(profile.get(flag_name, false))
+	return link
 
 func _build_spawn_records(level_data: Dictionary) -> Array:
 	var records: Array = []
