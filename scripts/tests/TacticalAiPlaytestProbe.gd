@@ -60,6 +60,7 @@ func _ready() -> void:
 	var succeeded := (
 		image_error == OK
 		and int(ai.get("shots", 0)) > 0
+		and int(ai.get("navigation_nodes", 0)) > 0
 		and GameState.player_health < 100
 		and String(ai.get("state", "")) in ["ACQUIRE", "ENGAGE"]
 	)
@@ -68,6 +69,7 @@ func _ready() -> void:
 		"bot": snapshot.get("name", ""),
 		"state": ai.get("state", ""),
 		"shots": ai.get("shots", 0),
+		"navigationNodes": ai.get("navigation_nodes", 0),
 		"playerHealth": GameState.player_health,
 		"image": output_path,
 	}))

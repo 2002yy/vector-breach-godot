@@ -394,6 +394,9 @@ func _test_foundry_reforged_builds_independent_ground_graybox() -> void:
 		_assert_equal(_count_nodes_with_name_prefix(level_visual, "GEO-reforged-surface-oil-"), 3, "surface dressing should retain three low-profile oil stains")
 		_assert_equal(_count_nodes_with_name_prefix(level_visual, "GEO-reforged-surface-rust-"), 3, "surface dressing should retain three wall-contact rust runs")
 		_assert_equal(_count_nodes_with_name_prefix(level_visual, "GEO-reforged-surface-weld-"), 3, "surface dressing should retain three wall-contact weld seams")
+		_assert_equal(_count_nodes_with_name_prefix(level_visual, "GEO-reforged-wall-cladding-"), 6, "long walls should retain six grounded maintenance cladding modules")
+		_assert_equal(_count_nodes_with_name_prefix(level_visual, "GEO-reforged-floor-joint-"), 9, "the arena floor should retain its expansion-joint rhythm")
+		_assert_equal(_count_nodes_with_name_prefix(level_visual, "GEO-reforged-floor-wear-"), 7, "major routes should retain seven broad floor-wear zones")
 		_assert_equal(_count_nodes_of_type(level_visual, "StaticBody3D"), 0, "the visual-only skyline should not add collision outside the audited graybox")
 
 	await _cleanup_level(level)

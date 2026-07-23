@@ -1,0 +1,29 @@
+name: Copilot Setup Steps
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/copilot-setup-steps.yml"
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Godot 4.6.2
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .tools/godot
+          curl --fail --location --retry 3 \
+            --output /tmp/godot.zip \
+            https://github.com/godotengine/godot/releases/download/4.6.2-stable/Godot_v4.6.2-stable_linux.x86_64.zip
+          unzip -q /tmp/godot.zip -d .tools/godot
+          mv .tools/godot/Godot_v4.6.2-stable_linux.x86_64 .tools/godot/godot
+          chmod +x .tools/godot/godot
+          .tools/godot/godot --version

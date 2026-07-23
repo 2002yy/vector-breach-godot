@@ -30,6 +30,12 @@ var burst_cooldown: float = 0.45
 var _route_points: Array[Vector3] = []
 var _route_index: int = 0
 var _route_direction: int = 1
+var _navigation_points: Array[Vector3] = []
+var _navigation_links: Array = []
+var _navigation_path: Array[int] = []
+var _navigation_path_index: int = 0
+var _navigation_destination: Vector3 = Vector3.INF
+var _repath_seconds: float = 0.0
 var _target: CharacterBody3D
 var _last_known_position: Vector3 = Vector3.ZERO
 var _heard_seconds: float = 999.0
@@ -54,6 +60,7 @@ func configure(record: Dictionary) -> void:
 	aim_acquisition_time = clampf(float(record.get("aiAimAcquisitionTime", aim_acquisition_time)), 0.05, 1.2)
 	rifle_damage = clampi(int(record.get("aiDamage", rifle_damage)), 1, 100)
 	_route_points = _parse_route_points(record.get("routePoints", []))
+	_parse_navigation_graph(record.get("navigationGraph", {}))
 	_route_index = _nearest_route_index()
 	_route_direction = -1 if String(actor.get("team")) == "CT" else 1
 	ammo_in_mag = magazine_size
@@ -64,6 +71,7 @@ func tick(delta: float) -> void:
 		return
 	_shot_cooldown = maxf(0.0, _shot_cooldown - delta)
 	_burst_pause = maxf(0.0, _burst_pause - delta)
+	_repath_seconds = maxf(0.0, _repath_seconds - delta)
 	_heard_seconds += delta
 	if not RoundManager.can_player_move():
 		state = State.HOLD
@@ -117,6 +125,8 @@ func get_snapshot() -> Dictionary:
 		"ammo": ammo_in_mag,
 		"shots": _shot_count,
 		"route_points": _route_points.size(),
+		"navigation_nodes": _navigation_points.size(),
+		"navigation_path_nodes": maxi(0, _navigation_path.size() - _navigation_path_index),
 		"last_known_position": _last_known_position,
 		"heard_seconds": _heard_seconds,
 		"target_visible_seconds": _visible_seconds,
@@ -136,6 +146,10 @@ func _reset_runtime() -> void:
 	_burst_pause = 0.0
 	_shots_in_burst = 0
 	_reload_seconds = 0.0
+	_navigation_path.clear()
+	_navigation_path_index = 0
+	_navigation_destination = Vector3.INF
+	_repath_seconds = 0.0
 
 func _find_local_target() -> CharacterBody3D:
 	var candidate := actor.get_tree().get_first_node_in_group("local_player")
@@ -242,7 +256,8 @@ func _tick_patrol(delta: float) -> void:
 	_move_toward(destination, delta)
 
 func _move_toward(destination: Vector3, delta: float) -> void:
-	var planar := destination - actor.global_position
+	var steering_target := _resolve_navigation_target(destination)
+	var planar := steering_target - actor.global_position
 	planar.y = 0.0
 	if planar.length_squared() <= 0.01:
 		_stop(delta)
@@ -253,7 +268,7 @@ func _move_toward(destination: Vector3, delta: float) -> void:
 		var right := direction.rotated(Vector3.UP, -PI * 0.5)
 		direction = left if not actor.test_move(actor.global_transform, left * 0.45) else right
 	_aim_at(actor.global_position + direction, delta, 0.18)
-	actor.call("apply_ai_navigation", direction, move_speed, destination.y, delta)
+	actor.call("apply_ai_navigation", direction, move_speed, steering_target.y, delta)
 
 func _stop(delta: float) -> void:
 	actor.velocity.x = move_toward(actor.velocity.x, 0.0, 22.0 * delta)
@@ -266,6 +281,108 @@ func _aim_at(target_position: Vector3, delta: float, duration: float) -> void:
 		return
 	var desired_yaw := atan2(-direction.x, -direction.z)
 	actor.rotation.y = lerp_angle(actor.rotation.y, desired_yaw, clampf(delta / maxf(duration, 0.01), 0.0, 1.0))
+
+func _resolve_navigation_target(destination: Vector3) -> Vector3:
+	if _navigation_points.is_empty() or actor.global_position.distance_to(destination) <= 2.2:
+		return destination
+	var destination_changed := (
+		not _navigation_destination.is_finite()
+		or _navigation_destination.distance_to(destination) > 1.8
+	)
+	if destination_changed or _repath_seconds <= 0.0 or _navigation_path.is_empty():
+		_navigation_destination = destination
+		_navigation_path = _find_navigation_path(
+			_nearest_navigation_index(actor.global_position),
+			_nearest_navigation_index(destination)
+		)
+		_navigation_path_index = 0
+		_repath_seconds = 0.65
+	while _navigation_path_index < _navigation_path.size():
+		var point := _navigation_points[_navigation_path[_navigation_path_index]]
+		if actor.global_position.distance_to(point) > 1.05:
+			return point
+		_navigation_path_index += 1
+	return destination
+
+func _find_navigation_path(start_index: int, goal_index: int) -> Array[int]:
+	var empty_path: Array[int] = []
+	if start_index < 0 or goal_index < 0:
+		return empty_path
+	if start_index == goal_index:
+		return [start_index]
+	var open: Array[int] = [start_index]
+	var came_from: Dictionary = {}
+	var g_score: Dictionary = {start_index: 0.0}
+	var f_score: Dictionary = {
+		start_index: _navigation_points[start_index].distance_to(_navigation_points[goal_index])
+	}
+	while not open.is_empty():
+		var current := open[0]
+		var current_score := float(f_score.get(current, INF))
+		for candidate in open:
+			var candidate_score := float(f_score.get(candidate, INF))
+			if candidate_score < current_score:
+				current = candidate
+				current_score = candidate_score
+		if current == goal_index:
+			var path: Array[int] = [current]
+			while came_from.has(current):
+				current = int(came_from[current])
+				path.push_front(current)
+			return path
+		open.erase(current)
+		for neighbor_variant in _navigation_links[current]:
+			var neighbor := int(neighbor_variant)
+			var tentative := float(g_score.get(current, INF)) + _navigation_points[current].distance_to(_navigation_points[neighbor])
+			if tentative >= float(g_score.get(neighbor, INF)):
+				continue
+			came_from[neighbor] = current
+			g_score[neighbor] = tentative
+			f_score[neighbor] = tentative + _navigation_points[neighbor].distance_to(_navigation_points[goal_index])
+			if not open.has(neighbor):
+				open.append(neighbor)
+	return empty_path
+
+func _nearest_navigation_index(world_position: Vector3) -> int:
+	if _navigation_points.is_empty():
+		return -1
+	var best_index := 0
+	var best_distance := INF
+	for index in range(_navigation_points.size()):
+		var distance := world_position.distance_squared_to(_navigation_points[index])
+		if distance < best_distance:
+			best_distance = distance
+			best_index = index
+	return best_index
+
+func _parse_navigation_graph(graph_variant: Variant) -> void:
+	_navigation_points.clear()
+	_navigation_links.clear()
+	if not graph_variant is Dictionary:
+		return
+	var graph := graph_variant as Dictionary
+	_navigation_points = _parse_route_points(graph.get("points", []))
+	_navigation_links.resize(_navigation_points.size())
+	for index in range(_navigation_links.size()):
+		_navigation_links[index] = []
+	for link_variant in graph.get("links", []):
+		if not link_variant is Array:
+			continue
+		var link := link_variant as Array
+		if link.size() < 2:
+			continue
+		var from_index := int(link[0])
+		var to_index := int(link[1])
+		if (
+			from_index < 0 or from_index >= _navigation_links.size()
+			or to_index < 0 or to_index >= _navigation_links.size()
+			or from_index == to_index
+		):
+			continue
+		if not _navigation_links[from_index].has(to_index):
+			_navigation_links[from_index].append(to_index)
+		if not _navigation_links[to_index].has(from_index):
+			_navigation_links[to_index].append(from_index)
 
 func _parse_route_points(points_variant: Variant) -> Array[Vector3]:
 	var parsed: Array[Vector3] = []

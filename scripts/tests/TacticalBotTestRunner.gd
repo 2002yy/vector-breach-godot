@@ -11,6 +11,7 @@ func _ready() -> void:
 	await _run_test("bot_configuration_uses_route_and_classic_timing", _test_bot_configuration_uses_route_and_classic_timing)
 	await _run_test("freeze_holds_then_live_patrols", _test_freeze_holds_then_live_patrols)
 	await _run_test("opponent_sound_triggers_investigation", _test_opponent_sound_triggers_investigation)
+	await _run_test("investigation_uses_connected_navigation_graph", _test_investigation_uses_connected_navigation_graph)
 	await _run_test("visible_enemy_is_acquired_then_burst_fired", _test_visible_enemy_is_acquired_then_burst_fired)
 	await _run_test("bot_uses_ladder_and_water_semantics", _test_bot_uses_ladder_and_water_semantics)
 	if _failures.is_empty():
@@ -115,6 +116,38 @@ func _test_opponent_sound_triggers_investigation() -> void:
 	_assert_true(accepted, "enemy sound inside the audible radius should enter bot memory")
 	_assert_equal(String(ai.get("state", "")), "INVESTIGATE", "heard opponent without vision should trigger investigate state")
 	_assert_true(actor.global_position.x > 0.05, "investigating bot should move toward the remembered sound")
+	await _cleanup_fixture(fixture)
+
+func _test_investigation_uses_connected_navigation_graph() -> void:
+	var fixture := await _make_fixture()
+	var world := fixture.world as Node3D
+	var player := fixture.player as CharacterBody3D
+	var actor := fixture.actor as CharacterBody3D
+	player.set("is_dead", true)
+	var wall := StaticBody3D.new()
+	wall.collision_layer = 1
+	var wall_collision := CollisionShape3D.new()
+	var wall_shape := BoxShape3D.new()
+	wall_shape.size = Vector3(3.0, 3.0, 1.0)
+	wall_collision.shape = wall_shape
+	wall.add_child(wall_collision)
+	wall.position = Vector3(0.0, 1.5, 0.0)
+	world.add_child(wall)
+	actor.global_position = Vector3(0.0, 1.15, 8.0)
+	actor.call("configure_from_record", {
+		"name": "导航测试敌人", "team": "enemy", "aiEnabled": true,
+		"navigationGraph": {
+			"points": [[0.0, 1.15, 8.0], [4.0, 1.15, 8.0], [4.0, 1.15, -8.0], [0.0, 1.15, -8.0]],
+			"links": [[0, 1], [1, 2], [2, 3]],
+		},
+	})
+	RoundManager.set_live()
+	actor.call("notify_ai_sound", Vector3(0.0, 1.0, -8.0), 24.0, "T")
+	for _frame in range(30):
+		await get_tree().physics_frame
+	var ai := (actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
+	_assert_equal(int(ai.get("navigation_nodes", 0)), 4, "bot should retain the authored connected navigation graph")
+	_assert_true(actor.global_position.x > 0.45, "investigation should follow the connected route around a blocking wall")
 	await _cleanup_fixture(fixture)
 
 func _test_visible_enemy_is_acquired_then_burst_fired() -> void:

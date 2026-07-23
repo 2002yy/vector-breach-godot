@@ -1,4 +1,5 @@
 .godot/
+.tools/
 *.log
 __pycache__/
 *.py[cod]

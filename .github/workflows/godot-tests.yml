@@ -1,0 +1,22 @@
+name: Godot Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  native-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    container:
+      image: barichello/godot-ci:4.6.2
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Run Godot test suites
+        shell: bash
+        run: bash ./tools/run_godot_tests.sh godot

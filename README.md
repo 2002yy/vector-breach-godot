@@ -23,6 +23,8 @@ This is the standalone Godot migration repo for `Vector Breach`. The current foc
 
 This repo is still in a prototype-validation phase. The goal is not content volume yet, but a solid FPS core: state flow, level semantics, and learnable weapon feel, backed by small automated tests for iteration safety.
 
+当前完成项、真实缺口与下一批优先级统一记录在 [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md)。该文件也是本地与云端编码代理的唯一进度入口。
+
 ## 当前内容 / Current Scope
 
 - Godot 4.6 项目骨架 / Godot 4.6 project scaffold
@@ -36,7 +38,7 @@ This repo is still in a prototype-validation phase. The goal is not content volu
 - 经典 CS 风格普通跳、蹲伏胶囊与蹲跳；无二段跳、无自动翻越 / Classic CS-style jump, crouch hull, and crouch-jump; no double jump or auto-mantle
 - 默认奔跑、Shift 静步、蹲伏慢行，搭配材质脚步、落地声与分层精度规则 / Default run, Shift quiet-walk, crouch movement, material footsteps, landing audio, and stance/speed accuracy bands
 - 地图 JSON 驱动的梯子/浅水/深水语义体积：上下攀爬、横向限速、梯顶离梯、跳离、涉水减速、浮力、水下状态与涉水脚步 / JSON-authored ladder and shallow/deep-water volumes with climbing, top/jump detachment, wading, buoyancy, underwater state, and water footsteps
-- 可碰撞的灰盒 T/CT `CharacterBody3D` 单位，以及最低可交火 AI 敌人：路线巡逻、视觉/听觉、反应延迟、急停点射、换弹、梯子/水体通行；当前不包含正式角色模型或爆破/队伍战术 / Collidable graybox T/CT actors plus minimally playable enemy AI with route patrol, sight/hearing, reaction delay, counter-stop bursts, reloads, and ladder/water traversal; no production models or bomb/team tactics yet
+- 可碰撞的灰盒 T/CT `CharacterBody3D` 单位，以及最低可交火 AI 敌人：跨路线连接图与 A* 重规划、视觉/听觉、反应延迟、急停点射、换弹、梯子/水体通行；当前不包含正式角色模型或爆破/队伍战术 / Collidable graybox T/CT actors plus minimally playable enemy AI with a cross-route graph and A* replanning, sight/hearing, reaction delay, counter-stop bursts, reloads, and ladder/water traversal; no production models or bomb/team tactics yet
 - 30 发完整步枪喷射轨迹，不在中途锁死 / Full 30-round rifle spray path without mid-magazine clamping
 - 竞技 HUD：比分、时间、存活数、护甲、金钱、Tab 计分板、击杀信息与训练结算 / Competitive HUD with score, time, alive counts, armor, money, Tab scoreboard, kill feed, and training summary
 - 头/躯干/腿命中倍率、护甲减伤、距离衰减、单层穿透、受击减速与玩家死亡 / Head/torso/leg hit groups, armor mitigation, range falloff, one-surface penetration, tagging slowdown, and player death
@@ -94,6 +96,12 @@ Run all 6 headless test suites:
 powershell -ExecutionPolicy Bypass -File .\tools\run_godot_tests.ps1
 ```
 
+Linux、GitHub Actions 和云端编码代理使用：
+
+```bash
+bash ./tools/run_godot_tests.sh
+```
+
 If Godot is not in `PATH`:
 
 ```powershell
@@ -106,7 +114,7 @@ powershell -ExecutionPolicy Bypass -File .\tools\run_godot_tests.ps1 -GodotExe "
 | `WeaponSystemTestRunner` | Weapon state boundaries, ammo, recoil |
 | `GrayboxLevelTestRunner` | Level assembly, CS-scale metrics, stairs, route/spawn clearance, ladder/water semantic areas |
 | `HitFeedbackLayerTestRunner` | HUD layer behavior, hit marker |
-| `TacticalBotTestRunner` | Bot route patrol, freeze restrictions, hearing, sight, firing, ladder/water traversal |
+| `TacticalBotTestRunner` | Bot route patrol, connected-graph obstacle routing, freeze restrictions, hearing, sight, firing, ladder/water traversal |
 | `MainStateFlowTestRunner` | Main menu / gameplay state transitions, ladder/water traversal, tactical actors and radar |
 
 ## 当前控制 / Current Controls

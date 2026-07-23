@@ -21,6 +21,7 @@ func load_for_level(level_data: Dictionary) -> void:
 		return
 	var friendly_count := 0
 	var enemy_count := 0
+	var navigation_graph := _build_navigation_graph(level_data)
 	for record_variant in _build_spawn_records(level_data):
 		if not record_variant is Dictionary:
 			continue
@@ -36,6 +37,7 @@ func load_for_level(level_data: Dictionary) -> void:
 			var routes: Dictionary = level_data.get("routes", {}) as Dictionary
 			var ai_routes: Dictionary = level_data.get("aiRoutes", {}) as Dictionary
 			record["routePoints"] = ai_routes.get(route_name, routes.get(route_name, []))
+			record["navigationGraph"] = navigation_graph
 			target_node.call("configure_from_record", record)
 		if target_node.has_signal("ai_shot"):
 			target_node.connect("ai_shot", _on_actor_ai_shot)
@@ -66,6 +68,57 @@ func _on_actor_ai_shot(result: Dictionary, world_position: Vector3) -> void:
 
 func _on_actor_ai_footstep(world_position: Vector3, surface: String, quiet: bool) -> void:
 	ai_footstep.emit(world_position, surface, quiet)
+
+func _build_navigation_graph(level_data: Dictionary) -> Dictionary:
+	var points: Array = []
+	var links: Array = []
+	var point_indices: Dictionary = {}
+	var link_keys: Dictionary = {}
+	var route_sources: Array[Dictionary] = []
+	var routes := level_data.get("routes", {}) as Dictionary
+	var ai_routes := level_data.get("aiRoutes", {}) as Dictionary
+	route_sources.append(routes)
+	route_sources.append(ai_routes)
+	for source in route_sources:
+		for route_variant in source.values():
+			if not route_variant is Array:
+				continue
+			var route := route_variant as Array
+			if route.is_empty() or not route[0] is Array:
+				continue
+			var previous_index := -1
+			for point_variant in route:
+				if not point_variant is Array:
+					continue
+				var point_array := point_variant as Array
+				if point_array.size() < 2:
+					continue
+				var point := Vector3(
+					float(point_array[0]),
+					float(point_array[1]) if point_array.size() >= 3 else dummy_height,
+					float(point_array[2]) if point_array.size() >= 3 else float(point_array[1])
+				)
+				var point_key := "%d|%d|%d" % [
+					roundi(point.x * 4.0),
+					roundi(point.y * 4.0),
+					roundi(point.z * 4.0),
+				]
+				var point_index: int
+				if point_indices.has(point_key):
+					point_index = int(point_indices[point_key])
+				else:
+					point_index = points.size()
+					point_indices[point_key] = point_index
+					points.append([point.x, point.y, point.z])
+				if previous_index >= 0 and previous_index != point_index:
+					var low := mini(previous_index, point_index)
+					var high := maxi(previous_index, point_index)
+					var link_key := "%d|%d" % [low, high]
+					if not link_keys.has(link_key):
+						link_keys[link_key] = true
+						links.append([low, high])
+				previous_index = point_index
+	return {"points": points, "links": links}
 
 func _build_spawn_records(level_data: Dictionary) -> Array:
 	var records: Array = []

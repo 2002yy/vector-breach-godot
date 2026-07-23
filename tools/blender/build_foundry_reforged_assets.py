@@ -847,6 +847,53 @@ def _build_wall_modules(collection: bpy.types.Collection, materials: dict, level
         join_mesh_objects(parts, f"GEO-reforged-wall-module-{entry['id']}")
 
 
+def _build_wall_cladding(collection: bpy.types.Collection, materials: dict, level: dict) -> None:
+    walls = {str(entry["id"]): entry for entry in level.get("walls", [])}
+    specs = (
+        ("a-west", "north-partition-west-center", -1.0, -29.0, materials["rust"]),
+        ("a-east", "north-partition-east-center-a", -1.0, 5.0, materials["metal_mid"]),
+        ("mid-north", "north-partition-center", 1.0, -8.0, materials["green_metal"]),
+        ("mid-south", "south-partition-center", -1.0, -8.0, materials["metal_mid"]),
+        ("b-west", "south-partition-west-center", 1.0, -26.0, materials["green_metal"]),
+        ("b-east", "south-partition-east-center-a", 1.0, 6.0, materials["corrugated_rust"]),
+    )
+    panel_width = 2.8
+    panel_height = 1.75
+    panel_bottom = 0.48
+    panel_depth = 0.055
+    rail_width = 0.075
+    for name, wall_id, face_sign, anchor_x, panel_material in specs:
+        wall = walls[wall_id]
+        wall_face = float(wall["z"]) + face_sign * float(wall["sz"]) * 0.5
+        detail_z = wall_face + face_sign * panel_depth * 0.5
+        center_height = panel_bottom + panel_height * 0.5
+        parts = [
+            add_box(
+                f"TMP-reforged-cladding-{name}-panel",
+                _map_point(anchor_x, detail_z, center_height),
+                (panel_width, panel_depth, panel_height),
+                panel_material,
+                collection,
+            )
+        ]
+        for rail_index, rail_x in enumerate(
+            (anchor_x - panel_width * 0.5 + rail_width * 0.5, anchor_x + panel_width * 0.5 - rail_width * 0.5)
+        ):
+            parts.append(
+                add_box(
+                    f"TMP-reforged-cladding-{name}-rail-{rail_index}",
+                    _map_point(rail_x, detail_z + face_sign * 0.018, center_height),
+                    (rail_width, panel_depth + 0.036, panel_height),
+                    materials["dark"],
+                    collection,
+                )
+            )
+        cladding = join_mesh_objects(parts, f"GEO-reforged-wall-cladding-{name}")
+        cladding["wall_id"] = wall_id
+        cladding["wall_face_axis"] = "z"
+        cladding["wall_face_sign"] = face_sign
+
+
 def _build_boundary_modules(collection: bpy.types.Collection, materials: dict, level: dict) -> None:
     arena_x = float(level["arenaSizeX"])
     arena_z = float(level["arenaSizeZ"])
@@ -1177,6 +1224,45 @@ def _build_floor_drains(collection: bpy.types.Collection, materials: dict) -> No
             )
 
 
+def _build_floor_breakup(collection: bpy.types.Collection, materials: dict) -> None:
+    for index, x in enumerate((-32.0, -16.0, 0.0, 16.0, 32.0)):
+        add_box(
+            f"GEO-reforged-floor-joint-x-{index:02d}",
+            _map_point(x, 0.0, 0.008),
+            (0.045, 76.0, 0.016),
+            materials["dark"],
+            collection,
+        )
+    for index, z in enumerate((-24.0, -8.0, 8.0, 24.0)):
+        add_box(
+            f"GEO-reforged-floor-joint-z-{index:02d}",
+            _map_point(0.0, z, 0.008),
+            (96.0, 0.045, 0.016),
+            materials["dark"],
+            collection,
+        )
+    wear_specs = (
+        ("spawn", -34.0, 0.0, 3.2, 0.38, 0.12),
+        ("a-west", -24.0, -28.0, 3.8, 0.42, -0.18),
+        ("a-east", 18.0, -26.0, 3.1, 0.46, 0.28),
+        ("mid-west", -8.0, 0.0, 3.4, 0.34, 0.06),
+        ("mid-east", 18.0, 0.0, 3.0, 0.36, -0.22),
+        ("b-west", -18.0, 24.0, 3.7, 0.40, 0.20),
+        ("b-east", 18.0, 24.0, 3.2, 0.44, -0.12),
+    )
+    for name, x, z, radius, aspect, rotation in wear_specs:
+        _add_floor_stain(
+            collection,
+            materials["floor_wear"],
+            f"GEO-reforged-floor-wear-{name}",
+            x,
+            z,
+            radius,
+            aspect,
+            rotation,
+        )
+
+
 def _build_route_markings(collection: bpy.types.Collection, materials: dict) -> None:
     markings = (
         ("A", 37.0, -24.0, materials["orange"]),
@@ -1240,6 +1326,12 @@ def build_details() -> dict:
                 metallic=0.72,
                 roughness=0.38,
             ),
+            "floor_wear": make_material(
+                "MAT_floor_wear",
+                (0.16, 0.15, 0.13, 1.0),
+                metallic=0.0,
+                roughness=0.96,
+            ),
         }
     )
     level = _load_level()
@@ -1253,11 +1345,13 @@ def build_details() -> dict:
     _build_wall_bases(collection, materials, level)
     _build_boundary_modules(collection, materials, level)
     _build_wall_modules(collection, materials, level)
+    _build_wall_cladding(collection, materials, level)
     _build_wall_vents(collection, materials, level)
     _build_surface_details(collection, materials, level)
     _build_door_frames(collection, materials, level)
     _build_service_panels(collection, materials)
     _build_floor_drains(collection, materials)
+    _build_floor_breakup(collection, materials)
     _build_route_markings(collection, materials)
     _build_catwalk_rails(collection, materials, level)
     _project_reforged_uvs(collection)
@@ -1339,6 +1433,11 @@ def validate_interfaces() -> dict:
         for obj in bpy.data.collections[MAP_COLLECTION].objects
         if obj.name.startswith("GEO-reforged-wall-vent-")
     ]
+    wall_cladding = [
+        obj
+        for obj in bpy.data.collections[MAP_COLLECTION].objects
+        if obj.name.startswith("GEO-reforged-wall-cladding-")
+    ]
     boundary_modules = [
         obj
         for obj in bpy.data.collections[MAP_COLLECTION].objects
@@ -1353,6 +1452,16 @@ def validate_interfaces() -> dict:
         obj
         for obj in bpy.data.collections[MAP_COLLECTION].objects
         if obj.name.startswith("GEO-reforged-surface-oil-")
+    ]
+    floor_joints = [
+        obj
+        for obj in bpy.data.collections[MAP_COLLECTION].objects
+        if obj.name.startswith("GEO-reforged-floor-joint-")
+    ]
+    floor_wear = [
+        obj
+        for obj in bpy.data.collections[MAP_COLLECTION].objects
+        if obj.name.startswith("GEO-reforged-floor-wear-")
     ]
     rust_runs = [
         obj
@@ -1372,6 +1481,10 @@ def validate_interfaces() -> dict:
     surface_contact_gaps = [
         _wall_contact_gap(detail, wall_by_id[str(detail["wall_id"])])
         for detail in rust_runs + weld_seams
+    ]
+    cladding_contact_gaps = [
+        _wall_contact_gap(detail, wall_by_id[str(detail["wall_id"])])
+        for detail in wall_cladding
     ]
     cover_by_id = {str(entry["id"]): entry for entry in level.get("covers", [])}
     equipment_overruns: list[float] = []
@@ -1442,6 +1555,8 @@ def validate_interfaces() -> dict:
         ),
         "wall_vent_count": len(wall_vents),
         "wall_vent_contact_gap_max": round(max(vent_contact_gaps), 4),
+        "wall_cladding_count": len(wall_cladding),
+        "wall_cladding_contact_gap_max": round(max(cladding_contact_gaps), 4),
         "boundary_module_count": len(boundary_modules),
         "boundary_module_ground_gap_max": round(
             max(
@@ -1461,6 +1576,8 @@ def validate_interfaces() -> dict:
         "surface_rust_count": len(rust_runs),
         "surface_weld_count": len(weld_seams),
         "surface_wall_contact_gap_max": round(max(surface_contact_gaps), 4),
+        "floor_joint_count": len(floor_joints),
+        "floor_wear_count": len(floor_wear),
         "skyline_object_count": len(skyline_objects),
         "skyline_ground_gap_max": round(
             max(abs(obj.location.z - obj.dimensions.z * 0.5) for obj in skyline_grounded),
