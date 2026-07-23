@@ -15,7 +15,7 @@ jobs:
       image: barichello/godot-ci:4.6.2
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Run Godot test suites
         shell: bash
