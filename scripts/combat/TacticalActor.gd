@@ -3,6 +3,8 @@ extends CharacterBody3D
 const DamageModel = preload("res://scripts/combat/DamageModel.gd")
 
 signal actor_killed(actor_name: String, team: String)
+signal ai_shot(result: Dictionary, world_position: Vector3)
+signal ai_footstep(world_position: Vector3, surface: String, quiet: bool)
 
 @export var display_name: String = "战术单位"
 @export_enum("T", "CT") var team: String = "CT"
@@ -15,6 +17,8 @@ signal actor_killed(actor_name: String, team: String)
 @onready var body_mesh: MeshInstance3D = $BodyMesh
 @onready var head_mesh: MeshInstance3D = $HeadMesh
 @onready var weapon_mesh: MeshInstance3D = $WeaponMesh
+@onready var environment_sensor: Area3D = $EnvironmentSensor
+@onready var bot_brain: Node = $TacticalBotBrain
 
 var current_health: int = 100
 var current_armor: int = 0
@@ -23,6 +27,10 @@ var spawn_position: Vector3 = Vector3.ZERO
 var spawn_yaw: float = 0.0
 var _material: StandardMaterial3D = StandardMaterial3D.new()
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity")
+var _current_ladder: Area3D
+var _current_water: Area3D
+var _water_depth: float = 0.0
+var _footstep_distance: float = 0.0
 
 func _ready() -> void:
 	add_to_group("combat_actors")
@@ -31,18 +39,24 @@ func _ready() -> void:
 	spawn_yaw = rotation.y
 	current_health = max_health
 	current_armor = max_armor
+	bot_brain.call("setup", self)
 	_apply_team_visual()
 
 func _physics_process(delta: float) -> void:
 	if is_dead:
 		return
-	if not is_on_floor():
-		velocity.y -= _gravity * delta
+	_update_environment_state()
+	var position_before := global_position
+	if bot_brain != null:
+		bot_brain.call("tick", delta)
+	if _current_ladder == null and not is_on_floor():
+		var gravity_scale := 0.18 if _water_depth >= 1.2 else (0.48 if _current_water != null else 1.0)
+		velocity.y -= _gravity * gravity_scale * delta
 	else:
-		velocity.y = 0.0
-	velocity.x = 0.0
-	velocity.z = 0.0
+		if _current_ladder == null:
+			velocity.y = 0.0
 	move_and_slide()
+	_update_ai_footsteps(position_before)
 
 func configure_from_record(record: Dictionary) -> void:
 	display_name = String(record.get("name", display_name))
@@ -58,6 +72,7 @@ func configure_from_record(record: Dictionary) -> void:
 	current_health = max_health
 	current_armor = max_armor
 	is_dead = false
+	bot_brain.call("configure", record)
 	_apply_team_visual()
 
 func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, armor_penetration: float = 1.0, penetrated: bool = false) -> Dictionary:
@@ -90,12 +105,15 @@ func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, arm
 	}
 
 func get_combat_snapshot() -> Dictionary:
-	return {
+	var snapshot := {
 		"name": display_name, "team": team, "alive": not is_dead,
 		"health": current_health, "armor": current_armor, "helmet": has_helmet,
 		"weapon": equipped_weapon_id, "x": global_position.x, "y": global_position.y,
 		"z": global_position.z, "yaw": rotation.y,
 	}
+	if bot_brain != null:
+		snapshot["ai"] = bot_brain.call("get_snapshot")
+	return snapshot
 
 func reset_actor() -> void:
 	global_position = spawn_position
@@ -107,7 +125,46 @@ func reset_actor() -> void:
 	collision_layer = 1
 	collision_mask = 1
 	collision_shape.disabled = false
+	_footstep_distance = 0.0
+	bot_brain.call("reset_runtime")
 	_apply_team_visual()
+
+func get_eye_position() -> Vector3:
+	return global_position + Vector3.UP * 0.62
+
+func notify_ai_sound(world_position: Vector3, audible_radius: float, source_team: String) -> bool:
+	return bool(bot_brain.call("notify_sound", world_position, audible_radius, source_team))
+
+func emit_ai_shot(result: Dictionary, world_position: Vector3) -> void:
+	ai_shot.emit(result, world_position)
+
+func apply_ai_navigation(direction: Vector3, speed: float, target_y: float, delta: float) -> void:
+	if _current_ladder != null:
+		var ladder_normal := _current_ladder.get_meta("ladder_normal", Vector3.FORWARD) as Vector3
+		var tangent := Vector3(-ladder_normal.z, 0.0, ladder_normal.x).normalized()
+		velocity = tangent * direction.dot(tangent) * 1.4
+		velocity.y = signf(target_y - global_position.y) * 2.7
+		var ladder_top := float(_current_ladder.get_meta("ladder_top", global_position.y + 1.0))
+		if target_y > global_position.y and global_position.y >= ladder_top - 0.5:
+			var exit_direction := _current_ladder.get_meta("ladder_exit_direction", -ladder_normal) as Vector3
+			global_position += exit_direction.normalized() * 0.72 + Vector3.UP * 0.12
+			_current_ladder = null
+		return
+		return
+	var speed_multiplier := 0.52 if _water_depth >= 1.2 else (0.72 if _current_water != null else 1.0)
+	var target_velocity := direction * speed * speed_multiplier
+	velocity.x = move_toward(velocity.x, target_velocity.x, 18.0 * delta)
+	velocity.z = move_toward(velocity.z, target_velocity.z, 18.0 * delta)
+	if _water_depth >= 1.2 and global_position.y < float(_current_water.get_meta("water_surface_y", global_position.y)) - 0.7:
+		velocity.y = move_toward(velocity.y, 0.45, 4.0 * delta)
+
+func get_ai_environment_snapshot() -> Dictionary:
+	return {
+		"on_ladder": _current_ladder != null,
+		"in_water": _current_water != null,
+		"water_depth": _water_depth,
+		"speed_multiplier": 0.52 if _water_depth >= 1.2 else (0.72 if _current_water != null else 1.0),
+	}
 
 func _resolve_team(value: String) -> String:
 	if value.to_lower() == "friendly":
@@ -124,3 +181,36 @@ func _apply_team_visual() -> void:
 	body_mesh.material_override = _material
 	head_mesh.material_override = _material
 	weapon_mesh.material_override = _material
+
+func _update_environment_state() -> void:
+	_current_ladder = null
+	_current_water = null
+	for area in environment_sensor.get_overlapping_areas():
+		var environment_type := String(area.get_meta("environment_type", ""))
+		if environment_type == "ladder" and _current_ladder == null:
+			_current_ladder = area
+		elif environment_type == "water" and _current_water == null:
+			_current_water = area
+	_water_depth = float(_current_water.get_meta("water_depth", 0.0)) if _current_water != null else 0.0
+
+func _update_ai_footsteps(position_before: Vector3) -> void:
+	if not is_on_floor() and _current_water == null:
+		_footstep_distance = 0.0
+		return
+	var traveled := Vector2(global_position.x - position_before.x, global_position.z - position_before.z).length()
+	_footstep_distance += traveled
+	if _footstep_distance < 1.8:
+		return
+	_footstep_distance = fmod(_footstep_distance, 1.8)
+	var surface := "water" if _current_water != null else _detect_floor_surface()
+	ai_footstep.emit(global_position, surface, false)
+
+func _detect_floor_surface() -> String:
+	var query := PhysicsRayQueryParameters3D.create(global_position + Vector3.UP * 0.1, global_position + Vector3.DOWN * 1.2, 1)
+	query.exclude = [get_rid()]
+	var hit := get_world_3d().direct_space_state.intersect_ray(query)
+	if hit.is_empty():
+		return "concrete"
+	var collider: Object = hit.get("collider")
+	var surface_type := String(collider.get_meta("surface_type", "")) if collider != null else ""
+	return surface_type if not surface_type.is_empty() else "concrete"

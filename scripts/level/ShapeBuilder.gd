@@ -369,6 +369,7 @@ static func _build_ladders(parent: Node3D, entries: Array) -> void:
 		var bottom := float(entry.get("bottomY", 0.0))
 		var position := Vector3(float(entry.get("x", 0.0)), bottom + height * 0.5, float(entry.get("z", 0.0)))
 		var area := _make_environment_area("Ladder_%s" % String(entry.get("id", "volume")), position, Vector3(width, height, depth), "ladder")
+		area.add_to_group("ladder_volumes")
 		var normal_array := entry.get("normal", [0.0, 1.0]) as Array
 		var exit_array := entry.get("exitDirection", normal_array) as Array
 		var normal := Vector3(float(normal_array[0]), 0.0, float(normal_array[1])).normalized() if normal_array.size() >= 2 else Vector3.FORWARD
@@ -392,6 +393,7 @@ static func _build_water_volumes(parent: Node3D, entries: Array) -> void:
 		var size := Vector3(maxf(0.5, float(entry.get("sx", 4.0))), depth, maxf(0.5, float(entry.get("sz", 4.0))))
 		var position := Vector3(float(entry.get("x", 0.0)), bottom_y + depth * 0.5, float(entry.get("z", 0.0)))
 		var area := _make_environment_area("Water_%s" % String(entry.get("id", "volume")), position, size, "water")
+		area.add_to_group("water_volumes")
 		area.set_meta("water_surface_y", surface_y)
 		area.set_meta("water_bottom_y", bottom_y)
 		area.set_meta("water_depth", depth)

@@ -131,6 +131,10 @@ func _ready() -> void:
 		combat_sandbox.connect("combatants_spawned", _on_combatants_spawned)
 	elif combat_sandbox.has_signal("targets_spawned"):
 		combat_sandbox.connect("targets_spawned", _on_targets_spawned)
+	if combat_sandbox.has_signal("ai_shot"):
+		combat_sandbox.connect("ai_shot", _on_ai_shot)
+	if combat_sandbox.has_signal("ai_footstep"):
+		combat_sandbox.connect("ai_footstep", _on_ai_footstep)
 	if player.has_signal("player_died"):
 		player.connect("player_died", _on_player_died)
 	if not RoundManager.phase_changed.is_connected(_on_round_phase_changed):
@@ -566,6 +570,7 @@ func _on_shot_resolved(result: Dictionary) -> void:
 		shot_debug_line.call("show_shot", result)
 	if combat_audio_feedback.has_method("play_shot"):
 		combat_audio_feedback.call("play_shot", result, player.global_position)
+	combat_sandbox.call("notify_ai_sound", player.global_position, 52.0, GameState.player_team)
 	var damage_result: Dictionary = result.get("damage_result", {}) as Dictionary
 	if bool(damage_result.get("killed", false)) and combat_hud.has_method("add_kill_feed"):
 		var death_position: Vector3 = result.get("position", Vector3.ZERO) as Vector3
@@ -714,10 +719,23 @@ func _on_bomb_exploded(_site_label: String) -> void:
 func _on_player_footstep(world_position: Vector3, surface: String, quiet: bool) -> void:
 	if combat_audio_feedback.has_method("play_footstep"):
 		combat_audio_feedback.call("play_footstep", world_position, surface, quiet)
+	combat_sandbox.call("notify_ai_sound", world_position, 14.0 if quiet else 34.0, GameState.player_team)
 
 func _on_player_landed(world_position: Vector3, surface: String, strength: float) -> void:
 	if combat_audio_feedback.has_method("play_landing"):
 		combat_audio_feedback.call("play_landing", world_position, surface, strength)
+	combat_sandbox.call("notify_ai_sound", world_position, lerpf(18.0, 38.0, strength), GameState.player_team)
+
+func _on_ai_shot(result: Dictionary, world_position: Vector3) -> void:
+	if combat_audio_feedback.has_method("play_shot"):
+		combat_audio_feedback.call("play_shot", result, world_position)
+	var damage_result := result.get("damage_result", {}) as Dictionary
+	if bool(damage_result.get("killed", false)) and combat_hud.has_method("add_kill_feed"):
+		combat_hud.call("add_kill_feed", "AI", String(damage_result.get("target_name", "你")), String(result.get("weapon_name", "步枪")))
+
+func _on_ai_footstep(world_position: Vector3, surface: String, quiet: bool) -> void:
+	if combat_audio_feedback.has_method("play_footstep"):
+		combat_audio_feedback.call("play_footstep", world_position, surface, quiet)
 
 func _on_weapon_switched(_weapon_name: String, slot_index: int) -> void:
 	if weapon_view_model.has_method("set_weapon_slot"):

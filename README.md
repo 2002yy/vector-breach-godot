@@ -3,7 +3,7 @@
 <p>
   <img src="https://img.shields.io/badge/Status-Prototype%20%2F%20Experimental-yellow" alt="Prototype">
   <img src="https://img.shields.io/badge/Godot-4.6-blue" alt="Godot 4.6">
-  <img src="https://img.shields.io/badge/tests-5%20suites-green" alt="5 test suites">
+  <img src="https://img.shields.io/badge/tests-6%20suites-green" alt="6 test suites">
 </p>
 
 中文优先说明。This repository contains the standalone Godot migration prototype for `Vector Breach`.
@@ -36,7 +36,7 @@ This repo is still in a prototype-validation phase. The goal is not content volu
 - 经典 CS 风格普通跳、蹲伏胶囊与蹲跳；无二段跳、无自动翻越 / Classic CS-style jump, crouch hull, and crouch-jump; no double jump or auto-mantle
 - 默认奔跑、Shift 静步、蹲伏慢行，搭配材质脚步、落地声与分层精度规则 / Default run, Shift quiet-walk, crouch movement, material footsteps, landing audio, and stance/speed accuracy bands
 - 地图 JSON 驱动的梯子/浅水/深水语义体积：上下攀爬、横向限速、梯顶离梯、跳离、涉水减速、浮力、水下状态与涉水脚步 / JSON-authored ladder and shallow/deep-water volumes with climbing, top/jump detachment, wading, buoyancy, underwater state, and water footsteps
-- 可碰撞的灰盒 T/CT `CharacterBody3D` 单位：生命、护甲、头盔、武器、命中部位、死亡、出生、队伍存活数和雷达信息；当前不包含 AI 行为或正式角色模型 / Collidable graybox T/CT actors with health, armor, helmet, weapon, hit groups, death, spawning, alive counts, and radar data; no AI behavior or production character models yet
+- 可碰撞的灰盒 T/CT `CharacterBody3D` 单位，以及最低可交火 AI 敌人：路线巡逻、视觉/听觉、反应延迟、急停点射、换弹、梯子/水体通行；当前不包含正式角色模型或爆破/队伍战术 / Collidable graybox T/CT actors plus minimally playable enemy AI with route patrol, sight/hearing, reaction delay, counter-stop bursts, reloads, and ladder/water traversal; no production models or bomb/team tactics yet
 - 30 发完整步枪喷射轨迹，不在中途锁死 / Full 30-round rifle spray path without mid-magazine clamping
 - 竞技 HUD：比分、时间、存活数、护甲、金钱、Tab 计分板、击杀信息与训练结算 / Competitive HUD with score, time, alive counts, armor, money, Tab scoreboard, kill feed, and training summary
 - 头/躯干/腿命中倍率、护甲减伤、距离衰减、单层穿透、受击减速与玩家死亡 / Head/torso/leg hit groups, armor mitigation, range falloff, one-surface penetration, tagging slowdown, and player death
@@ -88,7 +88,7 @@ Open this folder directly in the Godot editor, or launch it from the command lin
 
 ## 测试 / Tests
 
-Run all 5 headless test suites:
+Run all 6 headless test suites:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\tools\run_godot_tests.ps1
@@ -106,6 +106,7 @@ powershell -ExecutionPolicy Bypass -File .\tools\run_godot_tests.ps1 -GodotExe "
 | `WeaponSystemTestRunner` | Weapon state boundaries, ammo, recoil |
 | `GrayboxLevelTestRunner` | Level assembly, CS-scale metrics, stairs, route/spawn clearance, ladder/water semantic areas |
 | `HitFeedbackLayerTestRunner` | HUD layer behavior, hit marker |
+| `TacticalBotTestRunner` | Bot route patrol, freeze restrictions, hearing, sight, firing, ladder/water traversal |
 | `MainStateFlowTestRunner` | Main menu / gameplay state transitions, ladder/water traversal, tactical actors and radar |
 
 ## 当前控制 / Current Controls
@@ -136,7 +137,7 @@ Prototype stage — the professional value is in the structure, not the content 
 - **Player collision & movement calibration**: First-pass physics tuning for FPS feel
 - **Weapon state boundaries**: Magazine, fire mode, recoil pattern, reload state machine
 - **Main menu / gameplay state flow**: State transitions, HUD layer management
-- **Headless regression tests**: 5 test suites running via Godot `--headless` — loader, weapon, level, hit-feedback, main state flow
+- **Headless regression tests**: 6 test suites running via Godot `--headless` — loader, weapon, level, hit-feedback, tactical bot, main state flow
 
 ### Foundry Depot design record
 

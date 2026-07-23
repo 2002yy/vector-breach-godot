@@ -99,7 +99,7 @@
     {"name": "友方测试单位", "team": "friendly", "x": -21.5, "y": 1.15, "z": 24, "yawDegrees": -90, "armor": 100, "helmet": true, "weapon": "rifle"}
   ],
   "combatTargets": [
-    {"name": "敌方测试单位", "team": "enemy", "x": -17.5, "y": 1.15, "z": 24, "yawDegrees": 90, "armor": 50, "helmet": false, "weapon": "rifle"}
+    {"name": "敌方测试单位", "team": "enemy", "x": -17.5, "y": 1.15, "z": 24, "yawDegrees": 90, "armor": 50, "helmet": false, "weapon": "rifle", "aiEnabled": false}
   ],
   "ladders": [
     {"id": "ladder-calibration", "x": -20, "z": -0.3, "sx": 1.25, "sz": 1.4, "h": 3.2, "bottomY": 0.1, "normal": [0, 1], "exitDirection": [0, -1]}

@@ -70,6 +70,7 @@ var _water_surface_y: float = -INF
 var _ladder_detach_cooldown: float = 0.0
 
 func _ready() -> void:
+	add_to_group("local_player")
 	collision_shape.shape = collision_shape.shape.duplicate()
 	_camera_pivot_origin = camera_pivot.position
 	_apply_user_settings(UserSettings.get_snapshot())

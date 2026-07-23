@@ -51,6 +51,7 @@ $scenes = @(
     "res://scenes/tests/WeaponSystemTestRunner.tscn",
     "res://scenes/tests/GrayboxLevelTestRunner.tscn",
     "res://scenes/tests/HitFeedbackLayerTestRunner.tscn",
+    "res://scenes/tests/TacticalBotTestRunner.tscn",
     "res://scenes/tests/MainStateFlowTestRunner.tscn"
 )
 

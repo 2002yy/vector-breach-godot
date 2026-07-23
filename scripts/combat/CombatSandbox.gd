@@ -2,6 +2,8 @@ extends Node3D
 
 signal targets_spawned(count: int)
 signal combatants_spawned(friendly_count: int, enemy_count: int)
+signal ai_shot(result: Dictionary, world_position: Vector3)
+signal ai_footstep(world_position: Vector3, surface: String, quiet: bool)
 
 @export var dummy_scene: PackedScene
 @export var use_spawn_points: bool = true
@@ -30,7 +32,15 @@ func load_for_level(level_data: Dictionary) -> void:
 		target_node.position = Vector3(float(record.get("x", 0.0)), float(record.get("y", dummy_height)), float(record.get("z", 0.0)))
 		add_child(target_node)
 		if target_node.has_method("configure_from_record"):
+			var route_name := String(record.get("route", ""))
+			var routes: Dictionary = level_data.get("routes", {}) as Dictionary
+			var ai_routes: Dictionary = level_data.get("aiRoutes", {}) as Dictionary
+			record["routePoints"] = ai_routes.get(route_name, routes.get(route_name, []))
 			target_node.call("configure_from_record", record)
+		if target_node.has_signal("ai_shot"):
+			target_node.connect("ai_shot", _on_actor_ai_shot)
+		if target_node.has_signal("ai_footstep"):
+			target_node.connect("ai_footstep", _on_actor_ai_footstep)
 		var resolved_team := String(target_node.get("team"))
 		if resolved_team == GameState.player_team:
 			friendly_count += 1
@@ -43,12 +53,29 @@ func _clear_targets() -> void:
 	for child in get_children():
 		child.queue_free()
 
+func notify_ai_sound(world_position: Vector3, audible_radius: float, source_team: String) -> int:
+	var notified := 0
+	for child in get_children():
+		if child.has_method("notify_ai_sound") and bool(child.call("notify_ai_sound", world_position, audible_radius, source_team)):
+			notified += 1
+	return notified
+
+func _on_actor_ai_shot(result: Dictionary, world_position: Vector3) -> void:
+	ai_shot.emit(result, world_position)
+	notify_ai_sound(world_position, 52.0, String((result.get("shooter_team", ""))))
+
+func _on_actor_ai_footstep(world_position: Vector3, surface: String, quiet: bool) -> void:
+	ai_footstep.emit(world_position, surface, quiet)
+
 func _build_spawn_records(level_data: Dictionary) -> Array:
 	var records: Array = []
 	var team_actors: Array = level_data.get("teamActors", []) as Array
 	for actor_variant in team_actors:
 		if actor_variant is Dictionary:
-			records.append((actor_variant as Dictionary).duplicate(true))
+			var actor_record := (actor_variant as Dictionary).duplicate(true)
+			if not actor_record.has("aiEnabled"):
+				actor_record["aiEnabled"] = false
+			records.append(actor_record)
 	var combat_targets: Array = level_data.get("combatTargets", []) as Array
 	for index in range(mini(max_targets, combat_targets.size())):
 		var target_variant: Variant = combat_targets[index]
@@ -60,6 +87,8 @@ func _build_spawn_records(level_data: Dictionary) -> Array:
 			"x": float(target.get("x", 0.0)), "y": float(target.get("y", dummy_height)), "z": float(target.get("z", 0.0)),
 			"armor": int(target.get("armor", 0)), "helmet": bool(target.get("helmet", false)),
 			"team": String(target.get("team", "enemy")), "weapon": String(target.get("weapon", "rifle")),
+			"route": String(target.get("route", "")), "aiEnabled": bool(target.get("aiEnabled", true)),
+			"aiReactionTime": float(target.get("aiReactionTime", 0.34)),
 		})
 	if not combat_targets.is_empty():
 		return records
