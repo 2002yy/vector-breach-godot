@@ -1,7 +1,10 @@
 {
   "id": "core-vault",
   "name": "Core Vault",
+  "designRevision": "core-vault-visual-v1",
+  "visual_scene": "res://assets/models/core_vault/core_vault.glb",
   "arenaSize": 56,
+  "boundaryHeight": 6,
   "start": [
     0,
     50
@@ -95,10 +98,28 @@
   "routeHints": [],
   "landmarks": [],
   "drops": [],
-  "walls": [],
-  "covers": [],
+  "walls": [
+    {"id": "vault-core", "x": 0, "z": 0, "sx": 6, "sz": 6, "h": 3.4, "role": "wall"},
+    {"id": "inner-west", "x": -17, "z": 0, "sx": 1.4, "sz": 16, "h": 2.1, "role": "wall"},
+    {"id": "inner-east", "x": 17, "z": 0, "sx": 1.4, "sz": 16, "h": 2.1, "role": "wall"},
+    {"id": "inner-south", "x": 0, "z": -17, "sx": 16, "sz": 1.4, "h": 2.1, "role": "wall"},
+    {"id": "outer-west", "x": -28, "z": 0, "sx": 2, "sz": 26, "h": 4.8, "role": "wall"},
+    {"id": "outer-east", "x": 28, "z": 0, "sx": 2, "sz": 26, "h": 4.8, "role": "wall"},
+    {"id": "outer-north", "x": 0, "z": 28, "sx": 22, "sz": 2, "h": 4.6, "role": "wall"},
+    {"id": "outer-south-west", "x": -20, "z": -30, "sx": 8, "sz": 2, "h": 3.4, "role": "wall"},
+    {"id": "outer-south-east", "x": 20, "z": -30, "sx": 8, "sz": 2, "h": 3.4, "role": "wall"}
+  ],
+  "covers": [
+    {"id": "north-west-bank", "x": -11.5, "z": 15.2, "sx": 5, "sz": 1.2, "h": 1.5, "role": "cover"},
+    {"id": "north-east-bank", "x": 11.5, "z": 15.2, "sx": 5, "sz": 1.2, "h": 1.5, "role": "cover"},
+    {"id": "south-west-bank", "x": -11.5, "z": -15.2, "sx": 5, "sz": 1.2, "h": 1.5, "role": "cover"},
+    {"id": "south-east-bank", "x": 11.5, "z": -15.2, "sx": 5, "sz": 1.2, "h": 1.5, "role": "cover"}
+  ],
   "floors": [],
-  "stairs": [],
+  "stairs": [
+    {"id": "core-north-west-step", "x": -7, "z": 6, "sx": 4.8, "sz": 4.8, "h": 0.72, "climbable": true, "role": "stair"},
+    {"id": "core-south-east-step", "x": 7, "z": -6, "sx": 4.8, "sz": 4.8, "h": 0.72, "climbable": true, "role": "stair"}
+  ],
   "ramps": [],
   "catwalks": [],
   "obstacles": [
