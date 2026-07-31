@@ -3,6 +3,27 @@
   "name": "Gatehouse",
   "designRevision": "gatehouse-visual-v1",
   "gameplayRevision": "gatehouse-tactical-routes-v1",
+  "timingTargets": {
+    "attackerFirstContactSeconds": [7.5, 9.0],
+    "siteToSiteRotationSeconds": [4.0, 5.0],
+    "measurementStatus": "measured-2026-07-31"
+  },
+  "timingMeasurements": {
+    "method": "Player capsule move_and_collide sweep at 0.2 meter increments",
+    "measuredAt": "2026-07-31",
+    "westFirstContactSeconds": 7.83,
+    "midFirstContactSeconds": 8.39,
+    "eastFirstContactSeconds": 8.27,
+    "siteToSiteRotationSeconds": 4.49,
+    "allSweepsClear": true
+  },
+  "semanticVolumes": {
+    "ladderStatus": "none-natural",
+    "waterStatus": "none-natural",
+    "note": "Gatehouse has no natural ladder or water geometry; keep semantic arrays empty instead of forcing volumes."
+  },
+  "ladders": [],
+  "waterVolumes": [],
   "visual_scene": "res://assets/models/gatehouse/gatehouse.glb",
   "arenaSize": 56,
   "boundaryHeight": 6,
@@ -98,7 +119,7 @@
     "defenderSpawn": [0, -44],
     "siteA": [-13, -39],
     "siteB": [13, -39],
-    "westApproach": [[0, 44], [-14, 36], [-17, 30], [-17, 20], [-16, 14], [-10, 9], [-10, 0], [-10, -3], [-14, -5], [-14, -14], [-12, -22], [-12, -30], [-13, -39]],
+    "westApproach": [[0, 44], [-14, 36], [-17, 30], [-17, 20], [-16, 14], [-10, 9], [-8.5, 8], [-8.5, 0], [-10, -3], [-14, -5], [-14, -14], [-12, -22], [-12, -30], [-13, -39]],
     "midToA": [[0, 44], [0, 34], [0, 24], [0, 15], [0, 7], [0, 0], [0, -8], [0, -13], [-5, -15], [-6, -20], [-9, -28], [-13, -39]],
     "midToB": [[0, 44], [0, 34], [0, 24], [0, 15], [0, 7], [0, 0], [0, -8], [0, -13], [5, -15], [6, -20], [9, -28], [13, -39]],
     "eastApproach": [[0, 44], [14, 36], [17, 30], [17, 20], [18, 15], [18, 8], [16, 2], [15, -4], [15, -12], [13, -20], [13, -30], [13, -39]],

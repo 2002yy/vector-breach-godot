@@ -27,6 +27,11 @@ func _ready() -> void:
 	player.global_position = Vector3(0.0, 1.05, -44.0)
 	player.velocity = Vector3.ZERO
 	player.reset_physics_interpolation()
+	var economy_modes: Array = []
+	for child in sandbox.get_children():
+		if child is CharacterBody3D:
+			var ai := ((child as CharacterBody3D).call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
+			economy_modes.append(String(ai.get("economy_mode", "")))
 	for child in sandbox.get_children():
 		if child.has_method("set_ai_combat_enabled"):
 			child.call("set_ai_combat_enabled", false)
@@ -48,11 +53,17 @@ func _ready() -> void:
 	RoundManager.set_live()
 
 	var planted := false
+	var plant_frames := 0
 	for _frame in range(420):
 		await get_tree().physics_frame
+		plant_frames += 1
 		if String(c4.get("device_state")) == "planted":
 			planted = true
 			break
+	var smoke_thrown := false
+	for projectile_variant in get_tree().get_nodes_in_group("grenade_projectiles"):
+		if String(projectile_variant.get("grenade_type")) == "smoke_grenade":
+			smoke_thrown = true
 	await get_tree().process_frame
 	await RenderingServer.frame_post_draw
 	var planted_image := ProjectSettings.globalize_path("user://tactical-bomb-planted.png")
@@ -69,8 +80,10 @@ func _ready() -> void:
 		ct_bot.reset_physics_interpolation()
 
 	var defused := false
+	var defuse_frames := 0
 	for _frame in range(600):
 		await get_tree().physics_frame
+		defuse_frames += 1
 		if String(RoundManager.get_state_name()) == "Round End" and String(RoundManager.round_winner) == "CT":
 			defused = true
 			break
@@ -85,6 +98,10 @@ func _ready() -> void:
 		"planted": planted,
 		"defused": defused,
 		"roundWinner": RoundManager.round_winner,
+		"plantFrames": plant_frames,
+		"defuseFrames": defuse_frames,
+		"economyModes": economy_modes,
+		"smokeThrown": smoke_thrown,
 		"plantedImage": planted_image,
 		"defusedImage": defused_image,
 	}))

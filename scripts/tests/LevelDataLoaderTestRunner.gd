@@ -288,6 +288,14 @@ func _test_gatehouse_core_vault_author_tactical_routes() -> void:
 			_assert_true(routes.has(String(target.get("route", ""))), "%s combat target should reference a known route" % level_id)
 			_assert_true(bool(target.get("helmet", false)) and int(target.get("armor", 0)) == 100, "%s defending bots should use full armor for repeatable combat tests" % level_id)
 		_assert_true(landmarks.size() >= 6, "%s should provide route callout anchors" % level_id)
+		var timing_measurements: Dictionary = level_data.get("timingMeasurements", {}) as Dictionary
+		var semantic_volumes: Dictionary = level_data.get("semanticVolumes", {}) as Dictionary
+		_assert_true(bool(timing_measurements.get("allSweepsClear", false)), "%s should record a clear player-collider timing sweep" % level_id)
+		_assert_true(float(timing_measurements.get("siteToSiteRotationSeconds", 0.0)) > 0.0, "%s should record a positive site-to-site rotation time" % level_id)
+		_assert_equal(String(semantic_volumes.get("ladderStatus", "")), "none-natural", "%s should document that no natural ladder volume exists" % level_id)
+		_assert_equal(String(semantic_volumes.get("waterStatus", "")), "none-natural", "%s should document that no natural water volume exists" % level_id)
+		_assert_equal((level_data.get("ladders", []) as Array).size(), 0, "%s should keep ladders empty without natural geometry" % level_id)
+		_assert_equal((level_data.get("waterVolumes", []) as Array).size(), 0, "%s should keep water volumes empty without natural geometry" % level_id)
 
 func _route_point_distance(a: Array, b: Array) -> float:
 	if a.size() < 2 or b.size() < 2:

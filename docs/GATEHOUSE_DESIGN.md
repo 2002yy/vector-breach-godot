@@ -33,12 +33,13 @@ The legacy array remains as traceability data. `GrayboxLevelTestRunner` verifies
 - West, two mid branches, and east approaches feed two objective zones behind the checkpoint.
 - The defender rotation joins both sites without crossing the attacker spawn.
 - Each main route carries authored danger, cover, and precision metadata consumed by the shared AI graph.
-- Three enabled T attackers and three enabled CT defenders exercise the west, rotation, and east branches; the route probe validates 38 nodes and 47 attributed links.
+- Three enabled T attackers and three enabled CT defenders exercise the west, rotation, and east branches; the route probe validates 39 nodes and 48 attributed links.
 - The rotation defender carries a defuse kit; when the player is CT, CombatSandbox designates one T bot as the C4 carrier and assigns CT bots defend-site roles.
+- 2026-07-31 player-collider sweeps measured first contact at 7.83 s (west), 8.39 s (mid) and 8.27 s (east), with 4.49 s site-to-site rotation; the west approach was rerouted around the inspection-deck stair to clear the collision envelope.
 
 ## Known design gaps
 
-Gatehouse has basic bomb AI (T carry/plant, CT retake/defuse) but still has no semantic ladder/water volumes, measured long-round timing, utility lineups, AI buying, or final competitive balance. The current route graph is a tested tactical foundation, not a claim of final competitive balance.
+Gatehouse has basic bomb AI (T carry/plant, CT retake/defuse), measured timing and an explicit no-natural-ladder/water semantic-volume record, but still lacks utility lineups, AI buying tuning, real long-round verification and final competitive balance. The current route graph is a tested tactical foundation, not a claim of final competitive balance.
 
 Run all native regression suites from the repository root:
 

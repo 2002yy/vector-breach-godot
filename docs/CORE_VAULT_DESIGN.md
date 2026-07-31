@@ -35,10 +35,11 @@ The legacy array remains as traceability data. `GrayboxLevelTestRunner` verifies
 - Each main route carries authored danger, cover, and precision metadata consumed by the shared AI graph.
 - Three enabled T attackers and three enabled CT defenders exercise the west, rotation, and east branches; the route probe validates 44 nodes and 54 attributed links.
 - The rotation defender carries a defuse kit; when the player is CT, CombatSandbox designates one T bot as the C4 carrier and assigns CT bots defend-site roles.
+- 2026-07-31 player-collider sweeps measured first contact at 8.23 s (west), 8.42 s (mid) and 8.23 s (east), with 10.16 s site-to-site rotation; all authored routes and the defender rotation clear the capsule sweep.
 
 ## Known design gaps
 
-Core Vault has basic bomb AI (T carry/plant, CT retake/defuse) but still has no semantic ladder/water volumes, measured long-round timing, utility lineups, AI buying, or final competitive balance. The current route graph is a tested tactical foundation, not a claim of final competitive balance.
+Core Vault has basic bomb AI (T carry/plant, CT retake/defuse), measured timing and an explicit no-natural-ladder/water semantic-volume record, but still lacks utility lineups, AI buying tuning, real long-round verification and final competitive balance. The current route graph is a tested tactical foundation, not a claim of final competitive balance.
 
 Run all native regression suites from the repository root:
 

@@ -3,6 +3,27 @@
   "name": "Core Vault",
   "designRevision": "core-vault-visual-v1",
   "gameplayRevision": "core-vault-tactical-routes-v1",
+  "timingTargets": {
+    "attackerFirstContactSeconds": [8.0, 9.0],
+    "siteToSiteRotationSeconds": [9.5, 11.0],
+    "measurementStatus": "measured-2026-07-31"
+  },
+  "timingMeasurements": {
+    "method": "Player capsule move_and_collide sweep at 0.2 meter increments",
+    "measuredAt": "2026-07-31",
+    "westFirstContactSeconds": 8.23,
+    "midFirstContactSeconds": 8.42,
+    "eastFirstContactSeconds": 8.23,
+    "siteToSiteRotationSeconds": 10.16,
+    "allSweepsClear": true
+  },
+  "semanticVolumes": {
+    "ladderStatus": "none-natural",
+    "waterStatus": "none-natural",
+    "note": "Core Vault has no natural ladder or water geometry; keep semantic arrays empty instead of forcing volumes."
+  },
+  "ladders": [],
+  "waterVolumes": [],
   "visual_scene": "res://assets/models/core_vault/core_vault.glb",
   "arenaSize": 56,
   "boundaryHeight": 6,
