@@ -16,9 +16,19 @@ signal ai_footstep(world_position: Vector3, surface: String, quiet: bool)
 var c4_device: Node3D
 var _current_level_data: Dictionary = {}
 var _bomb_carrier_actor: CharacterBody3D
+var _loaded_level_id: String = ""
+var _saved_round_loadouts: Dictionary = {}
+
+func _ready() -> void:
+	if not RoundManager.round_ended.is_connected(_on_round_ended_capture):
+		RoundManager.round_ended.connect(_on_round_ended_capture)
 
 func load_for_level(level_data: Dictionary) -> void:
 	_clear_targets()
+	var level_id := String(level_data.get("id", ""))
+	if _loaded_level_id != level_id:
+		_loaded_level_id = level_id
+		_saved_round_loadouts.clear()
 	_current_level_data = level_data
 	_bomb_carrier_actor = null
 	if dummy_scene == null:
@@ -32,6 +42,13 @@ func load_for_level(level_data: Dictionary) -> void:
 		if not record_variant is Dictionary:
 			continue
 		var record := record_variant as Dictionary
+		var saved_loadout: Dictionary = _saved_round_loadouts.get(String(record.get("name", "")), {})
+		if not saved_loadout.is_empty():
+			record["weapon"] = saved_loadout.get("weapon", record.get("weapon", "rifle"))
+			record["weaponAmmoMag"] = saved_loadout.get("ammo_in_mag", 30)
+			record["weaponAmmoReserve"] = saved_loadout.get("ammo_reserve", 0)
+			record["armor"] = saved_loadout.get("armor", 0)
+			record["defuseKit"] = saved_loadout.get("defuse_kit", false)
 		var target_instance := dummy_scene.instantiate()
 		if not target_instance is Node3D:
 			continue
@@ -65,6 +82,7 @@ func load_for_level(level_data: Dictionary) -> void:
 	targets_spawned.emit(enemy_count)
 	combatants_spawned.emit(friendly_count, enemy_count)
 	_assign_bomb_roles(level_data)
+	_sync_team_economy()
 
 func set_c4_device(device: Node3D) -> void:
 	c4_device = device
@@ -125,6 +143,36 @@ func _assign_bomb_roles(level_data: Dictionary) -> void:
 			actor.set("has_defuse_kit", true)
 			if actor.has_method("set_ai_defuse_kit"):
 				actor.call("set_ai_defuse_kit", true)
+
+func _sync_team_economy() -> void:
+	var team_money_totals := {"T": 0, "CT": 0}
+	for child in get_children():
+		if child is CharacterBody3D and (child as CharacterBody3D).has_node("TacticalBotBrain"):
+			var team := String((child as CharacterBody3D).get("team"))
+			if team in team_money_totals:
+				team_money_totals[team] = int(team_money_totals[team]) + int((child as CharacterBody3D).get_node("TacticalBotBrain").get("ai_money"))
+	for child in get_children():
+		if child is CharacterBody3D and (child as CharacterBody3D).has_node("TacticalBotBrain"):
+			var team := String((child as CharacterBody3D).get("team"))
+			var loss_streak := GameState.loss_streak if team == GameState.player_team else 0
+			(child as CharacterBody3D).get_node("TacticalBotBrain").call(
+				"set_team_economy",
+				int(team_money_totals.get(team, 0)),
+				loss_streak
+			)
+
+func _on_round_ended_capture(_winner: String, _reason: String) -> void:
+	for child in get_children():
+		if child is CharacterBody3D and not bool((child as CharacterBody3D).get("is_dead")):
+			var snapshot := (child as CharacterBody3D).call("get_combat_snapshot") as Dictionary
+			var ai := snapshot.get("ai", {}) as Dictionary
+			_saved_round_loadouts[String(snapshot.get("name", ""))] = {
+				"weapon": String(snapshot.get("weapon", "rifle")),
+				"ammo_in_mag": int(ai.get("ammo", 30)),
+				"ammo_reserve": int(ai.get("ammo_reserve", 0)),
+				"armor": int(snapshot.get("armor", 0)),
+				"defuse_kit": bool(snapshot.get("defuse_kit", false)),
+			}
 
 func _on_actor_killed(_actor_name: String, _team: String, actor: CharacterBody3D) -> void:
 	if actor != _bomb_carrier_actor:

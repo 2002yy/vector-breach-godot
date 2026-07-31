@@ -97,6 +97,8 @@ var recoil_compensation: float = 0.006
 var grenade_counts: Dictionary = {"he_grenade": 0, "flash_grenade": 0, "smoke_grenade": 0}
 var economy_mode: String = "force"
 var save_gun_enabled: bool = true
+var team_money: int = -1
+var team_loss_streak: int = 0
 
 var _route_points: Array[Vector3] = []
 var _route_index: int = 0
@@ -172,6 +174,11 @@ var _he_thrown_for_target: int = 0
 var _recoil_compensated_shots: int = 0
 var save_gun_active: bool = false
 
+const RECOIL_COMPENSATION_PATTERN := [
+	0.0, 0.004, 0.009, 0.015, 0.022, 0.03, 0.038, 0.046, 0.052, 0.056,
+	0.058, 0.058, 0.057, 0.055, 0.052, 0.049, 0.046, 0.043, 0.041, 0.04,
+]
+
 func setup(owner_actor: CharacterBody3D) -> void:
 	actor = owner_actor
 	_rng.seed = owner_actor.get_instance_id()
@@ -202,6 +209,14 @@ func configure(record: Dictionary) -> void:
 	_reset_weapon_ammo()
 	_reset_runtime()
 	_apply_configured_grenades(record)
+	var saved_mag := int(record.get("weaponAmmoMag", -1))
+	var saved_reserve := int(record.get("weaponAmmoReserve", -1))
+	if saved_mag >= 0 and _weapon_ammo.has(primary_weapon_id):
+		_weapon_ammo[primary_weapon_id] = clampi(saved_mag, 0, int(WEAPON_PROFILES[primary_weapon_id].get("magazine", 30)))
+		if _current_weapon_id == primary_weapon_id:
+			ammo_in_mag = int(_weapon_ammo[primary_weapon_id])
+	if saved_reserve >= 0 and _weapon_reserve.has(primary_weapon_id):
+		_weapon_reserve[primary_weapon_id] = maxi(0, saved_reserve)
 
 func tick(delta: float) -> void:
 	if actor == null or not enabled or bool(actor.get("is_dead")):
@@ -334,6 +349,16 @@ func configure_objective(role: String, target: Vector3, site_label: String = "",
 	plant_site_label = site_label
 	bomb_carrier = carrier
 
+func set_team_economy(team_money_value: int, loss_streak_value: int) -> void:
+	team_money = maxi(0, team_money_value)
+	team_loss_streak = maxi(0, loss_streak_value)
+	if team_money >= 9000:
+		economy_mode = "force"
+	elif team_money >= 4500:
+		economy_mode = "half"
+	else:
+		economy_mode = "eco"
+
 func set_c4_device(device: Node3D) -> void:
 	_c4_device = device
 	_refresh_c4_knowledge()
@@ -415,6 +440,8 @@ func get_snapshot() -> Dictionary:
 		"grenade_cooldown": _grenade_cooldown,
 		"economy_mode": economy_mode,
 		"saving_gun": save_gun_active,
+		"team_money": team_money,
+		"team_loss_streak": team_loss_streak,
 	}
 
 func reset_runtime() -> void:
@@ -481,6 +508,8 @@ func _reset_runtime() -> void:
 	_recoil_compensated_shots = 0
 	economy_mode = "force"
 	save_gun_active = false
+	team_money = -1
+	team_loss_streak = 0
 
 func _find_local_target() -> CharacterBody3D:
 	if not combat_enabled:
@@ -592,7 +621,8 @@ func _fire_shot(target_point: Vector3) -> void:
 	var right: Vector3 = direction.cross(Vector3.UP).normalized()
 	var up: Vector3 = right.cross(direction).normalized()
 	if recoil_compensation > 0.0 and _shots_in_burst > 1:
-		var compensation_drop := minf(0.05, float(_shots_in_burst - 1) * recoil_compensation)
+		var pattern_index := mini(_shots_in_burst - 1, RECOIL_COMPENSATION_PATTERN.size() - 1)
+		var compensation_drop: float = float(RECOIL_COMPENSATION_PATTERN[pattern_index]) * (recoil_compensation / 0.006)
 		direction = (direction + Vector3.DOWN * compensation_drop).normalized()
 		_recoil_compensated_shots += 1
 	var error_scale := 0.0045 + float(_shots_in_burst - 1) * 0.0025
@@ -825,9 +855,12 @@ func _tick_freeze_purchase() -> void:
 	if _purchased_this_round:
 		return
 	_purchased_this_round = true
-	if ai_money >= 4200:
+	var economy_money := ai_money if team_money < 0 else team_money
+	var force_threshold := 9000 if team_money >= 0 else 4200
+	var half_threshold := 4500 if team_money >= 0 else 1800
+	if economy_money >= force_threshold:
 		economy_mode = "force"
-	elif ai_money >= 1800:
+	elif economy_money >= half_threshold:
 		economy_mode = "half"
 	else:
 		economy_mode = "eco"
@@ -907,8 +940,10 @@ func _throw_ai_grenade(kind: String, target_position: Vector3) -> bool:
 	var origin := actor.call("get_eye_position") as Vector3
 	var direction := (target_position - origin).normalized()
 	var distance := origin.distance_to(target_position)
-	var throw_speed := clampf(9.0 + distance * 0.65, 10.0, 16.5)
-	var throw_arc := clampf(1.6 + distance * 0.08, 1.8, 3.2)
+	var throw_speed := clampf(distance * 0.9, 8.0, 15.0)
+	var flight_time := distance / maxf(throw_speed, 0.01)
+	var gravity := float(ProjectSettings.get_setting("physics/3d/default_gravity"))
+	var throw_arc := 0.5 * gravity * flight_time
 	projectile.configure(kind, actor, origin, direction * throw_speed + Vector3.UP * throw_arc)
 	grenade_counts[kind] = int(grenade_counts.get(kind, 0)) - 1
 	_grenade_cooldown = 4.0
