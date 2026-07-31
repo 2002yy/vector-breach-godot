@@ -89,17 +89,24 @@ func _assign_bomb_roles(level_data: Dictionary) -> void:
 				ct_actors.append(child as CharacterBody3D)
 	var objectives: Array = level_data.get("objectives", []) as Array
 	var primary_objective := objectives[0] as Dictionary if not objectives.is_empty() else {"id": "site-a", "x": 0.0, "z": 0.0}
+	var secondary_objective := objectives[1] as Dictionary if objectives.size() > 1 else primary_objective
 	var primary_target := Vector3(float(primary_objective.get("x", 0.0)), 1.15, float(primary_objective.get("z", 0.0)))
 	var primary_site := "A" if String(primary_objective.get("id", "")).to_lower().contains("a") else "B"
+	var secondary_target := Vector3(float(secondary_objective.get("x", 0.0)), 1.15, float(secondary_objective.get("z", 0.0)))
+	var secondary_site := "A" if String(secondary_objective.get("id", "")).to_lower().contains("a") else "B"
 	var t_carrier_enabled := GameState.player_team != "T" and not t_actors.is_empty()
 	for index in range(t_actors.size()):
 		var actor := t_actors[index]
+		var role := "plant" if index == 0 else ("support" if index == 1 else "diversion")
+		var objective := primary_objective if index < 2 else secondary_objective
+		var site_target := Vector3(float(objective.get("x", 0.0)), 1.15, float(objective.get("z", 0.0)))
+		var site_label := "A" if String(objective.get("id", "")).to_lower().contains("a") else "B"
 		if actor.has_node("TacticalBotBrain"):
 			actor.get_node("TacticalBotBrain").call(
 				"configure_objective",
-				"plant",
-				primary_target,
-				primary_site,
+				role,
+				site_target,
+				site_label,
 				t_carrier_enabled and index == 0
 			)
 		if t_carrier_enabled and index == 0:

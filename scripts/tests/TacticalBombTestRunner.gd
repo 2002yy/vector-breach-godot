@@ -3,6 +3,7 @@ extends Node
 const ACTOR_SCENE = preload("res://scenes/combat/TacticalActor.tscn")
 const C4_SCENE = preload("res://scenes/objective/C4Device.tscn")
 const SANDBOX_SCENE = preload("res://scenes/combat/CombatSandbox.tscn")
+const WEAPON_PICKUP_SCRIPT = preload("res://scripts/combat/WorldWeaponPickup.gd")
 
 var _failures: PackedStringArray = []
 var _passes: int = 0
@@ -14,6 +15,11 @@ func _ready() -> void:
 	await _run_test("teammate_report_shared_to_same_team", _test_teammate_report_shared_to_same_team)
 	await _run_test("c4_drop_pickup_transfers_carrier", _test_c4_drop_pickup_transfers_carrier)
 	await _run_test("combat_sandbox_assigns_bomb_carrier", _test_combat_sandbox_assigns_bomb_carrier)
+	await _run_test("bot_buys_grenades_and_defuse_kit_in_freeze", _test_bot_buys_grenades_and_defuse_kit_in_freeze)
+	await _run_test("bot_throws_smoke_toward_objective_before_plant", _test_bot_throws_smoke_toward_objective_before_plant)
+	await _run_test("bot_uses_he_in_combat", _test_bot_uses_he_in_combat)
+	await _run_test("bot_picks_up_dropped_weapon", _test_bot_picks_up_dropped_weapon)
+	await _run_test("combat_sandbox_splits_t_roles_between_sites", _test_combat_sandbox_splits_t_roles_between_sites)
 	if _failures.is_empty():
 		print("[TacticalBombTests] PASS (%d tests)" % _passes)
 		get_tree().quit(0)
@@ -202,4 +208,98 @@ func _test_combat_sandbox_assigns_bomb_carrier() -> void:
 				carrier_found = true
 	_assert_true(carrier_found, "CombatSandbox should designate one T bot as bomb carrier when the player is CT")
 	_assert_equal(String((fixture.c4 as Node3D).get("device_state")), "carried", "C4 should start carried by the T side")
+	await _cleanup_fixture(fixture)
+
+func _test_bot_buys_grenades_and_defuse_kit_in_freeze() -> void:
+	var fixture := await _make_fixture()
+	var t_actor := _make_actor(fixture.world as Node3D, "T经济兵", "T", Vector3(0.0, 1.15, 4.0), {"aiMoney": 2000})
+	var ct_actor := _make_actor(fixture.world as Node3D, "CT经济兵", "CT", Vector3(0.0, 1.15, 8.0), {"aiMoney": 2000})
+	RoundManager.start_round()
+	for _frame in range(12):
+		await get_tree().physics_frame
+	var t_ai := (t_actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
+	var ct_ai := (ct_actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
+	_assert_true(int(((t_ai.get("grenades", {}) as Dictionary).get("smoke_grenade", 0))) == 1, "T bot should buy a smoke grenade during freeze")
+	_assert_true(int(t_ai.get("money", 800)) < 2000, "freeze purchases should consume bot money")
+	_assert_true(bool(((ct_actor.call("get_combat_snapshot") as Dictionary).get("objective", {}) as Dictionary).get("defuse_kit", false)), "CT bot should buy a defuse kit during freeze")
+	await _cleanup_fixture(fixture)
+
+func _test_bot_throws_smoke_toward_objective_before_plant() -> void:
+	var fixture := await _make_fixture()
+	var c4 := fixture.c4 as Node3D
+	c4.call("set_carried", "T")
+	var actor := _make_actor(fixture.world as Node3D, "T烟雾手", "T", Vector3(0.0, 1.15, 6.0), {"aiGrenades": {"smoke_grenade": 1}})
+	var brain := actor.get_node("TacticalBotBrain")
+	brain.call("set_c4_device", c4)
+	brain.call("configure_objective", "plant", Vector3(0.0, 1.15, 0.0), "A", true)
+	RoundManager.set_live()
+	RoundManager.bomb_carried = true
+	for _frame in range(20):
+		await get_tree().physics_frame
+	var smoke_thrown := false
+	for projectile_variant in get_tree().get_nodes_in_group("grenade_projectiles"):
+		if String(projectile_variant.get("grenade_type")) == "smoke_grenade":
+			smoke_thrown = true
+	var ai := (actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
+	_assert_true(smoke_thrown or int(((ai.get("grenades", {}) as Dictionary).get("smoke_grenade", 1))) == 0, "T bot should throw smoke toward the objective before planting")
+	await _cleanup_fixture(fixture)
+
+func _test_bot_uses_he_in_combat() -> void:
+	var fixture := await _make_fixture()
+	_make_actor(fixture.world as Node3D, "T目标", "T", Vector3(0.0, 1.15, -6.0))
+	var ct_actor := _make_actor(fixture.world as Node3D, "CT投弹手", "CT", Vector3(0.0, 1.15, 0.0), {"aiGrenades": {"he_grenade": 1}})
+	RoundManager.set_live()
+	for _frame in range(150):
+		await get_tree().physics_frame
+	var he_thrown := false
+	for projectile_variant in get_tree().get_nodes_in_group("grenade_projectiles"):
+		if String(projectile_variant.get("grenade_type")) == "he_grenade":
+			he_thrown = true
+	var ai := (ct_actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
+	_assert_true(he_thrown or int(((ai.get("grenades", {}) as Dictionary).get("he_grenade", 1))) == 0, "CT bot should throw HE at a close visible enemy")
+	await _cleanup_fixture(fixture)
+
+func _test_bot_picks_up_dropped_weapon() -> void:
+	var fixture := await _make_fixture()
+	var actor := _make_actor(fixture.world as Node3D, "T拾枪兵", "T", Vector3(0.0, 1.15, 0.0))
+	var pickup := WEAPON_PICKUP_SCRIPT.new()
+	(fixture.world as Node3D).add_child(pickup)
+	pickup.configure({"weapon_id": "rifle", "slot_index": 0, "ammo_in_mag": 15, "ammo_reserve": 30}, actor.global_position)
+	RoundManager.set_live()
+	for _frame in range(20):
+		await get_tree().physics_frame
+	var ai := (actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
+	_assert_true(not is_instance_valid(pickup), "nearby bot should consume the dropped weapon pickup")
+	_assert_true(int(ai.get("ammo", 0)) >= 45, "pickup should refill the bot primary weapon ammo")
+	await _cleanup_fixture(fixture)
+
+func _test_combat_sandbox_splits_t_roles_between_sites() -> void:
+	var fixture := await _make_fixture()
+	var sandbox := SANDBOX_SCENE.instantiate() as Node3D
+	(fixture.world as Node3D).add_child(sandbox)
+	sandbox.call("set_c4_device", fixture.c4 as Node3D)
+	var level_data := {
+		"id": "role-test",
+		"objectives": [{"id": "site-a", "x": 0.0, "z": -10.0}, {"id": "site-b", "x": 10.0, "z": -10.0}],
+		"routes": {"attack": [[0.0, 6.0], [0.0, -10.0]], "defend": [[0.0, -10.0]]},
+		"aiRouteProfiles": {},
+		"teamActors": [
+			{"name": "T1", "team": "T", "route": "attack", "x": 0.0, "z": 6.0, "aiEnabled": true},
+			{"name": "T2", "team": "T", "route": "attack", "x": 2.0, "z": 6.0, "aiEnabled": true},
+			{"name": "T3", "team": "T", "route": "attack", "x": 4.0, "z": 6.0, "aiEnabled": true},
+		],
+		"combatTargets": [{"name": "CT1", "team": "CT", "route": "defend", "x": 0.0, "z": -8.0, "aiEnabled": true}],
+	}
+	sandbox.call("load_for_level", level_data)
+	await get_tree().physics_frame
+	var roles: Array = []
+	var diversion_target_x := INF
+	for child in sandbox.get_children():
+		if child is CharacterBody3D and String((child as CharacterBody3D).get("team")) == "T":
+			var objective := ((child as CharacterBody3D).call("get_combat_snapshot") as Dictionary).get("objective", {}) as Dictionary
+			roles.append(String(objective.get("role", "")))
+			if String(objective.get("role", "")) == "diversion":
+				diversion_target_x = float((objective.get("target", Vector3.ZERO) as Vector3).x)
+	_assert_true("plant" in roles and "support" in roles and "diversion" in roles, "T roles should split between plant, support, and diversion")
+	_assert_true(diversion_target_x > 5.0, "diversion role should target the second objective site")
 	await _cleanup_fixture(fixture)

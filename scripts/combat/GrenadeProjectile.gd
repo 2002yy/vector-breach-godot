@@ -75,7 +75,10 @@ func _apply_he_damage() -> void:
 		var player_distance := global_position.distance_to(thrower.global_position)
 		if player_distance <= 7.0:
 			var self_damage := maxi(1, int(round(70.0 * pow(1.0 - player_distance / 7.0, 1.35) * _blast_cover_scale(thrower.global_position, thrower))))
-			thrower.call("apply_explosive_damage", self_damage)
+			if thrower.has_method("apply_explosive_damage"):
+				thrower.call("apply_explosive_damage", self_damage)
+			elif thrower.has_method("apply_hitscan_damage"):
+				thrower.call("apply_hitscan_damage", self_damage, thrower.global_position, 0.5, false)
 
 func _blast_cover_scale(target_position: Vector3, target_collider: Variant) -> float:
 	var query := PhysicsRayQueryParameters3D.create(global_position, target_position + Vector3.UP * 0.25)
@@ -86,21 +89,29 @@ func _blast_cover_scale(target_position: Vector3, target_collider: Variant) -> f
 	return 0.35
 
 func _apply_flash() -> void:
-	if not is_instance_valid(thrower):
+	var viewer: Node = null
+	if is_instance_valid(thrower):
+		if (thrower as Node).is_in_group("local_player"):
+			viewer = thrower as Node
+		else:
+			viewer = get_tree().get_first_node_in_group("local_player")
+	if viewer == null:
 		return
-	var camera := thrower.call("get_camera_node") as Camera3D
+	var camera := viewer.call("get_camera_node") as Camera3D
 	if camera == null:
 		return
 	var delta := global_position - camera.global_position
 	if delta.length() > 18.0:
 		return
 	var query := PhysicsRayQueryParameters3D.create(global_position, camera.global_position)
-	query.exclude = [get_rid(), thrower.get_rid()]
+	query.exclude = [get_rid()]
+	if is_instance_valid(thrower):
+		query.exclude.append(thrower.get_rid())
 	if not get_world_3d().direct_space_state.intersect_ray(query).is_empty():
 		return
 	var facing := clampf((-camera.global_transform.basis.z).dot(delta.normalized()), -1.0, 1.0)
 	var intensity := clampf((1.0 - delta.length() / 18.0) * lerpf(0.25, 1.0, maxf(facing, 0.0)), 0.0, 1.0)
-	thrower.call("apply_flash_effect", intensity, lerpf(0.5, 3.4, intensity))
+	viewer.call("apply_flash_effect", intensity, lerpf(0.5, 3.4, intensity))
 
 func _activate_smoke() -> void:
 	freeze = true

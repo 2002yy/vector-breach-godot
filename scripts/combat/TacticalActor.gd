@@ -1,6 +1,7 @@
 extends CharacterBody3D
 
 const DamageModel = preload("res://scripts/combat/DamageModel.gd")
+const WorldWeaponPickup = preload("res://scripts/combat/WorldWeaponPickup.gd")
 
 signal actor_killed(actor_name: String, team: String)
 signal ai_shot(result: Dictionary, world_position: Vector3)
@@ -105,6 +106,7 @@ func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, arm
 	ai_damaged.emit(resolved_position, source_team)
 	var killed := current_health == 0
 	if killed:
+		_drop_ai_weapon()
 		is_dead = true
 		collision_layer = 0
 		collision_mask = 0
@@ -149,6 +151,16 @@ func reset_actor() -> void:
 	_footstep_distance = 0.0
 	bot_brain.call("reset_runtime")
 	_apply_team_visual()
+
+func _drop_ai_weapon() -> void:
+	if bot_brain == null or get_tree() == null or get_tree().current_scene == null:
+		return
+	var record := bot_brain.call("get_weapon_pickup_record") as Dictionary
+	if record.is_empty():
+		return
+	var pickup := WorldWeaponPickup.new()
+	get_tree().current_scene.add_child(pickup)
+	pickup.configure(record, global_position)
 
 func get_eye_position() -> Vector3:
 	return global_position + Vector3.UP * (0.30 if ai_crouching else 0.62)

@@ -1,5 +1,7 @@
 extends Node
 
+const GrenadeProjectile = preload("res://scripts/combat/GrenadeProjectile.gd")
+
 enum State {
 	HOLD,
 	PATROL,
@@ -90,6 +92,9 @@ var dodge_min_range_meters: float = 3.5
 var dodge_max_range_meters: float = 18.0
 var damage_memory_seconds: float = 3.2
 var danger_memory_seconds: float = 5.0
+var ai_money: int = 800
+var recoil_compensation: float = 0.006
+var grenade_counts: Dictionary = {"he_grenade": 0, "flash_grenade": 0, "smoke_grenade": 0}
 
 var _route_points: Array[Vector3] = []
 var _route_index: int = 0
@@ -155,6 +160,12 @@ var _bomb_interacting: bool = false
 var _bomb_interaction_type: String = ""
 var _teammate_reports: Array[Dictionary] = []
 var _spot_emitted_target: int = 0
+var _grenade_cooldown: float = 0.0
+var _purchased_this_round: bool = false
+var _smoke_thrown_for_objective: bool = false
+var _flash_thrown_for_target: int = 0
+var _he_thrown_for_target: int = 0
+var _recoil_compensated_shots: int = 0
 
 func setup(owner_actor: CharacterBody3D) -> void:
 	actor = owner_actor
@@ -177,18 +188,22 @@ func configure(record: Dictionary) -> void:
 	crouch_during_combat_chance = clampf(float(record.get("aiCrouchChance", crouch_during_combat_chance)), 0.0, 1.0)
 	has_defuse_kit = bool(record.get("defuseKit", has_defuse_kit))
 	combat_enabled = bool(record.get("aiCombatEnabled", combat_enabled))
+	ai_money = clampi(int(record.get("aiMoney", ai_money)), 0, 16000)
+	recoil_compensation = clampf(float(record.get("aiRecoilCompensation", recoil_compensation)), 0.0, 0.05)
 	_route_points = _parse_route_points(record.get("routePoints", []))
 	_parse_navigation_graph(record.get("navigationGraph", {}))
 	_route_index = _nearest_route_index()
 	_route_direction = -1 if String(actor.get("team")) == "CT" else 1
 	_reset_weapon_ammo()
 	_reset_runtime()
+	_apply_configured_grenades(record)
 
 func tick(delta: float) -> void:
 	if actor == null or not enabled or bool(actor.get("is_dead")):
 		return
 	_shot_cooldown = maxf(0.0, _shot_cooldown - delta)
 	_burst_pause = maxf(0.0, _burst_pause - delta)
+	_grenade_cooldown = maxf(0.0, _grenade_cooldown - delta)
 	_repath_seconds = maxf(0.0, _repath_seconds - delta)
 	_heard_seconds += delta
 	_damage_seconds += delta
@@ -197,9 +212,12 @@ func tick(delta: float) -> void:
 	_tick_teammate_reports(delta)
 	_refresh_c4_knowledge()
 	if not RoundManager.can_player_move():
+		if RoundManager.can_buy():
+			_tick_freeze_purchase()
 		state = State.HOLD
 		_stop(delta)
 		return
+	_try_pickup_weapon_nearby()
 	if state == State.RELOAD:
 		_tick_reload(delta)
 		return
@@ -336,6 +354,14 @@ func get_objective_snapshot() -> Dictionary:
 		"teammate_reports": _teammate_reports.size(),
 	}
 
+func get_weapon_pickup_record() -> Dictionary:
+	return {
+		"weapon_id": _current_weapon_id,
+		"slot_index": int(WEAPON_PROFILES.get(_current_weapon_id, {}).get("slot", 0)),
+		"ammo_in_mag": ammo_in_mag,
+		"ammo_reserve": 0,
+	}
+
 func get_snapshot() -> Dictionary:
 	return {
 		"enabled": enabled,
@@ -372,6 +398,11 @@ func get_snapshot() -> Dictionary:
 		"defuse_kit": has_defuse_kit,
 		"bomb_interacting": _bomb_interacting,
 		"teammate_reports": _teammate_reports.size(),
+		"money": ai_money,
+		"grenades": grenade_counts.duplicate(true),
+		"recoil_compensation": recoil_compensation,
+		"recoil_compensated_shots": _recoil_compensated_shots,
+		"grenade_cooldown": _grenade_cooldown,
 	}
 
 func reset_runtime() -> void:
@@ -429,6 +460,13 @@ func _reset_runtime() -> void:
 	_bomb_interaction_type = ""
 	_teammate_reports.clear()
 	_spot_emitted_target = 0
+	grenade_counts = {"he_grenade": 0, "flash_grenade": 0, "smoke_grenade": 0}
+	_grenade_cooldown = 0.0
+	_purchased_this_round = false
+	_smoke_thrown_for_objective = false
+	_flash_thrown_for_target = 0
+	_he_thrown_for_target = 0
+	_recoil_compensated_shots = 0
 
 func _find_local_target() -> CharacterBody3D:
 	if not combat_enabled:
@@ -488,6 +526,7 @@ func _tick_engage(delta: float) -> void:
 	_update_combat_stance(delta)
 	_update_dodge(delta)
 	_update_weapon_selection(distance)
+	_maybe_throw_combat_grenade(_target)
 	if _current_weapon_id == "knife":
 		_dodge_active = 0.0
 		_dodge_timer = maxf(_dodge_timer, dodge_interval + _rng.randf_range(0.0, 0.55))
@@ -538,6 +577,10 @@ func _fire_shot(target_point: Vector3) -> void:
 	var direction: Vector3 = (target_point - origin).normalized()
 	var right: Vector3 = direction.cross(Vector3.UP).normalized()
 	var up: Vector3 = right.cross(direction).normalized()
+	if recoil_compensation > 0.0 and _shots_in_burst > 1:
+		var compensation_drop := minf(0.05, float(_shots_in_burst - 1) * recoil_compensation)
+		direction = (direction + Vector3.DOWN * compensation_drop).normalized()
+		_recoil_compensated_shots += 1
 	var error_scale := 0.0045 + float(_shots_in_burst - 1) * 0.0025
 	direction = (direction + right * _rng.randf_range(-error_scale, error_scale) + up * _rng.randf_range(-error_scale, error_scale)).normalized()
 	var query := PhysicsRayQueryParameters3D.create(origin, origin + direction * max_range, 1)
@@ -618,7 +661,7 @@ func _should_run_bomb_objective() -> bool:
 		return false
 	var team_name := String(actor.get("team"))
 	if team_name == "T":
-		return RoundManager.state in [RoundManager.RoundState.LIVE] and objective_role in ["plant", "defend_site"]
+		return RoundManager.state in [RoundManager.RoundState.LIVE] and objective_role in ["plant", "support", "diversion"]
 	if team_name == "CT":
 		return RoundManager.state in [RoundManager.RoundState.LIVE, RoundManager.RoundState.BOMB_PLANTED] and objective_role in ["defend_site", "retake", "defuse"]
 	return false
@@ -634,6 +677,7 @@ func _tick_t_side_objective(delta: float) -> void:
 	if not bomb_carrier and RoundManager.bomb_carried == false and _try_pick_up_c4():
 		bomb_carrier = true
 		RoundManager.bomb_carried = true
+	_maybe_throw_objective_smoke()
 	if not bomb_carrier:
 		_move_to_or_hold(delta, objective_target)
 		return
@@ -733,6 +777,98 @@ func _refresh_c4_knowledge() -> void:
 	_c4_known_state = device_state
 	if device_state in ["planted", "dropped"]:
 		_c4_known_position = _c4_device.global_position
+
+func _tick_freeze_purchase() -> void:
+	if _purchased_this_round:
+		return
+	_purchased_this_round = true
+	var team_name := String(actor.get("team"))
+	if int(actor.get("current_armor")) < 100 and ai_money >= 650:
+		ai_money -= 650
+		actor.set("current_armor", 100)
+	var grenade_kinds: Array[String] = ["smoke_grenade"]
+	if team_name == "CT":
+		grenade_kinds.append("flash_grenade")
+	for kind in grenade_kinds:
+		if int(grenade_counts.get(kind, 0)) > 0:
+			continue
+		var price := 300 if kind == "smoke_grenade" else 200
+		if ai_money >= price:
+			ai_money -= price
+			grenade_counts[kind] = 1
+	if team_name == "CT" and not has_defuse_kit and ai_money >= 400:
+		ai_money -= 400
+		has_defuse_kit = true
+		if actor.has_method("set_ai_defuse_kit"):
+			actor.call("set_ai_defuse_kit", true)
+
+func _apply_configured_grenades(record: Dictionary) -> void:
+	var grenade_variant: Variant = record.get("aiGrenades", {})
+	if not grenade_variant is Dictionary:
+		return
+	var configured := grenade_variant as Dictionary
+	for kind in grenade_counts:
+		if configured.has(kind):
+			grenade_counts[kind] = clampi(int(configured.get(kind, 0)), 0, 4)
+
+func _try_pickup_weapon_nearby() -> bool:
+	var tree := actor.get_tree()
+	if tree == null:
+		return false
+	for pickup_variant in tree.get_nodes_in_group("weapon_pickups"):
+		if not pickup_variant is Node3D:
+			continue
+		var pickup := pickup_variant as Node3D
+		if not pickup.has_method("can_pick_up") or not bool(pickup.call("can_pick_up", actor.global_position)):
+			continue
+		var weapon_id := String(pickup.get("weapon_record").get("weapon_id", "")) if pickup.get("weapon_record") is Dictionary else ""
+		if not _weapon_is_owned(weapon_id):
+			continue
+		var record: Dictionary = pickup.get("weapon_record")
+		var picked_ammo := int(record.get("ammo_in_mag", 0)) + int(record.get("ammo_reserve", 0))
+		_weapon_ammo[weapon_id] = maxi(int(_weapon_ammo.get(weapon_id, 0)), picked_ammo)
+		if _current_weapon_id == weapon_id:
+			ammo_in_mag = int(_weapon_ammo.get(weapon_id, 0))
+		pickup.queue_free()
+		return true
+	return false
+
+func _throw_ai_grenade(kind: String, target_position: Vector3) -> bool:
+	if _grenade_cooldown > 0.0 or int(grenade_counts.get(kind, 0)) <= 0:
+		return false
+	var tree := actor.get_tree()
+	if tree == null or tree.current_scene == null:
+		return false
+	var projectile := GrenadeProjectile.new()
+	tree.current_scene.add_child(projectile)
+	var origin := actor.call("get_eye_position") as Vector3
+	var direction := (target_position - origin).normalized()
+	projectile.configure(kind, actor, origin, direction * 13.0 + Vector3.UP * 2.2)
+	grenade_counts[kind] = int(grenade_counts.get(kind, 0)) - 1
+	_grenade_cooldown = 4.0
+	record_dynamic_danger(origin, 0.35)
+	return true
+
+func _maybe_throw_combat_grenade(target: CharacterBody3D) -> void:
+	var distance := actor.global_position.distance_to(target.global_position)
+	var target_id := target.get_instance_id()
+	if int(grenade_counts.get("flash_grenade", 0)) > 0 and distance <= 14.0 and _flash_thrown_for_target != target_id:
+		_flash_thrown_for_target = target_id
+		if _throw_ai_grenade("flash_grenade", target.global_position + Vector3.UP * 0.5):
+			_burst_pause = maxf(_burst_pause, 0.65)
+		return
+	if int(grenade_counts.get("he_grenade", 0)) > 0 and distance <= 12.0 and _he_thrown_for_target != target_id:
+		_he_thrown_for_target = target_id
+		if _throw_ai_grenade("he_grenade", target.global_position):
+			_burst_pause = maxf(_burst_pause, 0.65)
+
+func _maybe_throw_objective_smoke() -> void:
+	if _smoke_thrown_for_objective or int(grenade_counts.get("smoke_grenade", 0)) <= 0:
+		return
+	if not objective_target.is_finite() or actor.global_position.distance_to(objective_target) > 16.0:
+		return
+	if _throw_ai_grenade("smoke_grenade", objective_target):
+		_smoke_thrown_for_objective = true
 
 func _tick_teammate_reports(delta: float) -> void:
 	var retained: Array[Dictionary] = []
