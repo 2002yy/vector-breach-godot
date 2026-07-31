@@ -7,6 +7,7 @@ enum State {
 	ACQUIRE,
 	ENGAGE,
 	RELOAD,
+	OBJECTIVE,
 	HOLD_ANGLE,
 	RETREAT,
 }
@@ -78,13 +79,15 @@ var secondary_weapon_id: String = "pistol"
 var has_knife: bool = true
 var retreat_health_ratio: float = 0.35
 var hold_angle_seconds: float = 1.25
-var dodge_interval: float = 0.72
-var dodge_duration: float = 0.30
+var dodge_interval: float = 0.9
+var dodge_duration: float = 0.22
 var crouch_during_combat_chance: float = 0.34
 var tap_range_meters: float = 22.0
 var spray_range_meters: float = 8.0
 var melee_switch_range_meters: float = 2.4
 var melee_commit_range_meters: float = 3.4
+var dodge_min_range_meters: float = 3.5
+var dodge_max_range_meters: float = 18.0
 var damage_memory_seconds: float = 3.2
 var danger_memory_seconds: float = 5.0
 
@@ -125,6 +128,7 @@ var _dodge_timer: float = 0.0
 var _dodge_active: float = 0.0
 var _dodge_direction: Vector3 = Vector3.ZERO
 var _dodge_count: int = 0
+var _dodge_flip: bool = false
 var _crouch_timer: float = 0.0
 var _crouch_active: float = 0.0
 var _crouch_count: int = 0
@@ -136,6 +140,21 @@ var _damage_seconds: float = 999.0
 var _damage_count: int = 0
 var _damage_position: Vector3 = Vector3.ZERO
 var _danger_events: Array[Dictionary] = []
+var objective_role: String = ""
+var objective_target: Vector3 = Vector3.INF
+var plant_site_label: String = ""
+var bomb_carrier: bool = false
+var has_defuse_kit: bool = false
+var combat_enabled: bool = true
+var plant_radius_meters: float = 3.0
+var defuse_radius_meters: float = 2.0
+var _c4_device: Node3D
+var _c4_known_position: Vector3 = Vector3.INF
+var _c4_known_state: String = ""
+var _bomb_interacting: bool = false
+var _bomb_interaction_type: String = ""
+var _teammate_reports: Array[Dictionary] = []
+var _spot_emitted_target: int = 0
 
 func setup(owner_actor: CharacterBody3D) -> void:
 	actor = owner_actor
@@ -156,6 +175,8 @@ func configure(record: Dictionary) -> void:
 	hold_angle_seconds = clampf(float(record.get("aiHoldAngleSeconds", hold_angle_seconds)), 0.2, 5.0)
 	damage_memory_seconds = clampf(float(record.get("aiDamageMemorySeconds", damage_memory_seconds)), 0.5, 8.0)
 	crouch_during_combat_chance = clampf(float(record.get("aiCrouchChance", crouch_during_combat_chance)), 0.0, 1.0)
+	has_defuse_kit = bool(record.get("defuseKit", has_defuse_kit))
+	combat_enabled = bool(record.get("aiCombatEnabled", combat_enabled))
 	_route_points = _parse_route_points(record.get("routePoints", []))
 	_parse_navigation_graph(record.get("navigationGraph", {}))
 	_route_index = _nearest_route_index()
@@ -173,6 +194,8 @@ func tick(delta: float) -> void:
 	_damage_seconds += delta
 	_lost_sight_seconds += delta
 	_tick_danger_memory(delta)
+	_tick_teammate_reports(delta)
+	_refresh_c4_knowledge()
 	if not RoundManager.can_player_move():
 		state = State.HOLD
 		_stop(delta)
@@ -183,6 +206,9 @@ func tick(delta: float) -> void:
 	if state == State.RETREAT:
 		_tick_retreat(delta)
 		return
+	if _bomb_interacting:
+		_tick_bomb_interaction(delta)
+		return
 
 	_target = _find_local_target()
 	var visible := _target != null and _can_see(_target)
@@ -191,6 +217,12 @@ func tick(delta: float) -> void:
 		_last_known_position = _target.global_position
 		_visible_seconds += delta
 		_hold_angle_timer = hold_angle_seconds
+		if _target != null and _visible_seconds >= reaction_time and _spot_emitted_target != _target.get_instance_id():
+			_spot_emitted_target = _target.get_instance_id()
+			var enemy_team := GameState.player_team
+			if _target.is_in_group("combat_actors"):
+				enemy_team = String(_target.get("team"))
+			actor.call("emit_ai_spot", _target.global_position, enemy_team)
 		if _visible_seconds < reaction_time:
 			state = State.ACQUIRE
 			_aim_at(_target.global_position + Vector3.UP * 0.18, delta, aim_acquisition_time)
@@ -200,10 +232,25 @@ func tick(delta: float) -> void:
 			_tick_engage(delta)
 		return
 	_visible_seconds = 0.0
+	_spot_emitted_target = 0
 
 	if _hold_angle_timer > 0.0:
 		state = State.HOLD_ANGLE
 		_tick_hold_angle(delta)
+		return
+
+	if _should_run_bomb_objective():
+		state = State.OBJECTIVE
+		_tick_bomb_objective(delta)
+		return
+
+	if not _teammate_reports.is_empty() and _heard_seconds > hearing_memory_seconds:
+		state = State.INVESTIGATE
+		var report_position := _nearest_teammate_report()
+		if actor.global_position.distance_to(report_position) <= 1.0:
+			_stop(delta)
+		else:
+			_move_toward(report_position, delta)
 		return
 
 	if _heard_seconds <= hearing_memory_seconds:
@@ -254,6 +301,41 @@ func record_dynamic_danger(world_position: Vector3, intensity: float = 0.7) -> v
 	if _danger_events.size() > 8:
 		_danger_events.pop_front()
 
+func configure_objective(role: String, target: Vector3, site_label: String = "", carrier: bool = false) -> void:
+	objective_role = role
+	objective_target = target
+	plant_site_label = site_label
+	bomb_carrier = carrier
+
+func set_c4_device(device: Node3D) -> void:
+	_c4_device = device
+	_refresh_c4_knowledge()
+
+func set_defuse_kit(has_kit: bool) -> void:
+	has_defuse_kit = has_kit
+
+func set_ai_combat_enabled(enabled_combat: bool) -> void:
+	combat_enabled = enabled_combat
+
+func notify_teammate_report(world_position: Vector3, enemy_team: String) -> void:
+	if actor == null or not enabled:
+		return
+	_teammate_reports.append({"position": world_position, "remaining": 4.5})
+	if _teammate_reports.size() > 6:
+		_teammate_reports.pop_front()
+
+func get_objective_snapshot() -> Dictionary:
+	return {
+		"role": objective_role,
+		"target": objective_target,
+		"site": plant_site_label,
+		"carrier": bomb_carrier,
+		"interacting": _bomb_interacting,
+		"interaction_type": _bomb_interaction_type,
+		"defuse_kit": has_defuse_kit,
+		"teammate_reports": _teammate_reports.size(),
+	}
+
 func get_snapshot() -> Dictionary:
 	return {
 		"enabled": enabled,
@@ -284,6 +366,12 @@ func get_snapshot() -> Dictionary:
 		"retreating": _retreat_seconds > 0.0,
 		"danger_events": _danger_events.size(),
 		"equip_seconds": _equip_seconds,
+		"objective_role": objective_role,
+		"objective_target": objective_target,
+		"bomb_carrier": bomb_carrier,
+		"defuse_kit": has_defuse_kit,
+		"bomb_interacting": _bomb_interacting,
+		"teammate_reports": _teammate_reports.size(),
 	}
 
 func reset_runtime() -> void:
@@ -319,6 +407,7 @@ func _reset_runtime() -> void:
 	_dodge_active = 0.0
 	_dodge_direction = Vector3.ZERO
 	_dodge_count = 0
+	_dodge_flip = false
 	_crouch_timer = 0.0
 	_crouch_active = 0.0
 	_crouch_count = 0
@@ -330,12 +419,38 @@ func _reset_runtime() -> void:
 	_damage_count = 0
 	_damage_position = Vector3.ZERO
 	_danger_events.clear()
+	objective_role = ""
+	objective_target = Vector3.INF
+	plant_site_label = ""
+	bomb_carrier = false
+	_c4_known_position = Vector3.INF
+	_c4_known_state = ""
+	_bomb_interacting = false
+	_bomb_interaction_type = ""
+	_teammate_reports.clear()
+	_spot_emitted_target = 0
 
 func _find_local_target() -> CharacterBody3D:
+	if not combat_enabled:
+		return null
+	var my_team := String(actor.get("team"))
+	var best_target: CharacterBody3D = null
+	var best_distance := INF
 	var candidate := actor.get_tree().get_first_node_in_group("local_player")
-	if candidate is CharacterBody3D and not bool(candidate.get("is_dead")) and String(actor.get("team")) != GameState.player_team:
-		return candidate as CharacterBody3D
-	return null
+	if candidate is CharacterBody3D and not bool(candidate.get("is_dead")) and my_team != GameState.player_team:
+		best_target = candidate as CharacterBody3D
+		best_distance = actor.global_position.distance_squared_to(candidate.global_position)
+	for candidate_variant in actor.get_tree().get_nodes_in_group("combat_actors"):
+		if not candidate_variant is CharacterBody3D:
+			continue
+		var combatant := candidate_variant as CharacterBody3D
+		if combatant == actor or bool(combatant.get("is_dead")) or String(combatant.get("team")) == my_team:
+			continue
+		var distance := actor.global_position.distance_squared_to(combatant.global_position)
+		if distance < best_distance:
+			best_target = combatant
+			best_distance = distance
+	return best_target
 
 func _can_see(target: CharacterBody3D) -> bool:
 	var eye := actor.call("get_eye_position") as Vector3
@@ -498,6 +613,148 @@ func _tick_retreat(delta: float) -> void:
 	):
 		_fire_shot(_target.global_position + Vector3.UP * 0.18)
 
+func _should_run_bomb_objective() -> bool:
+	if objective_role.is_empty() or not objective_target.is_finite():
+		return false
+	var team_name := String(actor.get("team"))
+	if team_name == "T":
+		return RoundManager.state in [RoundManager.RoundState.LIVE] and objective_role in ["plant", "defend_site"]
+	if team_name == "CT":
+		return RoundManager.state in [RoundManager.RoundState.LIVE, RoundManager.RoundState.BOMB_PLANTED] and objective_role in ["defend_site", "retake", "defuse"]
+	return false
+
+func _tick_bomb_objective(delta: float) -> void:
+	var team_name := String(actor.get("team"))
+	if team_name == "T":
+		_tick_t_side_objective(delta)
+	else:
+		_tick_ct_side_objective(delta)
+
+func _tick_t_side_objective(delta: float) -> void:
+	if not bomb_carrier and RoundManager.bomb_carried == false and _try_pick_up_c4():
+		bomb_carrier = true
+		RoundManager.bomb_carried = true
+	if not bomb_carrier:
+		_move_to_or_hold(delta, objective_target)
+		return
+	if not objective_target.is_finite():
+		_stop(delta)
+		return
+	_move_to_or_hold(delta, objective_target)
+	if (
+		actor.global_position.distance_to(objective_target) <= plant_radius_meters
+		and not RoundManager.is_objective_interacting()
+		and RoundManager.bomb_carried
+	):
+		_begin_plant()
+
+func _tick_ct_side_objective(delta: float) -> void:
+	var bomb_planted := RoundManager.state == RoundManager.RoundState.BOMB_PLANTED
+	if bomb_planted:
+		var destination := _c4_known_position if _c4_known_position.is_finite() else objective_target
+		_move_to_or_hold(delta, destination)
+		if (
+			_c4_device != null
+			and is_instance_valid(_c4_device)
+			and actor.global_position.distance_to(_c4_device.global_position) <= defuse_radius_meters
+			and not RoundManager.is_objective_interacting()
+		):
+			_begin_defuse()
+	else:
+		_move_to_or_hold(delta, objective_target)
+
+func _move_to_or_hold(delta: float, destination: Vector3) -> void:
+	if not destination.is_finite():
+		_stop(delta)
+		return
+	if actor.global_position.distance_to(destination) <= 1.2:
+		_stop(delta)
+		_aim_at(destination, delta, 0.25)
+	else:
+		_move_toward(destination, delta)
+
+func _try_pick_up_c4() -> bool:
+	if _c4_device == null or not is_instance_valid(_c4_device):
+		return false
+	if not bool(_c4_device.call("can_pick_up", actor.global_position, "T")):
+		return false
+	return bool(_c4_device.call("pick_up", "T"))
+
+func _begin_plant() -> void:
+	if _c4_device == null or not is_instance_valid(_c4_device):
+		return
+	if not RoundManager.begin_plant(plant_site_label, "T", "ai"):
+		return
+	_bomb_interacting = true
+	_bomb_interaction_type = "plant"
+
+func _begin_defuse() -> void:
+	if _c4_device == null or not is_instance_valid(_c4_device):
+		return
+	if not RoundManager.begin_defuse("CT", has_defuse_kit, "ai"):
+		return
+	_bomb_interacting = true
+	_bomb_interaction_type = "defuse"
+
+func _tick_bomb_interaction(delta: float) -> void:
+	_stop(delta)
+	if not RoundManager.is_objective_interacting():
+		_bomb_interacting = false
+		_bomb_interaction_type = ""
+		return
+	var still_valid := false
+	if _bomb_interaction_type == "plant":
+		still_valid = actor.global_position.distance_to(objective_target) <= plant_radius_meters and RoundManager.bomb_carried
+	elif _bomb_interaction_type == "defuse":
+		still_valid = (
+			_c4_device != null
+			and is_instance_valid(_c4_device)
+			and actor.global_position.distance_to(_c4_device.global_position) <= defuse_radius_meters
+		)
+	var completed := RoundManager.tick_objective_interaction(delta, still_valid)
+	if completed:
+		if _bomb_interaction_type == "plant" and _c4_device != null and is_instance_valid(_c4_device):
+			_c4_device.call("plant_at", actor.global_position - Vector3(0.0, 0.82, 0.0), plant_site_label)
+			bomb_carrier = false
+			RoundManager.bomb_carried = false
+		elif _bomb_interaction_type == "defuse" and _c4_device != null and is_instance_valid(_c4_device):
+			_c4_device.call("set_carried", "CT")
+		_bomb_interacting = false
+		_bomb_interaction_type = ""
+	elif not still_valid:
+		RoundManager.cancel_objective_interaction()
+		_bomb_interacting = false
+		_bomb_interaction_type = ""
+
+func _refresh_c4_knowledge() -> void:
+	if _c4_device == null or not is_instance_valid(_c4_device):
+		return
+	var device_state := String(_c4_device.get("device_state"))
+	_c4_known_state = device_state
+	if device_state in ["planted", "dropped"]:
+		_c4_known_position = _c4_device.global_position
+
+func _tick_teammate_reports(delta: float) -> void:
+	var retained: Array[Dictionary] = []
+	for report_variant in _teammate_reports:
+		var report := report_variant.duplicate(true)
+		report["remaining"] = float(report.get("remaining", 0.0)) - delta
+		if float(report.get("remaining", 0.0)) > 0.0:
+			retained.append(report)
+	_teammate_reports = retained
+
+func _nearest_teammate_report() -> Vector3:
+	var best_position := _last_known_position
+	var best_distance := INF
+	for report_variant in _teammate_reports:
+		var report := report_variant as Dictionary
+		var report_position := report.get("position", Vector3.ZERO) as Vector3
+		var distance := actor.global_position.distance_squared_to(report_position)
+		if distance < best_distance:
+			best_distance = distance
+			best_position = report_position
+	return best_position
+
 func _update_combat_stance(delta: float) -> void:
 	_crouch_active = maxf(0.0, _crouch_active - delta)
 	if _crouch_active > 0.0:
@@ -517,20 +774,27 @@ func _update_dodge(delta: float) -> void:
 	_dodge_timer = maxf(0.0, _dodge_timer - delta)
 	if _dodge_timer > 0.0:
 		return
-	_dodge_timer = dodge_interval + _rng.randf_range(0.0, 0.55)
+	var target_distance := INF
+	if _target != null:
+		target_distance = actor.global_position.distance_to(_target.global_position)
+	if target_distance < dodge_min_range_meters or target_distance > dodge_max_range_meters:
+		_dodge_timer = 0.45
+		return
+	_dodge_timer = dodge_interval + _rng.randf_range(0.0, 0.45)
 	_dodge_active = dodge_duration
 	_dodge_count += 1
+	_dodge_flip = not _dodge_flip
 	var aim_forward := -actor.global_transform.basis.z
 	aim_forward.y = 0.0
 	if aim_forward.length_squared() <= 0.001:
 		aim_forward = Vector3.FORWARD
 	_dodge_direction = aim_forward.normalized().rotated(
 		Vector3.UP,
-		PI * 0.5 if _rng.randf() < 0.5 else -PI * 0.5
+		PI * 0.5 if _dodge_flip else -PI * 0.5
 	)
 
 func _strafe_dodge(delta: float) -> void:
-	actor.call("apply_ai_navigation", _dodge_direction, move_speed * 0.82, actor.global_position.y, delta)
+	actor.call("apply_ai_navigation", _dodge_direction, move_speed * 0.58, actor.global_position.y, delta)
 
 func _update_weapon_selection(distance: float) -> void:
 	var desired := primary_weapon_id

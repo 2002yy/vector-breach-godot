@@ -1,6 +1,6 @@
 # Core Vault Design Record
 
-Last updated: 2026-07-23
+Last updated: 2026-07-31
 Data revision: `core-vault-visual-v1`
 Gameplay revision: `core-vault-tactical-routes-v1`
 
@@ -33,11 +33,12 @@ The legacy array remains as traceability data. `GrayboxLevelTestRunner` verifies
 - Two outer-ring and two vault-side approaches feed objective zones on opposing sides of the core.
 - A south rotation path connects both sites by clearing the inner wall and cover envelopes.
 - Each main route carries authored danger, cover, and precision metadata consumed by the shared AI graph.
-- Three enabled CT defenders exercise the west, rotation, and east branches; the route probe validates 44 nodes and 54 attributed links.
+- Three enabled T attackers and three enabled CT defenders exercise the west, rotation, and east branches; the route probe validates 44 nodes and 54 attributed links.
+- The rotation defender carries a defuse kit; when the player is CT, CombatSandbox designates one T bot as the C4 carrier and assigns CT bots defend-site roles.
 
 ## Known design gaps
 
-Core Vault still has no semantic ladder/water volumes, measured long-round timing, utility lineups, or bomb-specific AI decisions. The current route graph is a tested tactical foundation, not a claim of final competitive balance.
+Core Vault has basic bomb AI (T carry/plant, CT retake/defuse) but still has no semantic ladder/water volumes, measured long-round timing, utility lineups, AI buying, or final competitive balance. The current route graph is a tested tactical foundation, not a claim of final competitive balance.
 
 Run all native regression suites from the repository root:
 

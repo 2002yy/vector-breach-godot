@@ -125,12 +125,14 @@
     {"team": "CT", "route": "eastOuter", "x": 15, "z": -24}
   ],
   "teamActors": [
-    {"name": "T方路线观察员", "team": "friendly", "x": -5, "y": 1.15, "z": 48, "yawDegrees": 180, "armor": 100, "helmet": true, "weapon": "rifle"}
+    {"name": "T西环突击手", "team": "T", "route": "westOuter", "x": -5, "y": 1.15, "z": 48, "yawDegrees": 180, "armor": 100, "helmet": true, "weapon": "rifle", "aiEnabled": true},
+    {"name": "T中路突破手", "team": "T", "route": "vaultWest", "x": 0, "y": 1.15, "z": 50, "yawDegrees": 180, "armor": 100, "helmet": true, "weapon": "rifle", "aiEnabled": true},
+    {"name": "T东环突击手", "team": "T", "route": "eastOuter", "x": 5, "y": 1.15, "z": 48, "yawDegrees": 180, "armor": 100, "helmet": true, "weapon": "rifle", "aiEnabled": true}
   ],
   "combatTargets": [
-    {"name": "CT西环守卫", "team": "enemy", "route": "westOuter", "x": -15, "z": -24, "armor": 100, "helmet": true, "aiEnabled": true},
-    {"name": "CT轮转守卫", "team": "enemy", "route": "defenderRotation", "x": 0, "z": -27, "armor": 100, "helmet": true, "aiEnabled": true},
-    {"name": "CT东环守卫", "team": "enemy", "route": "eastOuter", "x": 15, "z": -24, "armor": 100, "helmet": true, "aiEnabled": true}
+    {"name": "CT西环守卫", "team": "CT", "route": "westOuter", "x": -15, "z": -24, "armor": 100, "helmet": true, "aiEnabled": true},
+    {"name": "CT轮转守卫", "team": "CT", "route": "defenderRotation", "x": 0, "z": -27, "armor": 100, "helmet": true, "defuseKit": true, "aiEnabled": true},
+    {"name": "CT东环守卫", "team": "CT", "route": "eastOuter", "x": 15, "z": -24, "armor": 100, "helmet": true, "aiEnabled": true}
   ],
   "objectives": [
     {"id": "site-a", "x": -10, "z": -9, "radius": 4.5, "approaches": ["westOuter", "vaultWest"], "defenderRotation": "defenderRotation"},

@@ -13,8 +13,14 @@ signal ai_footstep(world_position: Vector3, surface: String, quiet: bool)
 @export var dummy_height: float = 1.15
 @export var fallback_spacing: float = 6.0
 
+var c4_device: Node3D
+var _current_level_data: Dictionary = {}
+var _bomb_carrier_actor: CharacterBody3D
+
 func load_for_level(level_data: Dictionary) -> void:
 	_clear_targets()
+	_current_level_data = level_data
+	_bomb_carrier_actor = null
 	if dummy_scene == null:
 		targets_spawned.emit(0)
 		combatants_spawned.emit(0, 0)
@@ -43,6 +49,14 @@ func load_for_level(level_data: Dictionary) -> void:
 			target_node.connect("ai_shot", _on_actor_ai_shot)
 		if target_node.has_signal("ai_footstep"):
 			target_node.connect("ai_footstep", _on_actor_ai_footstep)
+		if target_node.has_signal("ai_spot"):
+			target_node.connect("ai_spot", _on_actor_ai_spot.bind(target_node))
+		if target_node.has_signal("ai_damaged"):
+			target_node.connect("ai_damaged", _on_actor_ai_damaged.bind(target_node))
+		if target_node.has_signal("actor_killed"):
+			target_node.connect("actor_killed", _on_actor_killed.bind(target_node))
+		if c4_device != null and target_node.has_method("set_ai_c4_device"):
+			target_node.call("set_ai_c4_device", c4_device)
 		var resolved_team := String(target_node.get("team"))
 		if resolved_team == GameState.player_team:
 			friendly_count += 1
@@ -50,10 +64,82 @@ func load_for_level(level_data: Dictionary) -> void:
 			enemy_count += 1
 	targets_spawned.emit(enemy_count)
 	combatants_spawned.emit(friendly_count, enemy_count)
+	_assign_bomb_roles(level_data)
+
+func set_c4_device(device: Node3D) -> void:
+	c4_device = device
+	for child in get_children():
+		if child.has_method("set_ai_c4_device"):
+			child.call("set_ai_c4_device", device)
 
 func _clear_targets() -> void:
 	for child in get_children():
 		child.queue_free()
+
+func _assign_bomb_roles(level_data: Dictionary) -> void:
+	_bomb_carrier_actor = null
+	var t_actors: Array[CharacterBody3D] = []
+	var ct_actors: Array[CharacterBody3D] = []
+	for child in get_children():
+		if child is CharacterBody3D:
+			var team := String((child as CharacterBody3D).get("team"))
+			if team == "T":
+				t_actors.append(child as CharacterBody3D)
+			elif team == "CT":
+				ct_actors.append(child as CharacterBody3D)
+	var objectives: Array = level_data.get("objectives", []) as Array
+	var primary_objective := objectives[0] as Dictionary if not objectives.is_empty() else {"id": "site-a", "x": 0.0, "z": 0.0}
+	var primary_target := Vector3(float(primary_objective.get("x", 0.0)), 1.15, float(primary_objective.get("z", 0.0)))
+	var primary_site := "A" if String(primary_objective.get("id", "")).to_lower().contains("a") else "B"
+	var t_carrier_enabled := GameState.player_team != "T" and not t_actors.is_empty()
+	for index in range(t_actors.size()):
+		var actor := t_actors[index]
+		if actor.has_node("TacticalBotBrain"):
+			actor.get_node("TacticalBotBrain").call(
+				"configure_objective",
+				"plant",
+				primary_target,
+				primary_site,
+				t_carrier_enabled and index == 0
+			)
+		if t_carrier_enabled and index == 0:
+			_bomb_carrier_actor = actor
+	if c4_device != null and is_instance_valid(c4_device):
+		c4_device.call("set_carried", "T")
+	for index in range(ct_actors.size()):
+		var actor := ct_actors[index]
+		var objective_index := index % maxi(1, objectives.size())
+		var objective := objectives[objective_index] as Dictionary if not objectives.is_empty() else primary_objective
+		var site_target := Vector3(float(objective.get("x", 0.0)), 1.15, float(objective.get("z", 0.0)))
+		var site_label := "A" if String(objective.get("id", "")).to_lower().contains("a") else "B"
+		if actor.has_node("TacticalBotBrain"):
+			actor.get_node("TacticalBotBrain").call("configure_objective", "defend_site", site_target, site_label)
+		if index == 0:
+			actor.set("has_defuse_kit", true)
+			if actor.has_method("set_ai_defuse_kit"):
+				actor.call("set_ai_defuse_kit", true)
+
+func _on_actor_killed(_actor_name: String, _team: String, actor: CharacterBody3D) -> void:
+	if actor != _bomb_carrier_actor:
+		return
+	if c4_device != null and is_instance_valid(c4_device) and String(c4_device.get("device_state")) == "carried":
+		c4_device.call("drop_at", actor.global_position)
+	RoundManager.bomb_carried = false
+	_bomb_carrier_actor = null
+
+func _on_actor_ai_spot(world_position: Vector3, enemy_team: String, spotter: CharacterBody3D) -> void:
+	_broadcast_teammate_report(world_position, enemy_team, String(spotter.get("team")), spotter)
+
+func _on_actor_ai_damaged(world_position: Vector3, source_team: String, damaged_actor: CharacterBody3D) -> void:
+	_broadcast_teammate_report(world_position, source_team, String(damaged_actor.get("team")), damaged_actor)
+
+func _broadcast_teammate_report(world_position: Vector3, enemy_team: String, friendly_team: String, exclude_actor: CharacterBody3D) -> void:
+	if enemy_team.is_empty() or friendly_team.is_empty():
+		return
+	for child in get_children():
+		if child is CharacterBody3D and (child as CharacterBody3D) != exclude_actor and String((child as CharacterBody3D).get("team")) == friendly_team:
+			if child.has_method("notify_ai_teammate_report"):
+				child.call("notify_ai_teammate_report", world_position, enemy_team)
 
 func notify_ai_sound(world_position: Vector3, audible_radius: float, source_team: String) -> int:
 	var notified := 0

@@ -30,6 +30,7 @@ var interaction_type: String = ""
 var interaction_site: String = ""
 var interaction_elapsed: float = 0.0
 var interaction_duration: float = 0.0
+var interaction_owner: String = ""
 
 func _process(delta: float) -> void:
 	match state:
@@ -94,7 +95,7 @@ func defuse_bomb() -> bool:
 	end_round("CT", "BOMB DEFUSED")
 	return true
 
-func begin_plant(site_label: String, player_team: String) -> bool:
+func begin_plant(site_label: String, player_team: String, owner: String = "player") -> bool:
 	if state != RoundState.LIVE or not bomb_carried or player_team != "T" or site_label.is_empty():
 		return false
 	if interaction_type == "plant" and interaction_site == site_label:
@@ -103,10 +104,11 @@ func begin_plant(site_label: String, player_team: String) -> bool:
 	interaction_site = site_label
 	interaction_elapsed = 0.0
 	interaction_duration = 3.2
+	interaction_owner = owner
 	_emit_objective_interaction()
 	return true
 
-func begin_defuse(player_team: String, has_defuse_kit: bool) -> bool:
+func begin_defuse(player_team: String, has_defuse_kit: bool, owner: String = "player") -> bool:
 	if state != RoundState.BOMB_PLANTED or player_team != "CT":
 		return false
 	if interaction_type == "defuse":
@@ -115,6 +117,7 @@ func begin_defuse(player_team: String, has_defuse_kit: bool) -> bool:
 	interaction_site = bomb_site
 	interaction_elapsed = 0.0
 	interaction_duration = 5.0 if has_defuse_kit else 10.0
+	interaction_owner = owner
 	_emit_objective_interaction()
 	return true
 
@@ -143,6 +146,7 @@ func cancel_objective_interaction() -> void:
 	interaction_site = ""
 	interaction_elapsed = 0.0
 	interaction_duration = 0.0
+	interaction_owner = ""
 	_emit_objective_interaction()
 
 func is_objective_interacting() -> bool:
@@ -215,6 +219,7 @@ func get_objective_snapshot() -> Dictionary:
 		"interaction_type": interaction_type,
 		"interaction_progress": interaction_elapsed / interaction_duration if interaction_duration > 0.0 else 0.0,
 		"interaction_seconds": maxf(0.0, interaction_duration - interaction_elapsed),
+		"interaction_owner": interaction_owner,
 	}
 
 func _set_state(next_state: RoundState) -> void:

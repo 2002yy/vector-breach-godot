@@ -135,6 +135,8 @@ func _ready() -> void:
 		combat_sandbox.connect("ai_shot", _on_ai_shot)
 	if combat_sandbox.has_signal("ai_footstep"):
 		combat_sandbox.connect("ai_footstep", _on_ai_footstep)
+	if combat_sandbox.has_method("set_c4_device"):
+		combat_sandbox.call("set_c4_device", c4_device)
 	if player.has_signal("player_died"):
 		player.connect("player_died", _on_player_died)
 	if not RoundManager.phase_changed.is_connected(_on_round_phase_changed):
@@ -165,7 +167,7 @@ func _on_settings_changed(snapshot: Dictionary) -> void:
 func _on_team_selected(team: String) -> void:
 	GameState.player_team = team if team in ["T", "CT"] else "T"
 	if is_instance_valid(c4_device):
-		c4_device.call("set_carried", GameState.player_team)
+		c4_device.call("set_carried", "T")
 	_update_ui(true)
 
 func _isolate_environment_resource() -> void:
@@ -315,7 +317,7 @@ func _on_start_pressed() -> void:
 		var equipped_slot := int((weapon_system.call("get_runtime_snapshot") as Dictionary).get("weapon_slot", 0))
 		weapon_view_model.call("set_weapon_slot", equipped_slot, false)
 	RoundManager.start_round()
-	c4_device.call("set_carried", GameState.player_team)
+	c4_device.call("set_carried", "T")
 	_resume_game()
 
 func _on_resume_pressed() -> void:
@@ -614,7 +616,7 @@ func _on_round_restart_requested() -> void:
 		weapon_system.call("configure_default_loadout", true, true)
 		tactical_equipment.call("reset_loadout")
 	RoundManager.start_round()
-	c4_device.call("set_carried", GameState.player_team)
+	c4_device.call("set_carried", "T")
 
 func _purchase_item(item_id: String) -> void:
 	var in_buy_zone := player.global_position.distance_to(GameState.player_spawn) <= 8.0
@@ -683,6 +685,8 @@ func _get_current_plant_site() -> Dictionary:
 
 func _update_objective_interaction(delta: float) -> void:
 	if not game_started or menu_open or bool(player.get("is_dead")):
+		return
+	if RoundManager.is_objective_interacting() and String(RoundManager.interaction_owner) != "player":
 		return
 	if not Input.is_action_pressed("interact"):
 		RoundManager.cancel_objective_interaction()

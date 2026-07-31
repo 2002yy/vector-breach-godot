@@ -5,6 +5,8 @@ const DamageModel = preload("res://scripts/combat/DamageModel.gd")
 signal actor_killed(actor_name: String, team: String)
 signal ai_shot(result: Dictionary, world_position: Vector3)
 signal ai_footstep(world_position: Vector3, surface: String, quiet: bool)
+signal ai_spot(world_position: Vector3, enemy_team: String)
+signal ai_damaged(world_position: Vector3, source_team: String)
 
 @export var display_name: String = "战术单位"
 @export_enum("T", "CT") var team: String = "CT"
@@ -24,6 +26,7 @@ var current_health: int = 100
 var current_armor: int = 0
 var is_dead: bool = false
 var ai_crouching: bool = false
+var has_defuse_kit: bool = false
 var spawn_position: Vector3 = Vector3.ZERO
 var spawn_yaw: float = 0.0
 var _material: StandardMaterial3D = StandardMaterial3D.new()
@@ -74,6 +77,7 @@ func configure_from_record(record: Dictionary) -> void:
 	max_armor = clampi(int(record.get("armor", max_armor)), 0, 100)
 	has_helmet = bool(record.get("helmet", has_helmet))
 	equipped_weapon_id = String(record.get("weapon", equipped_weapon_id))
+	has_defuse_kit = bool(record.get("defuseKit", has_defuse_kit))
 	rotation.y = deg_to_rad(float(record.get("yawDegrees", rad_to_deg(rotation.y))))
 	spawn_position = global_position
 	spawn_yaw = rotation.y
@@ -98,6 +102,7 @@ func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, arm
 	current_health = maxi(0, current_health - health_damage)
 	if bot_brain != null:
 		bot_brain.call("notify_damage", resolved_position, source_team, source_position)
+	ai_damaged.emit(resolved_position, source_team)
 	var killed := current_health == 0
 	if killed:
 		is_dead = true
@@ -123,9 +128,11 @@ func get_combat_snapshot() -> Dictionary:
 		"health": current_health, "armor": current_armor, "helmet": has_helmet,
 		"weapon": equipped_weapon_id, "x": global_position.x, "y": global_position.y,
 		"z": global_position.z, "yaw": rotation.y, "crouching": ai_crouching,
+		"defuse_kit": has_defuse_kit,
 	}
 	if bot_brain != null:
 		snapshot["ai"] = bot_brain.call("get_snapshot")
+		snapshot["objective"] = bot_brain.call("get_objective_snapshot")
 	return snapshot
 
 func reset_actor() -> void:
@@ -151,6 +158,21 @@ func notify_ai_sound(world_position: Vector3, audible_radius: float, source_team
 
 func record_ai_dynamic_danger(world_position: Vector3, intensity: float = 0.7) -> void:
 	bot_brain.call("record_dynamic_danger", world_position, intensity)
+
+func set_ai_c4_device(device: Node3D) -> void:
+	bot_brain.call("set_c4_device", device)
+
+func set_ai_defuse_kit(has_kit: bool) -> void:
+	bot_brain.call("set_defuse_kit", has_kit)
+
+func set_ai_combat_enabled(enabled_combat: bool) -> void:
+	bot_brain.call("set_ai_combat_enabled", enabled_combat)
+
+func notify_ai_teammate_report(world_position: Vector3, enemy_team: String) -> void:
+	bot_brain.call("notify_teammate_report", world_position, enemy_team)
+
+func emit_ai_spot(world_position: Vector3, enemy_team: String) -> void:
+	ai_spot.emit(world_position, enemy_team)
 
 func emit_ai_shot(result: Dictionary, world_position: Vector3) -> void:
 	ai_shot.emit(result, world_position)

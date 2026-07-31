@@ -59,6 +59,10 @@ func _run_case(test_case: Dictionary) -> Dictionary:
 			if bool(ai.get("enabled", false)):
 				bots.append(actor)
 				initial_positions[actor.get_instance_id()] = actor.global_position
+	for bot in bots:
+		if bot.has_node("TacticalBotBrain"):
+			bot.get_node("TacticalBotBrain").call("set_ai_combat_enabled", false)
+			bot.get_node("TacticalBotBrain").call("configure_objective", "", Vector3.INF, "", false)
 	var maximum_displacements: Dictionary = {}
 	for bot in bots:
 		maximum_displacements[bot.get_instance_id()] = 0.0
@@ -103,7 +107,7 @@ func _run_case(test_case: Dictionary) -> Dictionary:
 	var output_path := ProjectSettings.globalize_path("user://%s-tactical-routes.png" % level_id)
 	var image_error := get_viewport().get_texture().get_image().save_png(output_path)
 	var success := (
-		bots.size() == 3
+		bots.size() == 6
 		and minimum_maximum_displacement >= 2.0
 		and minimum_nodes >= 12
 		and minimum_links >= 12

@@ -22,6 +22,7 @@ func _ready() -> void:
 	await _run_test("bot_dodges_and_crouches_during_combat", _test_bot_dodges_and_crouches_during_combat)
 	await _run_test("bot_retreats_at_low_health", _test_bot_retreats_at_low_health)
 	await _run_test("bot_spray_plan_scales_with_distance", _test_bot_spray_plan_scales_with_distance)
+	await _run_test("bot_strafes_without_orbiting_target", _test_bot_strafes_without_orbiting_target)
 	if _failures.is_empty():
 		print("[TacticalBotTests] PASS (%d tests)" % _passes)
 		get_tree().quit(0)
@@ -385,6 +386,35 @@ func _test_bot_spray_plan_scales_with_distance() -> void:
 	var far_ai := (far_actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
 	_assert_equal(String(far_ai.get("spray_decision", "")), "tap", "long range should choose single-shot taps")
 	await _cleanup_fixture(far_fixture)
+
+func _test_bot_strafes_without_orbiting_target() -> void:
+	var fixture := await _make_fixture()
+	var actor := fixture.actor as CharacterBody3D
+	actor.global_position = Vector3(0.0, 1.15, 6.0)
+	actor.call("configure_from_record", {
+		"name": "绕圈回归测试敌人", "team": "enemy", "aiEnabled": true,
+		"aiReactionTime": 0.05, "aiAimAcquisitionTime": 0.05, "aiDamage": 8,
+	})
+	RoundManager.set_live()
+	var previous_angle := INF
+	var total_turn := 0.0
+	var min_angle := INF
+	var max_angle := -INF
+	for _frame in range(300):
+		await get_tree().physics_frame
+		var angle := atan2(actor.global_position.x, actor.global_position.z)
+		if previous_angle != INF:
+			var step := absf(angle - previous_angle)
+			if step > PI:
+				step = TAU - step
+			total_turn += step
+		previous_angle = angle
+		min_angle = minf(min_angle, angle)
+		max_angle = maxf(max_angle, angle)
+	var ai := (actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
+	_assert_true(int(ai.get("dodges", 0)) > 0, "engaged bot should still perform bounded side-step dodges")
+	_assert_true(total_turn < TAU * 0.75, "bounded strafes should not accumulate a full orbit around the target")
+	await _cleanup_fixture(fixture)
 
 func _add_test_wall(parent: Node3D, position: Vector3, size: Vector3) -> void:
 	var wall := StaticBody3D.new()

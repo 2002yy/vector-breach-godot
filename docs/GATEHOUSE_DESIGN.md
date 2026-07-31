@@ -1,6 +1,6 @@
 # Gatehouse Design Record
 
-Last updated: 2026-07-23
+Last updated: 2026-07-31
 Data revision: `gatehouse-visual-v1`
 Gameplay revision: `gatehouse-tactical-routes-v1`
 
@@ -33,11 +33,12 @@ The legacy array remains as traceability data. `GrayboxLevelTestRunner` verifies
 - West, two mid branches, and east approaches feed two objective zones behind the checkpoint.
 - The defender rotation joins both sites without crossing the attacker spawn.
 - Each main route carries authored danger, cover, and precision metadata consumed by the shared AI graph.
-- Three enabled CT defenders exercise the west, rotation, and east branches; the route probe validates 38 nodes and 47 attributed links.
+- Three enabled T attackers and three enabled CT defenders exercise the west, rotation, and east branches; the route probe validates 38 nodes and 47 attributed links.
+- The rotation defender carries a defuse kit; when the player is CT, CombatSandbox designates one T bot as the C4 carrier and assigns CT bots defend-site roles.
 
 ## Known design gaps
 
-Gatehouse still has no semantic ladder/water volumes, measured long-round timing, utility lineups, or bomb-specific AI decisions. The current route graph is a tested tactical foundation, not a claim of final competitive balance.
+Gatehouse has basic bomb AI (T carry/plant, CT retake/defuse) but still has no semantic ladder/water volumes, measured long-round timing, utility lineups, AI buying, or final competitive balance. The current route graph is a tested tactical foundation, not a claim of final competitive balance.
 
 Run all native regression suites from the repository root:
 
