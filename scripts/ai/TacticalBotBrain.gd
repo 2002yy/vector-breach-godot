@@ -95,6 +95,8 @@ var danger_memory_seconds: float = 5.0
 var ai_money: int = 800
 var recoil_compensation: float = 0.006
 var grenade_counts: Dictionary = {"he_grenade": 0, "flash_grenade": 0, "smoke_grenade": 0}
+var economy_mode: String = "force"
+var save_gun_enabled: bool = true
 
 var _route_points: Array[Vector3] = []
 var _route_index: int = 0
@@ -124,6 +126,8 @@ var _reload_seconds: float = 0.0
 var _shot_count: int = 0
 var _rng := RandomNumberGenerator.new()
 var _weapon_ammo: Dictionary = {}
+var _weapon_reserve: Dictionary = {}
+var _weapon_owned: Dictionary = {}
 var _current_weapon_id: String = "rifle"
 var _equip_seconds: float = 0.0
 var _burst_size: int = 3
@@ -166,6 +170,7 @@ var _smoke_thrown_for_objective: bool = false
 var _flash_thrown_for_target: int = 0
 var _he_thrown_for_target: int = 0
 var _recoil_compensated_shots: int = 0
+var save_gun_active: bool = false
 
 func setup(owner_actor: CharacterBody3D) -> void:
 	actor = owner_actor
@@ -260,6 +265,10 @@ func tick(delta: float) -> void:
 	if _should_run_bomb_objective():
 		state = State.OBJECTIVE
 		_tick_bomb_objective(delta)
+		return
+
+	if _should_save_gun():
+		_begin_save_gun(delta)
 		return
 
 	if not _teammate_reports.is_empty() and _heard_seconds > hearing_memory_seconds:
@@ -359,7 +368,7 @@ func get_weapon_pickup_record() -> Dictionary:
 		"weapon_id": _current_weapon_id,
 		"slot_index": int(WEAPON_PROFILES.get(_current_weapon_id, {}).get("slot", 0)),
 		"ammo_in_mag": ammo_in_mag,
-		"ammo_reserve": 0,
+		"ammo_reserve": int(_weapon_reserve.get(_current_weapon_id, 0)),
 	}
 
 func get_snapshot() -> Dictionary:
@@ -367,6 +376,7 @@ func get_snapshot() -> Dictionary:
 		"enabled": enabled,
 		"state": State.keys()[state],
 		"ammo": ammo_in_mag,
+		"ammo_reserve": int(_weapon_reserve.get(_current_weapon_id, 0)),
 		"shots": _shot_count,
 		"weapon_id": _current_weapon_id,
 		"weapon_slot": int(WEAPON_PROFILES.get(_current_weapon_id, {}).get("slot", 0)),
@@ -403,6 +413,8 @@ func get_snapshot() -> Dictionary:
 		"recoil_compensation": recoil_compensation,
 		"recoil_compensated_shots": _recoil_compensated_shots,
 		"grenade_cooldown": _grenade_cooldown,
+		"economy_mode": economy_mode,
+		"saving_gun": save_gun_active,
 	}
 
 func reset_runtime() -> void:
@@ -467,6 +479,8 @@ func _reset_runtime() -> void:
 	_flash_thrown_for_target = 0
 	_he_thrown_for_target = 0
 	_recoil_compensated_shots = 0
+	economy_mode = "force"
+	save_gun_active = false
 
 func _find_local_target() -> CharacterBody3D:
 	if not combat_enabled:
@@ -624,7 +638,11 @@ func _tick_reload(delta: float) -> void:
 	_reload_seconds = maxf(0.0, _reload_seconds - delta)
 	if _reload_seconds == 0.0:
 		var profile := _current_profile()
-		ammo_in_mag = int(profile.get("magazine", magazine_size))
+		var magazine := int(profile.get("magazine", magazine_size))
+		var reserve := int(_weapon_reserve.get(_current_weapon_id, 0))
+		var loaded := mini(magazine - ammo_in_mag, reserve)
+		ammo_in_mag += maxi(0, loaded)
+		_weapon_reserve[_current_weapon_id] = maxi(0, reserve - loaded)
 		_weapon_ammo[_current_weapon_id] = ammo_in_mag
 		state = State.ACQUIRE
 
@@ -655,6 +673,31 @@ func _tick_retreat(delta: float) -> void:
 		and Vector2(actor.velocity.x, actor.velocity.z).length() <= 0.42
 	):
 		_fire_shot(_target.global_position + Vector3.UP * 0.18)
+
+func _should_save_gun() -> bool:
+	if not save_gun_enabled or economy_mode != "eco" or RoundManager.state != RoundManager.RoundState.LIVE:
+		return false
+	if int(actor.get("current_health")) > 45:
+		return false
+	var team_name := String(actor.get("team"))
+	if team_name == "T" and bomb_carrier:
+		return false
+	if team_name == "CT" and RoundManager.state == RoundManager.RoundState.BOMB_PLANTED:
+		return false
+	return true
+
+func _begin_save_gun(delta: float) -> void:
+	save_gun_active = true
+	state = State.RETREAT
+	_retreat_seconds = maxf(_retreat_seconds, 2.0)
+	if not _retreat_target.is_finite() or actor.global_position.distance_to(_retreat_target) <= 1.5:
+		_retreat_target = _pick_save_gun_target()
+	_tick_retreat(delta)
+
+func _pick_save_gun_target() -> Vector3:
+	var backward := actor.global_transform.basis.z * 5.0
+	backward.y = 0.0
+	return actor.global_position + backward
 
 func _should_run_bomb_objective() -> bool:
 	if objective_role.is_empty() or not objective_target.is_finite():
@@ -782,13 +825,25 @@ func _tick_freeze_purchase() -> void:
 	if _purchased_this_round:
 		return
 	_purchased_this_round = true
+	if ai_money >= 4200:
+		economy_mode = "force"
+	elif ai_money >= 1800:
+		economy_mode = "half"
+	else:
+		economy_mode = "eco"
+	if economy_mode == "eco":
+		return
 	var team_name := String(actor.get("team"))
-	if int(actor.get("current_armor")) < 100 and ai_money >= 650:
+	if economy_mode == "force" and int(actor.get("current_armor")) < 100 and ai_money >= 650:
 		ai_money -= 650
 		actor.set("current_armor", 100)
-	var grenade_kinds: Array[String] = ["smoke_grenade"]
-	if team_name == "CT":
-		grenade_kinds.append("flash_grenade")
+	var grenade_kinds: Array[String] = []
+	if economy_mode == "force":
+		grenade_kinds.append("smoke_grenade")
+		if team_name == "CT":
+			grenade_kinds.append("flash_grenade")
+	elif team_name == "CT" and ai_money >= 300:
+		grenade_kinds.append("smoke_grenade")
 	for kind in grenade_kinds:
 		if int(grenade_counts.get(kind, 0)) > 0:
 			continue
@@ -821,14 +876,22 @@ func _try_pickup_weapon_nearby() -> bool:
 		var pickup := pickup_variant as Node3D
 		if not pickup.has_method("can_pick_up") or not bool(pickup.call("can_pick_up", actor.global_position)):
 			continue
-		var weapon_id := String(pickup.get("weapon_record").get("weapon_id", "")) if pickup.get("weapon_record") is Dictionary else ""
-		if not _weapon_is_owned(weapon_id):
+		var weapon_record: Variant = pickup.get("weapon_record")
+		if not weapon_record is Dictionary:
 			continue
-		var record: Dictionary = pickup.get("weapon_record")
-		var picked_ammo := int(record.get("ammo_in_mag", 0)) + int(record.get("ammo_reserve", 0))
-		_weapon_ammo[weapon_id] = maxi(int(_weapon_ammo.get(weapon_id, 0)), picked_ammo)
+		var record := weapon_record as Dictionary
+		var weapon_id := String(record.get("weapon_id", ""))
+		if not WEAPON_PROFILES.has(weapon_id):
+			continue
+		var picked_mag := int(record.get("ammo_in_mag", 0))
+		var picked_reserve := int(record.get("ammo_reserve", 0))
+		_weapon_owned[weapon_id] = true
+		_weapon_ammo[weapon_id] = maxi(int(_weapon_ammo.get(weapon_id, 0)), picked_mag)
+		_weapon_reserve[weapon_id] = maxi(int(_weapon_reserve.get(weapon_id, 0)), picked_reserve)
 		if _current_weapon_id == weapon_id:
 			ammo_in_mag = int(_weapon_ammo.get(weapon_id, 0))
+		elif weapon_id == primary_weapon_id and not _weapon_is_owned(primary_weapon_id):
+			_switch_to_weapon(primary_weapon_id)
 		pickup.queue_free()
 		return true
 	return false
@@ -843,7 +906,10 @@ func _throw_ai_grenade(kind: String, target_position: Vector3) -> bool:
 	tree.current_scene.add_child(projectile)
 	var origin := actor.call("get_eye_position") as Vector3
 	var direction := (target_position - origin).normalized()
-	projectile.configure(kind, actor, origin, direction * 13.0 + Vector3.UP * 2.2)
+	var distance := origin.distance_to(target_position)
+	var throw_speed := clampf(9.0 + distance * 0.65, 10.0, 16.5)
+	var throw_arc := clampf(1.6 + distance * 0.08, 1.8, 3.2)
+	projectile.configure(kind, actor, origin, direction * throw_speed + Vector3.UP * throw_arc)
 	grenade_counts[kind] = int(grenade_counts.get(kind, 0)) - 1
 	_grenade_cooldown = 4.0
 	record_dynamic_danger(origin, 0.35)
@@ -867,7 +933,8 @@ func _maybe_throw_objective_smoke() -> void:
 		return
 	if not objective_target.is_finite() or actor.global_position.distance_to(objective_target) > 16.0:
 		return
-	if _throw_ai_grenade("smoke_grenade", objective_target):
+	var smoke_landing := actor.global_position.lerp(objective_target, 0.78)
+	if _throw_ai_grenade("smoke_grenade", smoke_landing):
 		_smoke_thrown_for_objective = true
 
 func _tick_teammate_reports(delta: float) -> void:
@@ -963,7 +1030,7 @@ func _current_profile() -> Dictionary:
 	return WEAPON_PROFILES.get(_current_weapon_id, WEAPON_PROFILES["rifle"])
 
 func _weapon_is_owned(weapon_id: String) -> bool:
-	return weapon_id in ["rifle", "pistol"] or (weapon_id == "knife" and has_knife)
+	return bool(_weapon_owned.get(weapon_id, false))
 
 func _weapon_has_ammo(weapon_id: String) -> bool:
 	if not _weapon_is_owned(weapon_id):
@@ -1052,9 +1119,13 @@ func _fire_melee(target_point: Vector3, profile: Dictionary, weapon_name: String
 
 func _reset_weapon_ammo() -> void:
 	_weapon_ammo.clear()
+	_weapon_reserve.clear()
+	_weapon_owned.clear()
 	for weapon_id in WEAPON_PROFILES:
 		var profile: Dictionary = WEAPON_PROFILES[weapon_id]
 		_weapon_ammo[weapon_id] = int(profile.get("magazine", 30)) if int(profile.get("magazine", 30)) >= 0 else -1
+		_weapon_reserve[weapon_id] = int(profile.get("reserve", 0))
+		_weapon_owned[weapon_id] = weapon_id in [primary_weapon_id, secondary_weapon_id] or (weapon_id == "knife" and has_knife)
 	_current_weapon_id = primary_weapon_id if _weapon_is_owned(primary_weapon_id) else (secondary_weapon_id if _weapon_is_owned(secondary_weapon_id) else "knife")
 	ammo_in_mag = int(_weapon_ammo.get(_current_weapon_id, 0))
 	_equip_seconds = 0.0

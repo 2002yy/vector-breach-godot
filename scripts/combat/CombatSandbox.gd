@@ -143,10 +143,16 @@ func _on_actor_ai_damaged(world_position: Vector3, source_team: String, damaged_
 func _broadcast_teammate_report(world_position: Vector3, enemy_team: String, friendly_team: String, exclude_actor: CharacterBody3D) -> void:
 	if enemy_team.is_empty() or friendly_team.is_empty():
 		return
+	var nearest_bot: Node = null
+	var nearest_distance := INF
 	for child in get_children():
 		if child is CharacterBody3D and (child as CharacterBody3D) != exclude_actor and String((child as CharacterBody3D).get("team")) == friendly_team:
-			if child.has_method("notify_ai_teammate_report"):
-				child.call("notify_ai_teammate_report", world_position, enemy_team)
+			var distance := (child as CharacterBody3D).global_position.distance_squared_to(world_position)
+			if distance < nearest_distance:
+				nearest_distance = distance
+				nearest_bot = child as Node
+	if nearest_bot != null and nearest_bot.has_method("notify_ai_teammate_report"):
+		nearest_bot.call("notify_ai_teammate_report", world_position, enemy_team)
 
 func notify_ai_sound(world_position: Vector3, audible_radius: float, source_team: String) -> int:
 	var notified := 0

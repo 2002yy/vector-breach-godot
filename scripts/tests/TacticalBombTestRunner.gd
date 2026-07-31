@@ -21,6 +21,11 @@ func _ready() -> void:
 	await _run_test("bot_uses_flash_in_combat", _test_bot_uses_flash_in_combat)
 	await _run_test("bot_picks_up_dropped_weapon", _test_bot_picks_up_dropped_weapon)
 	await _run_test("combat_sandbox_splits_t_roles_between_sites", _test_combat_sandbox_splits_t_roles_between_sites)
+	await _run_test("bot_economy_mode_changes_freeze_buying", _test_bot_economy_mode_changes_freeze_buying)
+	await _run_test("bot_weapon_inventory_tracks_reserve", _test_bot_weapon_inventory_tracks_reserve)
+	await _run_test("bot_grenade_velocity_scales_with_distance", _test_bot_grenade_velocity_scales_with_distance)
+	await _run_test("refrag_report_goes_to_nearest_teammate", _test_refrag_report_goes_to_nearest_teammate)
+	await _run_test("bot_saves_gun_when_low_health_and_eco", _test_bot_saves_gun_when_low_health_and_eco)
 	if _failures.is_empty():
 		print("[TacticalBombTests] PASS (%d tests)" % _passes)
 		get_tree().quit(0)
@@ -217,7 +222,7 @@ func _test_combat_sandbox_assigns_bomb_carrier() -> void:
 
 func _test_bot_buys_grenades_and_defuse_kit_in_freeze() -> void:
 	var fixture := await _make_fixture()
-	var t_actor := _make_actor(fixture.world as Node3D, "T经济兵", "T", Vector3(0.0, 1.15, 4.0), {"aiMoney": 2000})
+	var t_actor := _make_actor(fixture.world as Node3D, "T经济兵", "T", Vector3(0.0, 1.15, 4.0), {"aiMoney": 5000})
 	var ct_actor := _make_actor(fixture.world as Node3D, "CT经济兵", "CT", Vector3(0.0, 1.15, 8.0), {"aiMoney": 2000})
 	RoundManager.start_round()
 	for _frame in range(12):
@@ -225,7 +230,7 @@ func _test_bot_buys_grenades_and_defuse_kit_in_freeze() -> void:
 	var t_ai := (t_actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
 	var ct_ai := (ct_actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
 	_assert_true(int(((t_ai.get("grenades", {}) as Dictionary).get("smoke_grenade", 0))) == 1, "T bot should buy a smoke grenade during freeze")
-	_assert_true(int(t_ai.get("money", 800)) < 2000, "freeze purchases should consume bot money")
+	_assert_true(int(t_ai.get("money", 800)) < 5000, "freeze purchases should consume bot money")
 	_assert_true(bool(((ct_actor.call("get_combat_snapshot") as Dictionary).get("objective", {}) as Dictionary).get("defuse_kit", false)), "CT bot should buy a defuse kit during freeze")
 	await _cleanup_fixture(fixture)
 
@@ -284,7 +289,7 @@ func _test_bot_picks_up_dropped_weapon() -> void:
 	var actor := _make_actor(fixture.world as Node3D, "T拾枪兵", "T", Vector3(0.0, 1.15, 0.0))
 	var pickup := WEAPON_PICKUP_SCRIPT.new()
 	(fixture.world as Node3D).add_child(pickup)
-	pickup.configure({"weapon_id": "rifle", "slot_index": 0, "ammo_in_mag": 15, "ammo_reserve": 30}, actor.global_position)
+	pickup.configure({"weapon_id": "rifle", "slot_index": 0, "ammo_in_mag": 45, "ammo_reserve": 30}, actor.global_position)
 	RoundManager.set_live()
 	for _frame in range(20):
 		await get_tree().physics_frame
@@ -322,4 +327,98 @@ func _test_combat_sandbox_splits_t_roles_between_sites() -> void:
 				diversion_target_x = float((objective.get("target", Vector3.ZERO) as Vector3).x)
 	_assert_true("plant" in roles and "support" in roles and "diversion" in roles, "T roles should split between plant, support, and diversion")
 	_assert_true(diversion_target_x > 5.0, "diversion role should target the second objective site")
+	await _cleanup_fixture(fixture)
+
+func _test_bot_economy_mode_changes_freeze_buying() -> void:
+	var fixture := await _make_fixture()
+	var force_actor := _make_actor(fixture.world as Node3D, "T强起", "T", Vector3(0.0, 1.15, 2.0), {"aiMoney": 5000})
+	var eco_actor := _make_actor(fixture.world as Node3D, "T存钱", "T", Vector3(0.0, 1.15, 4.0), {"aiMoney": 1200})
+	RoundManager.start_round()
+	for _frame in range(12):
+		await get_tree().physics_frame
+	var force_ai := (force_actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
+	var eco_ai := (eco_actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
+	_assert_equal(String(force_ai.get("economy_mode", "")), "force", "high money should select a force-buy economy mode")
+	_assert_true(int(((force_ai.get("grenades", {}) as Dictionary).get("smoke_grenade", 0))) == 1, "force buy should include a smoke grenade")
+	_assert_equal(String(eco_ai.get("economy_mode", "")), "eco", "low money should select an eco/save mode")
+	_assert_true(int(((eco_ai.get("grenades", {}) as Dictionary).get("smoke_grenade", 0))) == 0, "eco mode should save money instead of buying grenades")
+	await _cleanup_fixture(fixture)
+
+func _test_bot_weapon_inventory_tracks_reserve() -> void:
+	var fixture := await _make_fixture()
+	var actor := _make_actor(fixture.world as Node3D, "T库存兵", "T", Vector3(0.0, 1.15, 0.0))
+	var record := actor.get_node("TacticalBotBrain").call("get_weapon_pickup_record") as Dictionary
+	_assert_equal(String(record.get("weapon_id", "")), "rifle", "default bot inventory should report the primary rifle")
+	_assert_equal(int(record.get("ammo_in_mag", 0)), 30, "bot inventory should track current magazine ammo")
+	_assert_equal(int(record.get("ammo_reserve", 0)), 90, "bot inventory should track rifle reserve ammo separately")
+	await _cleanup_fixture(fixture)
+
+func _test_bot_grenade_velocity_scales_with_distance() -> void:
+	var close_fixture := await _make_fixture()
+	var close_actor := _make_actor(close_fixture.world as Node3D, "T近投", "T", Vector3(0.0, 1.15, 0.0), {"aiGrenades": {"smoke_grenade": 1}})
+	var close_brain := close_actor.get_node("TacticalBotBrain")
+	close_brain.call("_throw_ai_grenade", "smoke_grenade", Vector3(0.0, 1.15, 5.0))
+	await get_tree().physics_frame
+	var close_speed := 0.0
+	for projectile_variant in get_tree().get_nodes_in_group("grenade_projectiles"):
+		close_speed = maxf(close_speed, (projectile_variant as RigidBody3D).linear_velocity.length())
+	await _cleanup_fixture(close_fixture)
+
+	var far_fixture := await _make_fixture()
+	var far_actor := _make_actor(far_fixture.world as Node3D, "T远投", "T", Vector3(0.0, 1.15, 0.0), {"aiGrenades": {"smoke_grenade": 1}})
+	var far_brain := far_actor.get_node("TacticalBotBrain")
+	far_brain.call("_throw_ai_grenade", "smoke_grenade", Vector3(0.0, 1.15, 20.0))
+	await get_tree().physics_frame
+	var far_speed := 0.0
+	for projectile_variant in get_tree().get_nodes_in_group("grenade_projectiles"):
+		far_speed = maxf(far_speed, (projectile_variant as RigidBody3D).linear_velocity.length())
+	_assert_true(far_speed > close_speed, "longer AI grenade throws should use higher launch speed")
+	await _cleanup_fixture(far_fixture)
+
+func _test_refrag_report_goes_to_nearest_teammate() -> void:
+	var fixture := await _make_fixture()
+	var sandbox := SANDBOX_SCENE.instantiate() as Node3D
+	(fixture.world as Node3D).add_child(sandbox)
+	sandbox.call("set_c4_device", fixture.c4 as Node3D)
+	var level_data := {
+		"id": "refrag-test",
+		"objectives": [{"id": "site-a", "x": 0.0, "z": -10.0}],
+		"routes": {"attack": [[0.0, 6.0], [0.0, -10.0]], "defend": [[0.0, -10.0]]},
+		"aiRouteProfiles": {},
+		"teamActors": [{"name": "T1", "team": "T", "route": "attack", "x": 0.0, "z": -6.0, "aiEnabled": true}],
+		"combatTargets": [
+			{"name": "CT近", "team": "CT", "route": "defend", "x": 0.0, "z": 2.0, "aiEnabled": true},
+			{"name": "CT远", "team": "CT", "route": "defend", "x": 0.0, "z": 8.0, "aiEnabled": true},
+		],
+	}
+	sandbox.call("load_for_level", level_data)
+	await get_tree().physics_frame
+	var near_actor: CharacterBody3D
+	var far_actor: CharacterBody3D
+	for child in sandbox.get_children():
+		if child is CharacterBody3D and String((child as CharacterBody3D).get("name")) == "CT近":
+			near_actor = child as CharacterBody3D
+		elif child is CharacterBody3D and String((child as CharacterBody3D).get("name")) == "CT远":
+			far_actor = child as CharacterBody3D
+	sandbox.call("_broadcast_teammate_report", Vector3(0.0, 1.0, 0.0), "T", "CT", far_actor)
+	for _frame in range(6):
+		await get_tree().physics_frame
+	var near_ai := (near_actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
+	var far_ai := (far_actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
+	_assert_true(int(near_ai.get("teammate_reports", 0)) >= 1, "nearest teammate should receive the refrag report")
+	_assert_equal(int(far_ai.get("teammate_reports", 0)), 0, "distant teammate should not receive the same report")
+	await _cleanup_fixture(fixture)
+
+func _test_bot_saves_gun_when_low_health_and_eco() -> void:
+	var fixture := await _make_fixture()
+	var actor := _make_actor(fixture.world as Node3D, "T保枪兵", "T", Vector3(0.0, 1.15, 0.0), {"aiMoney": 1200})
+	var brain := actor.get_node("TacticalBotBrain")
+	brain.set("economy_mode", "eco")
+	actor.set("current_health", 25)
+	RoundManager.set_live()
+	for _frame in range(40):
+		await get_tree().physics_frame
+	var ai := (actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
+	_assert_true(bool(ai.get("saving_gun", false)), "low-health eco bot should enter save-gun retreat")
+	_assert_true(actor.global_position.z > 0.4, "save-gun retreat should move the bot backward to preserve its weapon")
 	await _cleanup_fixture(fixture)
