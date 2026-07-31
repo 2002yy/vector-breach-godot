@@ -175,7 +175,9 @@ func _apply_damage_to_hit(hit_result: Dictionary, shot_origin: Vector3, profile,
 		resolved_damage,
 		hit_result.get("position", Vector3.ZERO),
 		profile.armor_penetration,
-		penetrated
+		penetrated,
+		GameState.player_team,
+		shot_origin
 	)
 	if typeof(damage_result) != TYPE_DICTIONARY:
 		return {}

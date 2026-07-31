@@ -61,7 +61,7 @@ func _knife_attack(player: CharacterBody3D) -> Dictionary:
 	var hit := camera.get_world_3d().direct_space_state.intersect_ray(query)
 	var collider: Variant = hit.get("collider", null)
 	if not hit.is_empty() and collider != null and collider.has_method("apply_hitscan_damage"):
-		var result := collider.call("apply_hitscan_damage", 40, hit.get("position", Vector3.ZERO), 1.0, false) as Dictionary
+		var result := collider.call("apply_hitscan_damage", 40, hit.get("position", Vector3.ZERO), 1.0, false, GameState.player_team, camera.global_position) as Dictionary
 		if bool(result.get("hit", false)):
 			GameState.register_hit(bool(result.get("killed", false)), "knife", String(result.get("target_team", "")))
 		return result

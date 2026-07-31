@@ -37,7 +37,7 @@ func configure_from_record(record: Dictionary) -> void:
 	has_helmet = bool(record.get("helmet", has_helmet))
 	_current_armor = max_armor
 
-func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, armor_penetration: float = 1.0, penetrated: bool = false) -> Dictionary:
+func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, armor_penetration: float = 1.0, penetrated: bool = false, source_team: String = "", source_position: Vector3 = Vector3.INF) -> Dictionary:
 	if _is_dead:
 		return {
 			"hit": false,

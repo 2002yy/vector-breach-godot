@@ -83,7 +83,7 @@ func configure_from_record(record: Dictionary) -> void:
 	bot_brain.call("configure", record)
 	_apply_team_visual()
 
-func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, armor_penetration: float = 1.0, penetrated: bool = false) -> Dictionary:
+func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, armor_penetration: float = 1.0, penetrated: bool = false, source_team: String = "", source_position: Vector3 = Vector3.INF) -> Dictionary:
 	if is_dead:
 		return {"hit": false, "killed": false, "target_team": team}
 	var resolved_position := global_position if hit_position == Vector3.ZERO else hit_position
@@ -96,6 +96,8 @@ func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, arm
 	var armor_damage := int(resolved.armor_damage)
 	current_armor = maxi(0, current_armor - armor_damage)
 	current_health = maxi(0, current_health - health_damage)
+	if bot_brain != null:
+		bot_brain.call("notify_damage", resolved_position, source_team, source_position)
 	var killed := current_health == 0
 	if killed:
 		is_dead = true
@@ -146,6 +148,9 @@ func get_eye_position() -> Vector3:
 
 func notify_ai_sound(world_position: Vector3, audible_radius: float, source_team: String) -> bool:
 	return bool(bot_brain.call("notify_sound", world_position, audible_radius, source_team))
+
+func record_ai_dynamic_danger(world_position: Vector3, intensity: float = 0.7) -> void:
+	bot_brain.call("record_dynamic_danger", world_position, intensity)
 
 func emit_ai_shot(result: Dictionary, world_position: Vector3) -> void:
 	ai_shot.emit(result, world_position)

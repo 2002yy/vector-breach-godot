@@ -16,6 +16,12 @@ func _ready() -> void:
 	await _run_test("blocked_bot_detects_stall_and_recovers", _test_blocked_bot_detects_stall_and_recovers)
 	await _run_test("visible_enemy_is_acquired_then_burst_fired", _test_visible_enemy_is_acquired_then_burst_fired)
 	await _run_test("bot_uses_ladder_and_water_semantics", _test_bot_uses_ladder_and_water_semantics)
+	await _run_test("bot_reacts_to_damage_source", _test_bot_reacts_to_damage_source)
+	await _run_test("bot_records_dynamic_danger_and_reroutes", _test_bot_records_dynamic_danger_and_reroutes)
+	await _run_test("bot_switches_to_knife_at_close_range", _test_bot_switches_to_knife_at_close_range)
+	await _run_test("bot_dodges_and_crouches_during_combat", _test_bot_dodges_and_crouches_during_combat)
+	await _run_test("bot_retreats_at_low_health", _test_bot_retreats_at_low_health)
+	await _run_test("bot_spray_plan_scales_with_distance", _test_bot_spray_plan_scales_with_distance)
 	if _failures.is_empty():
 		print("[TacticalBotTests] PASS (%d tests)" % _passes)
 		get_tree().quit(0)
@@ -259,6 +265,126 @@ func _test_bot_uses_ladder_and_water_semantics() -> void:
 	_assert_true(bool(environment.get("in_water", false)), "bot environment sensor should enter authored water volumes")
 	_assert_equal(float(environment.get("speed_multiplier", 1.0)), 0.52, "deep water should apply the shared deep-water speed tier")
 	await _cleanup_fixture(fixture)
+
+func _test_bot_reacts_to_damage_source() -> void:
+	var fixture := await _make_fixture()
+	var player := fixture.player as CharacterBody3D
+	var actor := fixture.actor as CharacterBody3D
+	player.set("is_dead", true)
+	actor.global_position = Vector3(0.0, 1.15, 8.0)
+	actor.rotation.y = PI
+	actor.call("configure_from_record", {
+		"name": "受击感知测试敌人", "team": "enemy", "aiEnabled": true,
+		"routePoints": [[0.0, 8.0], [0.0, -8.0]],
+	})
+	RoundManager.set_live()
+	actor.call("apply_hitscan_damage", 8, actor.global_position + Vector3.UP * 0.6, 1.0, false, "T", Vector3(5.0, 1.0, 8.0))
+	for _frame in range(10):
+		await get_tree().physics_frame
+	var ai := (actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
+	_assert_true(int(ai.get("damage_count", 0)) >= 1, "receiving a hit should record damage-source memory")
+	_assert_true(String(ai.get("state", "")) in ["HOLD_ANGLE", "INVESTIGATE"], "damage without vision should turn the bot toward the source")
+	_assert_true((ai.get("last_known_position", Vector3.ZERO) as Vector3).x > 3.0, "damage source position should become the last known enemy position")
+	await _cleanup_fixture(fixture)
+
+func _test_bot_records_dynamic_danger_and_reroutes() -> void:
+	var fixture := await _make_fixture()
+	var player := fixture.player as CharacterBody3D
+	var actor := fixture.actor as CharacterBody3D
+	player.set("is_dead", true)
+	actor.global_position = Vector3(0.0, 1.15, 8.0)
+	actor.call("configure_from_record", {
+		"name": "动态危险测试敌人", "team": "enemy", "aiEnabled": true,
+		"navigationGraph": {
+			"points": [[0.0, 1.15, 8.0], [-4.0, 1.15, 4.0], [-4.0, 1.15, -4.0], [0.0, 1.15, -8.0], [4.0, 1.15, 4.0], [4.0, 1.15, -4.0]],
+			"links": [[0, 1], [1, 2], [2, 3], [0, 4], [4, 5], [5, 3]],
+		},
+	})
+	RoundManager.set_live()
+	actor.call("record_ai_dynamic_danger", Vector3(4.0, 1.0, 0.0), 1.0)
+	actor.call("notify_ai_sound", Vector3(0.0, 1.0, -8.0), 24.0, "T")
+	for _frame in range(20):
+		await get_tree().physics_frame
+	var ai := (actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
+	_assert_true(int(ai.get("danger_events", 0)) >= 1, "recorded danger events should remain in bot memory")
+	_assert_true(actor.global_position.x < -0.05, "dynamic danger near the exposed branch should reroute the bot to cover")
+	await _cleanup_fixture(fixture)
+
+func _test_bot_switches_to_knife_at_close_range() -> void:
+	var fixture := await _make_fixture()
+	var actor := fixture.actor as CharacterBody3D
+	actor.global_position = Vector3(0.0, 1.15, 2.0)
+	actor.call("configure_from_record", {
+		"name": "近战切枪测试敌人", "team": "enemy", "aiEnabled": true,
+		"aiReactionTime": 0.05, "aiAimAcquisitionTime": 0.05, "aiDamage": 8,
+	})
+	RoundManager.set_live()
+	for _frame in range(150):
+		await get_tree().physics_frame
+	var ai := (actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
+	_assert_equal(String(ai.get("weapon_id", "")), "knife", "close-range healthy bot should switch to the knife")
+	_assert_true(int(ai.get("shots", 0)) > 0 or GameState.player_health < 100, "knife switch should lead to a melee attack")
+	await _cleanup_fixture(fixture)
+
+func _test_bot_dodges_and_crouches_during_combat() -> void:
+	var fixture := await _make_fixture()
+	var actor := fixture.actor as CharacterBody3D
+	actor.call("configure_from_record", {
+		"name": "交火身法测试敌人", "team": "enemy", "aiEnabled": true,
+		"aiReactionTime": 0.05, "aiAimAcquisitionTime": 0.05, "aiDamage": 8, "aiCrouchChance": 1.0,
+	})
+	RoundManager.set_live()
+	for _frame in range(240):
+		await get_tree().physics_frame
+	var ai := (actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
+	_assert_true(int(ai.get("dodges", 0)) > 0, "engaged bot should perform side-step dodges between bursts")
+	_assert_true(int(ai.get("crouches", 0)) > 0, "engaged bot should occasionally crouch during combat")
+	await _cleanup_fixture(fixture)
+
+func _test_bot_retreats_at_low_health() -> void:
+	var fixture := await _make_fixture()
+	var actor := fixture.actor as CharacterBody3D
+	actor.call("configure_from_record", {
+		"name": "撤退测试敌人", "team": "enemy", "aiEnabled": true,
+		"aiReactionTime": 0.05, "aiAimAcquisitionTime": 0.05, "aiDamage": 8,
+	})
+	actor.set("current_health", 12)
+	RoundManager.set_live()
+	for _frame in range(60):
+		await get_tree().physics_frame
+	var ai := (actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
+	_assert_equal(String(ai.get("state", "")), "RETREAT", "low-health bot should enter retreat instead of holding position")
+	_assert_true(actor.global_position.z > 8.15, "retreat should move the bot away from the visible enemy")
+	await _cleanup_fixture(fixture)
+
+func _test_bot_spray_plan_scales_with_distance() -> void:
+	var close_fixture := await _make_fixture()
+	var close_actor := close_fixture.actor as CharacterBody3D
+	close_actor.global_position = Vector3(0.0, 1.15, 4.0)
+	close_actor.call("configure_from_record", {
+		"name": "近距离火力测试敌人", "team": "enemy", "aiEnabled": true,
+		"aiReactionTime": 0.05, "aiAimAcquisitionTime": 0.05,
+	})
+	RoundManager.set_live()
+	for _frame in range(20):
+		await get_tree().physics_frame
+	var close_ai := (close_actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
+	_assert_equal(String(close_ai.get("spray_decision", "")), "spray", "close range should choose a sustained spray plan")
+	await _cleanup_fixture(close_fixture)
+
+	var far_fixture := await _make_fixture()
+	var far_actor := far_fixture.actor as CharacterBody3D
+	far_actor.global_position = Vector3(0.0, 1.15, 28.0)
+	far_actor.call("configure_from_record", {
+		"name": "远距离火力测试敌人", "team": "enemy", "aiEnabled": true,
+		"aiReactionTime": 0.05, "aiAimAcquisitionTime": 0.05,
+	})
+	RoundManager.set_live()
+	for _frame in range(20):
+		await get_tree().physics_frame
+	var far_ai := (far_actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
+	_assert_equal(String(far_ai.get("spray_decision", "")), "tap", "long range should choose single-shot taps")
+	await _cleanup_fixture(far_fixture)
 
 func _add_test_wall(parent: Node3D, position: Vector3, size: Vector3) -> void:
 	var wall := StaticBody3D.new()

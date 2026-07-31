@@ -279,7 +279,7 @@ func get_accuracy_state() -> Dictionary:
 		"landing_penalty": _landing_accuracy_penalty,
 	}
 
-func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, armor_penetration: float = 1.0, penetrated: bool = false) -> Dictionary:
+func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, armor_penetration: float = 1.0, penetrated: bool = false, source_team: String = "", source_position: Vector3 = Vector3.INF) -> Dictionary:
 	if is_dead:
 		return {"hit": false, "killed": false}
 	var resolved_position := global_position if hit_position == Vector3.ZERO else hit_position

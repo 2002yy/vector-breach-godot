@@ -57,12 +57,18 @@ func _detonate() -> void:
 		_activate_smoke()
 
 func _apply_he_damage() -> void:
+	var source_team := GameState.player_team
+	if is_instance_valid(thrower):
+		if (thrower as Node).is_in_group("local_player"):
+			source_team = GameState.player_team
+		elif (thrower as Node).get("team") != null:
+			source_team = String((thrower as Node).get("team"))
 	for target in get_tree().get_nodes_in_group("target_dummies"):
 		if target is Node3D:
 			var distance := global_position.distance_to((target as Node3D).global_position)
 			if distance <= 7.0 and target.has_method("apply_hitscan_damage"):
 				var damage := maxi(1, int(round(98.0 * pow(1.0 - distance / 7.0, 1.35) * _blast_cover_scale((target as Node3D).global_position, target))))
-				var result := target.call("apply_hitscan_damage", damage, (target as Node3D).global_position, 0.5, false) as Dictionary
+				var result := target.call("apply_hitscan_damage", damage, (target as Node3D).global_position, 0.5, false, source_team, global_position) as Dictionary
 				if bool(result.get("hit", false)):
 					GameState.register_hit(bool(result.get("killed", false)), "he_grenade", String(result.get("target_team", "")))
 	if is_instance_valid(thrower):
