@@ -23,6 +23,7 @@ func _ready() -> void:
 	await _run_test("bot_retreats_at_low_health", _test_bot_retreats_at_low_health)
 	await _run_test("bot_spray_plan_scales_with_distance", _test_bot_spray_plan_scales_with_distance)
 	await _run_test("bot_strafes_without_orbiting_target", _test_bot_strafes_without_orbiting_target)
+	await _run_test("bot_applies_recoil_compensation_during_spray", _test_bot_applies_recoil_compensation_during_spray)
 	if _failures.is_empty():
 		print("[TacticalBotTests] PASS (%d tests)" % _passes)
 		get_tree().quit(0)
@@ -414,6 +415,22 @@ func _test_bot_strafes_without_orbiting_target() -> void:
 	var ai := (actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
 	_assert_true(int(ai.get("dodges", 0)) > 0, "engaged bot should still perform bounded side-step dodges")
 	_assert_true(total_turn < TAU * 0.75, "bounded strafes should not accumulate a full orbit around the target")
+	await _cleanup_fixture(fixture)
+
+func _test_bot_applies_recoil_compensation_during_spray() -> void:
+	var fixture := await _make_fixture()
+	var actor := fixture.actor as CharacterBody3D
+	actor.global_position = Vector3(0.0, 1.15, 4.0)
+	actor.call("configure_from_record", {
+		"name": "压枪补偿测试敌人", "team": "enemy", "aiEnabled": true,
+		"aiReactionTime": 0.05, "aiAimAcquisitionTime": 0.05, "aiDamage": 8,
+	})
+	RoundManager.set_live()
+	for _frame in range(180):
+		await get_tree().physics_frame
+	var ai := (actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
+	_assert_true(float(ai.get("recoil_compensation", 0.0)) > 0.0, "bot recoil compensation should be configured for spray control")
+	_assert_true(int(ai.get("recoil_compensated_shots", 0)) > 0, "close-range spray should apply downward recoil compensation on later shots")
 	await _cleanup_fixture(fixture)
 
 func _add_test_wall(parent: Node3D, position: Vector3, size: Vector3) -> void:
