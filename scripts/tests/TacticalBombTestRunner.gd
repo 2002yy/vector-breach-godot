@@ -18,6 +18,7 @@ func _ready() -> void:
 	await _run_test("bot_buys_grenades_and_defuse_kit_in_freeze", _test_bot_buys_grenades_and_defuse_kit_in_freeze)
 	await _run_test("bot_throws_smoke_toward_objective_before_plant", _test_bot_throws_smoke_toward_objective_before_plant)
 	await _run_test("bot_uses_he_in_combat", _test_bot_uses_he_in_combat)
+	await _run_test("bot_uses_flash_in_combat", _test_bot_uses_flash_in_combat)
 	await _run_test("bot_picks_up_dropped_weapon", _test_bot_picks_up_dropped_weapon)
 	await _run_test("combat_sandbox_splits_t_roles_between_sites", _test_combat_sandbox_splits_t_roles_between_sites)
 	if _failures.is_empty():
@@ -80,6 +81,10 @@ func _make_actor(world: Node3D, actor_name: String, team: String, position: Vect
 	return actor
 
 func _cleanup_fixture(fixture: Dictionary) -> void:
+	for group_name in ["grenade_projectiles", "smoke_volumes", "weapon_pickups"]:
+		for node_variant in get_tree().get_nodes_in_group(group_name):
+			if is_instance_valid(node_variant):
+				(node_variant as Node).queue_free()
 	(fixture.world as Node).queue_free()
 	await get_tree().physics_frame
 	await get_tree().process_frame
@@ -257,6 +262,21 @@ func _test_bot_uses_he_in_combat() -> void:
 			he_thrown = true
 	var ai := (ct_actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
 	_assert_true(he_thrown or int(((ai.get("grenades", {}) as Dictionary).get("he_grenade", 1))) == 0, "CT bot should throw HE at a close visible enemy")
+	await _cleanup_fixture(fixture)
+
+func _test_bot_uses_flash_in_combat() -> void:
+	var fixture := await _make_fixture()
+	_make_actor(fixture.world as Node3D, "T目标", "T", Vector3(0.0, 1.15, -6.0))
+	var ct_actor := _make_actor(fixture.world as Node3D, "CT闪光手", "CT", Vector3(0.0, 1.15, 0.0), {"aiGrenades": {"flash_grenade": 1}})
+	RoundManager.set_live()
+	for _frame in range(60):
+		await get_tree().physics_frame
+	var flash_thrown := false
+	for projectile_variant in get_tree().get_nodes_in_group("grenade_projectiles"):
+		if String(projectile_variant.get("grenade_type")) == "flash_grenade":
+			flash_thrown = true
+	var ai := (ct_actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
+	_assert_true(flash_thrown or int(((ai.get("grenades", {}) as Dictionary).get("flash_grenade", 1))) == 0, "CT bot should throw a flash at a close visible enemy")
 	await _cleanup_fixture(fixture)
 
 func _test_bot_picks_up_dropped_weapon() -> void:
