@@ -24,6 +24,7 @@ func _ready() -> void:
 	await _run_test("bot_spray_plan_scales_with_distance", _test_bot_spray_plan_scales_with_distance)
 	await _run_test("bot_strafes_without_orbiting_target", _test_bot_strafes_without_orbiting_target)
 	await _run_test("bot_applies_recoil_compensation_during_spray", _test_bot_applies_recoil_compensation_during_spray)
+	await _run_test("visual_actor_keeps_collision_and_hit_model_independent", _test_visual_actor_keeps_collision_and_hit_model_independent)
 	if _failures.is_empty():
 		print("[TacticalBotTests] PASS (%d tests)" % _passes)
 		get_tree().quit(0)
@@ -287,6 +288,27 @@ func _test_bot_reacts_to_damage_source() -> void:
 	_assert_true(int(ai.get("damage_count", 0)) >= 1, "receiving a hit should record damage-source memory")
 	_assert_true(String(ai.get("state", "")) in ["HOLD_ANGLE", "INVESTIGATE"], "damage without vision should turn the bot toward the source")
 	_assert_true((ai.get("last_known_position", Vector3.ZERO) as Vector3).x > 3.0, "damage source position should become the last known enemy position")
+	await _cleanup_fixture(fixture)
+
+func _test_visual_actor_keeps_collision_and_hit_model_independent() -> void:
+	var fixture := await _make_fixture()
+	var actor := fixture.actor as CharacterBody3D
+	var animation_player := actor.get_node("AnimationPlayer") as AnimationPlayer
+	var visual := actor.get_node("ActorVisual") as Node3D
+	_assert_true(visual.find_child("Vest_Mk1", true, false) != null, "shared visual GLB should expose the replaceable vest node")
+	_assert_true(visual.find_child("Helmet_LowProfile", true, false) != null, "shared visual GLB should expose the optional helmet node")
+	_assert_true(visual.find_child("WeaponSocket", true, false) != null, "shared visual GLB should expose the weapon mount socket")
+	for animation_name in [&"tactical/idle", &"tactical/run", &"tactical/crouch", &"tactical/hit", &"tactical/death"]:
+		_assert_true(animation_player.has_animation(animation_name), "AnimationPlayer should register %s" % animation_name)
+	var capsule := actor.get_node("CollisionShape3D").shape as CapsuleShape3D
+	_assert_true(is_equal_approx(capsule.height, 1.8), "visual asset should not replace the standing capsule hull")
+	var head_hit := actor.call("apply_hitscan_damage", 1, actor.global_position + Vector3.UP * 0.66, 1.0, false) as Dictionary
+	_assert_equal(String(head_hit.get("hit_group", "")), "head", "visual asset should not replace five-zone hit resolution")
+	actor.call("set_ai_crouching", true)
+	_assert_true(is_equal_approx(capsule.height, 1.2), "existing crouch collision behavior must remain authoritative over the visual")
+	actor.call("apply_hitscan_damage", 500, actor.global_position + Vector3.UP * 0.66, 1.0, false)
+	_assert_equal(animation_player.current_animation, StringName("tactical/death"), "lethal damage should enter the presentation-only death animation")
+	_assert_true(not actor.is_queued_for_deletion(), "death animation should keep the non-colliding visual alive briefly")
 	await _cleanup_fixture(fixture)
 
 func _test_bot_records_dynamic_danger_and_reroutes() -> void:

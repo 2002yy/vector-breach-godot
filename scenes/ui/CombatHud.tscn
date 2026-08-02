@@ -159,6 +159,30 @@ offset_bottom = 52.0
 grow_horizontal = 0
 theme_override_styles/panel = SubResource("EdgeReadoutStyle")
 
+[node name="TrainingTelemetry" type="PanelContainer" parent="HudRoot"]
+visible = false
+layout_mode = 1
+anchors_preset = 0
+offset_left = 220.0
+offset_top = 18.0
+offset_right = 510.0
+offset_bottom = 140.0
+theme_override_styles/panel = SubResource("RoundStripStyle")
+
+[node name="Margin" type="MarginContainer" parent="HudRoot/TrainingTelemetry"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="Label" type="Label" parent="HudRoot/TrainingTelemetry/Margin"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.86, 0.78, 1)
+theme_override_fonts/font = ExtResource("3_semibold")
+theme_override_font_sizes/font_size = 15
+text = "压枪训练 [F4]"
+
 [node name="Margin" type="MarginContainer" parent="HudRoot/TopRight"]
 layout_mode = 2
 

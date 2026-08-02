@@ -1,7 +1,8 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/combat/TacticalActor.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/ai/TacticalBotBrain.gd" id="2"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/tactical_actor_lowpoly.glb" id="3"]
 
 [sub_resource type="CapsuleShape3D" id="1"]
 radius = 0.4
@@ -21,6 +22,19 @@ size = Vector3(0.12, 0.12, 0.72)
 [sub_resource type="CapsuleShape3D" id="5"]
 radius = 0.38
 height = 1.76
+
+[sub_resource type="BoxMesh" id="6"]
+size = Vector3(0.52, 0.42, 0.28)
+
+[sub_resource type="BoxMesh" id="7"]
+size = Vector3(0.13, 0.56, 0.13)
+
+[sub_resource type="BoxMesh" id="8"]
+size = Vector3(0.18, 0.64, 0.18)
+
+[sub_resource type="SphereMesh" id="9"]
+radius = 0.29
+height = 0.18
 
 [node name="TacticalActor" type="CharacterBody3D"]
 script = ExtResource("1")
@@ -43,13 +57,56 @@ script = ExtResource("2")
 
 [node name="BodyMesh" type="MeshInstance3D" parent="."]
 position = Vector3(0, -0.08, 0)
+visible = false
 mesh = SubResource("2")
 
 [node name="HeadMesh" type="MeshInstance3D" parent="."]
 position = Vector3(0, 0.66, 0)
+visible = false
 mesh = SubResource("3")
 
 [node name="WeaponMesh" type="MeshInstance3D" parent="."]
 position = Vector3(0.28, 0.08, -0.28)
 rotation = Vector3(0, 0, 0.18)
+visible = false
 mesh = SubResource("4")
+
+[node name="ArmorVest" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.12, 0.02)
+visible = false
+mesh = SubResource("6")
+
+[node name="LeftArm" type="MeshInstance3D" parent="."]
+position = Vector3(-0.38, 0.15, -0.02)
+rotation = Vector3(0, 0, 0.18)
+visible = false
+mesh = SubResource("7")
+
+[node name="RightArm" type="MeshInstance3D" parent="."]
+position = Vector3(0.38, 0.15, -0.02)
+rotation = Vector3(0, 0, -0.18)
+visible = false
+mesh = SubResource("7")
+
+[node name="LeftLeg" type="MeshInstance3D" parent="."]
+position = Vector3(-0.16, -0.62, 0)
+visible = false
+mesh = SubResource("8")
+
+[node name="RightLeg" type="MeshInstance3D" parent="."]
+position = Vector3(0.16, -0.62, 0)
+visible = false
+mesh = SubResource("8")
+
+[node name="HelmetMesh" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.82, 0)
+visible = false
+mesh = SubResource("9")
+
+[node name="ActorVisual" type="Node3D" parent="."]
+position = Vector3(0, -0.9, 0)
+scale = Vector3(0.85, 0.85, 0.85)
+
+[node name="Model" parent="ActorVisual" instance=ExtResource("3")]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]

@@ -47,6 +47,7 @@ func _run_all_tests() -> void:
 
 func _run_test(test_name: String, callable: Callable) -> void:
 	var failed_before: int = _failures.size()
+	print("[MainStateFlowTests] START %s" % test_name)
 	await callable.call()
 	if _failures.size() == failed_before:
 		_passes += 1

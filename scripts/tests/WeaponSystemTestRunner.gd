@@ -6,6 +6,7 @@ const PISTOL_PROFILE = preload("res://data/weapons/pistol.tres")
 const TEST_PLAYER_SCENE = preload("res://scenes/tests/support/TestPlayerStub.tscn")
 const TARGET_DUMMY_SCENE = preload("res://scenes/combat/TargetDummy.tscn")
 const COMBAT_HUD_SCENE = preload("res://scenes/ui/CombatHud.tscn")
+const TRAINING_TELEMETRY = preload("res://scripts/training/TrainingTelemetry.gd")
 
 var _failures: PackedStringArray = []
 var _passes: int = 0
@@ -43,6 +44,7 @@ func _run_all_tests() -> void:
 	await _run_test("thick_concrete_blocks_penetration", _test_thick_concrete_blocks_penetration)
 	await _run_test("weapon_drop_and_pickup_preserve_ammo", _test_weapon_drop_and_pickup_preserve_ammo)
 	await _run_test("invalid_profile_does_not_shift_runtime_slots", _test_invalid_profile_does_not_shift_runtime_slots)
+	await _run_test("training_telemetry_tracks_shots_and_grenades", _test_training_telemetry_tracks_shots_and_grenades)
 
 func _run_test(test_name: String, callable: Callable) -> void:
 	var failed_before: int = _failures.size()
@@ -478,3 +480,17 @@ func _test_weapon_drop_and_pickup_preserve_ammo(fixture: Dictionary) -> void:
 	_assert_true(int((weapon_system.call("get_runtime_snapshot") as Dictionary).get("weapon_slot", -1)) != int(dropped.get("slot_index", -1)), "dropping the rifle should fall back to another owned weapon")
 	_assert_true(bool(weapon_system.call("pickup_weapon", dropped)), "weapon record should be pickable")
 	_assert_equal((weapon_system.call("get_runtime_snapshot") as Dictionary).get("ammo_in_mag"), 17, "picked-up weapon should restore preserved ammo")
+
+func _test_training_telemetry_tracks_shots_and_grenades(_fixture: Dictionary) -> void:
+	var telemetry := TRAINING_TELEMETRY.new() as Node
+	add_child(telemetry)
+	telemetry.call("record_shot", {"hit": true, "position": Vector3(2.0, 0.0, 4.0), "damage_result": {"hit": true, "headshot": true}})
+	telemetry.call("record_shot", {"hit": false, "damage_result": {}})
+	telemetry.call("record_grenade", {"type": "smoke_grenade", "distance": 12.5, "flight_time": 1.2})
+	var snapshot := telemetry.call("get_snapshot") as Dictionary
+	_assert_equal(snapshot.get("shots"), 2, "telemetry should include fired shots")
+	_assert_equal(snapshot.get("hits"), 1, "telemetry should count damaging target hits")
+	_assert_equal(snapshot.get("headshots"), 1, "telemetry should count headshots")
+	_assert_float_close(float(snapshot.get("accuracy", 0.0)), 50.0, 0.001, "telemetry should calculate hit rate")
+	_assert_true(String(snapshot.get("grenade_text", "")).contains("smoke_grenade"), "telemetry should expose the most recent grenade summary")
+	telemetry.queue_free()

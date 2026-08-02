@@ -4,6 +4,7 @@ signal targets_spawned(count: int)
 signal combatants_spawned(friendly_count: int, enemy_count: int)
 signal ai_shot(result: Dictionary, world_position: Vector3)
 signal ai_footstep(world_position: Vector3, surface: String, quiet: bool)
+signal radio_report(caller: String, message: String)
 
 @export var dummy_scene: PackedScene
 @export var use_spawn_points: bool = true
@@ -82,6 +83,11 @@ func load_for_level(level_data: Dictionary) -> void:
 	targets_spawned.emit(enemy_count)
 	combatants_spawned.emit(friendly_count, enemy_count)
 	_assign_bomb_roles(level_data)
+	var scoreboard_records: Array = []
+	for child in get_children():
+		if child is CharacterBody3D and (child as CharacterBody3D).has_method("get_combat_snapshot"):
+			scoreboard_records.append((child as CharacterBody3D).call("get_combat_snapshot"))
+	GameState.set_scoreboard_combatants(scoreboard_records)
 	_sync_team_economy()
 
 func set_c4_device(device: Node3D) -> void:
@@ -184,9 +190,13 @@ func _on_actor_killed(_actor_name: String, _team: String, actor: CharacterBody3D
 
 func _on_actor_ai_spot(world_position: Vector3, enemy_team: String, spotter: CharacterBody3D) -> void:
 	_broadcast_teammate_report(world_position, enemy_team, String(spotter.get("team")), spotter)
+	if String(spotter.get("team")) == GameState.player_team:
+		radio_report.emit(String(spotter.get("display_name")), "发现敌方，注意交火")
 
 func _on_actor_ai_damaged(world_position: Vector3, source_team: String, damaged_actor: CharacterBody3D) -> void:
 	_broadcast_teammate_report(world_position, source_team, String(damaged_actor.get("team")), damaged_actor)
+	if String(damaged_actor.get("team")) == GameState.player_team and not source_team.is_empty():
+		radio_report.emit(String(damaged_actor.get("display_name")), "受到攻击，请求支援")
 
 func _broadcast_teammate_report(world_position: Vector3, enemy_team: String, friendly_team: String, exclude_actor: CharacterBody3D) -> void:
 	if enemy_team.is_empty() or friendly_team.is_empty():
@@ -210,6 +220,7 @@ func notify_ai_sound(world_position: Vector3, audible_radius: float, source_team
 	return notified
 
 func _on_actor_ai_shot(result: Dictionary, world_position: Vector3) -> void:
+	GameState.record_scoreboard_damage(String(result.get("shooter_name", "Bot")), String(result.get("shooter_team", "")), result.get("damage_result", {}) as Dictionary)
 	ai_shot.emit(result, world_position)
 	notify_ai_sound(world_position, 52.0, String((result.get("shooter_team", ""))))
 

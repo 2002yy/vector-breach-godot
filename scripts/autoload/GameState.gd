@@ -34,6 +34,7 @@ var training_complete: bool = false
 var player_team: String = "T"
 var round_result_text: String = ""
 var loss_streak: int = 0
+var unit_scoreboard: Dictionary = {}
 const MAX_MONEY := 16000
 const LOSS_BONUSES := [1400, 1900, 2400, 2900, 3400]
 
@@ -68,6 +69,7 @@ func reset_runtime_state() -> void:
 	training_complete = false
 	round_result_text = ""
 	loss_streak = 0
+	unit_scoreboard.clear()
 	_emit_hud_state_changed()
 
 func prepare_next_round() -> void:
@@ -232,8 +234,48 @@ func get_hud_snapshot() -> Dictionary:
 		"training_complete": training_complete,
 		"player_team": player_team,
 		"round_result_text": round_result_text,
+		"scoreboard_rows": get_scoreboard_rows(),
 		"bomb": RoundManager.get_objective_snapshot(),
 	}
+
+func set_scoreboard_combatants(records: Array) -> void:
+	unit_scoreboard.clear()
+	unit_scoreboard["你"] = {"name": "你", "team": player_team, "weapon": current_weapon_name, "alive": true, "money": player_money, "kills": 0, "deaths": 0, "hits": 0}
+	for record_variant in records:
+		if record_variant is Dictionary:
+			var record := record_variant as Dictionary
+			var unit_name := String(record.get("name", "战术单位"))
+			var ai: Dictionary = record.get("ai", {}) as Dictionary
+			unit_scoreboard[unit_name] = {"name": unit_name, "team": String(record.get("team", "")), "weapon": String(record.get("weapon", "rifle")), "alive": bool(record.get("alive", true)), "money": int(ai.get("money", 800)), "kills": 0, "deaths": 0, "hits": 0}
+
+func record_scoreboard_damage(shooter_name: String, shooter_team: String, damage: Dictionary) -> void:
+	if damage.is_empty() or not bool(damage.get("hit", false)):
+		return
+	var shooter: Dictionary = unit_scoreboard.get(shooter_name, {"name": shooter_name, "team": shooter_team, "weapon": "rifle", "alive": true, "money": 800, "kills": 0, "deaths": 0, "hits": 0}) as Dictionary
+	shooter["hits"] = int(shooter.get("hits", 0)) + 1
+	if bool(damage.get("killed", false)):
+		shooter["kills"] = int(shooter.get("kills", 0)) + 1
+		var target_name := String(damage.get("target_name", "战术单位"))
+		var target: Dictionary = unit_scoreboard.get(target_name, {"name": target_name, "team": String(damage.get("target_team", "")), "weapon": "rifle", "alive": true, "money": 800, "kills": 0, "deaths": 0, "hits": 0}) as Dictionary
+		target["deaths"] = int(target.get("deaths", 0)) + 1
+		target["alive"] = false
+		unit_scoreboard[target_name] = target
+	unit_scoreboard[shooter_name] = shooter
+
+func get_scoreboard_rows() -> Dictionary:
+	var friendly: Array[String] = []
+	var enemy: Array[String] = []
+	for entry_variant in unit_scoreboard.values():
+		var entry := entry_variant as Dictionary
+		if String(entry.get("name", "")) == "你":
+			entry["money"] = player_money
+			entry["weapon"] = current_weapon_name
+		var line := "%s  %d/%d  命中%d  $%d  %s  %s" % [String(entry.get("name", "单位")), int(entry.get("kills", 0)), int(entry.get("deaths", 0)), int(entry.get("hits", 0)), int(entry.get("money", 800)), String(entry.get("weapon", "rifle")), "存活" if bool(entry.get("alive", true)) else "阵亡"]
+		if String(entry.get("team", "")) == player_team:
+			friendly.append(line)
+		else:
+			enemy.append(line)
+	return {"friendly": friendly, "enemy": enemy}
 
 func sync_weapon_state(weapon_name: String, next_ammo_in_mag: int, next_ammo_reserve: int, status_text: String = "", spread_degrees: float = 0.0, recoil_value: float = 0.0, slot_index: int = 0) -> void:
 	var changed := (

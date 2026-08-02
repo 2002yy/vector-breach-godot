@@ -20,6 +20,10 @@ signal ai_damaged(world_position: Vector3, source_team: String)
 @onready var body_mesh: MeshInstance3D = $BodyMesh
 @onready var head_mesh: MeshInstance3D = $HeadMesh
 @onready var weapon_mesh: MeshInstance3D = $WeaponMesh
+@onready var armor_vest: MeshInstance3D = $ArmorVest
+@onready var helmet_mesh: MeshInstance3D = $HelmetMesh
+@onready var actor_visual: Node3D = $ActorVisual
+@onready var animation_player: AnimationPlayer = $AnimationPlayer
 @onready var environment_sensor: Area3D = $EnvironmentSensor
 @onready var bot_brain: Node = $TacticalBotBrain
 
@@ -39,6 +43,11 @@ var _footstep_distance: float = 0.0
 var _body_mesh_y: float = 0.0
 var _head_mesh_y: float = 0.0
 var _weapon_mesh_y: float = 0.0
+var _presentation_time: float = 0.0
+var _hit_flash_time: float = 0.0
+var _visual_drop: float = 0.0
+var _actor_visual_y: float = 0.0
+var _active_visual_animation: StringName = &""
 
 func _ready() -> void:
 	add_to_group("combat_actors")
@@ -51,6 +60,8 @@ func _ready() -> void:
 	_body_mesh_y = body_mesh.position.y
 	_head_mesh_y = head_mesh.position.y
 	_weapon_mesh_y = weapon_mesh.position.y
+	_actor_visual_y = actor_visual.position.y
+	_create_visual_animations()
 	bot_brain.call("setup", self)
 	_apply_team_visual()
 
@@ -69,6 +80,7 @@ func _physics_process(delta: float) -> void:
 			velocity.y = 0.0
 	move_and_slide()
 	_update_ai_footsteps(position_before)
+	_update_presentation(delta)
 
 func configure_from_record(record: Dictionary) -> void:
 	display_name = String(record.get("name", display_name))
@@ -112,9 +124,11 @@ func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, arm
 		collision_mask = 0
 		collision_shape.set_deferred("disabled", true)
 		_material.albedo_color = Color(0.16, 0.17, 0.18)
+		_set_visual_animation(&"death")
 		actor_killed.emit(display_name, team)
-		queue_free()
+		_play_death_then_release()
 	else:
+		_hit_flash_time = 0.10
 		_material.albedo_color = Color(1.0, 0.72, 0.22)
 	return {
 		"hit": true, "killed": killed, "target_name": display_name, "target_team": team,
@@ -149,6 +163,9 @@ func reset_actor() -> void:
 	collision_mask = 1
 	collision_shape.disabled = false
 	_footstep_distance = 0.0
+	_presentation_time = 0.0
+	_hit_flash_time = 0.0
+	_active_visual_animation = &""
 	bot_brain.call("reset_runtime")
 	_apply_team_visual()
 
@@ -217,10 +234,11 @@ func set_ai_crouching(wants_crouch: bool) -> bool:
 	if capsule != null:
 		capsule.height = 1.2 if ai_crouching else 1.8
 	collision_shape.position.y = -0.30 if ai_crouching else 0.0
-	var visual_drop := -0.32 if ai_crouching else 0.0
-	body_mesh.position.y = _body_mesh_y + visual_drop
-	head_mesh.position.y = _head_mesh_y + visual_drop
-	weapon_mesh.position.y = _weapon_mesh_y + visual_drop
+	_visual_drop = -0.32 if ai_crouching else 0.0
+	body_mesh.position.y = _body_mesh_y + _visual_drop
+	head_mesh.position.y = _head_mesh_y + _visual_drop
+	weapon_mesh.position.y = _weapon_mesh_y + _visual_drop
+	actor_visual.position.y = _actor_visual_y + _visual_drop
 	return true
 
 func get_ai_environment_snapshot() -> Dictionary:
@@ -246,6 +264,92 @@ func _apply_team_visual() -> void:
 	body_mesh.material_override = _material
 	head_mesh.material_override = _material
 	weapon_mesh.material_override = _material
+	armor_vest.material_override = _material
+	for limb_path in ["LeftArm", "RightArm", "LeftLeg", "RightLeg"]:
+		var limb := get_node(limb_path) as MeshInstance3D
+		limb.material_override = _material
+	helmet_mesh.material_override = _material
+	# Legacy primitives remain collision-era fallbacks only; the GLB owns presentation.
+	helmet_mesh.visible = false
+	for part_name in ["TeamChestMarker", "TeamPatch_L", "TeamPatch_R", "VestPouch_L", "VestPouch_R"]:
+		var part := actor_visual.find_child(part_name, true, false) as MeshInstance3D
+		if part != null:
+			part.material_override = _material
+	var model_helmet := actor_visual.find_child("Helmet_LowProfile", true, false) as Node3D
+	if model_helmet != null:
+		model_helmet.visible = has_helmet
+
+func _update_presentation(delta: float) -> void:
+	_presentation_time += delta
+	_hit_flash_time = maxf(0.0, _hit_flash_time - delta)
+	var speed_ratio := clampf(Vector2(velocity.x, velocity.z).length() / 4.8, 0.0, 1.0)
+	var bob := sin(_presentation_time * lerpf(2.2, 10.5, speed_ratio)) * (0.014 + speed_ratio * 0.026)
+	body_mesh.position.y = _body_mesh_y + _visual_drop + bob
+	head_mesh.position.y = _head_mesh_y + _visual_drop + bob * 0.65
+	weapon_mesh.position.y = _weapon_mesh_y + _visual_drop + bob * 0.75
+	weapon_mesh.rotation.z = 0.18 + sin(_presentation_time * 8.0) * speed_ratio * 0.07
+	var next_animation: StringName = &"idle"
+	if _hit_flash_time > 0.0:
+		next_animation = &"hit"
+	elif ai_crouching:
+		next_animation = &"crouch"
+	elif speed_ratio > 0.12:
+		next_animation = &"run"
+	_set_visual_animation(next_animation)
+	if _hit_flash_time > 0.0:
+		_material.albedo_color = Color(1.0, 0.72, 0.22)
+	elif _material.albedo_color != (Color(0.20, 0.48, 0.88) if team == "CT" else Color(0.86, 0.43, 0.16)):
+		_apply_team_visual()
+
+func _create_visual_animations() -> void:
+	var library := AnimationLibrary.new()
+	library.add_animation(&"idle", _make_visual_animation(1.2, true, {
+		"ActorVisual/Model/TacticalActor_LowPoly/VisualRig/Hips:position": [[0.0, Vector3(0.0, 0.93, 0.0)], [0.6, Vector3(0.0, 0.95, 0.0)], [1.2, Vector3(0.0, 0.93, 0.0)]],
+		"ActorVisual/Model/TacticalActor_LowPoly/VisualRig/Hips/HeadSocket:rotation": [[0.0, Vector3.ZERO], [0.6, Vector3(0.03, 0.0, 0.0)], [1.2, Vector3.ZERO]],
+	}))
+	library.add_animation(&"run", _make_visual_animation(0.52, true, {
+		"ActorVisual/Model/TacticalActor_LowPoly/VisualRig/Hips:position": [[0.0, Vector3(0.0, 0.94, 0.0)], [0.13, Vector3(0.0, 0.99, -0.015)], [0.26, Vector3(0.0, 0.94, 0.0)], [0.39, Vector3(0.0, 0.99, -0.015)], [0.52, Vector3(0.0, 0.94, 0.0)]],
+		"ActorVisual/Model/TacticalActor_LowPoly/VisualRig/Hips/LeftShoulder:rotation": [[0.0, Vector3(0.45, 0.0, 0.12)], [0.26, Vector3(-0.35, 0.0, 0.12)], [0.52, Vector3(0.45, 0.0, 0.12)]],
+		"ActorVisual/Model/TacticalActor_LowPoly/VisualRig/Hips/RightShoulder:rotation": [[0.0, Vector3(-0.35, 0.0, -0.12)], [0.26, Vector3(0.45, 0.0, -0.12)], [0.52, Vector3(-0.35, 0.0, -0.12)]],
+		"ActorVisual/Model/TacticalActor_LowPoly/VisualRig/Hips/LeftHip:rotation": [[0.0, Vector3(-0.42, 0.0, 0.0)], [0.26, Vector3(0.38, 0.0, 0.0)], [0.52, Vector3(-0.42, 0.0, 0.0)]],
+		"ActorVisual/Model/TacticalActor_LowPoly/VisualRig/Hips/RightHip:rotation": [[0.0, Vector3(0.38, 0.0, 0.0)], [0.26, Vector3(-0.42, 0.0, 0.0)], [0.52, Vector3(0.38, 0.0, 0.0)]],
+	}))
+	library.add_animation(&"crouch", _make_visual_animation(0.8, true, {
+		"ActorVisual/Model/TacticalActor_LowPoly/VisualRig/Hips:position": [[0.0, Vector3(0.0, 0.85, 0.02)], [0.4, Vector3(0.0, 0.87, 0.02)], [0.8, Vector3(0.0, 0.85, 0.02)]],
+		"ActorVisual/Model/TacticalActor_LowPoly/VisualRig/Hips:rotation": [[0.0, Vector3(0.14, 0.0, 0.0)], [0.8, Vector3(0.14, 0.0, 0.0)]],
+	}))
+	library.add_animation(&"hit", _make_visual_animation(0.22, false, {
+		"ActorVisual/Model/TacticalActor_LowPoly/VisualRig/Hips:rotation": [[0.0, Vector3.ZERO], [0.08, Vector3(-0.14, 0.0, 0.12)], [0.22, Vector3.ZERO]],
+	}))
+	library.add_animation(&"death", _make_visual_animation(0.78, false, {
+		"ActorVisual/Model/TacticalActor_LowPoly/VisualRig/Hips:position": [[0.0, Vector3(0.0, 0.93, 0.0)], [0.78, Vector3(0.0, 0.58, 0.20)]],
+		"ActorVisual/Model/TacticalActor_LowPoly/VisualRig/Hips:rotation": [[0.0, Vector3.ZERO], [0.78, Vector3(-1.30, 0.0, 0.18)]],
+	}))
+	animation_player.add_animation_library(&"tactical", library)
+
+func _make_visual_animation(length: float, loop: bool, tracks: Dictionary) -> Animation:
+	var animation := Animation.new()
+	animation.length = length
+	animation.loop_mode = Animation.LOOP_LINEAR if loop else Animation.LOOP_NONE
+	for path_variant in tracks:
+		var track_index := animation.add_track(Animation.TYPE_VALUE)
+		animation.track_set_path(track_index, NodePath(String(path_variant)))
+		for key in tracks[path_variant] as Array:
+			animation.track_insert_key(track_index, float(key[0]), key[1])
+	return animation
+
+func _set_visual_animation(next_animation: StringName) -> void:
+	if _active_visual_animation == next_animation:
+		return
+	_active_visual_animation = next_animation
+	animation_player.play(&"tactical/" + next_animation)
+
+func _play_death_then_release() -> void:
+	if get_tree() == null:
+		queue_free()
+		return
+	await get_tree().create_timer(0.80).timeout
+	queue_free()
 
 func _update_environment_state() -> void:
 	_current_ladder = null

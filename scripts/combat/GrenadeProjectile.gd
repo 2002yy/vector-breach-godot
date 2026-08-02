@@ -5,12 +5,17 @@ var thrower: CharacterBody3D
 var fuse_remaining: float = 1.7
 var smoke_remaining: float = 0.0
 var _detonated: bool = false
+var _launch_position := Vector3.ZERO
+var _peak_height := -INF
+var _flight_time := 0.0
 
 func configure(kind: String, owner_player: CharacterBody3D, origin: Vector3, velocity: Vector3) -> void:
 	grenade_type = kind
 	thrower = owner_player
 	global_position = origin
 	linear_velocity = velocity
+	_launch_position = origin
+	_peak_height = origin.y
 
 func _ready() -> void:
 	add_to_group("grenade_projectiles")
@@ -41,12 +46,15 @@ func _physics_process(delta: float) -> void:
 			if smoke_remaining <= 0.0:
 				queue_free()
 		return
+	_flight_time += delta
+	_peak_height = maxf(_peak_height, global_position.y)
 	fuse_remaining -= delta
 	if fuse_remaining <= 0.0:
 		_detonate()
 
 func _detonate() -> void:
 	_detonated = true
+	_publish_telemetry()
 	if grenade_type == "he_grenade":
 		_apply_he_damage()
 		queue_free()
@@ -55,6 +63,18 @@ func _detonate() -> void:
 		queue_free()
 	else:
 		_activate_smoke()
+
+func _publish_telemetry() -> void:
+	var summary := {
+		"type": grenade_type,
+		"distance": _launch_position.distance_to(global_position),
+		"flight_time": _flight_time,
+		"peak_height": _peak_height,
+		"landing_position": global_position,
+	}
+	for telemetry in get_tree().get_nodes_in_group("training_telemetry"):
+		if telemetry.has_method("record_grenade"):
+			telemetry.call("record_grenade", summary)
 
 func _apply_he_damage() -> void:
 	var source_team := GameState.player_team

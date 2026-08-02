@@ -656,6 +656,7 @@ func _fire_shot(target_point: Vector3) -> void:
 		"damage_result": damage_result,
 		"weapon_slot": weapon_slot,
 		"weapon_name": weapon_name,
+		"shooter_name": String(actor.get("display_name")),
 		"shooter_team": String(actor.get("team")),
 	}, origin)
 	record_dynamic_danger(origin, 0.4)
@@ -1146,6 +1147,7 @@ func _fire_melee(target_point: Vector3, profile: Dictionary, weapon_name: String
 		"damage_result": damage_result,
 		"weapon_slot": weapon_slot,
 		"weapon_name": weapon_name,
+		"shooter_name": String(actor.get("display_name")),
 		"shooter_team": String(actor.get("team")),
 	}, origin)
 	if _shots_in_burst >= _burst_size:

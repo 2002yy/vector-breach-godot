@@ -1,6 +1,7 @@
 extends Node3D
 
 const WorldWeaponPickup = preload("res://scripts/combat/WorldWeaponPickup.gd")
+const TrainingTelemetry = preload("res://scripts/training/TrainingTelemetry.gd")
 
 const SHIPPED_LEVEL_OPTIONS := [
 	{
@@ -100,11 +101,14 @@ var _default_environment_state: Dictionary = {}
 var _buy_menu_open: bool = false
 var _radar_spotted_until: Dictionary = {}
 var _radar_death_markers: Array[Dictionary] = []
+var training_telemetry: Node
 const UI_UPDATE_INTERVAL: float = 0.18
 const RADAR_UPDATE_INTERVAL: float = 0.05
 const RADAR_RANGE_METERS: float = 24.0
 
 func _ready() -> void:
+	training_telemetry = TrainingTelemetry.new()
+	add_child(training_telemetry)
 	_isolate_environment_resource()
 	_capture_default_environment()
 	GameState.set_graphics_preset("prototype")
@@ -135,6 +139,8 @@ func _ready() -> void:
 		combat_sandbox.connect("ai_shot", _on_ai_shot)
 	if combat_sandbox.has_signal("ai_footstep"):
 		combat_sandbox.connect("ai_footstep", _on_ai_footstep)
+	if combat_sandbox.has_signal("radio_report"):
+		combat_sandbox.connect("radio_report", _on_radio_report)
 	if combat_sandbox.has_method("set_c4_device"):
 		combat_sandbox.call("set_c4_device", c4_device)
 	if player.has_signal("player_died"):
@@ -218,6 +224,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F3:
 		status_panel.visible = not status_panel.visible
 		_update_ui(true)
+		get_viewport().set_input_as_handled()
+		return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F4:
+		if combat_hud.has_method("toggle_training_telemetry"):
+			combat_hud.call("toggle_training_telemetry")
 		get_viewport().set_input_as_handled()
 		return
 
@@ -564,6 +575,9 @@ func _vector3_from_array(value: Variant, fallback: Vector3) -> Vector3:
 	return fallback
 
 func _on_shot_resolved(result: Dictionary) -> void:
+	if is_instance_valid(training_telemetry):
+		training_telemetry.call("record_shot", result)
+	GameState.record_scoreboard_damage("你", GameState.player_team, result.get("damage_result", {}) as Dictionary)
 	if weapon_view_model.has_method("play_shot"):
 		weapon_view_model.call("play_shot")
 	if hit_feedback_layer.has_method("show_shot_feedback"):
@@ -594,11 +608,16 @@ func _on_combatants_spawned(friendly_count: int, enemy_count: int) -> void:
 func _on_player_died() -> void:
 	RoundManager.end_round("CT" if GameState.player_team == "T" else "T", "ELIMINATION")
 
-func _on_round_phase_changed(_state_name: String) -> void:
+func _on_round_phase_changed(state_name: String) -> void:
 	if not RoundManager.can_buy():
 		_buy_menu_open = false
 		if combat_hud.has_method("set_buy_menu_visible"):
 			combat_hud.call("set_buy_menu_visible", false)
+	if combat_hud.has_method("show_radio_report"):
+		if state_name == "Bomb Planted":
+			combat_hud.call("show_radio_report", "指挥", "C4 已安装，立即回防或守包")
+		elif state_name == "Round End":
+			combat_hud.call("show_radio_report", "指挥", "回合结束，准备下一局")
 	_update_ui(true)
 
 func _on_round_ended(winner: String, reason: String) -> void:
@@ -735,11 +754,15 @@ func _on_ai_shot(result: Dictionary, world_position: Vector3) -> void:
 		combat_audio_feedback.call("play_shot", result, world_position)
 	var damage_result := result.get("damage_result", {}) as Dictionary
 	if bool(damage_result.get("killed", false)) and combat_hud.has_method("add_kill_feed"):
-		combat_hud.call("add_kill_feed", "AI", String(damage_result.get("target_name", "你")), String(result.get("weapon_name", "步枪")))
+		combat_hud.call("add_kill_feed", String(result.get("shooter_name", "AI")), String(damage_result.get("target_name", "你")), String(result.get("weapon_name", "步枪")))
 
 func _on_ai_footstep(world_position: Vector3, surface: String, quiet: bool) -> void:
 	if combat_audio_feedback.has_method("play_footstep"):
 		combat_audio_feedback.call("play_footstep", world_position, surface, quiet)
+
+func _on_radio_report(caller: String, message: String) -> void:
+	if combat_hud.has_method("show_radio_report"):
+		combat_hud.call("show_radio_report", caller, message)
 
 func _on_weapon_switched(_weapon_name: String, slot_index: int) -> void:
 	if weapon_view_model.has_method("set_weapon_slot"):
@@ -783,6 +806,8 @@ func _has_local_level(level_path: String, visual_path: String) -> bool:
 
 func _update_ui(force: bool) -> void:
 	combat_hud.call("update_display", _build_hud_snapshot(GameState.get_hud_snapshot()))
+	if is_instance_valid(training_telemetry) and combat_hud.has_method("update_training_telemetry"):
+		combat_hud.call("update_training_telemetry", training_telemetry.call("get_snapshot"))
 	var snapshot: Dictionary = {}
 	if player.has_method("get_debug_snapshot"):
 		snapshot = player.call("get_debug_snapshot", menu_open)

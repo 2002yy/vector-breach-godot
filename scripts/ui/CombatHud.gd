@@ -34,6 +34,8 @@ const AMMO_WARNING_COLOR := Color(1.0, 0.38, 0.3, 1.0)
 @onready var crosshair_left: ColorRect = $HudRoot/Crosshair/Left
 @onready var crosshair_right: ColorRect = $HudRoot/Crosshair/Right
 @onready var flash_overlay: ColorRect = $HudRoot/FlashOverlay
+@onready var telemetry_panel: PanelContainer = $HudRoot/TrainingTelemetry
+@onready var telemetry_label: Label = $HudRoot/TrainingTelemetry/Margin/Label
 
 @export var crosshair_gap_base: float = 7.0
 @export var crosshair_gap_per_degree: float = 4.0
@@ -41,6 +43,7 @@ var _game_started: bool = false
 var _menu_open: bool = true
 var _dynamic_crosshair: bool = true
 var _crosshair_size: float = 6.0
+var _telemetry_visible := false
 
 func _ready() -> void:
 	buy_items.text = "[1] 步枪 $2700  [2] 手枪 $500\n[3] 防弹衣 $650  [4] 衣+盔 $1000\n[5] 拆弹钳 $400\n[6] HE $300  [7] 闪光 $200  [8] 烟雾 $300"
@@ -50,6 +53,17 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	scoreboard.visible = _game_started and not _menu_open and Input.is_action_pressed("show_scoreboard")
+	telemetry_panel.visible = _telemetry_visible and _game_started and not _menu_open
+
+func toggle_training_telemetry() -> void:
+	_telemetry_visible = not _telemetry_visible
+
+func update_training_telemetry(snapshot: Dictionary) -> void:
+	telemetry_label.text = "压枪训练 [F4]\n%d 发  ·  %d 中  ·  爆头 %d\n第 %d 发 · 弹着 %s\n命中率 %.1f%% · 投掷：%s" % [
+		int(snapshot.get("shots", 0)), int(snapshot.get("hits", 0)), int(snapshot.get("headshots", 0)),
+		int(snapshot.get("last_spray_index", -1)) + 1, String(snapshot.get("impact_text", "无命中")),
+		float(snapshot.get("accuracy", 0.0)), String(snapshot.get("grenade_text", "暂无投掷记录"))
+	]
 
 func update_display(snapshot: Dictionary) -> void:
 	_game_started = bool(snapshot.get("game_started", false))
@@ -102,12 +116,11 @@ func update_display(snapshot: Dictionary) -> void:
 		objective_interaction_label.text = "正在安装 C4" if interaction_type == "plant" else "正在拆除 C4"
 		objective_interaction_progress.value = float(bomb.get("interaction_progress", 0.0)) * 100.0
 	stats_label.text = "$%d" % int(snapshot.get("money", 800))
-	scoreboard_friendly.text = "你                                %d          %d          $%d" % [
-		int(snapshot.get("kill_count", 0)),
-		int(snapshot.get("hit_count", 0)),
-		int(snapshot.get("money", 800)),
-	]
-	scoreboard_enemy.text = "训练目标                          %d 存活" % int(snapshot.get("enemy_alive", 0))
+	var scoreboard_rows: Dictionary = snapshot.get("scoreboard_rows", {}) as Dictionary
+	var friendly_rows: Array = scoreboard_rows.get("friendly", []) as Array
+	var enemy_rows: Array = scoreboard_rows.get("enemy", []) as Array
+	scoreboard_friendly.text = "\n".join(friendly_rows) if not friendly_rows.is_empty() else "你  %d/0  命中%d  $%d  rifle  存活" % [int(snapshot.get("kill_count", 0)), int(snapshot.get("hit_count", 0)), int(snapshot.get("money", 800))]
+	scoreboard_enemy.text = "\n".join(enemy_rows) if not enemy_rows.is_empty() else "暂无敌方单位"
 	training_end.visible = bool(snapshot.get("training_complete", false)) and _game_started and not _menu_open
 	var result_text := String(snapshot.get("round_result_text", ""))
 	training_summary.text = "%s\n%d 次命中   %d 次击杀\n$%d" % [
@@ -152,6 +165,23 @@ func add_kill_feed(killer: String, victim: String, weapon: String) -> void:
 	entry.add_theme_font_size_override("font_size", 17)
 	kill_feed.add_child(entry)
 	get_tree().create_timer(4.5).timeout.connect(func() -> void:
+		if is_instance_valid(entry):
+			entry.queue_free()
+	)
+
+func show_radio_report(caller: String, message: String) -> void:
+	for child in kill_feed.get_children():
+		if child is Label and String((child as Label).text).contains("[无线电] %s" % caller):
+			child.queue_free()
+	var entry := Label.new()
+	entry.text = "[无线电] %s：%s" % [caller, message]
+	entry.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	entry.add_theme_color_override("font_color", Color(0.48, 0.75, 0.95, 1.0))
+	entry.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.95))
+	entry.add_theme_constant_override("outline_size", 4)
+	entry.add_theme_font_size_override("font_size", 16)
+	kill_feed.add_child(entry)
+	get_tree().create_timer(3.2).timeout.connect(func() -> void:
 		if is_instance_valid(entry):
 			entry.queue_free()
 	)

@@ -1,6 +1,18 @@
 # Vector Breach Project Status
 
-Updated: 2026-07-31
+Updated: 2026-08-03
+
+## 2026-08-03 tactical actor presentation
+
+- Added a Blender-authored shared low-poly tactical actor GLB with named `Vest_Mk1`, `Helmet_LowProfile`, and `WeaponSocket` attachment nodes. The deterministic Blender recipe and editable source `.blend` live beside the asset for later variants.
+- `TacticalActor` now instances that GLB as a presentation-only child and drives idle, run, crouch, hit, and death clips through Godot `AnimationPlayer`. The original capsule hull and five-zone hit resolution remain the sole combat authority.
+- Tactical actor regression coverage now verifies asset sockets, all five animation names, standing/crouched capsule heights, and a head-hit result. The Foundry visual probe still reached an AI engagement and captured the updated actor in-game.
+- Presentation pass: the actor now uses charcoal fabric and black armor, reserving CT blue / T orange for chest, shoulder, and pouch identifiers. `TacticalActorVisualProbe` captures a full-height CT/T side-by-side review frame without changing the gameplay capsule or hit zones.
+
+## 2026-08-03 practice telemetry
+
+- Added an optional F4 training readout for session shot count, hit rate, headshots, and the most recent grenade's travel distance and flight time. The readout is observational and does not alter weapon or projectile rules.
+- Gatehouse/Core Vault still require human long-session playtests for final economy and grenade-landing calibration; the new readout is the evidence capture path for that pass.
 
 ## 当前主线
 

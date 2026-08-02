@@ -154,6 +154,9 @@ func try_fire(player: CharacterBody3D) -> void:
 
 	hit_result["weapon_name"] = current_profile.display_name
 	hit_result["weapon_slot"] = _current_weapon_index
+	hit_result["shot_origin"] = camera.global_position
+	hit_result["shot_direction"] = shot_direction
+	hit_result["spray_index"] = shot_index
 	_store_current_state(current_state)
 	shot_resolved.emit(hit_result)
 
