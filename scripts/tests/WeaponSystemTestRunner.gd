@@ -492,5 +492,10 @@ func _test_training_telemetry_tracks_shots_and_grenades(_fixture: Dictionary) ->
 	_assert_equal(snapshot.get("hits"), 1, "telemetry should count damaging target hits")
 	_assert_equal(snapshot.get("headshots"), 1, "telemetry should count headshots")
 	_assert_float_close(float(snapshot.get("accuracy", 0.0)), 50.0, 0.001, "telemetry should calculate hit rate")
-	_assert_true(String(snapshot.get("grenade_text", "")).contains("smoke_grenade"), "telemetry should expose the most recent grenade summary")
+	_assert_true(String(snapshot.get("grenade_text", "")).contains("烟雾弹"), "telemetry should expose a localized recent grenade summary")
+	telemetry.call("begin_round", 2)
+	var next_round := telemetry.call("get_snapshot") as Dictionary
+	_assert_equal(next_round.get("round_number"), 2, "telemetry should identify the active round")
+	_assert_equal(next_round.get("shots"), 0, "beginning a round should reset shot totals")
+	_assert_equal(next_round.get("grenade_text"), "暂无投掷记录", "beginning a round should clear the grenade summary")
 	telemetry.queue_free()

@@ -1,6 +1,7 @@
 extends Node
 
 const GrenadeProjectile = preload("res://scripts/combat/GrenadeProjectile.gd")
+const BotNavigationModel = preload("res://scripts/ai/BotNavigationModel.gd")
 
 enum State {
 	HOLD,
@@ -103,14 +104,12 @@ var team_loss_streak: int = 0
 var _route_points: Array[Vector3] = []
 var _route_index: int = 0
 var _route_direction: int = 1
-var _navigation_points: Array[Vector3] = []
-var _navigation_links: Array = []
+var _navigation: BotNavigationModel = BotNavigationModel.new()
 var _navigation_path: Array[int] = []
 var _navigation_path_index: int = 0
 var _navigation_destination: Vector3 = Vector3.INF
 var _repath_seconds: float = 0.0
 var _active_navigation_link: Dictionary = {}
-var _navigation_link_count: int = 0
 var _last_progress_position: Vector3 = Vector3.ZERO
 var _no_progress_seconds: float = 0.0
 var _recovery_seconds: float = 0.0
@@ -202,8 +201,8 @@ func configure(record: Dictionary) -> void:
 	combat_enabled = bool(record.get("aiCombatEnabled", combat_enabled))
 	ai_money = clampi(int(record.get("aiMoney", ai_money)), 0, 16000)
 	recoil_compensation = clampf(float(record.get("aiRecoilCompensation", recoil_compensation)), 0.0, 0.05)
-	_route_points = _parse_route_points(record.get("routePoints", []))
-	_parse_navigation_graph(record.get("navigationGraph", {}))
+	_route_points = BotNavigationModel.parse_points(record.get("routePoints", []))
+	_navigation.configure(record.get("navigationGraph", {}))
 	_route_index = _nearest_route_index()
 	_route_direction = -1 if String(actor.get("team")) == "CT" else 1
 	_reset_weapon_ammo()
@@ -408,8 +407,8 @@ func get_snapshot() -> Dictionary:
 		"burst_size": _burst_size,
 		"spray_decision": _spray_decision,
 		"route_points": _route_points.size(),
-		"navigation_nodes": _navigation_points.size(),
-		"navigation_links": _navigation_link_count,
+		"navigation_nodes": _navigation.points.size(),
+		"navigation_links": _navigation.link_count,
 		"navigation_path_nodes": maxi(0, _navigation_path.size() - _navigation_path_index),
 		"active_navigation_link": _active_navigation_link.duplicate(true),
 		"stuck_seconds": _no_progress_seconds,
@@ -1084,7 +1083,7 @@ func _resolve_combat_plan(distance: float) -> Dictionary:
 	return {"size": 7, "pause": 0.68}
 
 func _pick_retreat_target(enemy_position: Vector3) -> Vector3:
-	if _navigation_points.is_empty():
+	if _navigation.points.is_empty():
 		var away := actor.global_position - enemy_position
 		away.y = 0.0
 		if away.length_squared() <= 0.001:
@@ -1092,7 +1091,7 @@ func _pick_retreat_target(enemy_position: Vector3) -> Vector3:
 		return actor.global_position + away.normalized() * 4.5
 	var best_position := actor.global_position
 	var best_score := -INF
-	for point_variant in _navigation_points:
+	for point_variant in _navigation.points:
 		var point := point_variant as Vector3
 		var distance := actor.global_position.distance_to(point)
 		if distance < 2.0 or distance > 14.0:
@@ -1103,9 +1102,9 @@ func _pick_retreat_target(enemy_position: Vector3) -> Vector3:
 		if separation <= 0.1:
 			continue
 		var cover_score := 0.0
-		var node_index := _nearest_navigation_index(point)
+		var node_index := _navigation.nearest_index(point)
 		if node_index >= 0:
-			for link_variant in _navigation_links[node_index]:
+			for link_variant in _navigation.links_at(node_index):
 				cover_score = maxf(cover_score, float((link_variant as Dictionary).get("cover", 0.0)))
 		var score := cover_score * 2.4 + separation * 0.18 - distance * 0.06
 		if score > best_score:
@@ -1234,7 +1233,7 @@ func _aim_at(target_position: Vector3, delta: float, duration: float) -> void:
 	actor.rotation.y = lerp_angle(actor.rotation.y, desired_yaw, clampf(delta / maxf(duration, 0.01), 0.0, 1.0))
 
 func _resolve_navigation_target(destination: Vector3) -> Vector3:
-	if _navigation_points.is_empty() or actor.global_position.distance_to(destination) <= 2.2:
+	if _navigation.points.is_empty() or actor.global_position.distance_to(destination) <= 2.2:
 		_active_navigation_link.clear()
 		return destination
 	var destination_changed := (
@@ -1243,168 +1242,27 @@ func _resolve_navigation_target(destination: Vector3) -> Vector3:
 	)
 	if destination_changed or _repath_seconds <= 0.0 or _navigation_path.is_empty():
 		_navigation_destination = destination
-		_navigation_path = _find_navigation_path(
-			_nearest_navigation_index(actor.global_position),
-			_nearest_navigation_index(destination)
+		_navigation_path = _navigation.find_path(
+			_navigation.nearest_index(actor.global_position),
+			_navigation.nearest_index(destination),
+			_danger_events
 		)
 		_navigation_path_index = 0
 		_repath_seconds = 0.65
 	while _navigation_path_index < _navigation_path.size():
-		var point := _navigation_points[_navigation_path[_navigation_path_index]]
+		var point := _navigation.points[_navigation_path[_navigation_path_index]]
 		var arrival_radius := 0.55 if bool(_active_navigation_link.get("precise", false)) else 1.05
 		if actor.global_position.distance_to(point) > arrival_radius:
 			if _navigation_path_index > 0:
-				_active_navigation_link = _find_navigation_link(
+				_active_navigation_link = _navigation.find_link(
 					_navigation_path[_navigation_path_index - 1],
-					_navigation_path[_navigation_path_index]
+					_navigation_path[_navigation_path_index],
+					_danger_events
 				)
 			return point
 		_navigation_path_index += 1
 	_active_navigation_link.clear()
 	return destination
-
-func _find_navigation_path(start_index: int, goal_index: int) -> Array[int]:
-	var empty_path: Array[int] = []
-	if start_index < 0 or goal_index < 0:
-		return empty_path
-	if start_index == goal_index:
-		return [start_index]
-	var open: Array[int] = [start_index]
-	var came_from: Dictionary = {}
-	var g_score: Dictionary = {start_index: 0.0}
-	var f_score: Dictionary = {
-		start_index: _navigation_points[start_index].distance_to(_navigation_points[goal_index])
-	}
-	while not open.is_empty():
-		var current := open[0]
-		var current_score := float(f_score.get(current, INF))
-		for candidate in open:
-			var candidate_score := float(f_score.get(candidate, INF))
-			if candidate_score < current_score:
-				current = candidate
-				current_score = candidate_score
-		if current == goal_index:
-			var path: Array[int] = [current]
-			while came_from.has(current):
-				current = int(came_from[current])
-				path.push_front(current)
-			return path
-		open.erase(current)
-		for neighbor_variant in _navigation_links[current]:
-			var neighbor_record: Dictionary = neighbor_variant as Dictionary
-			var neighbor := int(neighbor_record.get("to", -1))
-			if neighbor < 0 or neighbor >= _navigation_points.size():
-				continue
-			var tentative := float(g_score.get(current, INF)) + _navigation_edge_cost(current, neighbor, neighbor_record)
-			if tentative >= float(g_score.get(neighbor, INF)):
-				continue
-			came_from[neighbor] = current
-			g_score[neighbor] = tentative
-			f_score[neighbor] = tentative + _navigation_points[neighbor].distance_to(_navigation_points[goal_index])
-			if not open.has(neighbor):
-				open.append(neighbor)
-	return empty_path
-
-func _nearest_navigation_index(world_position: Vector3) -> int:
-	if _navigation_points.is_empty():
-		return -1
-	var best_index := 0
-	var best_distance := INF
-	for index in range(_navigation_points.size()):
-		var distance := world_position.distance_squared_to(_navigation_points[index])
-		if distance < best_distance:
-			best_distance = distance
-			best_index = index
-	return best_index
-
-func _parse_navigation_graph(graph_variant: Variant) -> void:
-	_navigation_points.clear()
-	_navigation_links.clear()
-	_navigation_link_count = 0
-	if not graph_variant is Dictionary:
-		return
-	var graph := graph_variant as Dictionary
-	_navigation_points = _parse_route_points(graph.get("points", []))
-	_navigation_links.resize(_navigation_points.size())
-	for index in range(_navigation_links.size()):
-		_navigation_links[index] = []
-	for link_variant in graph.get("links", []):
-		var from_index := -1
-		var to_index := -1
-		var attributes: Dictionary = {}
-		if link_variant is Array:
-			var link := link_variant as Array
-			if link.size() < 2:
-				continue
-			from_index = int(link[0])
-			to_index = int(link[1])
-		elif link_variant is Dictionary:
-			var link := link_variant as Dictionary
-			from_index = int(link.get("from", -1))
-			to_index = int(link.get("to", -1))
-			attributes = link.duplicate(true)
-		else:
-			continue
-		if (
-			from_index < 0 or from_index >= _navigation_links.size()
-			or to_index < 0 or to_index >= _navigation_links.size()
-			or from_index == to_index
-		):
-			continue
-		_navigation_links[from_index].append(_normalize_navigation_link(to_index, attributes))
-		_navigation_links[to_index].append(_normalize_navigation_link(from_index, attributes))
-		_navigation_link_count += 1
-
-func _normalize_navigation_link(to_index: int, attributes: Dictionary) -> Dictionary:
-	return {
-		"to": to_index,
-		"route": String(attributes.get("route", "")),
-		"danger": clampf(float(attributes.get("danger", 0.0)), 0.0, 1.0),
-		"cover": clampf(float(attributes.get("cover", 0.0)), 0.0, 1.0),
-		"costMultiplier": clampf(float(attributes.get("costMultiplier", 1.0)), 0.25, 4.0),
-		"precise": bool(attributes.get("precise", false)),
-		"crouch": bool(attributes.get("crouch", false)),
-		"ladder": bool(attributes.get("ladder", false)),
-	}
-
-func _navigation_edge_cost(from_index: int, to_index: int, link: Dictionary) -> float:
-	var distance := _navigation_points[from_index].distance_to(_navigation_points[to_index])
-	var dynamic_danger := 0.0
-	if not _danger_events.is_empty():
-		var midpoint := (_navigation_points[from_index] + _navigation_points[to_index]) * 0.5
-		for event_variant in _danger_events:
-			var event := event_variant as Dictionary
-			var event_position := event.get("position", Vector3.ZERO) as Vector3
-			var radius := maxf(1.0, float(event.get("radius", 8.0)))
-			var event_distance := midpoint.distance_to(event_position)
-			if event_distance <= radius:
-				dynamic_danger = maxf(
-					dynamic_danger,
-					float(event.get("intensity", 0.0)) * (1.0 - event_distance / radius)
-				)
-	var danger_multiplier := 1.0 + clampf(float(link.get("danger", 0.0)), 0.0, 1.0) * 1.6 + dynamic_danger * 2.2
-	var cover_multiplier := 1.0 - clampf(float(link.get("cover", 0.0)), 0.0, 1.0) * 0.24
-	var traversal_multiplier := clampf(float(link.get("costMultiplier", 1.0)), 0.25, 4.0)
-	if bool(link.get("crouch", false)):
-		traversal_multiplier += 0.35
-	if bool(link.get("ladder", false)):
-		traversal_multiplier += 0.45
-	return distance * danger_multiplier * cover_multiplier * traversal_multiplier
-
-func _find_navigation_link(from_index: int, to_index: int) -> Dictionary:
-	if from_index < 0 or from_index >= _navigation_links.size():
-		return {}
-	var best_link: Dictionary = {}
-	var best_cost := INF
-	for link_variant in _navigation_links[from_index]:
-		var link: Dictionary = link_variant as Dictionary
-		if int(link.get("to", -1)) != to_index:
-			continue
-		var cost := _navigation_edge_cost(from_index, to_index, link)
-		if cost < best_cost:
-			best_cost = cost
-			best_link = link.duplicate(true)
-	return best_link
 
 func _update_navigation_progress(delta: float, desired_direction: Vector3) -> void:
 	var traveled := Vector2(
@@ -1442,20 +1300,6 @@ func _choose_open_recovery_direction(preferred: Vector3, desired_direction: Vect
 		if not actor.test_move(actor.global_transform, candidate * 0.45):
 			return candidate
 	return preferred
-
-func _parse_route_points(points_variant: Variant) -> Array[Vector3]:
-	var parsed: Array[Vector3] = []
-	if not points_variant is Array:
-		return parsed
-	for point_variant in points_variant as Array:
-		if not point_variant is Array:
-			continue
-		var point := point_variant as Array
-		if point.size() >= 3:
-			parsed.append(Vector3(float(point[0]), float(point[1]), float(point[2])))
-		elif point.size() >= 2:
-			parsed.append(Vector3(float(point[0]), 1.15, float(point[1])))
-	return parsed
 
 func _nearest_route_index() -> int:
 	if actor == null or _route_points.is_empty():

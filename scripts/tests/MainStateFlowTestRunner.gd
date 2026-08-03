@@ -727,11 +727,27 @@ func _test_scoreboard_kill_feed_and_training_summary_work() -> void:
 	Input.action_release("show_scoreboard")
 	hud.call("add_kill_feed", "YOU", "TARGET", "RIFLE")
 	_assert_equal(hud.get_node("HudRoot/KillFeed").get_child_count(), 1, "a kill should add a transient kill-feed entry")
+	var telemetry: Node = main.get("training_telemetry") as Node
+	telemetry.call("record_shot", {"hit": true, "position": Vector3(2.0, 1.0, 4.0), "damage_result": {"hit": true, "headshot": true}})
+	telemetry.call("record_shot", {"hit": false, "damage_result": {}})
+	telemetry.call("record_grenade", {"type": "smoke_grenade", "distance": 12.5, "flight_time": 1.2})
 	GameState.set_training_target_count(1)
 	GameState.register_hit(true)
 	RoundManager.end_round("T", "ELIMINATION")
-	hud.call("update_display", GameState.get_hud_snapshot())
+	main.call("_update_ui", true)
 	_assert_true(hud.get_node("HudRoot/TrainingEnd").visible, "round completion should show the training summary")
+	_assert_true(String(hud.get_node("HudRoot/TrainingEnd/Margin/Stack/Shots").text).contains("2 发"), "round debrief should show fired shots")
+	_assert_true(String(hud.get_node("HudRoot/TrainingEnd/Margin/Stack/Shots").text).contains("爆头  1"), "round debrief should show headshots")
+	_assert_true(String(hud.get_node("HudRoot/TrainingEnd/Margin/Stack/Accuracy").text).contains("50.0%"), "round debrief should calculate accuracy")
+	_assert_true(String(hud.get_node("HudRoot/TrainingEnd/Margin/Stack/Grenade").text).contains("烟雾弹"), "round debrief should show the localized latest grenade")
+	hud.call("toggle_training_telemetry")
+	await get_tree().process_frame
+	_assert_true(hud.get_node("HudRoot/TrainingTelemetry").visible, "F4 telemetry view should remain independently available")
+	main.call("_on_round_restart_requested")
+	main.call("_update_ui", true)
+	await get_tree().process_frame
+	_assert_true(not hud.get_node("HudRoot/TrainingEnd").visible, "new round should hide the completed-round debrief")
+	_assert_equal(int((telemetry.call("get_snapshot") as Dictionary).get("shots", -1)), 0, "new round should reset round-only telemetry")
 	await _cleanup_main(main)
 
 func _test_pause_menu_blocks_combat_commands() -> void:

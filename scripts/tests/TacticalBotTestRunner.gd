@@ -3,6 +3,7 @@ extends Node
 const ACTOR_SCENE = preload("res://scenes/combat/TacticalActor.tscn")
 const PLAYER_SCENE = preload("res://scenes/player/Player.tscn")
 const ShapeBuilder = preload("res://scripts/level/ShapeBuilder.gd")
+const BotNavigationModel = preload("res://scripts/ai/BotNavigationModel.gd")
 
 var _failures: PackedStringArray = []
 var _passes: int = 0
@@ -13,6 +14,7 @@ func _ready() -> void:
 	await _run_test("opponent_sound_triggers_investigation", _test_opponent_sound_triggers_investigation)
 	await _run_test("investigation_uses_connected_navigation_graph", _test_investigation_uses_connected_navigation_graph)
 	await _run_test("navigation_attributes_prefer_cover_and_apply_crouch", _test_navigation_attributes_prefer_cover_and_apply_crouch)
+	await _run_test("navigation_model_preserves_weighted_path_choice", _test_navigation_model_preserves_weighted_path_choice)
 	await _run_test("blocked_bot_detects_stall_and_recovers", _test_blocked_bot_detects_stall_and_recovers)
 	await _run_test("visible_enemy_is_acquired_then_burst_fired", _test_visible_enemy_is_acquired_then_burst_fired)
 	await _run_test("bot_uses_ladder_and_water_semantics", _test_bot_uses_ladder_and_water_semantics)
@@ -198,6 +200,26 @@ func _test_navigation_attributes_prefer_cover_and_apply_crouch() -> void:
 	var crouched_head_hit := actor.call("apply_hitscan_damage", 1, actor.global_position + Vector3.UP * 0.34, 1.0, false) as Dictionary
 	_assert_equal(String(crouched_head_hit.get("hit_group", "")), "head", "crouched visual head position should retain head-hit semantics")
 	await _cleanup_fixture(fixture)
+
+func _test_navigation_model_preserves_weighted_path_choice() -> void:
+	var navigation: BotNavigationModel = BotNavigationModel.new()
+	navigation.configure({
+		"points": [[0.0, 0.0], [-4.0, 4.0], [-4.0, 8.0], [0.0, 12.0], [4.0, 4.0], [4.0, 8.0]],
+		"links": [
+			{"from": 0, "to": 1, "route": "covered", "cover": 0.9},
+			{"from": 1, "to": 2, "route": "covered", "cover": 0.9},
+			{"from": 2, "to": 3, "route": "covered", "cover": 0.7},
+			{"from": 0, "to": 4, "route": "exposed", "danger": 1.0},
+			{"from": 4, "to": 5, "route": "exposed", "danger": 1.0},
+			{"from": 5, "to": 3, "route": "exposed", "danger": 1.0},
+		],
+	})
+	var danger_events: Array[Dictionary] = []
+	var path := navigation.find_path(0, 3, danger_events)
+	_assert_equal(path, [0, 1, 2, 3], "extracted model should preserve covered-route A* ordering and weights")
+	_assert_equal(navigation.link_count, 6, "extracted model should count authored bidirectional edges once")
+	var first_link := navigation.find_link(0, 1, danger_events)
+	_assert_equal(String(first_link.get("route", "")), "covered", "extracted model should preserve active-edge metadata")
 
 func _test_blocked_bot_detects_stall_and_recovers() -> void:
 	var fixture := await _make_fixture()

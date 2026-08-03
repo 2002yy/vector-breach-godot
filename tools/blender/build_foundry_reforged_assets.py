@@ -599,6 +599,47 @@ def _add_floor_stain(
     stain.data.materials.append(material)
 
 
+def _add_shed_roof(
+    collection: bpy.types.Collection,
+    material: bpy.types.Material,
+    name: str,
+    center_x: float,
+    center_y: float,
+    base_height: float,
+    size_x: float,
+    size_y: float,
+    rise: float,
+) -> bpy.types.Object:
+    """Build a crisp single-slope roof whose underside seats on base_height."""
+    half_x = size_x * 0.5
+    half_y = size_y * 0.5
+    vertices = (
+        (center_x - half_x, center_y - half_y, base_height),
+        (center_x + half_x, center_y - half_y, base_height),
+        (center_x + half_x, center_y + half_y, base_height),
+        (center_x - half_x, center_y + half_y, base_height),
+        (center_x - half_x, center_y - half_y, base_height + 0.18),
+        (center_x + half_x, center_y - half_y, base_height + 0.18),
+        (center_x + half_x, center_y + half_y, base_height + rise),
+        (center_x - half_x, center_y + half_y, base_height + rise),
+    )
+    faces = (
+        (0, 3, 2, 1),
+        (4, 5, 6, 7),
+        (0, 1, 5, 4),
+        (1, 2, 6, 5),
+        (2, 3, 7, 6),
+        (3, 0, 4, 7),
+    )
+    mesh = bpy.data.meshes.new(f"{name}_mesh")
+    mesh.from_pydata(vertices, [], faces)
+    mesh.update()
+    roof = bpy.data.objects.new(name, mesh)
+    collection.objects.link(roof)
+    roof.data.materials.append(material)
+    return roof
+
+
 def _finish_wall_detail(
     parts: list[bpy.types.Object],
     name: str,
@@ -718,12 +759,16 @@ def _build_distant_skyline(collection: bpy.types.Collection, materials: dict) ->
             material,
             collection,
         )
-        add_box(
-            f"GEO-reforged-skyline-{name}-roof",
-            _map_point(x, z, height + 0.3),
-            (sx + 0.8, sz + 0.8, 0.6),
-            material,
+        _add_shed_roof(
             collection,
+            material,
+            f"GEO-reforged-skyline-{name}-roof",
+            x,
+            -z,
+            height,
+            sx + 0.8,
+            sz + 0.8,
+            2.4,
         )
 
     stacks = (
@@ -774,6 +819,137 @@ def _build_distant_skyline(collection: bpy.types.Collection, materials: dict) ->
             material,
             collection,
             vertices=12,
+        )
+
+
+def _build_boundary_roofline(
+    collection: bpy.types.Collection,
+    materials: dict,
+    level: dict,
+) -> None:
+    """Seat alternating shed modules on the north/south boundary wall tops."""
+    arena_z = float(level["arenaSizeZ"])
+    wall_top = float(level["boundaryHeight"])
+    module_width = 14.0
+    module_depth = 5.4
+    for side_name, center_y, material in (
+        ("north", arena_z + 1.5, materials["metal_mid"]),
+        ("south", -arena_z - 1.5, materials["green_metal"]),
+    ):
+        for module_index, center_x in enumerate((-42.0, -28.0, -14.0, 0.0, 14.0, 28.0, 42.0)):
+            _add_shed_roof(
+                collection,
+                material,
+                f"GEO-reforged-roofline-{side_name}-{module_index:02d}",
+                center_x,
+                center_y,
+                wall_top,
+                module_width,
+                module_depth,
+                2.2,
+            )
+        add_box(
+            f"GEO-reforged-roofline-{side_name}-spine",
+            (0.0, center_y, wall_top + 0.12),
+            (98.0, 0.24, 0.24),
+            materials["dark"],
+            collection,
+        )
+
+
+def _build_site_crane_beacons(
+    collection: bpy.types.Collection,
+    materials: dict,
+    level: dict,
+) -> None:
+    """Build two high-clearance landmarks seated on the east boundary wall."""
+    boundary_x = float(level["arenaSizeX"]) + 0.5
+    wall_top = float(level["boundaryHeight"])
+    mast_height = 8.0
+    crossarm_inner_x = 43.0
+    crossarm_center_x = (boundary_x + crossarm_inner_x) * 0.5
+    crossarm_length = boundary_x - crossarm_inner_x + 0.8
+    for site_name, site_z, accent in (
+        ("a", -24.0, materials["orange"]),
+        ("b", 24.0, materials["teal"]),
+    ):
+        site_y = -site_z
+        mast = add_box(
+            f"GEO-reforged-site-beacon-{site_name}-mast",
+            (boundary_x, site_y, wall_top + mast_height * 0.5),
+            (0.72, 0.72, mast_height),
+            materials["dark"],
+            collection,
+        )
+        mast["anchor_height"] = wall_top
+        add_box(
+            f"GEO-reforged-site-beacon-{site_name}-crossarm",
+            (crossarm_center_x, site_y, wall_top + mast_height - 0.35),
+            (crossarm_length, 0.72, 0.70),
+            materials["metal_mid"],
+            collection,
+        )
+        add_box(
+            f"GEO-reforged-site-beacon-{site_name}-brace",
+            (boundary_x - 1.75, site_y, wall_top + mast_height - 1.45),
+            (4.2, 0.28, 0.28),
+            materials["rust"],
+            collection,
+            rotation=(0.0, math.radians(-28.0), 0.0),
+        )
+        add_box(
+            f"GEO-reforged-site-beacon-{site_name}-sign-bed",
+            (43.45, site_y, wall_top + mast_height - 1.7),
+            (0.32, 3.8, 2.8),
+            materials["dark"],
+            collection,
+        )
+        add_box(
+            f"GEO-reforged-site-beacon-{site_name}-sign-light",
+            (43.26, site_y, wall_top + mast_height - 1.7),
+            (0.08, 2.9, 1.65),
+            accent,
+            collection,
+        )
+        for lamp_index, lamp_y in enumerate((site_y - 1.45, site_y + 1.45)):
+            add_box(
+                f"GEO-reforged-site-beacon-{site_name}-lamp-{lamp_index}",
+                (44.2, lamp_y, wall_top + mast_height - 0.82),
+                (0.38, 0.22, 0.18),
+                accent,
+                collection,
+            )
+
+
+def _build_overhead_identity(
+    collection: bpy.types.Collection,
+    materials: dict,
+    level: dict,
+) -> None:
+    """Turn existing collision-backed lintels into readable route gates."""
+    for entry in level.get("overheads", []):
+        name = str(entry["id"])
+        x = float(entry["x"])
+        z = float(entry["z"])
+        size_x = float(entry["sx"])
+        size_z = float(entry["sz"])
+        top = float(entry["y"]) + float(entry["thickness"])
+        accent = materials["teal"] if name.startswith("b-") else materials["orange"]
+        add_box(
+            f"GEO-reforged-gate-cap-{name}",
+            _map_point(x, z, top + 0.10),
+            (size_x + 0.18, size_z + 0.18, 0.20),
+            materials["dark"],
+            collection,
+        )
+        runs_along_x = size_x >= size_z
+        light_dimensions = (size_x * 0.62, 0.08, 0.10) if runs_along_x else (0.08, size_z * 0.62, 0.10)
+        add_box(
+            f"GEO-reforged-gate-light-{name}",
+            _map_point(x, z, top + 0.23),
+            light_dimensions,
+            accent,
+            collection,
         )
 
 
@@ -1342,6 +1518,8 @@ def build_details() -> dict:
     _build_pipes(collection, materials)
     _build_equipment(collection, materials, level)
     _build_distant_skyline(collection, materials)
+    _build_boundary_roofline(collection, materials, level)
+    _build_site_crane_beacons(collection, materials, level)
     _build_wall_bases(collection, materials, level)
     _build_boundary_modules(collection, materials, level)
     _build_wall_modules(collection, materials, level)
@@ -1349,6 +1527,7 @@ def build_details() -> dict:
     _build_wall_vents(collection, materials, level)
     _build_surface_details(collection, materials, level)
     _build_door_frames(collection, materials, level)
+    _build_overhead_identity(collection, materials, level)
     _build_service_panels(collection, materials)
     _build_floor_drains(collection, materials)
     _build_floor_breakup(collection, materials)
@@ -1412,6 +1591,21 @@ def validate_interfaces() -> dict:
         obj
         for obj in skyline_objects
         if obj.name.endswith(("-hall", "-stack", "-silo"))
+    ]
+    roofline_objects = [
+        obj
+        for obj in bpy.data.collections[MAP_COLLECTION].objects
+        if obj.name.startswith("GEO-reforged-roofline-") and not obj.name.endswith("-spine")
+    ]
+    site_beacon_masts = [
+        obj
+        for obj in bpy.data.collections[MAP_COLLECTION].objects
+        if obj.name.startswith("GEO-reforged-site-beacon-") and obj.name.endswith("-mast")
+    ]
+    gate_caps = [
+        obj
+        for obj in bpy.data.collections[MAP_COLLECTION].objects
+        if obj.name.startswith("GEO-reforged-gate-cap-")
     ]
     wall_bases = [
         obj
@@ -1583,6 +1777,30 @@ def validate_interfaces() -> dict:
             max(abs(obj.location.z - obj.dimensions.z * 0.5) for obj in skyline_grounded),
             4,
         ),
+        "roofline_module_count": len(roofline_objects),
+        "roofline_boundary_contact_gap_max": round(
+            max(abs(_world_bounds(obj)[0].z - float(level["boundaryHeight"])) for obj in roofline_objects),
+            4,
+        ),
+        "site_beacon_mast_count": len(site_beacon_masts),
+        "site_beacon_boundary_contact_gap_max": round(
+            max(abs(_world_bounds(obj)[0].z - float(obj["anchor_height"])) for obj in site_beacon_masts),
+            4,
+        ),
+        "overhead_gate_cap_count": len(gate_caps),
+        "overhead_gate_contact_gap_max": round(
+            max(
+                abs(
+                    _world_bounds(obj)[0].z
+                    - (
+                        float(next(entry for entry in level["overheads"] if str(entry["id"]) == obj.name.removeprefix("GEO-reforged-gate-cap-"))["y"])
+                        + float(next(entry for entry in level["overheads"] if str(entry["id"]) == obj.name.removeprefix("GEO-reforged-gate-cap-"))["thickness"])
+                    )
+                )
+                for obj in gate_caps
+            ),
+            4,
+        ),
     }
 
 
@@ -1591,9 +1809,9 @@ def _create_presentation() -> bpy.types.Object:
     collection = ensure_collection(PRESENTATION_COLLECTION)
     camera_data = bpy.data.cameras.new("CAM_reforged_preview")
     camera = bpy.data.objects.new("CAM_reforged_preview", camera_data)
-    camera.location = (72.0, -82.0, 58.0)
-    camera_data.lens = 50.0
-    look_at(camera, (0.0, 0.0, 1.8))
+    camera.location = (76.0, -86.0, 82.0)
+    camera_data.lens = 54.0
+    look_at(camera, (0.0, 0.0, 2.2))
     collection.objects.link(camera)
     bpy.context.scene.camera = camera
 
@@ -1634,7 +1852,7 @@ def export_and_save() -> dict:
     _create_presentation()
 
     scene = bpy.context.scene
-    scene.render.engine = "BLENDER_EEVEE_NEXT"
+    scene.render.engine = "BLENDER_EEVEE"
     scene.render.resolution_x = 1280
     scene.render.resolution_y = 720
     scene.render.resolution_percentage = 100

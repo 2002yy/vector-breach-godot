@@ -21,7 +21,10 @@ const AMMO_WARNING_COLOR := Color(1.0, 0.38, 0.3, 1.0)
 @onready var scoreboard_friendly: Label = $HudRoot/Scoreboard/Margin/Stack/FriendlyRow
 @onready var scoreboard_enemy: Label = $HudRoot/Scoreboard/Margin/Stack/EnemyRow
 @onready var training_end: PanelContainer = $HudRoot/TrainingEnd
-@onready var training_summary: Label = $HudRoot/TrainingEnd/Summary
+@onready var training_result: Label = $HudRoot/TrainingEnd/Margin/Stack/Result
+@onready var training_shots: Label = $HudRoot/TrainingEnd/Margin/Stack/Shots
+@onready var training_accuracy: Label = $HudRoot/TrainingEnd/Margin/Stack/Accuracy
+@onready var training_grenade: Label = $HudRoot/TrainingEnd/Margin/Stack/Grenade
 @onready var buy_menu: PanelContainer = $HudRoot/BuyMenu
 @onready var buy_result: Label = $HudRoot/BuyMenu/Margin/Stack/Result
 @onready var buy_items: Label = $HudRoot/BuyMenu/Margin/Stack/Items
@@ -123,12 +126,13 @@ func update_display(snapshot: Dictionary) -> void:
 	scoreboard_enemy.text = "\n".join(enemy_rows) if not enemy_rows.is_empty() else "暂无敌方单位"
 	training_end.visible = bool(snapshot.get("training_complete", false)) and _game_started and not _menu_open
 	var result_text := String(snapshot.get("round_result_text", ""))
-	training_summary.text = "%s\n%d 次命中   %d 次击杀\n$%d" % [
-		result_text if not result_text.is_empty() else "训练完成",
-		int(snapshot.get("hit_count", 0)),
-		int(snapshot.get("kill_count", 0)),
-		int(snapshot.get("money", 800)),
+	var debrief: Dictionary = snapshot.get("training_debrief", {}) as Dictionary
+	training_result.text = result_text if not result_text.is_empty() else "回合训练完成"
+	training_shots.text = "射击  %d 发       命中  %d 发       爆头  %d" % [
+		int(debrief.get("shots", 0)), int(debrief.get("hits", 0)), int(debrief.get("headshots", 0))
 	]
+	training_accuracy.text = "命中率  %.1f%%" % float(debrief.get("accuracy", 0.0))
+	training_grenade.text = "最近投掷  %s" % String(debrief.get("grenade_text", "暂无投掷记录"))
 	_update_crosshair(float(snapshot.get("spread_degrees", 0.0)))
 	var flash_intensity := float(snapshot.get("flash_intensity", 0.0))
 	flash_overlay.visible = flash_intensity > 0.01

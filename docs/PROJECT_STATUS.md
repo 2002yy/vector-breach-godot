@@ -2,6 +2,15 @@
 
 Updated: 2026-08-03
 
+## 2026-08-03 体验完善批次
+
+- Foundry Reforged 已完成不改碰撞与路线 JSON 的工业地标、天际线和模块化掩体垂直切片升级；新增 14 个锯齿屋面模组、A/B 高位起重机地标与 8 组门框灯带，Blender 确定性脚本、源文件与 GLB 保持同源。
+- 回合结束 HUD 现在显示本回合射击、命中、命中率、爆头和最近投掷摘要；下一回合自动清零并隐藏，F4 详细训练遥测仍保留。
+- 烟雾从单一透明球升级为 7 层低面数动态云团，保留 18 秒持续时间、`smoke_volumes` 分组以及原有雷达/AI 视线阻断判定。
+- 程序化战斗音频增加枪口瞬态、枪声主体、空间尾音、命中碎屑和材质脚步层次；尚未引入许可来源明确的正式采样与语音资产。
+- AI 导航图解析、最近点、A*、动态危险边代价和连接查询已从 `TacticalBotBrain` 提取为强类型 `BotNavigationModel`，不改变状态机与战术时序。
+- 七套 headless 回归当前共 110 项并通过 `RUN_ALL_OK`；Foundry Preview/Playtest、UI 复盘与烟雾 Vulkan 探针均已生成新截图并人工检查。
+
 ## 2026-08-03 tactical actor presentation
 
 - Added a Blender-authored shared low-poly tactical actor GLB with named `Vest_Mk1`, `Helmet_LowProfile`, and `WeaponSocket` attachment nodes. The deterministic Blender recipe and editable source `.blend` live beside the asset for later variants.

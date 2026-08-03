@@ -450,22 +450,78 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -220.0
-offset_top = -100.0
-offset_right = 220.0
-offset_bottom = 100.0
+offset_left = -270.0
+offset_top = -160.0
+offset_right = 270.0
+offset_bottom = 160.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("RoundStripStyle")
 
-[node name="Summary" type="Label" parent="HudRoot/TrainingEnd"]
+[node name="Margin" type="MarginContainer" parent="HudRoot/TrainingEnd"]
+layout_mode = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 22
+
+[node name="Stack" type="VBoxContainer" parent="HudRoot/TrainingEnd/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="HudRoot/TrainingEnd/Margin/Stack"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.76, 0.7, 1)
+theme_override_fonts/font = ExtResource("2_regular")
+theme_override_font_sizes/font_size = 16
+text = "本回合训练复盘"
+horizontal_alignment = 1
+
+[node name="Result" type="Label" parent="HudRoot/TrainingEnd/Margin/Stack"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.92, 0.86, 0.6, 1)
 theme_override_fonts/font = ExtResource("3_semibold")
-theme_override_font_sizes/font_size = 24
-text = "训练完成"
+theme_override_font_sizes/font_size = 28
+text = "回合训练完成"
 horizontal_alignment = 1
-vertical_alignment = 1
+
+[node name="Divider" type="ColorRect" parent="HudRoot/TrainingEnd/Margin/Stack"]
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+color = Color(0.83, 0.73, 0.38, 0.54)
+
+[node name="Shots" type="Label" parent="HudRoot/TrainingEnd/Margin/Stack"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.86, 0.78, 1)
+theme_override_fonts/font = ExtResource("3_semibold")
+theme_override_font_sizes/font_size = 19
+text = "射击  0 发       命中  0 发       爆头  0"
+horizontal_alignment = 1
+
+[node name="Accuracy" type="Label" parent="HudRoot/TrainingEnd/Margin/Stack"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.48, 0.75, 0.9, 1)
+theme_override_fonts/font = ExtResource("3_semibold")
+theme_override_font_sizes/font_size = 22
+text = "命中率  0.0%"
+horizontal_alignment = 1
+
+[node name="Grenade" type="Label" parent="HudRoot/TrainingEnd/Margin/Stack"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.72, 0.74, 0.68, 1)
+theme_override_fonts/font = ExtResource("2_regular")
+theme_override_font_sizes/font_size = 16
+text = "最近投掷  暂无投掷记录"
+horizontal_alignment = 1
+text_overrun_behavior = 3
+
+[node name="Hint" type="Label" parent="HudRoot/TrainingEnd/Margin/Stack"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.58, 0.6, 0.55, 1)
+theme_override_fonts/font = ExtResource("2_regular")
+theme_override_font_sizes/font_size = 14
+text = "下一回合自动开始  ·  F4 查看详细数据"
+horizontal_alignment = 1
 
 [node name="BuyMenu" type="PanelContainer" parent="HudRoot"]
 visible = false

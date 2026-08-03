@@ -46,15 +46,27 @@ func _ready() -> void:
 	print("UI_PROBE_STAGE=capture_scoreboard")
 	var scoreboard_path := await _capture("ui-scoreboard-reference")
 	Input.action_release("show_scoreboard")
+	var telemetry: Node = main.get("training_telemetry") as Node
+	telemetry.call("record_shot", {"hit": true, "position": Vector3(3.2, 1.4, -6.0), "damage_result": {"hit": true, "headshot": true}})
+	telemetry.call("record_shot", {"hit": false, "damage_result": {}})
+	telemetry.call("record_grenade", {"type": "smoke_grenade", "distance": 18.4, "flight_time": 1.47})
+	GameState.set_training_target_count(1)
+	GameState.register_hit(true)
+	RoundManager.end_round("T", "ELIMINATION")
+	main.call("_update_ui", true)
+	await get_tree().process_frame
+	print("UI_PROBE_STAGE=capture_training_debrief")
+	var debrief_path := await _capture("ui-training-debrief-reference")
 
 	print("UI_VISUAL_PROBE=" + JSON.stringify({
 		"menu": menu_path,
 		"buy_menu": buy_menu_path,
 		"combat": combat_path,
 		"scoreboard": scoreboard_path,
+		"training_debrief": debrief_path,
 		"viewport": [get_viewport().size.x, get_viewport().size.y]
 	}))
-	get_tree().quit(0 if not menu_path.is_empty() and not buy_menu_path.is_empty() and not combat_path.is_empty() and not scoreboard_path.is_empty() else 1)
+	get_tree().quit(0 if not menu_path.is_empty() and not buy_menu_path.is_empty() and not combat_path.is_empty() and not scoreboard_path.is_empty() and not debrief_path.is_empty() else 1)
 
 func _capture(file_stem: String) -> String:
 	await RenderingServer.frame_post_draw

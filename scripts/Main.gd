@@ -315,6 +315,8 @@ func _on_map_selected(index: int) -> void:
 func _on_start_pressed() -> void:
 	var option: Dictionary = level_options[selected_level_index]
 	GameState.reset_runtime_state()
+	if is_instance_valid(training_telemetry):
+		training_telemetry.call("begin_round", 1)
 	_clear_round_drops()
 	level.call("load_level", option["id"])
 	if player.has_method("reset_to_spawn"):
@@ -628,6 +630,9 @@ func _on_round_restart_requested() -> void:
 	var player_survived := not bool(player.get("is_dead"))
 	_clear_round_drops()
 	GameState.prepare_next_round()
+	if is_instance_valid(training_telemetry):
+		var completed_round := training_telemetry.call("get_snapshot") as Dictionary
+		training_telemetry.call("begin_round", int(completed_round.get("round_number", 1)) + 1)
 	var option: Dictionary = level_options[selected_level_index]
 	level.call("load_level", option["id"])
 	player.call("reset_to_spawn")
@@ -816,6 +821,8 @@ func _update_ui(force: bool) -> void:
 
 func _build_hud_snapshot(snapshot: Dictionary) -> Dictionary:
 	var enriched := snapshot.duplicate(true)
+	if is_instance_valid(training_telemetry):
+		enriched["training_debrief"] = training_telemetry.call("get_snapshot")
 	enriched["radar"] = _build_radar_snapshot()
 	enriched["flash_intensity"] = float(player.call("get_flash_intensity"))
 	return enriched

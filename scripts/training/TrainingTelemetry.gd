@@ -1,6 +1,6 @@
 extends Node
 
-## Session-only practice telemetry. It is intentionally observational: weapon,
+## Round-scoped practice telemetry. It is intentionally observational: weapon,
 ## projectile and AI simulation continue to own their respective game rules.
 
 var shots_fired := 0
@@ -9,6 +9,7 @@ var headshots := 0
 var last_impact := Vector3.ZERO
 var last_spray_index := -1
 var grenades: Array[Dictionary] = []
+var round_number := 1
 
 func _ready() -> void:
 	add_to_group("training_telemetry")
@@ -20,6 +21,10 @@ func reset() -> void:
 	last_impact = Vector3.ZERO
 	last_spray_index = -1
 	grenades.clear()
+
+func begin_round(next_round_number: int) -> void:
+	round_number = maxi(1, next_round_number)
+	reset()
 
 func record_shot(result: Dictionary) -> void:
 	shots_fired += 1
@@ -42,12 +47,19 @@ func get_snapshot() -> Dictionary:
 	var grenade_text := "暂无投掷记录"
 	if not grenades.is_empty():
 		var last: Dictionary = grenades.back() as Dictionary
+		var grenade_names := {
+			"he_grenade": "高爆手雷",
+			"flash_grenade": "闪光弹",
+			"smoke_grenade": "烟雾弹",
+		}
+		var grenade_type := String(last.get("type", "grenade"))
 		grenade_text = "%s  %.1fm / %.2fs" % [
-			String(last.get("type", "grenade")),
+			String(grenade_names.get(grenade_type, grenade_type)),
 			float(last.get("distance", 0.0)),
 			float(last.get("flight_time", 0.0)),
 		]
 	return {
+		"round_number": round_number,
 		"shots": shots_fired,
 		"hits": shots_hit,
 		"headshots": headshots,

@@ -21,13 +21,15 @@ func play_shot(result: Dictionary, world_position: Vector3 = Vector3.ZERO) -> vo
 	_shot_count += 1
 	var pistol := int(result.get("weapon_slot", 0)) == 1
 	_shot_player.global_position = world_position
-	_shot_player.stream = _make_burst(0.075 if pistol else 0.11, 175.0 if pistol else 118.0, 0.72, 17 + _shot_count)
-	_shot_player.pitch_scale = 1.08 if pistol else 0.96
+	_shot_player.stream = _make_burst(0.18 if pistol else 0.27, 184.0 if pistol else 112.0, 0.72, 17 + _shot_count, pistol)
+	var pitch_jitter := sin(float(_shot_count) * 12.9898) * 0.012
+	_shot_player.pitch_scale = (1.07 if pistol else 0.96) + pitch_jitter
 	_shot_player.play()
 	if bool(result.get("hit", false)):
 		_hit_count += 1
 		_impact_player.global_position = result.get("position", world_position)
-		_impact_player.stream = _make_tone(0.055, 920.0, 0.22)
+		_impact_player.stream = _make_impact(0.075, 850.0, 0.24, 101 + _hit_count)
+		_impact_player.pitch_scale = 0.98 + float(_hit_count % 5) * 0.009
 		_impact_player.play()
 
 func play_footstep(world_position: Vector3, surface: String, quiet: bool) -> void:
@@ -41,7 +43,8 @@ func play_footstep(world_position: Vector3, surface: String, quiet: bool) -> voi
 	elif surface == "water":
 		base_frequency = 72.0
 	var gain := (0.16 if quiet else 0.38) if surface == "water" else (0.11 if quiet else 0.32)
-	_movement_player.stream = _make_step(0.075, base_frequency, gain, _shot_count + _reload_count + 31)
+	_movement_player.stream = _make_step(0.09, base_frequency, gain, _shot_count + _reload_count + _footstep_count + 31, surface)
+	_movement_player.pitch_scale = 0.97 + float(_footstep_count % 5) * 0.012
 	_movement_player.max_distance = 14.0 if quiet else 42.0
 	_movement_player.play()
 
@@ -49,7 +52,8 @@ func play_landing(world_position: Vector3, surface: String, strength: float) -> 
 	_landing_count += 1
 	_movement_player.global_position = world_position
 	var frequency := 235.0 if surface == "metal" else (155.0 if surface == "wood" else (68.0 if surface == "water" else 92.0))
-	_movement_player.stream = _make_step(0.11, frequency, lerpf(0.18, 0.42, clampf(strength, 0.0, 1.0)), 79 + _shot_count)
+	_movement_player.stream = _make_step(0.14, frequency, lerpf(0.18, 0.42, clampf(strength, 0.0, 1.0)), 79 + _shot_count + _landing_count, surface)
+	_movement_player.pitch_scale = 0.94
 	_movement_player.max_distance = 48.0
 	_movement_player.play()
 
@@ -96,14 +100,17 @@ func _make_spatial_player(node_name: String, max_distance: float) -> AudioStream
 	add_child(player)
 	return player
 
-func _make_burst(duration: float, base_frequency: float, gain: float, seed_value: int) -> AudioStreamWAV:
+func _make_burst(duration: float, base_frequency: float, gain: float, seed_value: int, pistol: bool) -> AudioStreamWAV:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value
 	return _make_wave(duration, func(time: float) -> float:
-		var envelope := exp(-time * 28.0)
-		var body := sin(TAU * base_frequency * time) * 0.62
-		var crack := rng.randf_range(-1.0, 1.0) * exp(-time * 70.0)
-		return (body + crack) * envelope * gain
+		var transient := rng.randf_range(-1.0, 1.0) * exp(-time * (115.0 if pistol else 92.0))
+		var body_envelope := exp(-time * (22.0 if pistol else 15.0))
+		var body := (sin(TAU * base_frequency * time) * 0.56 + sin(TAU * base_frequency * 0.52 * time) * 0.34) * body_envelope
+		var mechanical := sin(TAU * (620.0 if pistol else 470.0) * time) * exp(-time * 58.0) * 0.16
+		var tail_time := maxf(time - 0.035, 0.0)
+		var tail := rng.randf_range(-1.0, 1.0) * exp(-tail_time * (19.0 if pistol else 12.0)) * (0.11 if time >= 0.035 else 0.0)
+		return (transient * 0.72 + body + mechanical + tail) * gain
 	)
 
 func _make_tone(duration: float, frequency: float, gain: float) -> AudioStreamWAV:
@@ -111,14 +118,25 @@ func _make_tone(duration: float, frequency: float, gain: float) -> AudioStreamWA
 		return sin(TAU * frequency * time) * exp(-time * 38.0) * gain
 	)
 
-func _make_step(duration: float, base_frequency: float, gain: float, seed_value: int) -> AudioStreamWAV:
+func _make_impact(duration: float, frequency: float, gain: float, seed_value: int) -> AudioStreamWAV:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value
 	return _make_wave(duration, func(time: float) -> float:
-		var envelope := exp(-time * 42.0)
-		var body := sin(TAU * base_frequency * time) * 0.55
-		var texture := rng.randf_range(-1.0, 1.0) * 0.45
-		return (body + texture) * envelope * gain
+		var tick := sin(TAU * frequency * time) * exp(-time * 52.0)
+		var debris := rng.randf_range(-1.0, 1.0) * exp(-time * 34.0) * 0.46
+		return (tick + debris) * gain
+	)
+
+func _make_step(duration: float, base_frequency: float, gain: float, seed_value: int, surface: String) -> AudioStreamWAV:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value
+	return _make_wave(duration, func(time: float) -> float:
+		var envelope := exp(-time * (31.0 if surface == "water" else 42.0))
+		var body := sin(TAU * base_frequency * time) * 0.5
+		var texture_gain := 0.68 if surface == "metal" else (0.3 if surface == "wood" else 0.48)
+		var texture := rng.randf_range(-1.0, 1.0) * texture_gain
+		var secondary := sin(TAU * base_frequency * (2.3 if surface == "metal" else 0.55) * time) * (0.24 if surface != "water" else 0.12)
+		return (body + texture + secondary) * envelope * gain
 	)
 
 func _make_click_sequence(times: Array, gain: float) -> AudioStreamWAV:
