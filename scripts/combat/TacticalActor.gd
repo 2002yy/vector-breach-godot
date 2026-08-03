@@ -48,6 +48,8 @@ var _hit_flash_time: float = 0.0
 var _visual_drop: float = 0.0
 var _actor_visual_y: float = 0.0
 var _active_visual_animation: StringName = &""
+var _imported_animation_player: AnimationPlayer
+var _imported_animation_names: Dictionary = {}
 
 func _ready() -> void:
 	add_to_group("combat_actors")
@@ -61,6 +63,7 @@ func _ready() -> void:
 	_head_mesh_y = head_mesh.position.y
 	_weapon_mesh_y = weapon_mesh.position.y
 	_actor_visual_y = actor_visual.position.y
+	_discover_imported_animations()
 	_create_visual_animations()
 	bot_brain.call("setup", self)
 	_apply_team_visual()
@@ -304,28 +307,45 @@ func _update_presentation(delta: float) -> void:
 func _create_visual_animations() -> void:
 	var library := AnimationLibrary.new()
 	library.add_animation(&"idle", _make_visual_animation(1.2, true, {
-		"ActorVisual/Model/TacticalActor_LowPoly/VisualRig/Hips:position": [[0.0, Vector3(0.0, 0.93, 0.0)], [0.6, Vector3(0.0, 0.95, 0.0)], [1.2, Vector3(0.0, 0.93, 0.0)]],
-		"ActorVisual/Model/TacticalActor_LowPoly/VisualRig/Hips/HeadSocket:rotation": [[0.0, Vector3.ZERO], [0.6, Vector3(0.03, 0.0, 0.0)], [1.2, Vector3.ZERO]],
+		"ActorVisual:position": [[0.0, Vector3(0.0, _actor_visual_y, 0.0)], [0.6, Vector3(0.0, _actor_visual_y + 0.015, 0.0)], [1.2, Vector3(0.0, _actor_visual_y, 0.0)]],
 	}))
 	library.add_animation(&"run", _make_visual_animation(0.52, true, {
-		"ActorVisual/Model/TacticalActor_LowPoly/VisualRig/Hips:position": [[0.0, Vector3(0.0, 0.94, 0.0)], [0.13, Vector3(0.0, 0.99, -0.015)], [0.26, Vector3(0.0, 0.94, 0.0)], [0.39, Vector3(0.0, 0.99, -0.015)], [0.52, Vector3(0.0, 0.94, 0.0)]],
-		"ActorVisual/Model/TacticalActor_LowPoly/VisualRig/Hips/LeftShoulder:rotation": [[0.0, Vector3(0.45, 0.0, 0.12)], [0.26, Vector3(-0.35, 0.0, 0.12)], [0.52, Vector3(0.45, 0.0, 0.12)]],
-		"ActorVisual/Model/TacticalActor_LowPoly/VisualRig/Hips/RightShoulder:rotation": [[0.0, Vector3(-0.35, 0.0, -0.12)], [0.26, Vector3(0.45, 0.0, -0.12)], [0.52, Vector3(-0.35, 0.0, -0.12)]],
-		"ActorVisual/Model/TacticalActor_LowPoly/VisualRig/Hips/LeftHip:rotation": [[0.0, Vector3(-0.42, 0.0, 0.0)], [0.26, Vector3(0.38, 0.0, 0.0)], [0.52, Vector3(-0.42, 0.0, 0.0)]],
-		"ActorVisual/Model/TacticalActor_LowPoly/VisualRig/Hips/RightHip:rotation": [[0.0, Vector3(0.38, 0.0, 0.0)], [0.26, Vector3(-0.42, 0.0, 0.0)], [0.52, Vector3(0.38, 0.0, 0.0)]],
+		"ActorVisual:position": [[0.0, Vector3(0.0, _actor_visual_y, 0.0)], [0.13, Vector3(0.0, _actor_visual_y + 0.035, 0.0)], [0.26, Vector3(0.0, _actor_visual_y, 0.0)], [0.39, Vector3(0.0, _actor_visual_y + 0.035, 0.0)], [0.52, Vector3(0.0, _actor_visual_y, 0.0)]],
 	}))
 	library.add_animation(&"crouch", _make_visual_animation(0.8, true, {
-		"ActorVisual/Model/TacticalActor_LowPoly/VisualRig/Hips:position": [[0.0, Vector3(0.0, 0.85, 0.02)], [0.4, Vector3(0.0, 0.87, 0.02)], [0.8, Vector3(0.0, 0.85, 0.02)]],
-		"ActorVisual/Model/TacticalActor_LowPoly/VisualRig/Hips:rotation": [[0.0, Vector3(0.14, 0.0, 0.0)], [0.8, Vector3(0.14, 0.0, 0.0)]],
+		"ActorVisual:position": [[0.0, Vector3(0.0, _actor_visual_y - 0.28, 0.02)], [0.4, Vector3(0.0, _actor_visual_y - 0.265, 0.02)], [0.8, Vector3(0.0, _actor_visual_y - 0.28, 0.02)]],
 	}))
 	library.add_animation(&"hit", _make_visual_animation(0.22, false, {
-		"ActorVisual/Model/TacticalActor_LowPoly/VisualRig/Hips:rotation": [[0.0, Vector3.ZERO], [0.08, Vector3(-0.14, 0.0, 0.12)], [0.22, Vector3.ZERO]],
+		"ActorVisual:rotation": [[0.0, Vector3.ZERO], [0.08, Vector3(-0.08, 0.0, 0.08)], [0.22, Vector3.ZERO]],
 	}))
 	library.add_animation(&"death", _make_visual_animation(0.78, false, {
-		"ActorVisual/Model/TacticalActor_LowPoly/VisualRig/Hips:position": [[0.0, Vector3(0.0, 0.93, 0.0)], [0.78, Vector3(0.0, 0.58, 0.20)]],
-		"ActorVisual/Model/TacticalActor_LowPoly/VisualRig/Hips:rotation": [[0.0, Vector3.ZERO], [0.78, Vector3(-1.30, 0.0, 0.18)]],
+		"ActorVisual:position": [[0.0, Vector3(0.0, _actor_visual_y, 0.0)], [0.78, Vector3(0.0, _actor_visual_y - 0.35, 0.20)]],
+		"ActorVisual:rotation": [[0.0, Vector3.ZERO], [0.78, Vector3(-1.30, 0.0, 0.18)]],
 	}))
 	animation_player.add_animation_library(&"tactical", library)
+
+func _discover_imported_animations() -> void:
+	_imported_animation_player = null
+	_imported_animation_names.clear()
+	for candidate in actor_visual.find_children("*", "AnimationPlayer", true, false):
+		var player := candidate as AnimationPlayer
+		if player == null:
+			continue
+		for imported_name in player.get_animation_list():
+			var normalized := String(imported_name).to_lower()
+			for expected in [&"idle", &"run", &"crouch", &"hit", &"death"]:
+				if normalized == String(expected) or normalized.ends_with("/" + String(expected)) or normalized.ends_with("|" + String(expected)):
+					_imported_animation_player = player
+					_imported_animation_names[expected] = imported_name
+
+func get_visual_animation_snapshot() -> Dictionary:
+	return {
+		"active": _active_visual_animation,
+		"uses_imported": _imported_animation_player != null and _imported_animation_names.has(_active_visual_animation),
+		"imported_names": _imported_animation_names.keys(),
+		"imported_current": _imported_animation_player.current_animation if _imported_animation_player != null else &"",
+		"fallback_current": animation_player.current_animation,
+	}
 
 func _make_visual_animation(length: float, loop: bool, tracks: Dictionary) -> Animation:
 	var animation := Animation.new()
@@ -342,7 +362,11 @@ func _set_visual_animation(next_animation: StringName) -> void:
 	if _active_visual_animation == next_animation:
 		return
 	_active_visual_animation = next_animation
-	animation_player.play(&"tactical/" + next_animation)
+	if _imported_animation_player != null and _imported_animation_names.has(next_animation):
+		_imported_animation_player.play(_imported_animation_names[next_animation])
+		animation_player.stop()
+	else:
+		animation_player.play(&"tactical/" + next_animation)
 
 func _play_death_then_release() -> void:
 	if get_tree() == null:

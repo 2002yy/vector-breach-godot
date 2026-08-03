@@ -183,6 +183,14 @@ func _isolate_environment_resource() -> void:
 func _process(delta: float) -> void:
 	_update_objective_interaction(delta)
 	tactical_equipment.call("tick", delta)
+	if weapon_view_model.has_method("update_motion") and player.has_method("get_accuracy_state"):
+		var view_motion := player.call("get_accuracy_state") as Dictionary
+		weapon_view_model.call(
+			"update_motion",
+			float(view_motion.get("speed", 0.0)),
+			not bool(view_motion.get("airborne", false)),
+			bool(view_motion.get("crouching", false))
+		)
 	var combat_enabled := _can_accept_combat_input() and not RoundManager.is_objective_interacting()
 	if game_started and not menu_open and player.has_method("set_controls_enabled"):
 		player.call("set_controls_enabled", not bool(player.get("is_dead")))
@@ -750,6 +758,8 @@ func _on_player_footstep(world_position: Vector3, surface: String, quiet: bool) 
 	combat_sandbox.call("notify_ai_sound", world_position, 14.0 if quiet else 34.0, GameState.player_team)
 
 func _on_player_landed(world_position: Vector3, surface: String, strength: float) -> void:
+	if weapon_view_model.has_method("play_landing"):
+		weapon_view_model.call("play_landing", strength)
 	if combat_audio_feedback.has_method("play_landing"):
 		combat_audio_feedback.call("play_landing", world_position, surface, strength)
 	combat_sandbox.call("notify_ai_sound", world_position, lerpf(18.0, 38.0, strength), GameState.player_team)
@@ -776,10 +786,14 @@ func _on_weapon_switched(_weapon_name: String, slot_index: int) -> void:
 		combat_audio_feedback.call("play_weapon_switched")
 
 func _on_reload_started() -> void:
+	if weapon_view_model.has_method("play_reload_started"):
+		weapon_view_model.call("play_reload_started")
 	if combat_audio_feedback.has_method("play_reload_started"):
 		combat_audio_feedback.call("play_reload_started")
 
 func _on_reload_finished() -> void:
+	if weapon_view_model.has_method("play_reload_finished"):
+		weapon_view_model.call("play_reload_finished")
 	if combat_audio_feedback.has_method("play_reload_finished"):
 		combat_audio_feedback.call("play_reload_finished")
 

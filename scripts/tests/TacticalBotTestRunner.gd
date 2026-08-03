@@ -322,14 +322,34 @@ func _test_visual_actor_keeps_collision_and_hit_model_independent() -> void:
 	_assert_true(visual.find_child("WeaponSocket", true, false) != null, "shared visual GLB should expose the weapon mount socket")
 	for animation_name in [&"tactical/idle", &"tactical/run", &"tactical/crouch", &"tactical/hit", &"tactical/death"]:
 		_assert_true(animation_player.has_animation(animation_name), "AnimationPlayer should register %s" % animation_name)
+	var skeleton: Skeleton3D
+	for candidate in visual.find_children("*", "Skeleton3D", true, false):
+		skeleton = candidate as Skeleton3D
+		break
+	_assert_true(skeleton != null, "shared visual GLB should import its Armature as a Skeleton3D")
+	if skeleton != null:
+		for bone_name in [&"root", &"hips", &"spine", &"chest", &"head", &"upper_arm_l", &"forearm_l", &"upper_arm_r", &"forearm_r", &"thigh_l", &"calf_l", &"thigh_r", &"calf_r"]:
+			_assert_true(skeleton.find_bone(bone_name) >= 0, "imported skeleton should contain %s" % bone_name)
+	var visual_snapshot := actor.call("get_visual_animation_snapshot") as Dictionary
+	var imported_names := visual_snapshot.get("imported_names", []) as Array
+	for clip_name in [&"idle", &"run", &"crouch", &"hit", &"death"]:
+		_assert_true(imported_names.has(clip_name), "GLB should expose imported %s action" % clip_name)
 	var capsule := actor.get_node("CollisionShape3D").shape as CapsuleShape3D
 	_assert_true(is_equal_approx(capsule.height, 1.8), "visual asset should not replace the standing capsule hull")
-	var head_hit := actor.call("apply_hitscan_damage", 1, actor.global_position + Vector3.UP * 0.66, 1.0, false) as Dictionary
-	_assert_equal(String(head_hit.get("hit_group", "")), "head", "visual asset should not replace five-zone hit resolution")
+	var zone_samples := {
+		"head": Vector3(0.0, 0.66, 0.0), "chest": Vector3(0.0, 0.20, 0.0),
+		"stomach": Vector3(0.0, -0.15, 0.0), "arms": Vector3(0.35, 0.10, 0.0),
+		"legs": Vector3(0.0, -0.50, 0.0),
+	}
+	for expected_zone in zone_samples:
+		var zone_hit := actor.call("apply_hitscan_damage", 1, actor.global_position + zone_samples[expected_zone], 1.0, false) as Dictionary
+		_assert_equal(String(zone_hit.get("hit_group", "")), expected_zone, "visual asset should not replace %s hit resolution" % expected_zone)
 	actor.call("set_ai_crouching", true)
 	_assert_true(is_equal_approx(capsule.height, 1.2), "existing crouch collision behavior must remain authoritative over the visual")
 	actor.call("apply_hitscan_damage", 500, actor.global_position + Vector3.UP * 0.66, 1.0, false)
-	_assert_equal(animation_player.current_animation, StringName("tactical/death"), "lethal damage should enter the presentation-only death animation")
+	visual_snapshot = actor.call("get_visual_animation_snapshot") as Dictionary
+	_assert_equal(visual_snapshot.get("active", &""), StringName("death"), "lethal damage should select the presentation-only death animation")
+	_assert_true(bool(visual_snapshot.get("uses_imported", false)), "lethal damage should prefer the GLB-imported death action")
 	_assert_true(not actor.is_queued_for_deletion(), "death animation should keep the non-colliding visual alive briefly")
 	await _cleanup_fixture(fixture)
 

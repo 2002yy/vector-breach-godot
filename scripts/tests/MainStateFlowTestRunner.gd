@@ -325,6 +325,15 @@ func _test_weapon_view_model_tracks_switch_and_shot() -> void:
 	main.call("_on_shot_resolved", {"hit": false})
 	var shot_snapshot: Dictionary = view_model.call("get_debug_snapshot")
 	_assert_true(float(shot_snapshot.get("shot_kick", 0.0)) > 0.0, "a resolved shot should trigger view model recoil")
+	view_model.call("update_motion", 5.8, true, false)
+	view_model.call("play_landing", 0.8)
+	view_model.call("play_reload_started")
+	var motion_snapshot := view_model.call("get_debug_snapshot") as Dictionary
+	_assert_float_close(float(motion_snapshot.get("movement_speed", 0.0)), 5.8, 0.001, "view model should receive player movement speed")
+	_assert_true(float(motion_snapshot.get("landing_offset", 0.0)) > 0.0, "landing should add a view-model drop impulse")
+	_assert_true(bool(motion_snapshot.get("reload_active", false)), "reload start should enter the lowered view-model pose")
+	view_model.call("play_reload_finished")
+	_assert_true(not bool((view_model.call("get_debug_snapshot") as Dictionary).get("reload_active", true)), "reload finish should restore the ready pose")
 
 	await _cleanup_main(main)
 
@@ -685,6 +694,9 @@ func _test_combat_audio_tracks_shot_hit_reload_and_switch() -> void:
 	_assert_equal(snapshot.get("landings"), 1, "landing impacts should reach the movement audio channel")
 	_assert_equal(snapshot.get("players"), 4, "combat audio should separate shot, impact, movement, and mechanical channels")
 	_assert_equal(snapshot.get("spatial_players"), 3, "shot, impact, and movement sounds should be spatialized")
+	_assert_equal(snapshot.get("sample_assets"), 14, "combat audio should load the licensed real-sample bank")
+	_assert_equal(snapshot.get("sampled_events"), 4, "shot, reload, footstep, and landing should use real samples")
+	_assert_equal(snapshot.get("fallback_events"), 0, "complete audio assets should avoid fallback synthesis")
 	await _cleanup_main(main)
 
 func _test_player_mouse_look_bypasses_gui_consumption() -> void:
