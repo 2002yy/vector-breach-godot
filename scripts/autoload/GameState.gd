@@ -35,6 +35,19 @@ var player_team: String = "T"
 var round_result_text: String = ""
 var loss_streak: int = 0
 var unit_scoreboard: Dictionary = {}
+var match_active: bool = false
+var match_phase: String = "inactive"
+var match_result: String = ""
+var match_serial: int = 0
+var initial_player_team: String = "T"
+var player_squad_score: int = 0
+var opponent_squad_score: int = 0
+var regulation_rounds_played: int = 0
+var overtime_rounds_played: int = 0
+var match_rounds: Array[Dictionary] = []
+var active_round_serial: int = -1
+var settled_round_serial: int = -1
+var _pending_match_transition: Dictionary = {}
 const MAX_MONEY := 16000
 const LOSS_BONUSES := [1400, 1900, 2400, 2900, 3400]
 
@@ -48,6 +61,9 @@ func set_level(level_id: String, level_name: String = "") -> void:
 		_emit_hud_state_changed()
 
 func reset_runtime_state() -> void:
+	match_active = false
+	match_phase = "inactive"
+	match_result = ""
 	player_health = 100
 	player_armor = 0
 	player_helmet = false
@@ -71,6 +87,34 @@ func reset_runtime_state() -> void:
 	loss_streak = 0
 	unit_scoreboard.clear()
 	_emit_hud_state_changed()
+
+func start_match(starting_team: String = "T") -> Dictionary:
+	reset_runtime_state()
+	match_serial += 1
+	match_active = true
+	match_phase = "first_half"
+	match_result = ""
+	initial_player_team = starting_team if starting_team in ["T", "CT"] else "T"
+	player_team = initial_player_team
+	player_squad_score = 0
+	opponent_squad_score = 0
+	regulation_rounds_played = 0
+	overtime_rounds_played = 0
+	match_rounds.clear()
+	active_round_serial = -1
+	settled_round_serial = -1
+	_pending_match_transition.clear()
+	_sync_side_scores()
+	_emit_hud_state_changed()
+	return get_match_snapshot()
+
+func begin_match_round(serial: int) -> void:
+	active_round_serial = serial
+
+func consume_match_transition() -> Dictionary:
+	var transition := _pending_match_transition.duplicate(true)
+	_pending_match_transition.clear()
+	return transition
 
 func prepare_next_round() -> void:
 	if friendly_alive == 0:
@@ -117,12 +161,24 @@ func purchase(item_id: String) -> Dictionary:
 	_emit_hud_state_changed()
 	return {"success": true, "price": price, "item_id": item_id}
 
-func complete_round(winner: String, reason: String) -> void:
-	if winner == "T":
+func complete_round(winner: String, reason: String, serial: int = -1) -> Dictionary:
+	if winner not in ["T", "CT"]:
+		return {"accepted": false, "duplicate": false}
+	if serial >= 0:
+		if serial != active_round_serial or serial == settled_round_serial:
+			return {"accepted": false, "duplicate": serial == settled_round_serial}
+		settled_round_serial = serial
+	var player_won := winner == player_team
+	if match_active:
+		if player_won:
+			player_squad_score += 1
+		else:
+			opponent_squad_score += 1
+		_sync_side_scores()
+	elif winner == "T":
 		enemy_score += 1
 	else:
 		friendly_score += 1
-	var player_won := winner == player_team
 	if player_won:
 		loss_streak = 0
 		player_money = mini(MAX_MONEY, player_money + 3250)
@@ -135,7 +191,115 @@ func complete_round(winner: String, reason: String) -> void:
 	var reason_labels := {"ELIMINATION": "全员淘汰", "TIME": "时间耗尽", "BOMB EXPLODED": "C4爆炸", "BOMB DEFUSED": "C4已拆除"}
 	round_result_text = "%s 获胜  ·  %s" % [winner, String(reason_labels.get(reason, reason))]
 	training_complete = true
+	var transition := {"accepted": true, "duplicate": false, "side_swap": false, "reset_economy": false, "match_complete": false}
+	if match_active:
+		transition = _advance_match(winner, reason, serial)
+		_pending_match_transition = transition.duplicate(true)
 	_emit_hud_state_changed()
+	return transition
+
+func _advance_match(winner: String, reason: String, serial: int) -> Dictionary:
+	var stage_before := match_phase
+	var team_before := player_team
+	if match_phase == "overtime":
+		overtime_rounds_played += 1
+	else:
+		regulation_rounds_played += 1
+	var transition := {
+		"accepted": true, "duplicate": false, "side_swap": false,
+		"reset_economy": false, "match_complete": false,
+		"round_number": match_rounds.size() + 1,
+	}
+	if match_phase != "overtime" and (player_squad_score >= 7 or opponent_squad_score >= 7):
+		_finish_match("player_win" if player_squad_score > opponent_squad_score else "opponent_win")
+		transition["match_complete"] = true
+	elif match_phase != "overtime" and regulation_rounds_played == 6:
+		match_phase = "second_half"
+		_swap_sides()
+		transition["side_swap"] = true
+		transition["reset_economy"] = true
+	elif match_phase != "overtime" and regulation_rounds_played == 12:
+		if player_squad_score == 6 and opponent_squad_score == 6:
+			match_phase = "overtime"
+			transition["reset_economy"] = true
+		else:
+			_finish_match("player_win" if player_squad_score > opponent_squad_score else "opponent_win")
+			transition["match_complete"] = true
+	elif match_phase == "overtime" and overtime_rounds_played == 1:
+		_swap_sides()
+		transition["side_swap"] = true
+		transition["reset_economy"] = true
+	elif match_phase == "overtime" and overtime_rounds_played == 2:
+		var result := "draw"
+		if player_squad_score > opponent_squad_score:
+			result = "player_win"
+		elif opponent_squad_score > player_squad_score:
+			result = "opponent_win"
+		_finish_match(result)
+		transition["match_complete"] = true
+	match_rounds.append({
+		"round_serial": serial, "round_number": match_rounds.size() + 1,
+		"stage": stage_before, "player_team": team_before,
+		"winner_side": winner, "winner_squad": "player" if winner == team_before else "opponent",
+		"reason": reason, "player_score": player_squad_score, "opponent_score": opponent_squad_score,
+		"side_swap": transition["side_swap"], "match_complete": transition["match_complete"],
+	})
+	transition["phase"] = match_phase
+	transition["snapshot"] = get_match_snapshot()
+	return transition
+
+func _swap_sides() -> void:
+	player_team = "CT" if player_team == "T" else "T"
+	_sync_side_scores()
+
+func _sync_side_scores() -> void:
+	if player_team == "CT":
+		friendly_score = player_squad_score
+		enemy_score = opponent_squad_score
+	else:
+		friendly_score = opponent_squad_score
+		enemy_score = player_squad_score
+
+func _finish_match(result: String) -> void:
+	match_active = false
+	match_phase = "complete"
+	match_result = result
+
+func reset_competitive_loadout() -> void:
+	player_money = 800
+	player_armor = 0
+	player_helmet = false
+	player_defuse_kit = false
+	loss_streak = 0
+
+func clear_eliminated_player_equipment() -> void:
+	player_armor = 0
+	player_helmet = false
+	player_defuse_kit = false
+
+func get_match_snapshot() -> Dictionary:
+	return {
+		"schema_version": 1, "match_serial": match_serial, "level_id": current_level_id, "level_name": current_level_name,
+		"active": match_active, "phase": match_phase, "result": match_result,
+		"initial_player_team": initial_player_team, "player_team": player_team,
+		"player_score": player_squad_score, "opponent_score": opponent_squad_score,
+		"ct_score": player_squad_score if player_team == "CT" else opponent_squad_score,
+		"t_score": player_squad_score if player_team == "T" else opponent_squad_score,
+		"regulation_rounds": regulation_rounds_played, "overtime_rounds": overtime_rounds_played,
+		"rounds": match_rounds.duplicate(true), "scoreboard": unit_scoreboard.duplicate(true),
+	}
+
+func export_match_record(path: String = "") -> String:
+	var output_path := path
+	if output_path.is_empty():
+		DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("user://match-records"))
+		var timestamp := Time.get_datetime_string_from_system(false, true).replace(":", "-")
+		output_path = "user://match-records/match-%s-%d-%d.json" % [timestamp, match_serial, Time.get_ticks_msec()]
+	var file := FileAccess.open(output_path, FileAccess.WRITE)
+	if file == null:
+		return ""
+	file.store_string(JSON.stringify(get_match_snapshot(), "  "))
+	return output_path
 
 func set_training_target_count(count: int) -> void:
 	initial_target_count = maxi(0, count)
@@ -229,6 +393,9 @@ func get_hud_snapshot() -> Dictionary:
 		"round_time": RoundManager.get_time_label(),
 		"friendly_score": friendly_score,
 		"enemy_score": enemy_score,
+		"ct_score": player_squad_score if player_team == "CT" else opponent_squad_score,
+		"t_score": player_squad_score if player_team == "T" else opponent_squad_score,
+		"match": get_match_snapshot(),
 		"friendly_alive": friendly_alive,
 		"enemy_alive": enemy_alive,
 		"training_complete": training_complete,
@@ -239,14 +406,15 @@ func get_hud_snapshot() -> Dictionary:
 	}
 
 func set_scoreboard_combatants(records: Array) -> void:
-	unit_scoreboard.clear()
-	unit_scoreboard["你"] = {"name": "你", "team": player_team, "weapon": current_weapon_name, "alive": true, "money": player_money, "kills": 0, "deaths": 0, "hits": 0}
+	var existing_player: Dictionary = unit_scoreboard.get("你", {}) as Dictionary
+	unit_scoreboard["你"] = {"name": "你", "team": player_team, "weapon": current_weapon_name, "alive": true, "money": player_money, "kills": int(existing_player.get("kills", 0)), "deaths": int(existing_player.get("deaths", 0)), "hits": int(existing_player.get("hits", 0))}
 	for record_variant in records:
 		if record_variant is Dictionary:
 			var record := record_variant as Dictionary
 			var unit_name := String(record.get("name", "战术单位"))
 			var ai: Dictionary = record.get("ai", {}) as Dictionary
-			unit_scoreboard[unit_name] = {"name": unit_name, "team": String(record.get("team", "")), "weapon": String(record.get("weapon", "rifle")), "alive": bool(record.get("alive", true)), "money": int(ai.get("money", 800)), "kills": 0, "deaths": 0, "hits": 0}
+			var existing: Dictionary = unit_scoreboard.get(unit_name, {}) as Dictionary
+			unit_scoreboard[unit_name] = {"name": unit_name, "team": String(record.get("team", "")), "weapon": String(record.get("weapon", "rifle")), "alive": bool(record.get("alive", true)), "money": int(ai.get("money", 800)), "kills": int(existing.get("kills", 0)), "deaths": int(existing.get("deaths", 0)), "hits": int(existing.get("hits", 0))}
 
 func record_scoreboard_damage(shooter_name: String, shooter_team: String, damage: Dictionary) -> void:
 	if damage.is_empty() or not bool(damage.get("hit", false)):

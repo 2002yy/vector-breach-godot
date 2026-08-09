@@ -149,7 +149,7 @@ Prototype stage — the professional value is in the structure, not the content 
 - **Player collision & movement calibration**: First-pass physics tuning for FPS feel
 - **Weapon state boundaries**: Magazine, fire mode, recoil pattern, reload state machine
 - **Main menu / gameplay state flow**: State transitions, HUD layer management
-- **Headless regression tests**: 9 suites running via Godot `--headless` — loader, weapon, level, hit-feedback, tactical bot, tactical bomb, main state flow, audio assets, and performance budgets
+- **Headless regression tests**: 10 suites running via Godot `--headless` — loader, weapon, level, hit-feedback, tactical bot, tactical bomb, match lifecycle, main state flow, audio assets, and performance budgets
 
 ### Foundry Depot design record
 

@@ -19,6 +19,8 @@ var _current_level_data: Dictionary = {}
 var _bomb_carrier_actor: CharacterBody3D
 var _loaded_level_id: String = ""
 var _saved_round_loadouts: Dictionary = {}
+var _stable_match_roster: Dictionary = {}
+var _competitive_hard_reset_pending: bool = false
 
 func _ready() -> void:
 	if not RoundManager.round_ended.is_connected(_on_round_ended_capture):
@@ -43,13 +45,18 @@ func load_for_level(level_data: Dictionary) -> void:
 		if not record_variant is Dictionary:
 			continue
 		var record := record_variant as Dictionary
+		if _competitive_hard_reset_pending and GameState.current_level_id == "gatehouse":
+			_apply_competitive_reset(record)
 		var saved_loadout: Dictionary = _saved_round_loadouts.get(String(record.get("name", "")), {})
 		if not saved_loadout.is_empty():
 			record["weapon"] = saved_loadout.get("weapon", record.get("weapon", "rifle"))
 			record["weaponAmmoMag"] = saved_loadout.get("ammo_in_mag", 30)
 			record["weaponAmmoReserve"] = saved_loadout.get("ammo_reserve", 0)
 			record["armor"] = saved_loadout.get("armor", 0)
+			record["helmet"] = saved_loadout.get("helmet", false)
 			record["defuseKit"] = saved_loadout.get("defuse_kit", false)
+			record["aiMoney"] = saved_loadout.get("money", record.get("aiMoney", 800))
+			record["aiGrenades"] = saved_loadout.get("grenades", {})
 		var target_instance := dummy_scene.instantiate()
 		if not target_instance is Node3D:
 			continue
@@ -89,6 +96,23 @@ func load_for_level(level_data: Dictionary) -> void:
 			scoreboard_records.append((child as CharacterBody3D).call("get_combat_snapshot"))
 	GameState.set_scoreboard_combatants(scoreboard_records)
 	_sync_team_economy()
+	_competitive_hard_reset_pending = false
+
+func clear_saved_round_state(reset_roster: bool = false) -> void:
+	_saved_round_loadouts.clear()
+	_competitive_hard_reset_pending = true
+	if reset_roster:
+		_stable_match_roster.clear()
+
+func _apply_competitive_reset(record: Dictionary) -> void:
+	record["weapon"] = "pistol"
+	record["weaponAmmoMag"] = 12
+	record["weaponAmmoReserve"] = 24
+	record["armor"] = 0
+	record["helmet"] = false
+	record["defuseKit"] = false
+	record["aiMoney"] = 800
+	record["aiGrenades"] = {"he_grenade": 0, "flash_grenade": 0, "smoke_grenade": 0}
 
 func set_c4_device(device: Node3D) -> void:
 	c4_device = device
@@ -98,6 +122,7 @@ func set_c4_device(device: Node3D) -> void:
 
 func _clear_targets() -> void:
 	for child in get_children():
+		remove_child(child)
 		child.queue_free()
 
 func _assign_bomb_roles(level_data: Dictionary) -> void:
@@ -145,7 +170,7 @@ func _assign_bomb_roles(level_data: Dictionary) -> void:
 		var site_label := "A" if String(objective.get("id", "")).to_lower().contains("a") else "B"
 		if actor.has_node("TacticalBotBrain"):
 			actor.get_node("TacticalBotBrain").call("configure_objective", "defend_site", site_target, site_label)
-		if index == 0:
+		if index == 0 and not _competitive_hard_reset_pending:
 			actor.set("has_defuse_kit", true)
 			if actor.has_method("set_ai_defuse_kit"):
 				actor.call("set_ai_defuse_kit", true)
@@ -177,7 +202,10 @@ func _on_round_ended_capture(_winner: String, _reason: String) -> void:
 				"ammo_in_mag": int(ai.get("ammo", 30)),
 				"ammo_reserve": int(ai.get("ammo_reserve", 0)),
 				"armor": int(snapshot.get("armor", 0)),
+				"helmet": bool(snapshot.get("helmet", false)),
 				"defuse_kit": bool(snapshot.get("defuse_kit", false)),
+				"money": int(ai.get("money", 800)),
+				"grenades": (ai.get("grenades", {}) as Dictionary).duplicate(true),
 			}
 
 func _on_actor_killed(_actor_name: String, _team: String, actor: CharacterBody3D) -> void:
@@ -320,7 +348,7 @@ func _build_spawn_records(level_data: Dictionary) -> Array:
 			"aiReactionTime": float(target.get("aiReactionTime", 0.34)),
 		})
 	if not combat_targets.is_empty():
-		return records
+		return _build_competitive_roster(records) if GameState.current_level_id == "gatehouse" and GameState.match_phase != "inactive" else records
 	if use_spawn_points:
 		var spawn_points: Array = level_data.get("spawnPoints", []) as Array
 		for index in range(mini(max_targets, spawn_points.size())):
@@ -345,3 +373,43 @@ func _build_spawn_records(level_data: Dictionary) -> Array:
 	for index in range(fallback_target_count):
 		records.append({"name": "敌方单位%d" % (index + 1), "x": base_x - fallback_spacing * float(index), "y": dummy_height, "z": base_z, "team": "enemy"})
 	return records
+
+func _build_competitive_roster(source_records: Array) -> Array:
+	var by_team := {"T": [], "CT": []}
+	for record_variant in source_records:
+		if record_variant is Dictionary:
+			var record := record_variant as Dictionary
+			var team := String(record.get("team", ""))
+			if team in by_team:
+				(by_team[team] as Array).append(record)
+	var opponent_team := "CT" if GameState.player_team == "T" else "T"
+	if _stable_match_roster.is_empty():
+		var player_templates: Array = by_team[GameState.player_team] as Array
+		var opponent_templates: Array = by_team[opponent_team] as Array
+		var player_names: Array[String] = []
+		if player_templates.size() >= 3:
+			player_names.append(String((player_templates[0] as Dictionary).get("name", "ALLY-1")))
+			player_names.append(String((player_templates[2] as Dictionary).get("name", "ALLY-2")))
+		else:
+			for record_variant in player_templates.slice(0, 2):
+				player_names.append(String((record_variant as Dictionary).get("name", "ALLY")))
+		var opponent_names: Array[String] = []
+		for record_variant in opponent_templates.slice(0, 3):
+			opponent_names.append(String((record_variant as Dictionary).get("name", "OPPONENT")))
+		_stable_match_roster = {"player": player_names, "opponent": opponent_names}
+	var output: Array = []
+	_append_squad_records(output, by_team[GameState.player_team] as Array, _stable_match_roster.get("player", []) as Array, true)
+	_append_squad_records(output, by_team[opponent_team] as Array, _stable_match_roster.get("opponent", []) as Array, false)
+	return output
+
+func _append_squad_records(output: Array, templates: Array, stable_names: Array, player_squad: bool) -> void:
+	var selected_templates: Array = templates
+	if player_squad and templates.size() >= 3:
+		selected_templates = [templates[0], templates[2]]
+	else:
+		selected_templates = templates.slice(0, stable_names.size())
+	for index in range(mini(selected_templates.size(), stable_names.size())):
+		var record := (selected_templates[index] as Dictionary).duplicate(true)
+		record["name"] = String(stable_names[index])
+		record["squad"] = "player" if player_squad else "opponent"
+		output.append(record)
