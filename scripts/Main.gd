@@ -664,7 +664,8 @@ func _on_round_restart_requested() -> void:
 	if bool(transition.get("match_complete", false)):
 		var record_path := _completed_match_record_path
 		if record_path.is_empty():
-			record_path = GameState.export_match_record()
+			_completed_match_record_path = GameState.export_match_record()
+			record_path = _completed_match_record_path
 		RoundManager.set_warmup()
 		game_started = false
 		GameState.set_game_started(false)

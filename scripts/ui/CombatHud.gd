@@ -177,9 +177,11 @@ func add_kill_feed(killer: String, victim: String, weapon: String) -> void:
 	entry.add_theme_constant_override("outline_size", 4)
 	entry.add_theme_font_size_override("font_size", 17)
 	kill_feed.add_child(entry)
+	var entry_id := entry.get_instance_id()
 	get_tree().create_timer(4.5).timeout.connect(func() -> void:
-		if is_instance_valid(entry):
-			entry.queue_free()
+		var live_entry := instance_from_id(entry_id) as Label
+		if is_instance_valid(live_entry):
+			live_entry.queue_free()
 	)
 
 func show_radio_report(caller: String, message: String) -> void:
@@ -194,9 +196,11 @@ func show_radio_report(caller: String, message: String) -> void:
 	entry.add_theme_constant_override("outline_size", 4)
 	entry.add_theme_font_size_override("font_size", 16)
 	kill_feed.add_child(entry)
+	var entry_id := entry.get_instance_id()
 	get_tree().create_timer(3.2).timeout.connect(func() -> void:
-		if is_instance_valid(entry):
-			entry.queue_free()
+		var live_entry := instance_from_id(entry_id) as Label
+		if is_instance_valid(live_entry):
+			live_entry.queue_free()
 	)
 
 func set_buy_menu_visible(visible_state: bool) -> void:
