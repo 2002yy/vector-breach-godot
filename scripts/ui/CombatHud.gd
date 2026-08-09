@@ -61,6 +61,15 @@ func _process(_delta: float) -> void:
 func toggle_training_telemetry() -> void:
 	_telemetry_visible = not _telemetry_visible
 
+func reset_transients() -> void:
+	for child in kill_feed.get_children():
+		kill_feed.remove_child(child)
+		child.queue_free()
+	buy_menu.visible = false
+	objective_interaction.visible = false
+	scoreboard.visible = false
+	_telemetry_visible = false
+
 func update_training_telemetry(snapshot: Dictionary) -> void:
 	telemetry_label.text = "压枪训练 [F4]\n%d 发  ·  %d 中  ·  爆头 %d\n第 %d 发 · 弹着 %s\n命中率 %.1f%% · 投掷：%s" % [
 		int(snapshot.get("shots", 0)), int(snapshot.get("hits", 0)), int(snapshot.get("headshots", 0)),

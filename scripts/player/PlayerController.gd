@@ -300,6 +300,8 @@ func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, arm
 	GameState.notify_player_vitals_changed()
 	return {
 		"hit": true,
+		"target_name": "你",
+		"target_team": GameState.player_team,
 		"killed": killed,
 		"damage": health_damage,
 		"armor_damage": armor_damage,

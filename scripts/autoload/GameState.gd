@@ -164,7 +164,7 @@ func purchase(item_id: String) -> Dictionary:
 func complete_round(winner: String, reason: String, serial: int = -1) -> Dictionary:
 	if winner not in ["T", "CT"]:
 		return {"accepted": false, "duplicate": false}
-	if match_active and serial >= 0:
+	if serial >= 0:
 		if serial != active_round_serial or serial == settled_round_serial:
 			return {"accepted": false, "duplicate": serial == settled_round_serial}
 		settled_round_serial = serial
@@ -272,9 +272,14 @@ func reset_competitive_loadout() -> void:
 	player_defuse_kit = false
 	loss_streak = 0
 
+func clear_eliminated_player_equipment() -> void:
+	player_armor = 0
+	player_helmet = false
+	player_defuse_kit = false
+
 func get_match_snapshot() -> Dictionary:
 	return {
-		"schema_version": 1, "match_serial": match_serial, "level_id": current_level_id,
+		"schema_version": 1, "match_serial": match_serial, "level_id": current_level_id, "level_name": current_level_name,
 		"active": match_active, "phase": match_phase, "result": match_result,
 		"initial_player_team": initial_player_team, "player_team": player_team,
 		"player_score": player_squad_score, "opponent_score": opponent_squad_score,
@@ -288,7 +293,8 @@ func export_match_record(path: String = "") -> String:
 	var output_path := path
 	if output_path.is_empty():
 		DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("user://match-records"))
-		output_path = "user://match-records/match-%d.json" % match_serial
+		var timestamp := Time.get_datetime_string_from_system(false, true).replace(":", "-")
+		output_path = "user://match-records/match-%s-%d-%d.json" % [timestamp, match_serial, Time.get_ticks_msec()]
 	var file := FileAccess.open(output_path, FileAccess.WRITE)
 	if file == null:
 		return ""

@@ -13,8 +13,10 @@ func _ready() -> void:
 	_run_test("six_six_forces_full_overtime_pair", _test_overtime_pair)
 	_run_test("overtime_pair_can_draw", _test_overtime_draw)
 	_run_test("duplicate_serial_is_idempotent", _test_duplicate_serial)
+	_run_test("terminal_duplicate_serial_is_idempotent", _test_terminal_duplicate_serial)
 	_run_test("new_match_resets_match_authority", _test_new_match_reset)
 	_run_test("gatehouse_competitive_roster_is_three_v_three", _test_gatehouse_roster)
+	_run_test("competitive_bot_reset_uses_economy_baseline", _test_competitive_bot_reset)
 	_run_test("match_record_exports_json", _test_export)
 	if _failures.is_empty():
 		print("[MatchLifecycleTests] PASS (%d tests)" % _passes)
@@ -27,6 +29,7 @@ func _ready() -> void:
 
 func _run_test(test_name: String, callable: Callable) -> void:
 	var before := _failures.size()
+	print("[MatchLifecycleTests] START %s" % test_name)
 	callable.call()
 	if _failures.size() == before:
 		_passes += 1
@@ -109,6 +112,17 @@ func _test_duplicate_serial() -> void:
 	_assert_equal(GameState.get_match_snapshot().rounds.size(), 1, "duplicate must not append evidence")
 	_assert_equal(GameState.player_money, money, "duplicate must not award economy twice")
 
+func _test_terminal_duplicate_serial() -> void:
+	_start()
+	for player_wins in [true, true, true, true, false, false, true, true, true]:
+		_settle(player_wins)
+	var money := GameState.player_money
+	var rounds: int = GameState.get_match_snapshot().rounds.size()
+	var duplicate := GameState.complete_round("CT", "TIME", _serial)
+	_assert_true(not duplicate.accepted and duplicate.duplicate, "terminal settlement should remain idempotent")
+	_assert_equal(GameState.player_money, money, "terminal duplicate must not award economy")
+	_assert_equal(GameState.get_match_snapshot().rounds.size(), rounds, "terminal duplicate must not append evidence")
+
 func _test_new_match_reset() -> void:
 	_start()
 	_settle(true)
@@ -128,6 +142,17 @@ func _test_gatehouse_roster() -> void:
 	var friendly := records.filter(func(record): return String(record.team) == GameState.player_team)
 	_assert_equal(records.size(), 5, "player should replace one authored bot")
 	_assert_equal(friendly.size(), 2, "3v3 should spawn exactly two AI teammates")
+	sandbox.free()
+
+func _test_competitive_bot_reset() -> void:
+	var sandbox := CombatSandboxScript.new()
+	var record := {"weapon": "rifle", "armor": 100, "helmet": true, "defuseKit": true, "aiMoney": 9000, "aiGrenades": {"he_grenade": 1}}
+	sandbox.call("_apply_competitive_reset", record)
+	_assert_equal(record.weapon, "pistol", "hard reset should return bots to pistol")
+	_assert_equal(record.armor, 0, "hard reset should remove bot armor")
+	_assert_true(not record.helmet and not record.defuseKit, "hard reset should remove helmet and kit")
+	_assert_equal(record.aiMoney, 800, "hard reset should restore competitive money")
+	_assert_equal((record.aiGrenades as Dictionary).get("he_grenade", -1), 0, "hard reset should clear grenades")
 	sandbox.free()
 
 func _test_export() -> void:

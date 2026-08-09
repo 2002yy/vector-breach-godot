@@ -20,6 +20,7 @@ var _bomb_carrier_actor: CharacterBody3D
 var _loaded_level_id: String = ""
 var _saved_round_loadouts: Dictionary = {}
 var _stable_match_roster: Dictionary = {}
+var _competitive_hard_reset_pending: bool = false
 
 func _ready() -> void:
 	if not RoundManager.round_ended.is_connected(_on_round_ended_capture):
@@ -44,13 +45,18 @@ func load_for_level(level_data: Dictionary) -> void:
 		if not record_variant is Dictionary:
 			continue
 		var record := record_variant as Dictionary
+		if _competitive_hard_reset_pending and GameState.current_level_id == "gatehouse":
+			_apply_competitive_reset(record)
 		var saved_loadout: Dictionary = _saved_round_loadouts.get(String(record.get("name", "")), {})
 		if not saved_loadout.is_empty():
 			record["weapon"] = saved_loadout.get("weapon", record.get("weapon", "rifle"))
 			record["weaponAmmoMag"] = saved_loadout.get("ammo_in_mag", 30)
 			record["weaponAmmoReserve"] = saved_loadout.get("ammo_reserve", 0)
 			record["armor"] = saved_loadout.get("armor", 0)
+			record["helmet"] = saved_loadout.get("helmet", false)
 			record["defuseKit"] = saved_loadout.get("defuse_kit", false)
+			record["aiMoney"] = saved_loadout.get("money", record.get("aiMoney", 800))
+			record["aiGrenades"] = saved_loadout.get("grenades", {})
 		var target_instance := dummy_scene.instantiate()
 		if not target_instance is Node3D:
 			continue
@@ -90,11 +96,23 @@ func load_for_level(level_data: Dictionary) -> void:
 			scoreboard_records.append((child as CharacterBody3D).call("get_combat_snapshot"))
 	GameState.set_scoreboard_combatants(scoreboard_records)
 	_sync_team_economy()
+	_competitive_hard_reset_pending = false
 
 func clear_saved_round_state(reset_roster: bool = false) -> void:
 	_saved_round_loadouts.clear()
+	_competitive_hard_reset_pending = true
 	if reset_roster:
 		_stable_match_roster.clear()
+
+func _apply_competitive_reset(record: Dictionary) -> void:
+	record["weapon"] = "pistol"
+	record["weaponAmmoMag"] = 12
+	record["weaponAmmoReserve"] = 24
+	record["armor"] = 0
+	record["helmet"] = false
+	record["defuseKit"] = false
+	record["aiMoney"] = 800
+	record["aiGrenades"] = {"he_grenade": 0, "flash_grenade": 0, "smoke_grenade": 0}
 
 func set_c4_device(device: Node3D) -> void:
 	c4_device = device
@@ -104,6 +122,7 @@ func set_c4_device(device: Node3D) -> void:
 
 func _clear_targets() -> void:
 	for child in get_children():
+		remove_child(child)
 		child.queue_free()
 
 func _assign_bomb_roles(level_data: Dictionary) -> void:
@@ -151,7 +170,7 @@ func _assign_bomb_roles(level_data: Dictionary) -> void:
 		var site_label := "A" if String(objective.get("id", "")).to_lower().contains("a") else "B"
 		if actor.has_node("TacticalBotBrain"):
 			actor.get_node("TacticalBotBrain").call("configure_objective", "defend_site", site_target, site_label)
-		if index == 0:
+		if index == 0 and not _competitive_hard_reset_pending:
 			actor.set("has_defuse_kit", true)
 			if actor.has_method("set_ai_defuse_kit"):
 				actor.call("set_ai_defuse_kit", true)
@@ -183,7 +202,10 @@ func _on_round_ended_capture(_winner: String, _reason: String) -> void:
 				"ammo_in_mag": int(ai.get("ammo", 30)),
 				"ammo_reserve": int(ai.get("ammo_reserve", 0)),
 				"armor": int(snapshot.get("armor", 0)),
+				"helmet": bool(snapshot.get("helmet", false)),
 				"defuse_kit": bool(snapshot.get("defuse_kit", false)),
+				"money": int(ai.get("money", 800)),
+				"grenades": (ai.get("grenades", {}) as Dictionary).duplicate(true),
 			}
 
 func _on_actor_killed(_actor_name: String, _team: String, actor: CharacterBody3D) -> void:
