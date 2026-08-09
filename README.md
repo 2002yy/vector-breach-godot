@@ -3,7 +3,7 @@
 <p>
   <img src="https://img.shields.io/badge/Status-Prototype%20%2F%20Experimental-yellow" alt="Prototype">
   <img src="https://img.shields.io/badge/Godot-4.6-blue" alt="Godot 4.6">
-  <img src="https://img.shields.io/badge/tests-6%20suites-green" alt="6 test suites">
+  <img src="https://img.shields.io/badge/tests-9%20suites-green" alt="9 test suites">
 </p>
 
 中文优先说明。This repository contains the standalone Godot migration prototype for `Vector Breach`.
@@ -38,7 +38,7 @@ This repo is still in a prototype-validation phase. The goal is not content volu
 - 经典 CS 风格普通跳、蹲伏胶囊与蹲跳；无二段跳、无自动翻越 / Classic CS-style jump, crouch hull, and crouch-jump; no double jump or auto-mantle
 - 默认奔跑、Shift 静步、蹲伏慢行，搭配材质脚步、落地声与分层精度规则 / Default run, Shift quiet-walk, crouch movement, material footsteps, landing audio, and stance/speed accuracy bands
 - 地图 JSON 驱动的梯子/浅水/深水语义体积：上下攀爬、横向限速、梯顶离梯、跳离、涉水减速、浮力、水下状态与涉水脚步 / JSON-authored ladder and shallow/deep-water volumes with climbing, top/jump detachment, wading, buoyancy, underwater state, and water footsteps
-- 可碰撞的灰盒 T/CT `CharacterBody3D` 单位，以及最低可交火 AI 敌人：跨路线连接图与 A* 重规划、视觉/听觉、反应延迟、急停点射、换弹、梯子/水体通行；当前不包含正式角色模型或爆破/队伍战术 / Collidable graybox T/CT actors plus minimally playable enemy AI with a cross-route graph and A* replanning, sight/hearing, reaction delay, counter-stop bursts, reloads, and ladder/water traversal; no production models or bomb/team tactics yet
+- 可碰撞的低模 T/CT 战术单位与 3v3 爆破 AI：跨路线连接图和 A* 重规划、视觉/听觉、急停与分级火力、投掷物、冻结购买、经济/保枪、同队报点、C4 安装/拆除和跨回合装备持久化；当前仍无完整导航网格、正式角色资产或完整队伍战术树 / Collidable low-poly T/CT actors and 3v3 bomb AI with attributed-route A*, perception, counter-stop fire, utility, economy/save logic, teammate reports, plant/defuse behavior, and persistent round loadouts; full navmesh traversal, production characters, and a complete team tactics tree remain out of scope
 - 30 发完整步枪喷射轨迹，不在中途锁死 / Full 30-round rifle spray path without mid-magazine clamping
 - 竞技 HUD：比分、时间、存活数、护甲、金钱、Tab 计分板、击杀信息与训练结算 / Competitive HUD with score, time, alive counts, armor, money, Tab scoreboard, kill feed, and training summary
 - 头/躯干/腿命中倍率、护甲减伤、距离衰减、单层穿透、受击减速与玩家死亡 / Head/torso/leg hit groups, armor mitigation, range falloff, one-surface penetration, tagging slowdown, and player death
@@ -90,7 +90,7 @@ Open this folder directly in the Godot editor, or launch it from the command lin
 
 ## 测试 / Tests
 
-Run all 6 headless test suites:
+Run all 9 headless test suites:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\tools\run_godot_tests.ps1
@@ -115,7 +115,10 @@ powershell -ExecutionPolicy Bypass -File .\tools\run_godot_tests.ps1 -GodotExe "
 | `GrayboxLevelTestRunner` | Level assembly, CS-scale metrics, stairs, route/spawn clearance, ladder/water semantic areas |
 | `HitFeedbackLayerTestRunner` | HUD layer behavior, hit marker |
 | `TacticalBotTestRunner` | Bot route patrol, connected-graph obstacle routing, freeze restrictions, hearing, sight, firing, ladder/water traversal |
+| `TacticalBombTestRunner` | 3v3 role assignment, C4 carry/plant/defuse, utility, economy, pickups, save logic and persistent loadouts |
 | `MainStateFlowTestRunner` | Main menu / gameplay state transitions, ladder/water traversal, tactical actors and radar |
+| `AudioAssetTestRunner` | Licensed audio inventory, import state and fallback contracts |
+| `PerformanceBudgetTestRunner` | Static asset and headless performance-budget guardrails |
 
 ## 当前控制 / Current Controls
 
@@ -133,6 +136,7 @@ powershell -ExecutionPolicy Bypass -File .\tools\run_godot_tests.ps1 -GodotExe "
 - `Esc / P`: 菜单或继续 / Pause or resume
 - `F`: 全屏切换 / Toggle fullscreen
 - `F3`: 显示或隐藏调试面板 / Toggle the debug panel
+- `F4`: 显示或隐藏训练遥测 / Toggle training telemetry
 
 ## Engineering Focus
 
@@ -145,7 +149,7 @@ Prototype stage — the professional value is in the structure, not the content 
 - **Player collision & movement calibration**: First-pass physics tuning for FPS feel
 - **Weapon state boundaries**: Magazine, fire mode, recoil pattern, reload state machine
 - **Main menu / gameplay state flow**: State transitions, HUD layer management
-- **Headless regression tests**: 6 test suites running via Godot `--headless` — loader, weapon, level, hit-feedback, tactical bot, main state flow
+- **Headless regression tests**: 9 suites running via Godot `--headless` — loader, weapon, level, hit-feedback, tactical bot, tactical bomb, main state flow, audio assets, and performance budgets
 
 ### Foundry Depot design record
 
@@ -153,14 +157,9 @@ The authoritative dimensions, route roles, vertical layout, asset-generation cha
 
 Automated checks cover stair risers, target-edge alignment, upper headroom, route/spawn clearance, counter-strafe response, and combat-audio event wiring. The July 2026 closure pass also captured a first-person Foundry route run to verify HUD weight, weapon feedback, sustained recoil presentation, and representative peek sightlines.
 
-## Roadmap
+## Current development phase
 
-- [x] CS-scale multilevel Foundry Depot blockout and geometry boundaries
-- [x] stair traversal feel playtest and movement polish
-- [x] sustained recoil feel playtest
-- [x] peek rhythm and movement polish
-- [x] weapon feedback and audio
-- [x] basic level demo video
+The sole current roadmap, explicit non-goals, and PASS/FAIL gates are maintained in [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md). The active next phase is a Gatehouse 3v3 single-player competitive slice with a short attack/defense match lifecycle, AI teammates, an independent training entry, and portfolio-grade first-person presentation.
 
 ### Closure evidence
 
@@ -173,4 +172,4 @@ Automated checks cover stair risers, target-edge alignment, upper headroom, rout
 
 ## License
 
-MIT License — see [LICENSE](LICENSE) file.
+No repository-wide license file is currently committed. Treat project code and original assets as unlicensed unless a file-specific notice says otherwise. Third-party asset licenses and attribution are recorded in [`docs/ASSET_SOURCES.md`](docs/ASSET_SOURCES.md) and the relevant asset license directories. Choose and commit a project-level license before a public release.

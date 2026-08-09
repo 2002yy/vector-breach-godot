@@ -1,6 +1,6 @@
 # Core Vault Design Record
 
-Last updated: 2026-07-31
+Last updated: 2026-08-09
 Data revision: `core-vault-visual-v1`
 Gameplay revision: `core-vault-tactical-routes-v1`
 
@@ -39,12 +39,14 @@ The legacy array remains as traceability data. `GrayboxLevelTestRunner` verifies
 
 ## Known design gaps
 
-Core Vault has basic bomb AI (T carry/plant, CT retake/defuse), measured timing and an explicit no-natural-ladder/water semantic-volume record, but still lacks utility lineups, AI buying tuning, real long-round verification and final competitive balance. The current route graph is a tested tactical foundation, not a claim of final competitive balance.
+Core Vault has 3v3 bomb AI, utility purchasing/throws, persistent economy and loadouts, measured timing, and an explicit no-natural-ladder/water semantic-volume record. It still lacks calibrated utility lineups, human long-match verification, complete player-directed teammate tactics, and final competitive balance. The current route graph is a tested tactical foundation, not a claim of final competitive balance.
+
+Core Vault is a regression and later-balance candidate during the Gatehouse phase. It must remain executable and keep its collision, tactical-route and bomb rules green, but it is not required to receive Gatehouse-level match tuning or portfolio polish in this phase.
 
 Run all native regression suites from the repository root:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\run_godot_tests.ps1 -GodotExe "E:\Godot\Godot_\Godot_console.exe"
+powershell -ExecutionPolicy Bypass -File .\tools\run_godot_tests.ps1
 ```
 
 Expected marker: `RUN_ALL_OK`.
