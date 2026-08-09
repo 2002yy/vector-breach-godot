@@ -59,6 +59,7 @@ This repo is still in a prototype-validation phase. The goal is not content volu
 - `scenes/`: 场景 / Scenes
 - `scripts/`: 运行时代码与测试代码 / Runtime and test scripts
 - `tools/run_godot_tests.ps1`: 一键运行全部 Godot 测试 / One-command Godot test runner
+- `tools/validate_g2_records.ps1`: 校验 G2 原始比赛记录并生成汇总与哈希 / Validate G2 raw match records and generate summaries and hashes
 
 ## 环境要求 / Requirements
 
@@ -90,7 +91,7 @@ Open this folder directly in the Godot editor, or launch it from the command lin
 
 ## 测试 / Tests
 
-Run all 9 headless test suites:
+Run all 11 headless test suites:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\tools\run_godot_tests.ps1
@@ -116,9 +117,17 @@ powershell -ExecutionPolicy Bypass -File .\tools\run_godot_tests.ps1 -GodotExe "
 | `HitFeedbackLayerTestRunner` | HUD layer behavior, hit marker |
 | `TacticalBotTestRunner` | Bot route patrol, connected-graph obstacle routing, freeze restrictions, hearing, sight, firing, ladder/water traversal |
 | `TacticalBombTestRunner` | 3v3 role assignment, C4 carry/plant/defuse, utility, economy, pickups, save logic and persistent loadouts |
+| `MatchLifecycleTestRunner` | Match scoring, halftime, overtime, terminal states, new-match reset, and serial idempotence |
+| `GatehouseMatchIntegrationTestRunner` | Real `Main.tscn` halftime/OT/new-match resets, 3v3 roster, C4 ownership, entity cleanup, and restart idempotence |
 | `MainStateFlowTestRunner` | Main menu / gameplay state transitions, ladder/water traversal, tactical actors and radar |
 | `AudioAssetTestRunner` | Licensed audio inventory, import state and fallback contracts |
 | `PerformanceBudgetTestRunner` | Static asset and headless performance-budget guardrails |
+
+G2 人工长局结束后，仅从证据目录的 `raw/*.json` 读取比赛记录并生成汇总：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tools\validate_g2_records.ps1 -EvidenceRoot "C:\path\to\g2-evidence" -ExpectedCount 10
+```
 
 ## 当前控制 / Current Controls
 
@@ -149,7 +158,7 @@ Prototype stage — the professional value is in the structure, not the content 
 - **Player collision & movement calibration**: First-pass physics tuning for FPS feel
 - **Weapon state boundaries**: Magazine, fire mode, recoil pattern, reload state machine
 - **Main menu / gameplay state flow**: State transitions, HUD layer management
-- **Headless regression tests**: 10 suites running via Godot `--headless` — loader, weapon, level, hit-feedback, tactical bot, tactical bomb, match lifecycle, main state flow, audio assets, and performance budgets
+- **Headless regression tests**: 11 suites running via Godot `--headless` — loader, weapon, level, hit-feedback, tactical bot, tactical bomb, match lifecycle, Gatehouse scene integration, main state flow, audio assets, and performance budgets
 
 ### Foundry Depot design record
 
