@@ -19,7 +19,7 @@
 - Run all native tests after gameplay, map-data or UI changes:
   - Windows: `powershell -ExecutionPolicy Bypass -File .\tools\run_godot_tests.ps1`
   - Linux/cloud: `bash ./tools/run_godot_tests.sh`
-  - This workstation's Godot shortcut resolves to `D:\Godot\4.7.1\Godot_v4.7.1-stable_win64.exe`; pass it with `-GodotExe` when `GODOT_EXE` is not set.
+  - This workstation's Godot shortcut resolves to Godot 4.7.1; use `D:\Godot\4.7.1\Godot_v4.7.1-stable_win64_console.exe` with `-GodotExe` for reliable logs when `GODOT_EXE` is not set.
 - The success marker is `RUN_ALL_OK`.
 - For rendering, HUD, materials or map-layout changes, also run the relevant Vulkan probe and inspect its screenshots.
 - Foundry geometry changes must keep the route/contact audits green.

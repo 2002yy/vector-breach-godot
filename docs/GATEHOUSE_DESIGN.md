@@ -1,6 +1,6 @@
 # Gatehouse Design Record
 
-Last updated: 2026-07-31
+Last updated: 2026-08-09
 Data revision: `gatehouse-visual-v1`
 Gameplay revision: `gatehouse-tactical-routes-v1`
 
@@ -39,12 +39,14 @@ The legacy array remains as traceability data. `GrayboxLevelTestRunner` verifies
 
 ## Known design gaps
 
-Gatehouse has basic bomb AI (T carry/plant, CT retake/defuse), measured timing and an explicit no-natural-ladder/water semantic-volume record, but still lacks utility lineups, AI buying tuning, real long-round verification and final competitive balance. The current route graph is a tested tactical foundation, not a claim of final competitive balance.
+Gatehouse has 3v3 bomb AI, utility purchasing/throws, persistent economy and loadouts, measured timing, and an explicit no-natural-ladder/water semantic-volume record. It still lacks a match-level halftime/overtime lifecycle, ten-match human verification, calibrated utility lineups, complete player-directed teammate tactics, and final competitive balance. The current route graph is a tested tactical foundation, not a claim of final competitive balance.
+
+Gatehouse is the sole primary map for the next phase defined in `docs/PROJECT_STATUS.md`. Local cover, doorway, stuck-point and rotation-distance edits are allowed only when evidence-backed; the three-route, two-site structure remains fixed, and every gameplay geometry change must rerun collision and timing gates.
 
 Run all native regression suites from the repository root:
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\run_godot_tests.ps1 -GodotExe "E:\Godot\Godot_\Godot_console.exe"
+powershell -ExecutionPolicy Bypass -File .\tools\run_godot_tests.ps1
 ```
 
 Expected marker: `RUN_ALL_OK`.
