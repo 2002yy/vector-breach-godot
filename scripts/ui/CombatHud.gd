@@ -99,9 +99,9 @@ func update_display(snapshot: Dictionary) -> void:
 	)
 
 	round_state_label.text = "CT %d    %s    %d T" % [
-		int(snapshot.get("friendly_score", 0)),
+		int(snapshot.get("ct_score", snapshot.get("friendly_score", 0))),
 		String(snapshot.get("round_time", "1:55")),
-		int(snapshot.get("enemy_score", 0)),
+		int(snapshot.get("t_score", snapshot.get("enemy_score", 0))),
 	]
 	level_name_label.text = "%d 存活                 %d 存活" % [
 		int(snapshot.get("enemy_alive", 0)),

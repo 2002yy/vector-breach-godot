@@ -66,6 +66,24 @@ func set_map_details(option: Dictionary, can_resume: bool) -> void:
 		preview_rect.texture = null
 	resume_button.visible = can_resume
 
+func set_match_summary(snapshot: Dictionary, record_path: String) -> void:
+	title_label.text = "比赛结算"
+	var result_labels := {"player_win": "玩家小队获胜", "opponent_win": "对手小队获胜", "draw": "平局"}
+	description_label.text = (
+		"[color=#dbc774][font_size=14]GATEHOUSE 3V3[/font_size][/color]\n"
+		+ "[font_size=25][b]%s[/b][/font_size]\n\n"
+		+ "玩家小队 %d  :  %d 对手小队\n"
+		+ "常规 %d 回合 · 加时 %d 回合\n\n"
+		+ "[color=#aaa98f]记录[/color]  %s"
+	) % [
+		String(result_labels.get(String(snapshot.get("result", "")), "比赛结束")),
+		int(snapshot.get("player_score", 0)), int(snapshot.get("opponent_score", 0)),
+		int(snapshot.get("regulation_rounds", 0)), int(snapshot.get("overtime_rounds", 0)),
+		record_path,
+	]
+	start_button.text = "开始新比赛"
+	resume_button.visible = false
+
 func set_menu_visible(visible_state: bool) -> void:
 	visible = visible_state
 

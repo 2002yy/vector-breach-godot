@@ -31,6 +31,8 @@ var interaction_site: String = ""
 var interaction_elapsed: float = 0.0
 var interaction_duration: float = 0.0
 var interaction_owner: String = ""
+var round_serial: int = 0
+var _restart_emitted: bool = false
 
 func _process(delta: float) -> void:
 	match state:
@@ -49,7 +51,8 @@ func _process(delta: float) -> void:
 				bomb_exploded.emit(bomb_site)
 		RoundState.ROUND_END:
 			time_remaining = maxf(0.0, time_remaining - delta)
-			if time_remaining == 0.0:
+			if time_remaining == 0.0 and not _restart_emitted:
+				_restart_emitted = true
 				restart_requested.emit()
 
 func set_warmup() -> void:
@@ -61,6 +64,8 @@ func set_live() -> void:
 	_set_state(RoundState.LIVE)
 
 func start_round(duration: float = 115.0) -> void:
+	round_serial += 1
+	_restart_emitted = false
 	round_duration = maxf(1.0, duration)
 	time_remaining = freeze_duration
 	bomb_carried = true
@@ -153,7 +158,7 @@ func is_objective_interacting() -> bool:
 	return not interaction_type.is_empty()
 
 func end_round(winner: String, reason: String) -> void:
-	if state == RoundState.ROUND_END:
+	if state not in [RoundState.LIVE, RoundState.BOMB_PLANTED]:
 		return
 	round_winner = winner
 	round_reason = reason

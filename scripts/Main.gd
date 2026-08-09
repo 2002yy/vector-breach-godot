@@ -102,6 +102,7 @@ var _buy_menu_open: bool = false
 var _radar_spotted_until: Dictionary = {}
 var _radar_death_markers: Array[Dictionary] = []
 var training_telemetry: Node
+var selected_start_team: String = "T"
 const UI_UPDATE_INTERVAL: float = 0.18
 const RADAR_UPDATE_INTERVAL: float = 0.05
 const RADAR_RANGE_METERS: float = 24.0
@@ -171,7 +172,10 @@ func _on_settings_changed(snapshot: Dictionary) -> void:
 		combat_hud.call("apply_settings", UserSettings.get_snapshot())
 
 func _on_team_selected(team: String) -> void:
-	GameState.player_team = team if team in ["T", "CT"] else "T"
+	if game_started:
+		return
+	selected_start_team = team if team in ["T", "CT"] else "T"
+	GameState.player_team = selected_start_team
 	if is_instance_valid(c4_device):
 		c4_device.call("set_carried", "T")
 	_update_ui(true)
@@ -322,7 +326,11 @@ func _on_map_selected(index: int) -> void:
 
 func _on_start_pressed() -> void:
 	var option: Dictionary = level_options[selected_level_index]
-	GameState.reset_runtime_state()
+	GameState.start_match(selected_start_team)
+	if combat_sandbox.has_method("clear_saved_round_state"):
+		combat_sandbox.call("clear_saved_round_state", true)
+	_radar_spotted_until.clear()
+	_radar_death_markers.clear()
 	if is_instance_valid(training_telemetry):
 		training_telemetry.call("begin_round", 1)
 	_clear_round_drops()
@@ -338,6 +346,7 @@ func _on_start_pressed() -> void:
 		var equipped_slot := int((weapon_system.call("get_runtime_snapshot") as Dictionary).get("weapon_slot", 0))
 		weapon_view_model.call("set_weapon_slot", equipped_slot, false)
 	RoundManager.start_round()
+	GameState.begin_match_round(RoundManager.round_serial)
 	c4_device.call("set_carried", "T")
 	_resume_game()
 
@@ -631,12 +640,29 @@ func _on_round_phase_changed(state_name: String) -> void:
 	_update_ui(true)
 
 func _on_round_ended(winner: String, reason: String) -> void:
-	GameState.complete_round(winner, reason)
+	GameState.complete_round(winner, reason, RoundManager.round_serial)
 	_update_ui(true)
 
 func _on_round_restart_requested() -> void:
+	var transition := GameState.consume_match_transition()
+	if transition.is_empty():
+		return
+	if bool(transition.get("match_complete", false)):
+		var record_path := GameState.export_match_record()
+		RoundManager.set_warmup()
+		game_started = false
+		GameState.set_game_started(false)
+		_open_menu(true)
+		if start_menu.has_method("set_match_summary"):
+			start_menu.call("set_match_summary", GameState.get_match_snapshot(), record_path)
+		return
 	var player_survived := not bool(player.get("is_dead"))
 	_clear_round_drops()
+	var hard_reset := bool(transition.get("reset_economy", false))
+	if hard_reset:
+		GameState.reset_competitive_loadout()
+		if combat_sandbox.has_method("clear_saved_round_state"):
+			combat_sandbox.call("clear_saved_round_state", false)
 	GameState.prepare_next_round()
 	if is_instance_valid(training_telemetry):
 		var completed_round := training_telemetry.call("get_snapshot") as Dictionary
@@ -644,10 +670,11 @@ func _on_round_restart_requested() -> void:
 	var option: Dictionary = level_options[selected_level_index]
 	level.call("load_level", option["id"])
 	player.call("reset_to_spawn")
-	if not player_survived:
+	if hard_reset or not player_survived:
 		weapon_system.call("configure_default_loadout", true, true)
 		tactical_equipment.call("reset_loadout")
 	RoundManager.start_round()
+	GameState.begin_match_round(RoundManager.round_serial)
 	c4_device.call("set_carried", "T")
 
 func _purchase_item(item_id: String) -> void:

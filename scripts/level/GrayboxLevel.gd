@@ -167,9 +167,18 @@ func _apply_lights(level_data: Dictionary) -> void:
 func _apply_markers(level_data: Dictionary) -> void:
 	var start: Array = level_data.get("start", [0.0, 0.0]) as Array
 	var exit: Array = level_data.get("exit", [0.0, 0.0]) as Array
+	var spawn_groups: Dictionary = level_data.get("spawnGroups", {}) as Dictionary
+	var team_spawns: Array = spawn_groups.get(GameState.player_team, []) as Array
+	if not team_spawns.is_empty():
+		var selected_spawn: Array = team_spawns[team_spawns.size() / 2] as Array
+		if selected_spawn.size() >= 2:
+			start = selected_spawn
 	if start.size() >= 2:
 		spawn_marker.position = Vector3(float(start[0]), float(level_data.get("startHeight", 1.05)), float(start[1]))
-		spawn_marker.rotation.y = deg_to_rad(float(level_data.get("startYawDegrees", 0.0)))
+		var yaw_degrees := float(level_data.get("startYawDegrees", 0.0))
+		if not team_spawns.is_empty():
+			yaw_degrees = 180.0 if GameState.player_team == "T" else 0.0
+		spawn_marker.rotation.y = deg_to_rad(yaw_degrees)
 		GameState.player_spawn = spawn_marker.position
 		GameState.player_spawn_yaw_radians = spawn_marker.rotation.y
 	if exit.size() >= 2:
