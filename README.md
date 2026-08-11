@@ -59,6 +59,7 @@ This repo is still in a prototype-validation phase. The goal is not content volu
 - `scenes/`: 场景 / Scenes
 - `scripts/`: 运行时代码与测试代码 / Runtime and test scripts
 - `tools/run_godot_tests.ps1`: 一键运行全部 Godot 测试 / One-command Godot test runner
+- `tools/run_g2_session.ps1`: 启动单一可见游戏进程并隔离采集 G2 十场人工证据 / Launch one visible game process and isolate ten manual G2 match records
 - `tools/validate_g2_records.ps1`: 校验 G2 原始比赛记录并生成汇总与哈希 / Validate G2 raw match records and generate summaries and hashes
 
 ## 环境要求 / Requirements
@@ -123,7 +124,13 @@ powershell -ExecutionPolicy Bypass -File .\tools\run_godot_tests.ps1 -GodotExe "
 | `AudioAssetTestRunner` | Licensed audio inventory, import state and fallback contracts |
 | `PerformanceBudgetTestRunner` | Static asset and headless performance-budget guardrails |
 
-G2 人工长局结束后，仅从证据目录的 `raw/*.json` 读取比赛记录并生成汇总：
+G2 必须先开启一段不间断外部录屏，再由单一可见 Godot 进程完成十场；默认把证据批次写到 D 盘：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\tools\run_g2_session.ps1 -RecordingConfirmed
+```
+
+采集器会记录启动前基线，只复制该进程运行期间新增且完整的 Gatehouse 终局 JSON，不会清空或改写共享 `user://match-records`。人工长局结束后也可独立重跑只读汇总校验：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\tools\validate_g2_records.ps1 -EvidenceRoot "C:\path\to\g2-evidence" -ExpectedCount 10
