@@ -113,6 +113,7 @@ Updated: 2026-08-09
 - 正式批次必须先开启不间断外部录屏，再用 `tools/run_g2_session.ps1 -RecordingConfirmed` 启动唯一可见 Godot 进程；采集器记录进程、提交和旧文件基线，只复制该进程期间新增的完整 Gatehouse 终局记录。JSON 证明状态正确，连续录屏证明人工、菜单路径与无调试跳局，二者缺一均不得通过 G2。
 - 每场原始 JSON 必须保留；`tools/validate_g2_records.ps1` 只读取 `raw/*.json`，校验生命周期、3v3 计分板、连续比赛序号、5 次 T/5 次 CT 开局和 SHA256 唯一性，并生成 `aggregate.json`、`aggregate.md` 与 `SHA256SUMS.txt`（胜负/加时覆盖仅记录统计，不作 FAIL 条件）。
 - 任何崩溃、软锁、无法结束的回合、AI 永久卡死、C4 无主且不可恢复、换边/新比赛状态泄漏均为 FAIL。
+- 操作手册（一键启动 `play-g2.cmd`、彩排流程、失败条件、产物结构）见 [`docs/G2_OPERATOR_GUIDE.md`](G2_OPERATOR_GUIDE.md)。
 
 #### G3：AI 行为质量
 
