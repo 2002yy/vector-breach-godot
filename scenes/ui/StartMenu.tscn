@@ -194,6 +194,14 @@ popup/item_0/id = 0
 popup/item_1/text = "CT · 防守方"
 popup/item_1/id = 1
 
+[node name="G2Hint" type="Label" parent="MenuPanel/Margin/VBox/Controls"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.82, 0.35, 1)
+theme_override_fonts/font = ExtResource("3_semibold")
+theme_override_font_sizes/font_size = 15
+text = "第 1 场 · 本场选 T"
+horizontal_alignment = 1
+
 [node name="Settings" type="VBoxContainer" parent="MenuPanel/Margin/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 3

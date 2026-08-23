@@ -11,6 +11,7 @@ signal team_selected(team: String)
 @onready var description_label: RichTextLabel = $MenuPanel/Margin/VBox/Description
 @onready var map_select: OptionButton = $MenuPanel/Margin/VBox/Controls/MapRow/MapSelect
 @onready var team_select: OptionButton = $MenuPanel/Margin/VBox/Controls/TeamRow/TeamSelect
+@onready var g2_hint: Label = $MenuPanel/Margin/VBox/Controls/G2Hint
 @onready var start_button: Button = $MenuPanel/Margin/VBox/Buttons/StartButton
 @onready var resume_button: Button = $MenuPanel/Margin/VBox/Buttons/ResumeButton
 @onready var hint_label: Label = $MenuPanel/Margin/VBox/Hints
@@ -31,6 +32,7 @@ func _ready() -> void:
 	map_select.item_selected.connect(func(index: int) -> void: map_selected.emit(index))
 	team_select.item_selected.connect(func(index: int) -> void: team_selected.emit("T" if index == 0 else "CT"))
 	team_select.select(0 if GameState.player_team == "T" else 1)
+	update_g2_hint()
 	_load_settings_controls(UserSettings.get_snapshot())
 	for slider in [sensitivity_slider, volume_slider, crosshair_gap_slider, crosshair_size_slider, radar_range_slider]:
 		slider.value_changed.connect(_on_setting_control_changed)
@@ -42,6 +44,13 @@ func set_map_options(options: Array, selected_index: int) -> void:
 	for option in options:
 		map_select.add_item(String(option["name"]))
 	map_select.select(selected_index)
+	update_g2_hint()
+
+func update_g2_hint() -> void:
+	var next_match := GameState.match_serial + 1
+	var recommended_side := "T" if next_match % 2 == 1 else "CT"
+	g2_hint.text = "第 %d 场 · 本场选 %s" % [next_match, recommended_side]
+	team_select.select(0 if recommended_side == "T" else 1)
 
 func set_map_details(option: Dictionary, can_resume: bool) -> void:
 	title_label.text = "矢量突袭"
@@ -84,6 +93,7 @@ func set_match_summary(snapshot: Dictionary, record_path: String) -> void:
 	]
 	start_button.text = "开始新比赛"
 	resume_button.visible = false
+	update_g2_hint()
 
 func set_menu_visible(visible_state: bool) -> void:
 	visible = visible_state

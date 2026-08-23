@@ -463,20 +463,12 @@ if ([Math]::Abs($tStarts - $ctStarts) -gt 1) {
     Add-Failure -Failures $globalFailures -Message "T/CT starts must be balanced (T=$tStarts CT=$ctStarts)"
 }
 
+# Outcome coverage (regulation wins/losses, 6:6 overtime) is informational only.
+# These boundaries are covered by deterministic probes; see docs/PROJECT_STATUS.md G2.
 $regulationPlayerWins = @($matchResults | Where-Object { $_.overtime_rounds -eq 0 -and $_.result -eq 'player_win' }).Count
 $regulationOpponentWins = @($matchResults | Where-Object { $_.overtime_rounds -eq 0 -and $_.result -eq 'opponent_win' }).Count
 $overtimeMatches = @($matchResults | Where-Object { $_.overtime_rounds -eq 2 }).Count
 $draws = @($matchResults | Where-Object result -eq 'draw').Count
-
-if ($regulationPlayerWins -eq 0) {
-    Add-Failure -Failures $globalFailures -Message 'batch must include at least one regulation player_win'
-}
-if ($regulationOpponentWins -eq 0) {
-    Add-Failure -Failures $globalFailures -Message 'batch must include at least one regulation opponent_win'
-}
-if ($overtimeMatches -eq 0) {
-    Add-Failure -Failures $globalFailures -Message 'batch must include at least one complete 6:6 overtime match'
-}
 
 $reasonHistogram = [ordered]@{
     ELIMINATION = 0

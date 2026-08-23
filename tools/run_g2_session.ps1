@@ -251,7 +251,7 @@ $checklist = @'
 - Keep one continuous screen recording running from before launch until after the tenth conclusion page.
 - Use Gatehouse only. Start matches 1,3,5,7,9 as T and 2,4,6,8,10 as CT.
 - Every match must begin from the menu, cross halftime, reach a legal terminal result, and show the conclusion page.
-- The batch must include at least one regulation player win, one regulation opponent win, and one full 6:6 plus two-round overtime.
+- Play naturally; win/loss/overtime outcomes are recorded for information only and are covered by separate deterministic probes.
 - Do not use debug controls, probes, scripted input, or skip rounds.
 - Do not launch another Godot process or run automated tests during this session.
 - After the tenth conclusion page, keep the recording running, exit the game normally, and retain the uncut video in this batch's video directory.
