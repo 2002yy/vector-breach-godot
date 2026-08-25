@@ -33,20 +33,30 @@ func _ready() -> void:
 	view_model.call("play_reload_finished")
 	view_model.call("play_landing", 1.0)
 	var landing_path := await _capture("weapon-viewmodel-landing-preview")
-	var snapshot := view_model.call("get_debug_snapshot") as Dictionary
+	var rifle_snapshot := view_model.call("get_debug_snapshot") as Dictionary
+	view_model.call("set_weapon_slot", 1, false)
+	for _frame in range(4):
+		await get_tree().process_frame
+	var pistol_path := await _capture("weapon-viewmodel-pistol-preview")
+	var pistol_snapshot := view_model.call("get_debug_snapshot") as Dictionary
 	var contract_ok := (
-		float(snapshot.get("movement_speed", 0.0)) > 5.0
-		and float(snapshot.get("landing_offset", 0.0)) > 0.0
-		and not bool(snapshot.get("reload_active", true))
+		float(rifle_snapshot.get("movement_speed", 0.0)) > 5.0
+		and float(rifle_snapshot.get("landing_offset", 0.0)) > 0.0
+		and not bool(rifle_snapshot.get("reload_active", true))
+		and int(pistol_snapshot.get("weapon_slot", -1)) == 1
+		and bool(pistol_snapshot.get("pistol_visible", false))
+		and not bool(pistol_snapshot.get("rifle_visible", true))
 	)
 	print("WEAPON_VIEWMODEL_VISUAL_PROBE=" + JSON.stringify({
 		"recoil": recoil_path,
 		"reload": reload_path,
 		"landing": landing_path,
-		"snapshot": snapshot,
+		"pistol": pistol_path,
+		"rifle_snapshot": rifle_snapshot,
+		"pistol_snapshot": pistol_snapshot,
 		"contract_ok": contract_ok,
 	}))
-	get_tree().quit(0 if contract_ok and not recoil_path.is_empty() and not reload_path.is_empty() and not landing_path.is_empty() else 1)
+	get_tree().quit(0 if contract_ok and not recoil_path.is_empty() and not reload_path.is_empty() and not landing_path.is_empty() and not pistol_path.is_empty() else 1)
 
 func _capture(file_stem: String) -> String:
 	await RenderingServer.frame_post_draw

@@ -1,6 +1,6 @@
 # Vector Breach Project Status
 
-Updated: 2026-08-24
+Updated: 2026-08-25
 
 本文档是仓库唯一的状态、边界与优先级来源。README 和各地图设计记录只保留入口说明或设计约束；如与本文冲突，以当前检出、自动测试和本文为准。
 
@@ -35,7 +35,7 @@ Updated: 2026-08-24
 - 共享低模战术角色使用 15 骨骼 Armature，33/33 可见网格具有蒙皮权重，内嵌 idle、run、crouch、hit、death 五个动作；胶囊碰撞和五区命中仍是战斗权威。
 - 现有角色属于可用的低模表现资产，不是最终正式角色。敌我识别由深色主体和 CT 蓝/T 橙局部标识承担。
 - 战斗音频包含 14 个已核验来源的 CC0 Ogg 采样及程序化回退；尚无语音报点。
-- 第一人称武器已有移动摆动、后坐、落地和换弹反馈，但模型仍是下一阶段明确升级项。
+- 第一人称步枪与手枪已由独立确定性 Blender 管线重制为原创近未来战术资产：步枪包含分体护木、上下机匣、骨架枪托、红点、制退器和操作件，手枪包含切角套筒、退壳口、套筒纹、底把导轨和独立控制件；现有移动摆动、后坐、落地和换弹反馈保持兼容。2026-08-25 用户直接授权该 G5 局部例外，但它不代表 G2/G5 整体门槛通过。
 - Foundry Reforged 已有 Vulkan 视觉、性能和作品集录屏证据；Gatehouse 尚未达到同等级作品集画面。
 - 2026-08-24 用户授权的视觉基础已扩展为全地图默认体系：Test Collision Room、Foundry Depot、Gatehouse、Core Vault 与 Foundry Reforged 均继承 CC0 阴天纯天空、暖色阴影方向主光、冷色环境光、ACES、轻量雾和 SSAO；旧地图头顶点光默认关闭，Gatehouse、Core Vault 与 Foundry Depot 的悬空灯具几何已从确定性生成资产移除。Gatehouse 仍保留 28 根接地且贴合边界的尺度节奏柱。该改动是 G5 前置基础，不代表 G5 作品集验收完成，也不解除 G2 十场人工比赛门槛。
 - Dustline Depths 是唯一复刻研究图；本机可用时菜单提供 `dustline-depths-original-local`，直接使用 `assets/local_reference` 下的原始视觉/材质和项目内审计碰撞。第三方原始素材保持 local-only、排除于 Git 与公开主演示。
@@ -60,6 +60,7 @@ Updated: 2026-08-24
 - Core Vault 路线图为 44 节点/54 连接，三路首次接触为 8.23–8.42 秒，A/B 轮转为 10.16 秒。
 - Gatehouse Vulkan 爆破探针已验证 T Bot 携带并安装、CT Bot 携钳回防并拆除，且回合合法结束。
 - Foundry Reforged 在 RTX 5060 Laptop / Godot 4.7.1 Forward+ 的参考基线为 196.40 FPS、平均 5.09 ms、p95 7.15 ms、977 draw calls、18,960 primitives 和 226.93 MiB 报告显存，无趋势警告或硬失败。
+- 枪械确定性构建校验为步枪 55 对象、手枪 42 对象、共享网格 0；显式接口均为零间隙或受控小重叠。`WeaponViewModelVisualProbe` 已在 RTX 5060 Laptop / Forward+ 同时捕获步枪后坐、换弹、落地和手枪持枪画面，并通过显隐与运动状态契约。
 
 ## 下一阶段：Gatehouse 3v3 单机竞技切片
 

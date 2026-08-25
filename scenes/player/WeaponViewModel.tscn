@@ -15,6 +15,6 @@ scale = Vector3(0.55, 0.55, 0.55)
 
 [node name="PistolModel" parent="." instance=ExtResource("3")]
 visible = false
-position = Vector3(0.2, -0.23, -0.4)
-rotation = Vector3(0, 3.141593, 0)
-scale = Vector3(0.8, 0.8, 0.8)
+position = Vector3(0.24, -0.27, -0.47)
+rotation = Vector3(-0.04, 3.05, -0.03)
+scale = Vector3(0.68, 0.68, 0.68)

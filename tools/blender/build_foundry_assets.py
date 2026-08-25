@@ -1056,9 +1056,11 @@ def build_all() -> dict:
     result = {
         "blockout": build_map_blockout(),
         "details": build_map_details(),
-        "weapons": build_weapons(),
     }
-    result["final"] = export_and_save()
+    # Weapon assets have an independent deterministic source pipeline. Keeping
+    # map and weapon exports separate prevents a depot rebuild from silently
+    # overwriting an approved first-person weapon art pass.
+    result["final"] = export_map_and_save()
     return result
 
 
