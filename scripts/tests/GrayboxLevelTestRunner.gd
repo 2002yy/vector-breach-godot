@@ -120,7 +120,7 @@ func _test_default_load_applies_markers_and_geometry() -> void:
 		_assert_equal(_count_nodes_with_name_prefix(depot_visual, "GEO-detail-floor-drain-"), 3, "Depot should retain three route-anchored drainage grates")
 		_assert_equal(_count_nodes_of_type(depot_visual, "StaticBody3D"), 0, "Depot's visual pass should not add collision outside the authored graybox")
 	var depot_lights: Dictionary = level_data.get("lights", {}) as Dictionary
-	_assert_equal(lighting_root.get_child_count(), (depot_lights.get("points", []) as Array).size(), "the default depot should instantiate every authored gameplay light")
+	_assert_equal(lighting_root.get_child_count(), 0, "the default depot should rely on the shared environment instead of legacy overhead lights")
 	_assert_vec3_close(spawn_marker.position, _marker_start_position(level_data), 0.001, "spawn marker should match level start coordinate")
 	_assert_true(is_equal_approx(spawn_marker.rotation.y, deg_to_rad(float(level_data.get("startYawDegrees", 0.0)))), "spawn marker should apply the authored starting yaw")
 	_assert_vec3_close(exit_marker.position, _marker_exit_position(level_data), 0.001, "exit marker should match level exit coordinate")
@@ -156,7 +156,7 @@ func _test_load_level_rebuilds_geometry_and_updates_state() -> void:
 	_assert_true(not geometry_root.visible, "a loaded visual scene should hide graybox meshes without removing their collision nodes")
 	_assert_equal(visual_root.get_child_count(), 1, "depot should instantiate exactly one visual scene")
 	var depot_lights: Dictionary = depot_data.get("lights", {}) as Dictionary
-	_assert_equal(lighting_root.get_child_count(), (depot_lights.get("points", []) as Array).size(), "depot should instantiate every authored gameplay light")
+	_assert_equal(lighting_root.get_child_count(), 0, "depot should keep legacy overhead lights disabled")
 	if visual_root.get_child_count() > 0:
 		_assert_equal(visual_root.get_child(0).name, "LevelVisual", "the visual scene should use a stable integration node name")
 	var central_stair: Node3D = geometry_root.get_node_or_null("stair_central-platform-access") as Node3D
@@ -219,6 +219,8 @@ func _test_gatehouse_migrates_legacy_obstacles_into_visual_collision() -> void:
 		_assert_equal(_count_nodes_with_name_prefix(gatehouse_visual, "GEO-gatehouse-floor-joint-"), 14, "Gatehouse should retain fourteen floor expansion joints")
 		_assert_equal(_count_nodes_with_name_prefix(gatehouse_visual, "GEO-gatehouse-floor-wear-"), 6, "Gatehouse should retain six broad traffic wear zones")
 		_assert_equal(_count_nodes_with_name_prefix(gatehouse_visual, "GEO-gatehouse-booth-panel-"), 4, "Gatehouse should retain four inspection-booth panel layers")
+		_assert_equal(_count_nodes_with_name_prefix(gatehouse_visual, "GEO-gatehouse-boundary-rhythm-"), 28, "Gatehouse should retain twenty-eight measured perimeter rhythm posts")
+		_assert_equal(_count_nodes_with_name_prefix(gatehouse_visual, "GEO-gatehouse-light-"), 0, "Gatehouse should not retain floating overhead light fixtures")
 		_assert_equal(_count_nodes_of_type(gatehouse_visual, "StaticBody3D"), 0, "Gatehouse visual assets should not add collision outside the migrated graybox")
 
 	await _cleanup_level(level)

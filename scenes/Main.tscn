@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/level/GrayboxLevel.tscn" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="2"]
@@ -13,11 +13,11 @@
 [ext_resource type="PackedScene" path="res://scenes/audio/CombatAudioFeedback.tscn" id="11"]
 [ext_resource type="PackedScene" path="res://scenes/objective/C4Device.tscn" id="12"]
 [ext_resource type="Script" path="res://scripts/combat/TacticalEquipment.gd" id="13"]
+[ext_resource type="Texture2D" path="res://assets/environment/overcast_soil_puresky_1k.hdr" id="14_environment"]
 
-[sub_resource type="ProceduralSkyMaterial" id="1"]
-sky_top_color = Color(0.43, 0.44, 0.42, 1)
-sky_horizon_color = Color(0.70, 0.62, 0.50, 1)
-ground_bottom_color = Color(0.08, 0.08, 0.08, 1)
+[sub_resource type="PanoramaSkyMaterial" id="1"]
+panorama = ExtResource("14_environment")
+energy_multiplier = 0.52
 
 [sub_resource type="Sky" id="2"]
 sky_material = SubResource("1")
@@ -26,8 +26,18 @@ sky_material = SubResource("1")
 background_mode = 2
 sky = SubResource("2")
 ambient_light_source = 3
-ambient_light_color = Color(1, 1, 1, 1)
-ambient_light_energy = 0.7
+ambient_light_color = Color(0.52, 0.6, 0.68, 1)
+ambient_light_energy = 0.27
+fog_enabled = true
+fog_light_color = Color(0.54, 0.6, 0.64, 1)
+fog_light_energy = 0.58
+fog_density = 0.001
+fog_sky_affect = 0.18
+tonemap_mode = 3
+tonemap_exposure = 0.82
+ssao_enabled = true
+ssao_radius = 1.65
+ssao_intensity = 1.28
 
 [node name="Main" type="Node3D"]
 script = ExtResource("3")
@@ -37,7 +47,8 @@ environment = SubResource("3")
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
 rotation = Vector3(-0.9, -0.8, 0)
-light_energy = 1.4
+light_color = Color(1, 0.91, 0.8, 1)
+light_energy = 0.74
 shadow_enabled = true
 
 [node name="Level" parent="." instance=ExtResource("1")]

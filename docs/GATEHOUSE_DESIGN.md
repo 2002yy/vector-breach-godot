@@ -1,7 +1,7 @@
 # Gatehouse Design Record
 
-Last updated: 2026-08-09
-Data revision: `gatehouse-visual-v1`
+Last updated: 2026-08-24
+Data revision: `gatehouse-visual-v1.2`
 Gameplay revision: `gatehouse-tactical-routes-v1`
 
 Gatehouse is a broad security-checkpoint arena. Runtime geometry and collision are defined in `data/levels/gatehouse.json`; the deterministic visual recipe is `tools/blender/build_gatehouse_assets.py`.
@@ -22,8 +22,10 @@ The legacy array remains as traceability data. `GrayboxLevelTestRunner` verifies
 - The 112 x 112 m floor and four arena boundaries match the existing runtime floor and boundary collision.
 - Fourteen floor joints and six broad traffic-wear zones establish the north-south checkpoint flow without changing navigation.
 - Six maintenance cladding modules seat directly against authored walls with a measured maximum gap of 0 m.
-- Booth panels, cover ribs, inspection-deck edging, route labels, and light fixtures remain visual-only surface details.
-- The generated GLB contains 101 objects, no shared mesh data, and no imported `StaticBody3D`; collision continues to come from the JSON graybox.
+- Booth panels, cover ribs, inspection-deck edging and route labels remain visual-only surface details. The former four floating overhead fixtures and emitters were removed from the generated asset, and legacy map point lights are disabled.
+- Twenty-eight measured perimeter rhythm posts break up the 112 m boundary texture repeat. Every post has a validated 0 m ground gap and 0 m boundary-contact gap.
+- Gatehouse inherits the project-wide architecture-free CC0 overcast sky, a warm shadowed directional key, restrained cool ambient light, ACES tonemapping, lightweight distance fog and SSAO.
+- The generated GLB contains 121 objects, no shared mesh data, no overhead-light geometry, and no imported `StaticBody3D`; collision continues to come from the JSON graybox.
 
 `GatehouseVisualProbe.tscn` captures Vulkan Forward+ first-person views at spawn, security approach, checkpoint, inspection deck, gate, and exit.
 
@@ -39,7 +41,7 @@ The legacy array remains as traceability data. `GrayboxLevelTestRunner` verifies
 
 ## Known design gaps
 
-Gatehouse has 3v3 bomb AI, utility purchasing/throws, persistent economy and loadouts, measured timing, and an explicit no-natural-ladder/water semantic-volume record. It still lacks a match-level halftime/overtime lifecycle, ten-match human verification, calibrated utility lineups, complete player-directed teammate tactics, and final competitive balance. The current route graph is a tested tactical foundation, not a claim of final competitive balance.
+Gatehouse has 3v3 bomb AI, utility purchasing/throws, persistent economy and loadouts, measured timing, an automated halftime/overtime lifecycle, and an explicit no-natural-ladder/water semantic-volume record. It still lacks the G2 ten-match human verification, calibrated utility lineups, complete player-directed teammate tactics, final competitive balance, and G5 portfolio acceptance. The current route graph and visual foundation are tested foundations, not claims of final competitive or presentation quality.
 
 Gatehouse is the sole primary map for the next phase defined in `docs/PROJECT_STATUS.md`. Local cover, doorway, stuck-point and rotation-distance edits are allowed only when evidence-backed; the three-route, two-site structure remains fixed, and every gameplay geometry change must rerun collision and timing gates.
 

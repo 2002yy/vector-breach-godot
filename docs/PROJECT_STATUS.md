@@ -1,6 +1,6 @@
 # Vector Breach Project Status
 
-Updated: 2026-08-09
+Updated: 2026-08-24
 
 本文档是仓库唯一的状态、边界与优先级来源。README 和各地图设计记录只保留入口说明或设计约束；如与本文冲突，以当前检出、自动测试和本文为准。
 
@@ -37,6 +37,9 @@ Updated: 2026-08-09
 - 战斗音频包含 14 个已核验来源的 CC0 Ogg 采样及程序化回退；尚无语音报点。
 - 第一人称武器已有移动摆动、后坐、落地和换弹反馈，但模型仍是下一阶段明确升级项。
 - Foundry Reforged 已有 Vulkan 视觉、性能和作品集录屏证据；Gatehouse 尚未达到同等级作品集画面。
+- 2026-08-24 用户授权的视觉基础已扩展为全地图默认体系：Test Collision Room、Foundry Depot、Gatehouse、Core Vault 与 Foundry Reforged 均继承 CC0 阴天纯天空、暖色阴影方向主光、冷色环境光、ACES、轻量雾和 SSAO；旧地图头顶点光默认关闭，Gatehouse、Core Vault 与 Foundry Depot 的悬空灯具几何已从确定性生成资产移除。Gatehouse 仍保留 28 根接地且贴合边界的尺度节奏柱。该改动是 G5 前置基础，不代表 G5 作品集验收完成，也不解除 G2 十场人工比赛门槛。
+- Dustline Depths 是唯一复刻研究图；本机可用时菜单提供 `dustline-depths-original-local`，直接使用 `assets/local_reference` 下的原始视觉/材质和项目内审计碰撞。第三方原始素材保持 local-only、排除于 Git 与公开主演示。
+- 本机默认游戏入口 `play.cmd` 固定以 `--gpu-index 0` 启动 Forward+；当前设备枚举中 #0 为 RTX 5060 Laptop 独显、#1 为 Intel 核显。Vulkan 视觉探针已确认实际使用 #0。
 
 ## 地图归属与用途
 
@@ -51,7 +54,7 @@ Updated: 2026-08-09
 
 ## 当前验证
 
-- Windows 与 Linux 聚合脚本统一运行十一套原生测试：关卡数据、武器、灰盒关卡、命中反馈、战术 Bot、爆破 AI、比赛生命周期、Gatehouse 场景集成、主状态流、音频资产和性能预算；当前基线为 134 项并出现 `RUN_ALL_OK`。
+- Windows 与 Linux 聚合脚本统一运行十一套原生测试：关卡数据、武器、灰盒关卡、命中反馈、战术 Bot、爆破 AI、比赛生命周期、Gatehouse 场景集成、主状态流、音频资产和性能预算；当前基线为 135 项并出现 `RUN_ALL_OK`。
 - Gatehouse 场景集成测试以真实 `Main.tscn` 覆盖 T/CT 开局与半场、6:6 两局加时、同一 Main 新比赛隔离和重复 end/restart 幂等；验证真实 3v3、出生/换边、经济装备、逐单位统计、C4 唯一归属与旧实体清理。G1 已通过，下一门槛为 G2 十场人工完整比赛。
 - Gatehouse 路线图为 39 节点/48 连接，三路首次接触为 7.83–8.39 秒，A/B 守方轮转为 4.49 秒；西路已绕开检查平台楼梯碰撞。
 - Core Vault 路线图为 44 节点/54 连接，三路首次接触为 8.23–8.42 秒，A/B 轮转为 10.16 秒。

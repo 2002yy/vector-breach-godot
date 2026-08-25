@@ -14,18 +14,18 @@
     },
     {
       "path": "res://assets/models/foundry/foundry_depot.glb",
-      "bytes": 7723764,
-      "sha256": "6EB427E7061B90560C012E2B03EE356DBB485D9F549FBF3E3A77E475023DB57F"
+      "bytes": 7700888,
+      "sha256": "CC8E71A26557F77690AC46B632FAE92930360103DA95ED9DCD4172044545490B"
     },
     {
       "path": "res://assets/maps/foundry-depot-preview.png",
-      "bytes": 1002633,
-      "sha256": "037AE2D1DEB42005071592792FF337777B8E88A76C4352736C2BF906C051032A"
+      "bytes": 1009379,
+      "sha256": "957C5C592DBF7A63C937A80EA94B123D1B9253BDFCCB6480CAF935354071F79A"
     },
     {
       "path": "res://tools/blender/source/foundry_asset_source.blend",
-      "bytes": 4188781,
-      "sha256": "E4B2A5BCBE4F9319BD0CB54721069C7E4B59E2ABA250BE0B70E39A96BE6382F9"
+      "bytes": 381741,
+      "sha256": "5902FA6E99839ABCA07FE715A9CE6308AC0F736157236F33DD4E9A3D42F31859"
     }
   ]
 }

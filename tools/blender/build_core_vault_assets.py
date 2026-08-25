@@ -324,17 +324,6 @@ def _build_details(collection: bpy.types.Collection, materials: dict, level: dic
     for index, spec in enumerate(specs):
         _add_wall_cladding(collection, materials, level, *spec, index)
 
-    for index, point in enumerate(level.get("lights", {}).get("points", [])):
-        x, height, z = float(point[0]), float(point[1]), float(point[2])
-        add_box(f"GEO-vault-light-fixture-{index:02d}", _map_point(x, z, height + 0.08), (1.6, 0.42, 0.13), materials["metal"], collection)
-        add_box(
-            f"GEO-vault-light-emitter-{index:02d}",
-            _map_point(x, z, height),
-            (1.18, 0.29, 0.05),
-            materials["core_light" if index == 0 or index == 2 else "warm_light"],
-            collection,
-        )
-
     for index, (body, x, z) in enumerate((("CORE", 0.0, 9.5), ("VAULT", 0.0, -24.0), ("EXIT", 0.0, -45.0))):
         add_text(
             f"GEO-vault-route-mark-{index:02d}",
@@ -438,7 +427,8 @@ def export_and_save() -> dict:
     export_count = export_collection_glb(MAP_COLLECTION, output)
     _create_presentation(level)
     scene = bpy.context.scene
-    scene.render.engine = "BLENDER_EEVEE_NEXT"
+    render_engines = {item.identifier for item in scene.render.bl_rna.properties["engine"].enum_items}
+    scene.render.engine = "BLENDER_EEVEE" if "BLENDER_EEVEE" in render_engines else "BLENDER_EEVEE_NEXT"
     scene.render.resolution_x = 1280
     scene.render.resolution_y = 720
     scene.render.resolution_percentage = 100

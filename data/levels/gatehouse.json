@@ -1,7 +1,7 @@
 {
   "id": "gatehouse",
   "name": "Gatehouse",
-  "designRevision": "gatehouse-visual-v1",
+  "designRevision": "gatehouse-visual-v1.2",
   "gameplayRevision": "gatehouse-tactical-routes-v1",
   "timingTargets": {
     "attackerFirstContactSeconds": [7.5, 9.0],
@@ -68,7 +68,29 @@
       0.075
     ]
   },
+  "environment": {
+    "sky_panorama": "res://assets/environment/overcast_soil_puresky_1k.hdr",
+    "sky_energy_multiplier": 0.52,
+    "sky_rotation_y_degrees": -18.0,
+    "sun_energy": 0.74,
+    "sun_color": [1.0, 0.91, 0.8],
+    "sun_rotation_degrees": [-48.0, 24.0, 0.0],
+    "sun_shadow_enabled": true,
+    "ambient_light_energy": 0.27,
+    "ambient_light_color": [0.52, 0.6, 0.68],
+    "fog_enabled": true,
+    "fog_light_color": [0.54, 0.6, 0.64],
+    "fog_light_energy": 0.58,
+    "fog_density": 0.001,
+    "fog_sky_affect": 0.18,
+    "tonemap": "aces",
+    "tonemap_exposure": 0.82,
+    "ssao_enabled": true,
+    "ssao_radius": 1.65,
+    "ssao_intensity": 1.28
+  },
   "lights": {
+    "enabled": false,
     "points": [
       [
         -20,

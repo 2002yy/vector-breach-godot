@@ -47,7 +47,7 @@ def _materials() -> dict[str, bpy.types.Material]:
             texture_root / "concrete_floor_worn_001_diffuse.jpg",
             texture_root / "concrete_floor_worn_001_rough.jpg",
             texture_root / "concrete_floor_worn_001_nor_gl.jpg",
-            base_color_factor=(0.74, 0.75, 0.72, 1.0),
+            base_color_factor=(0.58, 0.60, 0.58, 1.0),
             normal_strength=0.54,
         ),
         "concrete_light": make_pbr_texture_material(
@@ -55,7 +55,7 @@ def _materials() -> dict[str, bpy.types.Material]:
             texture_root / "rebar_reinforced_concrete_diffuse.jpg",
             texture_root / "rebar_reinforced_concrete_rough.jpg",
             texture_root / "rebar_reinforced_concrete_nor_gl.jpg",
-            base_color_factor=(0.82, 0.80, 0.72, 1.0),
+            base_color_factor=(0.66, 0.65, 0.60, 1.0),
             normal_strength=0.48,
         ),
         "metal": make_pbr_texture_material(
@@ -100,20 +100,6 @@ def _materials() -> dict[str, bpy.types.Material]:
         "orange": make_material("MAT_gatehouse_orange", (0.78, 0.30, 0.035, 1.0), roughness=0.64),
         "yellow": make_material("MAT_gatehouse_yellow", (0.82, 0.58, 0.08, 1.0), roughness=0.68),
         "glass": make_material("MAT_gatehouse_glass", (0.025, 0.12, 0.14, 1.0), metallic=0.18, roughness=0.2),
-        "light_warm": make_material(
-            "MAT_gatehouse_light_warm",
-            (1.0, 0.52, 0.12, 1.0),
-            roughness=0.3,
-            emission=(1.0, 0.24, 0.04, 1.0),
-            emission_strength=4.0,
-        ),
-        "light_cool": make_material(
-            "MAT_gatehouse_light_cool",
-            (0.18, 0.72, 0.82, 1.0),
-            roughness=0.3,
-            emission=(0.03, 0.42, 0.72, 1.0),
-            emission_strength=3.5,
-        ),
     }
 
 
@@ -151,6 +137,34 @@ def _build_floor_and_boundaries(collection: bpy.types.Collection, materials: dic
             materials["dark"],
             collection,
         )
+
+    # A measured post module breaks up the 112 m perimeter texture repeat and
+    # gives first-person views a stable human-scale rhythm. Each post seats on
+    # z=0 and terminates exactly on the playable-side boundary face.
+    rhythm_positions = (-42.0, -28.0, -14.0, 0.0, 14.0, 28.0, 42.0)
+    boundary_faces = (
+        ("north", "x", arena_size_z, 1.0),
+        ("south", "x", -arena_size_z, -1.0),
+        ("west", "y", -arena_size_x, -1.0),
+        ("east", "y", arena_size_x, 1.0),
+    )
+    for side, axis, face, face_sign in boundary_faces:
+        for index, offset in enumerate(rhythm_positions):
+            if axis == "x":
+                location = (offset, face - face_sign * 0.12, boundary_height * 0.5)
+                dimensions = (0.34, 0.24, boundary_height)
+            else:
+                location = (face - face_sign * 0.12, offset, boundary_height * 0.5)
+                dimensions = (0.24, 0.34, boundary_height)
+            post = add_box(
+                f"GEO-gatehouse-boundary-rhythm-{side}-{index:02d}",
+                location,
+                dimensions,
+                materials["dark"],
+                collection,
+            )
+            post["ground_gap"] = 0.0
+            post["boundary_contact_gap"] = 0.0
 
     for x in (-42.0, -28.0, -14.0, 0.0, 14.0, 28.0, 42.0):
         add_box(
@@ -373,25 +387,6 @@ def _build_checkpoint_details(collection: bpy.types.Collection, materials: dict,
             collection,
         )
 
-    for index, point in enumerate(level.get("lights", {}).get("points", [])):
-        x = float(point[0])
-        height = float(point[1])
-        z = float(point[2])
-        add_box(
-            f"GEO-gatehouse-light-fixture-{index:02d}",
-            _map_point(x, z, height + 0.08),
-            (1.5, 0.40, 0.13),
-            materials["metal"],
-            collection,
-        )
-        add_box(
-            f"GEO-gatehouse-light-emitter-{index:02d}",
-            _map_point(x, z, height),
-            (1.12, 0.28, 0.05),
-            materials["light_warm" if index < 2 else "light_cool"],
-            collection,
-        )
-
     route_marks = (
         ("ENTRY", 0.0, 38.0, materials["orange"]),
         ("CHECK", 0.0, -12.0, materials["yellow"]),
@@ -425,6 +420,10 @@ def _validate_gatehouse(collection: bpy.types.Collection) -> dict:
     cladding = [obj for obj in collection.objects if obj.name.startswith("GEO-gatehouse-wall-cladding-")]
     cladding_gap = max((float(obj.get("contact_gap", 999.0)) for obj in cladding), default=999.0)
     booth_panel_count = sum(name.startswith("GEO-gatehouse-booth-panel-") for name in names)
+    boundary_rhythm = [obj for obj in collection.objects if obj.name.startswith("GEO-gatehouse-boundary-rhythm-")]
+    overhead_lights = [obj for obj in collection.objects if obj.name.startswith("GEO-gatehouse-light-")]
+    rhythm_ground_gap = max((float(obj.get("ground_gap", 999.0)) for obj in boundary_rhythm), default=999.0)
+    rhythm_contact_gap = max((float(obj.get("boundary_contact_gap", 999.0)) for obj in boundary_rhythm), default=999.0)
     assert wall_count == 4, f"Expected 4 semantic walls, got {wall_count}"
     assert cover_count == 5, f"Expected 5 semantic covers, got {cover_count}"
     assert raised_floor_count == 1, f"Expected 1 raised floor, got {raised_floor_count}"
@@ -434,6 +433,10 @@ def _validate_gatehouse(collection: bpy.types.Collection) -> dict:
     assert len(cladding) == 6, f"Expected 6 cladding modules, got {len(cladding)}"
     assert booth_panel_count == 4, f"Expected 4 booth panels, got {booth_panel_count}"
     assert cladding_gap <= 0.0001, f"Cladding contact gap is {cladding_gap:.4f} m"
+    assert len(boundary_rhythm) == 28, f"Expected 28 boundary rhythm posts, got {len(boundary_rhythm)}"
+    assert rhythm_ground_gap <= 0.0001, f"Boundary rhythm ground gap is {rhythm_ground_gap:.4f} m"
+    assert rhythm_contact_gap <= 0.0001, f"Boundary rhythm contact gap is {rhythm_contact_gap:.4f} m"
+    assert not overhead_lights, f"Expected no overhead light fixtures, got {len(overhead_lights)}"
     return {
         "semantic_wall_count": wall_count,
         "semantic_cover_count": cover_count,
@@ -444,6 +447,10 @@ def _validate_gatehouse(collection: bpy.types.Collection) -> dict:
         "wall_cladding_count": len(cladding),
         "wall_cladding_contact_gap_max": round(cladding_gap, 4),
         "booth_panel_count": booth_panel_count,
+        "boundary_rhythm_count": len(boundary_rhythm),
+        "boundary_rhythm_ground_gap_max": round(rhythm_ground_gap, 4),
+        "boundary_rhythm_contact_gap_max": round(rhythm_contact_gap, 4),
+        "overhead_light_fixture_count": len(overhead_lights),
     }
 
 
@@ -489,15 +496,6 @@ def _create_presentation(level: dict) -> None:
     look_at(area, (0.0, 0.0, 0.0))
     collection.objects.link(area)
 
-    for index, point in enumerate(level.get("lights", {}).get("points", [])):
-        light_data = bpy.data.lights.new(f"LIGHT_gatehouse_map_{index:02d}", type="POINT")
-        light_data.energy = 460.0
-        light_data.shadow_soft_size = 2.0
-        light = bpy.data.objects.new(f"LIGHT_gatehouse_map_{index:02d}", light_data)
-        light.location = _map_point(float(point[0]), float(point[2]), float(point[1]))
-        collection.objects.link(light)
-
-
 def export_and_save() -> dict:
     level = _load_level()
     output = PROJECT_ROOT / "assets" / "models" / "gatehouse" / "gatehouse.glb"
@@ -507,7 +505,10 @@ def export_and_save() -> dict:
     _create_presentation(level)
 
     scene = bpy.context.scene
-    scene.render.engine = "BLENDER_EEVEE_NEXT"
+    # Blender 5.2 exposes Eevee Next under BLENDER_EEVEE; older 4.x builds
+    # used BLENDER_EEVEE_NEXT. Prefer the current enum and retain compatibility.
+    render_engines = {item.identifier for item in scene.render.bl_rna.properties["engine"].enum_items}
+    scene.render.engine = "BLENDER_EEVEE" if "BLENDER_EEVEE" in render_engines else "BLENDER_EEVEE_NEXT"
     scene.render.resolution_x = 1280
     scene.render.resolution_y = 720
     scene.render.resolution_percentage = 100

@@ -774,27 +774,6 @@ def build_map_details() -> dict:
             extrude=0.012,
         )
 
-    lighting = level.get("lights", {})
-    light_points = lighting.get("points", [])
-    for index, point in enumerate(light_points):
-        x = float(point[0])
-        height = float(point[1])
-        z = float(point[2])
-        add_box(
-            f"GEO-detail_light_fixture_{index:02d}",
-            _map_point(x, z, height + 0.08),
-            (1.4, 0.38, 0.12),
-            materials["metal"],
-            collection,
-        )
-        add_box(
-            f"GEO-detail_light_emitter_{index:02d}",
-            _map_point(x, z, height),
-            (1.05, 0.28, 0.05),
-            materials["light"],
-            collection,
-        )
-
     _project_collection_uvs(collection, 2.5)
     validation = validate_collection(MAP_COLLECTION)
     validation.update(_validate_depot_details(collection))
@@ -1005,7 +984,8 @@ def _render_map_preview_and_save() -> tuple[Path, Path]:
     set_collection_hidden(bpy.data.collections[MAP_COLLECTION], False)
 
     scene = bpy.context.scene
-    scene.render.engine = "BLENDER_EEVEE_NEXT"
+    render_engines = {item.identifier for item in scene.render.bl_rna.properties["engine"].enum_items}
+    scene.render.engine = "BLENDER_EEVEE" if "BLENDER_EEVEE" in render_engines else "BLENDER_EEVEE_NEXT"
     scene.render.resolution_x = 1280
     scene.render.resolution_y = 720
     scene.render.resolution_percentage = 100

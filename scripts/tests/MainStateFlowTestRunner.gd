@@ -243,6 +243,9 @@ func _test_level_environment_overrides_restore_defaults() -> void:
 	await _await_main_ready()
 	var environment_node: WorldEnvironment = main.get_node("WorldEnvironment")
 	var sun: DirectionalLight3D = main.get_node("Sun")
+	# Boot now applies Gatehouse's authored environment. Restore the project
+	# defaults before sampling the baseline this test expects to recover.
+	main.call("_apply_level_environment", {})
 	var default_sky := environment_node.environment.sky
 	var default_sun_color := sun.light_color
 	var default_sun_rotation := sun.rotation
@@ -291,13 +294,14 @@ func _test_level_environment_overrides_restore_defaults() -> void:
 	_assert_true(environment_node.environment.sky.sky_material is PanoramaSkyMaterial, "level data should retain a pure-sky panorama option")
 
 	main.call("_apply_level_environment", {})
-	_assert_float_close(environment_node.environment.ambient_light_energy, 0.7, 0.001, "maps without overrides should restore default ambient light")
-	_assert_float_close(sun.light_energy, 1.4, 0.001, "maps without overrides should restore default sun energy")
-	_assert_true(environment_node.environment.sky == default_sky, "maps without overrides should restore the procedural sky")
+	_assert_float_close(environment_node.environment.ambient_light_energy, 0.27, 0.001, "maps without overrides should restore the shared cool ambient light")
+	_assert_float_close(sun.light_energy, 0.74, 0.001, "maps without overrides should restore the shared warm key light")
+	_assert_true(environment_node.environment.sky == default_sky, "maps without overrides should restore the shared overcast panorama")
 	_assert_true(sun.light_color.is_equal_approx(default_sun_color), "maps without overrides should restore default sun color")
 	_assert_vec3_close(sun.rotation, default_sun_rotation, 0.001, "maps without overrides should restore default sun rotation")
-	_assert_true(not environment_node.environment.fog_enabled, "maps without overrides should restore default fog state")
-	_assert_true(not environment_node.environment.ssao_enabled, "maps without overrides should restore default SSAO state")
+	_assert_true(environment_node.environment.fog_enabled, "maps without overrides should retain lightweight distance fog")
+	_assert_true(environment_node.environment.ssao_enabled, "maps without overrides should retain shared contact-depth SSAO")
+	_assert_equal(environment_node.environment.tonemap_mode, Environment.TONE_MAPPER_ACES, "maps without overrides should retain shared ACES tonemapping")
 
 	await _cleanup_main(main)
 
@@ -561,6 +565,8 @@ func _test_movement_and_radar_scale_are_map_invariant() -> void:
 	await _await_main_ready()
 	var level: Node3D = main.get_node("Level")
 	var player: CharacterBody3D = main.get_node("Player")
+	var environment_node: WorldEnvironment = main.get_node("WorldEnvironment")
+	var sun: DirectionalLight3D = main.get_node("Sun")
 	var baseline_profile: Dictionary = player.call("get_movement_profile")
 	for level_id in ["test-collision-room", "depot", "gatehouse", "core-vault", "foundry-reforged"]:
 		level.call("load_level", level_id)
@@ -569,6 +575,12 @@ func _test_movement_and_radar_scale_are_map_invariant() -> void:
 		var radar_snapshot: Dictionary = main.call("_build_radar_snapshot")
 		_assert_equal(current_profile, baseline_profile, "%s should retain the shared movement profile" % level_id)
 		_assert_float_close(float(radar_snapshot.get("range_meters", 0.0)), 24.0, 0.001, "%s should retain the shared radar range" % level_id)
+		_assert_true(environment_node.environment.sky.sky_material is PanoramaSkyMaterial, "%s should inherit or override with the shared overcast panorama" % level_id)
+		_assert_true(environment_node.environment.fog_enabled, "%s should retain lightweight distance fog" % level_id)
+		_assert_true(environment_node.environment.ssao_enabled, "%s should retain contact-depth SSAO" % level_id)
+		_assert_equal(environment_node.environment.tonemap_mode, Environment.TONE_MAPPER_ACES, "%s should retain ACES tonemapping" % level_id)
+		_assert_true(sun.shadow_enabled, "%s should retain the single shadowed key light" % level_id)
+		_assert_equal(level.get_node("LightingRoot").get_child_count(), 0, "%s should not instantiate legacy overhead point lights" % level_id)
 	await _cleanup_main(main)
 
 func _test_ladder_water_and_tactical_actors_are_runtime_systems() -> void:

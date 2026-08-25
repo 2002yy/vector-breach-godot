@@ -30,6 +30,7 @@ func _run_all_tests() -> void:
 	_run_test("optional_local_dustline_keeps_reference_boundary", _test_dustline_locks_reference_and_single_difference_layer)
 	_run_test("foundry_depot_v2_freeze_manifest_matches", _test_foundry_depot_v2_freeze_manifest_matches)
 	_run_test("foundry_reforged_prioritizes_three_ground_routes", _test_foundry_reforged_prioritizes_three_ground_routes)
+	_run_test("gatehouse_visual_foundation", _test_gatehouse_visual_foundation)
 	_run_test("gatehouse_core_vault_author_tactical_routes", _test_gatehouse_core_vault_author_tactical_routes)
 
 func _run_test(test_name: String, callable: Callable) -> void:
@@ -128,6 +129,14 @@ func _test_dustline_locks_reference_and_single_difference_layer() -> void:
 	_assert_true(float(difference.get("accessStepHeight", 1.0)) <= 0.2, "dustline skywalk access should stay within one walkable step")
 	_assert_true(float(difference.get("minimumUnderpassClearance", 0.0)) >= 2.4, "dustline skywalk should preserve standing combat below")
 	_assert_equal((difference.get("collisionParts", []) as Array).size(), 3, "dustline skywalk should limit collision to its deck and two rails")
+	var original_local_path := "res://data/levels/dustline-depths-original-local.json"
+	if FileAccess.file_exists(original_local_path):
+		var original_local := LevelDataLoader.load_level("dustline-depths-original-local")
+		var original_trace: Dictionary = original_local.get("sourceTrace", {}) as Dictionary
+		_assert_true(bool(original_local.get("localOnly", false)), "the original-material replica should remain a local-only option")
+		_assert_equal(String(original_local.get("visual_scene", "")), "res://assets/local_reference/dustline/de_dust2_original.glb", "the replica option should use the original local visual materials")
+		_assert_true(not bool(original_trace.get("referenceAssetsCommitted", true)), "the original visual source must remain excluded from version control")
+		_assert_equal(String(original_local.get("runtime_collision_scene", "")), "res://assets/models/dustline/dustline_depths.glb", "the local original visuals should retain the audited project collision source")
 
 func _test_foundry_depot_v2_freeze_manifest_matches() -> void:
 	var manifest_path := "res://docs/map-data/foundry-depot-v2-freeze.json"
@@ -296,6 +305,18 @@ func _test_gatehouse_core_vault_author_tactical_routes() -> void:
 		_assert_equal(String(semantic_volumes.get("waterStatus", "")), "none-natural", "%s should document that no natural water volume exists" % level_id)
 		_assert_equal((level_data.get("ladders", []) as Array).size(), 0, "%s should keep ladders empty without natural geometry" % level_id)
 		_assert_equal((level_data.get("waterVolumes", []) as Array).size(), 0, "%s should keep water volumes empty without natural geometry" % level_id)
+
+func _test_gatehouse_visual_foundation() -> void:
+	var level_data := LevelDataLoader.load_level("gatehouse")
+	var environment: Dictionary = level_data.get("environment", {}) as Dictionary
+	_assert_equal(String(level_data.get("designRevision", "")), "gatehouse-visual-v1.2", "Gatehouse should expose its calibrated visual revision")
+	_assert_true(not bool((level_data.get("lights", {}) as Dictionary).get("enabled", true)), "Gatehouse should keep legacy overhead point lights disabled")
+	_assert_equal(String(environment.get("sky_panorama", "")), "res://assets/environment/overcast_soil_puresky_1k.hdr", "Gatehouse should use the architecture-free CC0 sky")
+	_assert_true(FileAccess.file_exists(String(environment.get("sky_panorama", ""))), "Gatehouse pure-sky panorama should exist in the project")
+	_assert_true(bool(environment.get("sun_shadow_enabled", false)), "Gatehouse should retain a shadowed directional key light")
+	_assert_true(float(environment.get("fog_density", 1.0)) <= 0.0015, "Gatehouse fog should remain a lightweight distance blend")
+	_assert_true(bool(environment.get("ssao_enabled", false)), "Gatehouse should retain contact-depth SSAO")
+	_assert_equal(String(environment.get("tonemap", "")), "aces", "Gatehouse should retain ACES tonemapping")
 
 func _route_point_distance(a: Array, b: Array) -> float:
 	if a.size() < 2 or b.size() < 2:

@@ -145,6 +145,11 @@ func _apply_lights(level_data: Dictionary) -> void:
 	for child in lighting_root.get_children():
 		child.free()
 	var lighting: Dictionary = level_data.get("lights", {}) as Dictionary
+	# The shared sky/ambient/shadowed key-light foundation owns normal map
+	# illumination. Legacy overhead point lights stay opt-in so they cannot
+	# reintroduce floating ceiling fixtures or flatten the scene by default.
+	if not bool(lighting.get("enabled", false)):
+		return
 	var points: Array = lighting.get("points", []) as Array
 	var colors: Array = lighting.get("colors", []) as Array
 	for index in range(points.size()):

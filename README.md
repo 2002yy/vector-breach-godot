@@ -76,7 +76,13 @@ If `Godot.exe` is not in your system `PATH`, either pass `-GodotExe <path>` or s
 
 ## 本地运行 / Run Locally
 
-在 Godot 编辑器中直接打开本目录，或使用命令行：
+本机默认双击 `play.cmd`；该入口固定使用 Godot 4.7.1 Forward+ 的 GPU #0（当前枚举为 RTX 5060 Laptop 独显）：
+
+```powershell
+.\play.cmd
+```
+
+也可在 Godot 编辑器中直接打开本目录，或使用命令行：
 
 ```powershell
 Godot.exe --path C:\path\to\godot
