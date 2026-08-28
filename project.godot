@@ -21,6 +21,10 @@ GameState="*res://scripts/autoload/GameState.gd"
 RoundManager="*res://scripts/round/RoundManager.gd"
 UserSettings="*res://scripts/autoload/UserSettings.gd"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/gdUnit4/plugin.cfg")
+
 [display]
 
 window/size/viewport_width=1600
