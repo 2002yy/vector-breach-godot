@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import re
 import subprocess
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from asset_metadata_policy import (
     FLATTENED_SOURCE_EXTENSIONS,
+    METADATA_REQUIRED_SOURCE_EXTENSIONS,
     SCHEMA_VERSION,
-    SOURCE_MASTER_EXTENSIONS,
     load_metadata,
     metadata_path_for_source,
     source_path_for_metadata,
@@ -60,12 +60,22 @@ def require_enum(
         )
 
 
+def is_normalized_repo_path(path: str) -> bool:
+    if not path or "\\" in path or path.startswith("/"):
+        return False
+    pure = PurePosixPath(path)
+    if pure.is_absolute() or any(part in {"", ".", ".."} for part in pure.parts):
+        return False
+    return pure.as_posix() == path
+
+
 def main() -> int:
     tracked = tracked_files()
     source_masters = {
         path
         for path in tracked
-        if path.startswith("assets-source/") and Path(path).suffix.lower() in SOURCE_MASTER_EXTENSIONS
+        if path.startswith("assets-source/")
+        and Path(path).suffix.lower() in METADATA_REQUIRED_SOURCE_EXTENSIONS
     }
     metadata_files = {
         path for path in tracked if path.startswith("assets-source/") and path.endswith(".asset.json")
@@ -143,12 +153,32 @@ def main() -> int:
             )
 
         runtime_outputs = metadata.get("runtime_outputs")
-        if not isinstance(runtime_outputs, list) or any(
-            not isinstance(item, str) or not item.startswith("assets/") for item in runtime_outputs
-        ):
+        if not isinstance(runtime_outputs, list):
             violations.append(
-                f"{metadata_path}: runtime_outputs must be a list of repository paths under assets/"
+                f"{metadata_path}: runtime_outputs must be a list of tracked repository paths under assets/"
             )
+        else:
+            seen_outputs: set[str] = set()
+            for item in runtime_outputs:
+                if not isinstance(item, str) or not is_normalized_repo_path(item):
+                    violations.append(
+                        f"{metadata_path}: runtime_outputs entries must be normalized repository paths, got {item!r}"
+                    )
+                    continue
+                if not item.startswith("assets/"):
+                    violations.append(
+                        f"{metadata_path}: runtime output must live under assets/: {item!r}"
+                    )
+                    continue
+                if item not in tracked:
+                    violations.append(
+                        f"{metadata_path}: runtime output is missing or untracked: {item!r}"
+                    )
+                if item in seen_outputs:
+                    violations.append(
+                        f"{metadata_path}: duplicate runtime output path: {item!r}"
+                    )
+                seen_outputs.add(item)
 
         scale = metadata.get("scale")
         if not isinstance(scale, dict):
