@@ -35,7 +35,7 @@ jobs:
           relative_export_path: build
           archive_output: true
           archive_root_folder: true
-          cache: true
+          cache: false
           verbose: true
 
       - name: Capture direct Godot export diagnostics
