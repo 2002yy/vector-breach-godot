@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "asset_id": "VB-TEXTURE-FLATTENED-ACCEPTANCE",
+  "display_name": "Flattened Source Acceptance Fixture",
+  "category": "texture",
+  "source_role": "canonical_input",
+  "source_path": "assets-source/references/flattened_acceptance.png",
+  "authoring_tool": "External",
+  "provenance": {
+    "origin": "acquired",
+    "license_status": "permitted",
+    "ai_usage": "none"
+  },
+  "allow_flattened_source": true,
+  "runtime_outputs": [],
+  "scale": {
+    "unit": "none"
+  },
+  "review": {
+    "status": "draft"
+  }
+}
