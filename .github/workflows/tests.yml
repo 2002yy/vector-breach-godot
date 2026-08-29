@@ -25,6 +25,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          if ! command -v zstd >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends zstd
+          fi
+          zstd --version
           mkdir -p .tools/blender
           curl --fail --location --retry 3 \
             --output /tmp/blender.tar.xz \
