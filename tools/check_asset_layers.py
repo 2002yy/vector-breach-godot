@@ -6,7 +6,20 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_EXTENSIONS = {".blend", ".blend1", ".kra", ".psd"}
-GENERATED_RUNTIME_EXTENSIONS = {".glb", ".gltf", ".import", ".ctex", ".stex"}
+GENERATED_RUNTIME_EXTENSIONS = {
+    ".glb",
+    ".gltf",
+    ".import",
+    ".ctex",
+    ".stex",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".webp",
+    ".ktx",
+    ".ktx2",
+    ".dds",
+}
 LFS_POINTER_PREFIX = b"version https://git-lfs.github.com/spec/v1\n"
 GENERATED_TRACKED_ALLOWLIST = {
     "assets-generated/.gdignore",
@@ -74,7 +87,7 @@ def main() -> int:
 
         if path.startswith("assets-source/") and suffix in GENERATED_RUNTIME_EXTENSIONS:
             violations.append(
-                "generated/runtime artifact is inside source layer: " + path
+                "generated/runtime or flattened delivery artifact is inside source layer: " + path
             )
 
         if path.startswith("assets-generated/") and path not in GENERATED_TRACKED_ALLOWLIST:
