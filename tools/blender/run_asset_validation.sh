@@ -27,18 +27,9 @@ if (( ${#SOURCES[@]} == 0 )); then
   exit 1
 fi
 
-tmp_files=()
-cleanup() {
-  if (( ${#tmp_files[@]} > 0 )); then
-    rm -f -- "${tmp_files[@]}"
-  fi
-}
-trap cleanup EXIT
-
 failures=0
 for source in "${SOURCES[@]}"; do
   metadata="${source}.asset.json"
-  validation_input="$source"
   echo "==> Validating ${source}"
 
   preflight="$(python - "$source" <<'PY'
@@ -62,43 +53,14 @@ PY
   IFS='|' read -r preflight_status preflight_size preflight_hex <<< "$preflight"
   echo "BLENDER_SOURCE_PREFLIGHT=${preflight_status} path=${source} size=${preflight_size} head16=${preflight_hex}"
 
-  if [[ "$preflight_status" == "ZSTD_COMPRESSED_BLEND" ]]; then
-    if ! command -v zstd >/dev/null 2>&1; then
-      echo "- ${source}: zstd is required to validate this compressed Blender master"
-      failures=$((failures + 1))
-      continue
-    fi
-    validation_input="$(mktemp "${TMPDIR:-/tmp}/vb-blender-validation-XXXXXX.blend")"
-    tmp_files+=("$validation_input")
-    if ! zstd --quiet --decompress --stdout "$source" > "$validation_input"; then
-      echo "- ${source}: zstd decompression failed"
-      failures=$((failures + 1))
-      continue
-    fi
-    expanded_preflight="$(python - "$validation_input" <<'PY'
-from pathlib import Path
-import sys
-
-path = Path(sys.argv[1])
-data = path.read_bytes()
-print(f"{len(data)}|{data[:16].hex()}|{int(data.startswith(b'BLENDER'))}")
-PY
-)"
-    IFS='|' read -r expanded_size expanded_hex expanded_ok <<< "$expanded_preflight"
-    echo "BLENDER_SOURCE_DECOMPRESSED path=${source} size=${expanded_size} head16=${expanded_hex}"
-    if [[ "$expanded_ok" != "1" ]]; then
-      echo "- ${source}: decompressed payload is not a Blender file"
-      failures=$((failures + 1))
-      continue
-    fi
-  elif [[ "$preflight_status" != "BLENDER_HEADER_OK" ]]; then
+  if [[ "$preflight_status" != "BLENDER_HEADER_OK" && "$preflight_status" != "ZSTD_COMPRESSED_BLEND" ]]; then
     echo "- ${source}: source binary preflight failed (${preflight_status})"
     failures=$((failures + 1))
     continue
   fi
 
   if "$BLENDER_BIN" \
-    --background "$validation_input" \
+    --background "$source" \
     --python-exit-code 1 \
     --python tools/blender/validate_asset_source.py \
     -- --metadata "$metadata" --source "$source"; then
