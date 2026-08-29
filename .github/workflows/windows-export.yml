@@ -137,3 +137,71 @@ jobs:
           path: ${{ runner.temp }}/windows-package
           if-no-files-found: error
           retention-days: 7
+
+  smoke-windows:
+    name: smoke-windows
+    needs: export-windows
+    runs-on: windows-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    steps:
+      - name: Download Windows build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: vector-breach-windows
+          path: ${{ runner.temp }}\windows-artifact
+
+      - name: Verify SHA256 and unpack build
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $artifactDir = Join-Path $env:RUNNER_TEMP 'windows-artifact'
+          $zipPath = Join-Path $artifactDir 'VectorBreach-Windows.zip'
+          $sumPath = Join-Path $artifactDir 'SHA256SUMS.txt'
+          $smokeDir = Join-Path $env:RUNNER_TEMP 'windows-smoke'
+
+          if (-not (Test-Path $zipPath)) { throw "Missing $zipPath" }
+          if (-not (Test-Path $sumPath)) { throw "Missing $sumPath" }
+
+          $expected = ((Get-Content $sumPath -Raw).Trim() -split '\s+')[0].ToLowerInvariant()
+          $actual = (Get-FileHash -Algorithm SHA256 $zipPath).Hash.ToLowerInvariant()
+          if ($expected -ne $actual) {
+            throw "SHA256 mismatch: expected=$expected actual=$actual"
+          }
+
+          Expand-Archive -Path $zipPath -DestinationPath $smokeDir -Force
+          Get-ChildItem -Path $smokeDir -Recurse -File | Select-Object FullName, Length
+
+      - name: Launch exported game headlessly
+        id: smoke
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $smokeDir = Join-Path $env:RUNNER_TEMP 'windows-smoke'
+          $logDir = Join-Path $env:RUNNER_TEMP 'windows-smoke-logs'
+          New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+
+          $exe = Get-ChildItem -Path $smokeDir -Recurse -Filter 'VectorBreach.exe' -File | Select-Object -First 1
+          if (-not $exe) { throw 'VectorBreach.exe not found after unpacking artifact.' }
+
+          $engineLog = Join-Path $logDir 'godot-runtime.log'
+          $consoleLog = Join-Path $logDir 'console.log'
+
+          & $exe.FullName --headless --quit-after 300 --verbose --log-file $engineLog *>&1 | Tee-Object -FilePath $consoleLog
+          $exitCode = $LASTEXITCODE
+          "EXIT_CODE=$exitCode" | Set-Content -Path (Join-Path $logDir 'exit-code.txt') -Encoding ascii
+
+          if ($exitCode -ne 0) {
+            throw "Exported game exited with code $exitCode"
+          }
+
+      - name: Upload Windows smoke logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-smoke-logs
+          path: ${{ runner.temp }}\windows-smoke-logs
+          if-no-files-found: warn
+          retention-days: 7
