@@ -13,7 +13,7 @@ assets-source/blender/weapons/weapon_asset_source.blend
 assets-source/blender/weapons/weapon_asset_source.blend.asset.json
 ```
 
-Every tracked editable master (`.blend`, `.blend1`, `.kra`, `.psd`) under `assets-source/` must have a sidecar. Asset IDs must be repository-unique.
+Every tracked editable master (`.blend`, `.blend1`, `.kra`, `.psd`) and source-audio master (`.wav`, `.flac`, `.aif`, `.aiff`) under `assets-source/` must have a sidecar. Asset IDs must be repository-unique.
 
 ## Required v1 fields
 
@@ -55,7 +55,9 @@ Historical information must use `unknown` when it cannot be established. Do not 
 
 ## Runtime outputs
 
-`runtime_outputs` contains reviewed published paths under `assets/`. It may be empty while a legacy asset's publish mapping is being reconstructed. Generated/intermediate files under `assets-generated/` are not runtime outputs.
+`runtime_outputs` contains reviewed published paths under `assets/`. It may be empty while a legacy asset's publish mapping is being reconstructed. Every non-empty entry must be a normalized POSIX-style repository path, must remain under `assets/`, and must name a file currently tracked by Git. Duplicate paths are rejected. Generated/intermediate files under `assets-generated/` are not runtime outputs.
+
+This means a sidecar cannot silently keep a stale mapping after a published asset is renamed or deleted; the metadata gate fails until the mapping is updated.
 
 ## Flattened canonical inputs
 
@@ -79,4 +81,4 @@ For this exception, provenance origin must be known and `license_status` must be
 
 ## CI
 
-`tools/check_asset_metadata.py` validates metadata coverage and schema semantics. `tools/check_asset_layers.py` consumes the same shared policy for flattened-source exceptions. Both run before Godot installation so metadata/path failures fail fast.
+`tools/check_asset_metadata.py` validates metadata coverage, schema semantics, and live source-to-runtime mappings. `tools/check_asset_layers.py` consumes the same shared policy for flattened-source exceptions. Both run before Godot installation so metadata/path failures fail fast.
