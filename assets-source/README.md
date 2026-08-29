@@ -11,8 +11,8 @@
 - Runtime-ready, reviewed assets continue to live under `assets/` because existing `res://assets/...` references are part of the game contract.
 - Reproducible intermediate outputs belong under `assets-generated/` and are not committed by default.
 
-## Current migration state
+## Migration state
 
-Six existing Blender masters are still under `tools/blender/source/` because the current deterministic Blender build scripts write there directly. They are a temporary legacy allowlist, not a second place for new masters.
+The six tracked Blender masters have been migrated from `tools/blender/source/` into domain-specific paths under `assets-source/blender/`, and the deterministic Blender builders now point at those canonical locations.
 
-No new source master may be added to `tools/blender/source/`. A later migration will move those six masters and update the Blender build scripts in one tested change so that the repository never has two competing canonical copies.
+`tools/blender/source/` is retired. CI rejects editable source masters outside `assets-source/`, rejects generated/runtime artifacts from the source layer, and rejects any tracked file that recreates the retired legacy source root.
