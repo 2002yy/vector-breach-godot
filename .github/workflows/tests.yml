@@ -32,6 +32,19 @@ jobs:
           tar -xf /tmp/blender.tar.xz -C .tools/blender --strip-components=1
           .tools/blender/blender --version
 
+      - name: Negative-test injection - unapplied Blender scale
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="assets-source/blender/weapons/weapon_asset_source.blend"
+          .tools/blender/blender --background "$target" --python-exit-code 1 --python-expr '
+          import bpy
+          target = next(obj for obj in bpy.data.objects if obj.type == "MESH")
+          target.scale.x = 2.0
+          print(f"NEGATIVE_TEST_SCALE_INJECTED={target.name} scale={tuple(target.scale)}")
+          bpy.ops.wm.save_as_mainfile(filepath=bpy.data.filepath)
+          '
+
       - name: Blender source validation
         shell: bash
         run: bash ./tools/blender/run_asset_validation.sh ./.tools/blender/blender
