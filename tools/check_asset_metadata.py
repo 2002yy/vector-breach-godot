@@ -35,6 +35,7 @@ LICENSE_STATUSES = {"project-owned", "permitted", "restricted", "unknown"}
 AI_USAGE = {"none", "assisted", "generated", "unknown"}
 UNITS = {"meter", "centimeter", "none", "unknown"}
 REVIEW_STATUSES = {"draft", "approved", "legacy-imported", "blocked"}
+BLENDER_SOURCE_EXTENSIONS = {".blend", ".blend1"}
 
 
 def tracked_files() -> set[str]:
@@ -88,6 +89,9 @@ def main() -> int:
             violations.append(f"missing metadata sidecar for canonical source master: {source_path}")
 
     seen_asset_ids: dict[str, str] = {}
+    blender_output_owners: dict[str, str] = {}
+    blender_publish_jobs = 0
+
     for metadata_path in sorted(metadata_files):
         source_path = source_path_for_metadata(metadata_path)
         if source_path is None or source_path not in tracked:
@@ -153,6 +157,7 @@ def main() -> int:
             )
 
         runtime_outputs = metadata.get("runtime_outputs")
+        valid_runtime_outputs: list[str] = []
         if not isinstance(runtime_outputs, list):
             violations.append(
                 f"{metadata_path}: runtime_outputs must be a list of tracked repository paths under assets/"
@@ -170,6 +175,7 @@ def main() -> int:
                         f"{metadata_path}: runtime output must live under assets/: {item!r}"
                     )
                     continue
+                valid_runtime_outputs.append(item)
                 if item not in tracked:
                     violations.append(
                         f"{metadata_path}: runtime output is missing or untracked: {item!r}"
@@ -222,6 +228,42 @@ def main() -> int:
                     f"{metadata_path}: flattened source exception requires license_status project-owned/permitted"
                 )
 
+        is_blender_master = (
+            source_role == "canonical_master"
+            and suffix in BLENDER_SOURCE_EXTENSIONS
+            and authoring_tool == "Blender"
+        )
+        if is_blender_master:
+            blender_publish_jobs += 1
+            build_script = metadata.get("build_script")
+            if not isinstance(build_script, str) or not is_normalized_repo_path(build_script):
+                violations.append(
+                    f"{metadata_path}: Blender canonical master requires normalized build_script"
+                )
+            else:
+                if not build_script.startswith("tools/blender/") or not build_script.endswith(".py"):
+                    violations.append(
+                        f"{metadata_path}: build_script must be a Python file under tools/blender/: {build_script!r}"
+                    )
+                if build_script not in tracked:
+                    violations.append(
+                        f"{metadata_path}: build_script is missing or untracked: {build_script!r}"
+                    )
+
+            if not valid_runtime_outputs:
+                violations.append(
+                    f"{metadata_path}: Blender canonical master must declare at least one runtime output"
+                )
+            for output in valid_runtime_outputs:
+                previous_owner = blender_output_owners.get(output)
+                if previous_owner is not None:
+                    violations.append(
+                        f"{metadata_path}: Blender runtime output has multiple canonical producers: "
+                        f"{output!r}; first owned by {previous_owner}"
+                    )
+                else:
+                    blender_output_owners[output] = metadata_path
+
     if violations:
         print("ASSET_METADATA_POLICY=FAIL")
         for violation in violations:
@@ -233,6 +275,8 @@ def main() -> int:
     print(f"metadata_sidecars={len(metadata_files)}")
     print(f"metadata_coverage={len(source_masters)}/{len(source_masters)}")
     print(f"unique_asset_ids={len(seen_asset_ids)}")
+    print(f"blender_publish_jobs={blender_publish_jobs}")
+    print(f"blender_owned_runtime_outputs={len(blender_output_owners)}")
     return 0
 
 
