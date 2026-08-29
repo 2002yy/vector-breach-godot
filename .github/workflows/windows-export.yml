@@ -32,74 +32,24 @@ jobs:
           godot_export_templates_download_url: https://github.com/godotengine/godot/releases/download/4.7.1-stable/Godot_v4.7.1-stable_export_templates.tpz
           relative_project_path: ./
           presets_to_export: Windows Desktop
-          relative_export_path: build
-          archive_output: true
-          archive_root_folder: true
+          archive_output: false
           cache: false
           verbose: true
 
-      - name: Isolate export wrapper failure
+      - name: Capture export failure diagnostics
         if: steps.export.outcome == 'failure'
         shell: bash
         run: |
           set +e
           DIAG_DIR="$RUNNER_TEMP/export-diagnostics"
-          ACTION_DIR="$RUNNER_TEMP/action-style-export"
-          PATH_DIR="$RUNNER_TEMP/path-style-export"
-          mkdir -p "$DIAG_DIR" "$ACTION_DIR" "$PATH_DIR"
-
+          mkdir -p "$DIAG_DIR"
           GODOT_BIN="$(find "$HOME/.local/share/godot/godot_executable" -type f -name '*.x86_64' -print -quit)"
-
           {
             echo "GODOT_BIN=$GODOT_BIN"
-            echo "=== Godot version ==="
             "$GODOT_BIN" --version
-            echo "=== Wrapper output candidates after action failure ==="
-            for dir in \
-              "$HOME/.local/share/godot/builds" \
-              "$HOME/.local/share/godot/archives" \
-              "$GITHUB_WORKSPACE/build"; do
-              echo "--- $dir"
-              if [ -e "$dir" ]; then
-                find "$dir" -maxdepth 4 -type f -printf '%p %s bytes\n' | sort
-              else
-                echo "MISSING"
-              fi
-            done
-          } > "$DIAG_DIR/environment-and-wrapper-files.txt" 2>&1
-
-          echo "=== Action-style positional project invocation ===" > "$DIAG_DIR/action-style.log"
-          "$GODOT_BIN" "$GITHUB_WORKSPACE/project.godot" --headless \
-            --export-release "Windows Desktop" "$ACTION_DIR/VectorBreach.exe" --verbose \
-            >> "$DIAG_DIR/action-style.log" 2>&1
-          ACTION_EXIT=$?
-          echo "$ACTION_EXIT" > "$DIAG_DIR/action-style-exit-code.txt"
-          find "$ACTION_DIR" -maxdepth 1 -type f -printf '%f %s bytes\n' | sort \
-            > "$DIAG_DIR/action-style-files.txt"
-
-          if [ "$ACTION_EXIT" -ne 0 ]; then
-            echo "=== Known-good --path invocation ===" > "$DIAG_DIR/path-style.log"
-            "$GODOT_BIN" --path "$GITHUB_WORKSPACE" --headless --verbose \
-              --export-release "Windows Desktop" "$PATH_DIR/VectorBreach.exe" \
-              >> "$DIAG_DIR/path-style.log" 2>&1
-            PATH_EXIT=$?
-            echo "$PATH_EXIT" > "$DIAG_DIR/path-style-exit-code.txt"
-            find "$PATH_DIR" -maxdepth 1 -type f -printf '%f %s bytes\n' | sort \
-              > "$DIAG_DIR/path-style-files.txt"
-          else
-            echo "SKIPPED_ACTION_STYLE_SUCCEEDED" > "$DIAG_DIR/path-style-exit-code.txt"
-          fi
-
-          # Keep diagnostics small: preserve manifests/logs, not 100MB+ binaries.
-          rm -f "$ACTION_DIR"/* "$PATH_DIR"/*
-
-          cat "$DIAG_DIR/environment-and-wrapper-files.txt"
-          echo "ACTION_STYLE_EXIT=$ACTION_EXIT"
-          cat "$DIAG_DIR/action-style-files.txt"
-          if [ -f "$DIAG_DIR/path-style-files.txt" ]; then
-            echo "PATH_STYLE_EXIT=$(cat "$DIAG_DIR/path-style-exit-code.txt")"
-            cat "$DIAG_DIR/path-style-files.txt"
-          fi
+            echo "=== Build directory ==="
+            find "$HOME/.local/share/godot/builds" -maxdepth 4 -type f -printf '%p %s bytes\n' | sort
+          } > "$DIAG_DIR/environment.txt" 2>&1
           exit 0
 
       - name: Upload export diagnostics
@@ -111,25 +61,43 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      - name: Fail after diagnostics
+      - name: Fail if Godot export failed
         if: steps.export.outcome == 'failure'
         run: exit 1
 
-      - name: Generate SHA256 manifest
+      - name: Verify exported files
         if: steps.export.outcome == 'success'
         env:
-          ARCHIVE_DIR: ${{ steps.export.outputs.archive_directory }}
+          BUILD_ROOT: ${{ steps.export.outputs.build_directory }}
+        shell: bash
         run: |
-          find "$ARCHIVE_DIR" -maxdepth 1 -type f -name '*.zip' -print0 \
-            | sort -z \
-            | xargs -0 sha256sum > "$ARCHIVE_DIR/SHA256SUMS.txt"
-          cat "$ARCHIVE_DIR/SHA256SUMS.txt"
+          set -euo pipefail
+          BUILD_DIR="$BUILD_ROOT/Windows Desktop"
+          test -s "$BUILD_DIR/VectorBreach.exe"
+          test -s "$BUILD_DIR/VectorBreach.pck"
+          find "$BUILD_DIR" -maxdepth 1 -type f -printf '%f %s bytes\n' | sort
+
+      - name: Archive Windows build and generate SHA256
+        if: steps.export.outcome == 'success'
+        env:
+          BUILD_ROOT: ${{ steps.export.outputs.build_directory }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          PACKAGE_DIR="$RUNNER_TEMP/windows-package"
+          mkdir -p "$PACKAGE_DIR"
+          cd "$BUILD_ROOT"
+          zip -q -r "$PACKAGE_DIR/VectorBreach-Windows.zip" "Windows Desktop"
+          cd "$PACKAGE_DIR"
+          sha256sum VectorBreach-Windows.zip > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+          ls -lh VectorBreach-Windows.zip SHA256SUMS.txt
 
       - name: Upload Windows build
         if: steps.export.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: vector-breach-windows
-          path: ${{ steps.export.outputs.archive_directory }}
+          path: ${{ runner.temp }}/windows-package
           if-no-files-found: error
           retention-days: 7
