@@ -1,6 +1,6 @@
 # Vector Breach Project Status
 
-Updated: 2026-08-25
+Updated: 2026-08-30
 
 本文档是仓库唯一的状态、边界与优先级来源。README 和各地图设计记录只保留入口说明或设计约束；如与本文冲突，以当前检出、自动测试和本文为准。
 
@@ -36,6 +36,7 @@ Updated: 2026-08-25
 - 现有角色属于可用的低模表现资产，不是最终正式角色。敌我识别由深色主体和 CT 蓝/T 橙局部标识承担。
 - 战斗音频包含 14 个已核验来源的 CC0 Ogg 采样及程序化回退；尚无语音报点。
 - 第一人称步枪与手枪已由独立确定性 Blender 管线重制为原创近未来战术资产：步枪包含分体护木、上下机匣、骨架枪托、红点、制退器和操作件，手枪包含切角套筒、退壳口、套筒纹、底把导轨和独立控制件；现有移动摆动、后坐、落地和换弹反馈保持兼容。2026-08-25 用户直接授权该 G5 局部例外，但它不代表 G2/G5 整体门槛通过。
+- 6 个 Git tracked Blender canonical master 已集中在 `assets-source/blender/` 并由 Git LFS 管理；每个 master 都有相邻 `*.asset.json` sidecar 记录资产身份、canonical source path 与 tracked runtime outputs。Godot 运行时资产继续位于 `assets/`，源 `.blend` 不直接成为运行时权威。
 - Foundry Reforged 已有 Vulkan 视觉、性能和作品集录屏证据；Gatehouse 尚未达到同等级作品集画面。
 - 2026-08-24 用户授权的视觉基础已扩展为全地图默认体系：Test Collision Room、Foundry Depot、Gatehouse、Core Vault 与 Foundry Reforged 均继承 CC0 阴天纯天空、暖色阴影方向主光、冷色环境光、ACES、轻量雾和 SSAO；旧地图头顶点光默认关闭，Gatehouse、Core Vault 与 Foundry Depot 的悬空灯具几何已从确定性生成资产移除。Gatehouse 仍保留 28 根接地且贴合边界的尺度节奏柱。该改动是 G5 前置基础，不代表 G5 作品集验收完成，也不解除 G2 十场人工比赛门槛。
 - Dustline Depths 是唯一复刻研究图；本机可用时菜单提供 `dustline-depths-original-local`，直接使用 `assets/local_reference` 下的原始视觉/材质和项目内审计碰撞。第三方原始素材保持 local-only、排除于 Git 与公开主演示。
@@ -56,6 +57,9 @@ Updated: 2026-08-25
 
 - Windows 与 Linux 聚合脚本统一运行十一套原生测试：关卡数据、武器、灰盒关卡、命中反馈、战术 Bot、爆破 AI、比赛生命周期、Gatehouse 场景集成、主状态流、音频资产和性能预算；当前基线为 135 项并出现 `RUN_ALL_OK`。
 - 已接入 GdUnit4 v6.2.1（`addons/gdUnit4`，经 Godot 4.7.1 headless 验证 2 用例 PASS），作为原生测试之外的行业标准补充框架；新测试放 `test/`，报告目录 `reports/` 已忽略，运行方式为 `runtest.cmd`（需 `GODOT_BIN` 指向引擎）。
+- Required `Tests` 已在 Godot 之前执行 Asset Layer 与 Asset Metadata policy：当前 canonical source master 为 6 个，metadata sidecar 覆盖 6/6、资产 ID 唯一，sidecar 中的 runtime outputs 必须是 `assets/` 下规范、去重且 Git tracked 的实存路径；mandatory source coverage 同时包含 Blender/Krita/PSD/FBX 等源资产与音频 master。
+- Step 13 已接入 Blender 5.2.1 LTS headless source gate：6/6 tracked Blender master 在真实 canonical path 上通过 naming safety、外部 FILE/SEQUENCE/MOVIE/TILED/UDIM 资源实存、geometry unit scale、finite/non-singular transform、metadata/source identity 与二进制/LFS preflight；正向 PR #18 随后继续通过 Godot import、GdUnit4 与 native suites。
+- Step 13 的 do-not-merge 负测 PR #19 在 Asset Layer/Metadata 保持 PASS 后，仅在 CI 工作树把 `GEO-pistol-barrel` 临时改为 scale `(2, 1, 1)`；Blender gate 精确报 `geometry object has unapplied scale` 并失败，Godot 安装、import、GdUnit4 与 native suites 全部 skipped。坏 `.blend` 未提交或合并，证明 source-art gate 具备 fail-fast 阻断能力。
 - Gatehouse 场景集成测试以真实 `Main.tscn` 覆盖 T/CT 开局与半场、6:6 两局加时、同一 Main 新比赛隔离和重复 end/restart 幂等；验证真实 3v3、出生/换边、经济装备、逐单位统计、C4 唯一归属与旧实体清理。G1 已通过，下一门槛为 G2 十场人工完整比赛。
 - Gatehouse 路线图为 39 节点/48 连接，三路首次接触为 7.83–8.39 秒，A/B 守方轮转为 4.49 秒；西路已绕开检查平台楼梯碰撞。
 - Core Vault 路线图为 44 节点/54 连接，三路首次接触为 8.23–8.42 秒，A/B 轮转为 10.16 秒。
