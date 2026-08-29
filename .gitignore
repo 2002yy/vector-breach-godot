@@ -7,6 +7,11 @@ __pycache__/
 assets/local_reference/
 data/levels/*-local.json
 
+# Asset pipeline: reproducible intermediates stay local by default.
+assets-generated/*
+!assets-generated/.gdignore
+!assets-generated/README.md
+
 # Local-only Dustline reference reconstruction. Its collision source is Valve map data.
 assets/maps/dustline-depths-preview.png*
 assets/models/dustline/
