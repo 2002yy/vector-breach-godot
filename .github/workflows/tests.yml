@@ -26,6 +26,7 @@ jobs:
         run: >
           ./Godot_v4.7.1-stable_linux.x86_64 --headless --path .
           -s -d res://addons/gdUnit4/bin/GdUnitCmdTool.gd -a test
+          --ignoreHeadlessMode
 
       - name: Native test suites
         run: bash ./tools/run_godot_tests.sh ./Godot_v4.7.1-stable_linux.x86_64
