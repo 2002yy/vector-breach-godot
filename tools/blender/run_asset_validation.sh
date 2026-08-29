@@ -31,6 +31,32 @@ failures=0
 for source in "${SOURCES[@]}"; do
   metadata="${source}.asset.json"
   echo "==> Validating ${source}"
+
+  preflight="$(python - "$source" <<'PY'
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+data = path.read_bytes()
+head = data[:80]
+if head.startswith(b"version https://git-lfs.github.com/spec/v1"):
+    status = "UNRESOLVED_LFS_POINTER"
+elif head.startswith(b"BLENDER"):
+    status = "BLENDER_HEADER_OK"
+else:
+    status = "INVALID_BINARY_HEADER"
+print(f"{status}|{len(data)}|{head[:16].hex()}")
+PY
+)"
+  IFS='|' read -r preflight_status preflight_size preflight_hex <<< "$preflight"
+  echo "BLENDER_SOURCE_PREFLIGHT=${preflight_status} path=${source} size=${preflight_size} head16=${preflight_hex}"
+
+  if [[ "$preflight_status" != "BLENDER_HEADER_OK" ]]; then
+    echo "- ${source}: source binary preflight failed (${preflight_status})"
+    failures=$((failures + 1))
+    continue
+  fi
+
   if "$BLENDER_BIN" \
     --background "$source" \
     --python-exit-code 1 \
