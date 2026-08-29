@@ -6,7 +6,9 @@ from typing import Any
 
 
 SCHEMA_VERSION = 1
-SOURCE_MASTER_EXTENSIONS = {".blend", ".blend1", ".kra", ".psd"}
+AUTHORING_MASTER_EXTENSIONS = {".blend", ".blend1", ".kra", ".psd"}
+AUDIO_MASTER_EXTENSIONS = {".wav", ".flac", ".aif", ".aiff"}
+METADATA_REQUIRED_SOURCE_EXTENSIONS = AUTHORING_MASTER_EXTENSIONS | AUDIO_MASTER_EXTENSIONS
 FLATTENED_SOURCE_EXTENSIONS = {
     ".png",
     ".jpg",
