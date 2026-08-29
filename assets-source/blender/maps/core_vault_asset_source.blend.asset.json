@@ -6,6 +6,7 @@
   "source_role": "canonical_master",
   "source_path": "assets-source/blender/maps/core_vault_asset_source.blend",
   "authoring_tool": "Blender",
+  "build_script": "tools/blender/build_core_vault_assets.py",
   "provenance": {
     "origin": "unknown",
     "license_status": "unknown",
