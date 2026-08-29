@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "asset_id": "VB-MAP-FOUNDRY",
+  "display_name": "Foundry",
+  "category": "map",
+  "source_role": "canonical_master",
+  "source_path": "assets-source/blender/maps/foundry_asset_source.blend",
+  "authoring_tool": "Blender",
+  "provenance": {
+    "origin": "unknown",
+    "license_status": "unknown",
+    "ai_usage": "unknown"
+  },
+  "runtime_outputs": [],
+  "scale": {
+    "unit": "meter"
+  },
+  "review": {
+    "status": "legacy-imported"
+  }
+}
