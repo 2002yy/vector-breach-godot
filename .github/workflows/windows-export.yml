@@ -1,0 +1,139 @@
+name: Windows Export
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - "export_presets.cfg"
+      - ".github/workflows/windows-export.yml"
+      - "project.godot"
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  export-windows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+
+    env:
+      GODOT_VERSION: 4.7.1
+      GODOT_RELEASE: 4.7.1-stable
+      GODOT_BIN: Godot_v4.7.1-stable_linux.x86_64
+      TEMPLATE_DIR: /home/runner/.local/share/godot/export_templates/4.7.1.stable
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Godot 4.7.1
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --retry-delay 2 \
+            -o godot.zip \
+            https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}/Godot_v${GODOT_RELEASE}_linux.x86_64.zip
+          unzip -q godot.zip
+          chmod +x "./${GODOT_BIN}"
+          "./${GODOT_BIN}" --version
+
+      - name: Install Windows export templates
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --retry-delay 2 \
+            -o export_templates.tpz \
+            https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}/Godot_v${GODOT_RELEASE}_export_templates.tpz
+          mkdir -p "${TEMPLATE_DIR}"
+          unzip -q -o -j export_templates.tpz -d "${TEMPLATE_DIR}"
+          test -s "${TEMPLATE_DIR}/windows_release_x86_64.exe"
+          ls -lh "${TEMPLATE_DIR}/windows_release_x86_64.exe"
+
+      - name: Import project resources
+        shell: bash
+        run: |
+          set -euo pipefail
+          "./${GODOT_BIN}" --headless --path . --import
+
+      - name: Export Windows build
+        id: export
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          BUILD_DIR="${RUNNER_TEMP}/windows-build/VectorBreach"
+          DIAG_DIR="${RUNNER_TEMP}/windows-export-diagnostics"
+          mkdir -p "${BUILD_DIR}" "${DIAG_DIR}"
+
+          "./${GODOT_BIN}" --headless --path . --verbose \
+            --export-release "Windows Desktop" "${BUILD_DIR}/VectorBreach.exe" \
+            > "${DIAG_DIR}/godot-export.log" 2>&1
+          EXPORT_EXIT=$?
+
+          echo "${EXPORT_EXIT}" > "${DIAG_DIR}/exit-code.txt"
+          {
+            echo "PWD=$(pwd)"
+            echo "GODOT_BIN=${GODOT_BIN}"
+            echo "TEMPLATE_DIR=${TEMPLATE_DIR}"
+            echo "=== export preset ==="
+            cat export_presets.cfg
+            echo "=== template files ==="
+            find "${TEMPLATE_DIR}" -maxdepth 1 -type f -printf '%f %s bytes\n' | sort
+            echo "=== generated build files ==="
+            find "${BUILD_DIR}" -maxdepth 1 -type f -printf '%f %s bytes\n' | sort
+          } > "${DIAG_DIR}/environment.txt" 2>&1
+
+          cat "${DIAG_DIR}/godot-export.log"
+          cat "${DIAG_DIR}/environment.txt"
+          echo "EXPORT_EXIT=${EXPORT_EXIT}"
+          exit "${EXPORT_EXIT}"
+
+      - name: Upload export diagnostics
+        if: steps.export.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-export-diagnostics
+          path: ${{ runner.temp }}/windows-export-diagnostics
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Fail if Godot export failed
+        if: steps.export.outcome == 'failure'
+        run: exit 1
+
+      - name: Verify exported files
+        if: steps.export.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUILD_DIR="${RUNNER_TEMP}/windows-build/VectorBreach"
+          test -s "${BUILD_DIR}/VectorBreach.exe"
+          test -s "${BUILD_DIR}/VectorBreach.pck"
+          find "${BUILD_DIR}" -maxdepth 1 -type f -printf '%f %s bytes\n' | sort
+
+      - name: Archive Windows build and generate SHA256
+        if: steps.export.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          PACKAGE_DIR="${RUNNER_TEMP}/windows-package"
+          BUILD_PARENT="${RUNNER_TEMP}/windows-build"
+          mkdir -p "${PACKAGE_DIR}"
+          cd "${BUILD_PARENT}"
+          zip -q -r "${PACKAGE_DIR}/VectorBreach-Windows.zip" VectorBreach
+          cd "${PACKAGE_DIR}"
+          sha256sum VectorBreach-Windows.zip > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+          ls -lh VectorBreach-Windows.zip SHA256SUMS.txt
+
+      - name: Upload Windows build
+        if: steps.export.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: vector-breach-windows
+          path: ${{ runner.temp }}/windows-package
+          if-no-files-found: error
+          retention-days: 7
