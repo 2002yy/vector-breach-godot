@@ -6,19 +6,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_EXTENSIONS = {".blend", ".blend1", ".kra", ".psd"}
+GENERATED_RUNTIME_EXTENSIONS = {".glb", ".gltf", ".import", ".ctex", ".stex"}
 LFS_POINTER_PREFIX = b"version https://git-lfs.github.com/spec/v1\n"
 GENERATED_TRACKED_ALLOWLIST = {
     "assets-generated/.gdignore",
     "assets-generated/README.md",
-}
-LEGACY_BLENDER_SOURCE_ALLOWLIST = {
-    "tools/blender/source/.gdignore",
-    "tools/blender/source/core_vault_asset_source.blend",
-    "tools/blender/source/foundry_asset_source.blend",
-    "tools/blender/source/foundry_reforged_source.blend",
-    "tools/blender/source/gatehouse_asset_source.blend",
-    "tools/blender/source/tactical_actor_lowpoly_source.blend",
-    "tools/blender/source/weapon_asset_source.blend",
 }
 
 
@@ -74,15 +66,23 @@ def main() -> int:
 
     for path in sorted(tracked):
         suffix = Path(path).suffix.lower()
-        if path.startswith("assets/") and suffix in SOURCE_EXTENSIONS:
-            violations.append(f"editable source file is inside runtime assets: {path}")
+
+        if suffix in SOURCE_EXTENSIONS and not path.startswith("assets-source/"):
+            violations.append(
+                "editable source master is outside canonical assets-source/: " + path
+            )
+
+        if path.startswith("assets-source/") and suffix in GENERATED_RUNTIME_EXTENSIONS:
+            violations.append(
+                "generated/runtime artifact is inside source layer: " + path
+            )
 
         if path.startswith("assets-generated/") and path not in GENERATED_TRACKED_ALLOWLIST:
             violations.append(f"generated intermediate is tracked by Git: {path}")
 
-        if path.startswith("tools/blender/source/") and path not in LEGACY_BLENDER_SOURCE_ALLOWLIST:
+        if path.startswith("tools/blender/source/"):
             violations.append(
-                "new file added to legacy Blender source root; use assets-source/: " + path
+                "legacy Blender source root must stay retired; use assets-source/: " + path
             )
 
     for path in sorted(lfs_tracked_files(tracked)):
@@ -98,9 +98,14 @@ def main() -> int:
             print(f"- {violation}")
         return 1
 
-    legacy_count = len(LEGACY_BLENDER_SOURCE_ALLOWLIST & tracked) - 1
+    source_master_count = sum(
+        1
+        for path in tracked
+        if path.startswith("assets-source/") and Path(path).suffix.lower() in SOURCE_EXTENSIONS
+    )
     print("ASSET_LAYER_POLICY=PASS")
-    print(f"legacy_blender_masters={max(legacy_count, 0)}")
+    print(f"source_masters={source_master_count}")
+    print("legacy_blender_masters=0")
     print("runtime_layer=assets/")
     print("source_layer=assets-source/")
     print("generated_layer=assets-generated/")
