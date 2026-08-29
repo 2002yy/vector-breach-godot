@@ -60,26 +60,33 @@ def _safe_name(kind: str, name: str, violations: list[str]) -> None:
         violations.append(f"{kind} name contains a control character: {name!r}")
 
 
-def validate_loaded_asset(metadata_path: Path | None = None) -> dict:
+def validate_loaded_asset(
+    metadata_path: Path | None = None,
+    logical_source_path: Path | None = None,
+) -> dict:
     violations: list[str] = []
-    blend_path = Path(bpy.data.filepath).resolve() if bpy.data.filepath else None
+    opened_blend_path = Path(bpy.data.filepath).resolve() if bpy.data.filepath else None
+    source_path = logical_source_path.resolve() if logical_source_path is not None else opened_blend_path
 
-    if blend_path is None:
+    if opened_blend_path is None:
         violations.append("opened Blender file has no filepath")
+
+    if source_path is None:
+        violations.append("canonical Blender source path is unknown")
     else:
         try:
-            relative_blend = blend_path.relative_to(PROJECT_ROOT.resolve()).as_posix()
+            relative_source = source_path.relative_to(PROJECT_ROOT.resolve()).as_posix()
         except ValueError:
-            relative_blend = blend_path.as_posix()
-            violations.append(f"opened Blender file is outside repository: {relative_blend}")
+            relative_source = source_path.as_posix()
+            violations.append(f"canonical Blender source is outside repository: {relative_source}")
         else:
-            if not relative_blend.startswith("assets-source/blender/"):
+            if not relative_source.startswith("assets-source/blender/"):
                 violations.append(
-                    f"opened Blender source is outside assets-source/blender/: {relative_blend}"
+                    f"canonical Blender source is outside assets-source/blender/: {relative_source}"
                 )
 
         if metadata_path is None:
-            metadata_path = Path(str(blend_path) + ".asset.json")
+            metadata_path = Path(str(source_path) + ".asset.json")
 
     metadata: dict | None = None
     if metadata_path is not None:
@@ -93,16 +100,16 @@ def validate_loaded_asset(metadata_path: Path | None = None) -> dict:
             if metadata is None:
                 violations.append(f"metadata sidecar must contain a JSON object: {_repo_path(metadata_path)}")
 
-    if metadata is not None and blend_path is not None:
-        source_path = metadata.get("source_path")
-        if not isinstance(source_path, str) or not source_path:
+    if metadata is not None and source_path is not None:
+        metadata_source = metadata.get("source_path")
+        if not isinstance(metadata_source, str) or not metadata_source:
             violations.append("metadata source_path must be a non-empty string")
         else:
-            expected = (PROJECT_ROOT / source_path).resolve()
-            if expected != blend_path:
+            expected = (PROJECT_ROOT / metadata_source).resolve()
+            if expected != source_path:
                 violations.append(
-                    "metadata source_path does not match opened Blender file: "
-                    f"{source_path!r} != {_repo_path(blend_path)!r}"
+                    "metadata source_path does not match canonical Blender source: "
+                    f"{metadata_source!r} != {_repo_path(source_path)!r}"
                 )
 
     for kind, datablocks in (
@@ -153,7 +160,8 @@ def validate_loaded_asset(metadata_path: Path | None = None) -> dict:
             )
 
     summary = {
-        "blend": _repo_path(blend_path) if blend_path is not None else None,
+        "source": _repo_path(source_path) if source_path is not None else None,
+        "opened_blend": _repo_path(opened_blend_path) if opened_blend_path is not None else None,
         "metadata": _repo_path(metadata_path) if metadata_path is not None else None,
         "objects": len(bpy.data.objects),
         "geometry_objects": checked_geometry,
@@ -167,8 +175,10 @@ def validate_loaded_asset(metadata_path: Path | None = None) -> dict:
 
 def main() -> int:
     metadata_arg = _arg_value("--metadata")
+    source_arg = _arg_value("--source")
     metadata_path = (PROJECT_ROOT / metadata_arg).resolve() if metadata_arg else None
-    result = validate_loaded_asset(metadata_path)
+    logical_source_path = (PROJECT_ROOT / source_arg).resolve() if source_arg else None
+    result = validate_loaded_asset(metadata_path, logical_source_path)
     violations = result["violations"]
 
     if violations:
