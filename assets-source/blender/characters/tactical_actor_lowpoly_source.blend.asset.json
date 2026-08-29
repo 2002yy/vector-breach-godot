@@ -6,6 +6,7 @@
   "source_role": "canonical_master",
   "source_path": "assets-source/blender/characters/tactical_actor_lowpoly_source.blend",
   "authoring_tool": "Blender",
+  "build_script": "tools/blender/publish_tactical_actor.py",
   "provenance": {
     "origin": "unknown",
     "license_status": "unknown",
