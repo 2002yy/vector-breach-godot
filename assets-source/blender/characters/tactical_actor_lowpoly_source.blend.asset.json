@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "asset_id": "VB-CHAR-TACTICAL-ACTOR",
+  "display_name": "Tactical Actor Low Poly",
+  "category": "character",
+  "source_role": "canonical_master",
+  "source_path": "assets-source/blender/characters/tactical_actor_lowpoly_source.blend",
+  "authoring_tool": "Blender",
+  "provenance": {
+    "origin": "unknown",
+    "license_status": "unknown",
+    "ai_usage": "unknown"
+  },
+  "runtime_outputs": [
+    "assets/models/characters/tactical_actor_lowpoly.glb"
+  ],
+  "scale": {
+    "unit": "meter"
+  },
+  "review": {
+    "status": "legacy-imported"
+  }
+}

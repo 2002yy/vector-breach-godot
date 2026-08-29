@@ -3,23 +3,12 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
+from asset_metadata_policy import FLATTENED_SOURCE_EXTENSIONS, allows_flattened_source
+
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_EXTENSIONS = {".blend", ".blend1", ".kra", ".psd"}
-GENERATED_RUNTIME_EXTENSIONS = {
-    ".glb",
-    ".gltf",
-    ".import",
-    ".ctex",
-    ".stex",
-    ".png",
-    ".jpg",
-    ".jpeg",
-    ".webp",
-    ".ktx",
-    ".ktx2",
-    ".dds",
-}
+GENERATED_RUNTIME_EXTENSIONS = {".glb", ".gltf", ".import", ".ctex", ".stex"}
 LFS_POINTER_PREFIX = b"version https://git-lfs.github.com/spec/v1\n"
 GENERATED_TRACKED_ALLOWLIST = {
     "assets-generated/.gdignore",
@@ -86,8 +75,15 @@ def main() -> int:
             )
 
         if path.startswith("assets-source/") and suffix in GENERATED_RUNTIME_EXTENSIONS:
+            violations.append("generated/runtime artifact is inside source layer: " + path)
+
+        if (
+            path.startswith("assets-source/")
+            and suffix in FLATTENED_SOURCE_EXTENSIONS
+            and not allows_flattened_source(ROOT, path, tracked)
+        ):
             violations.append(
-                "generated/runtime or flattened delivery artifact is inside source layer: " + path
+                "flattened delivery/source artifact lacks an approved metadata exception: " + path
             )
 
         if path.startswith("assets-generated/") and path not in GENERATED_TRACKED_ALLOWLIST:

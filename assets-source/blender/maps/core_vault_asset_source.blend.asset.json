@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "asset_id": "VB-MAP-CORE-VAULT",
+  "display_name": "Core Vault",
+  "category": "map",
+  "source_role": "canonical_master",
+  "source_path": "assets-source/blender/maps/core_vault_asset_source.blend",
+  "authoring_tool": "Blender",
+  "provenance": {
+    "origin": "unknown",
+    "license_status": "unknown",
+    "ai_usage": "unknown"
+  },
+  "runtime_outputs": [
+    "assets/models/core_vault/core_vault.glb",
+    "assets/maps/core-vault-preview.png"
+  ],
+  "scale": {
+    "unit": "meter"
+  },
+  "review": {
+    "status": "legacy-imported"
+  }
+}
