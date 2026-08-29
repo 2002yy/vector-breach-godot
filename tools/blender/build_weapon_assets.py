@@ -699,7 +699,7 @@ def build_all() -> dict:
     _render_preview(bpy.data.collections[RIFLE_COLLECTION], preview_root / "vb-rifle-preview.png", (0.0, -0.12, -0.02))
     _render_preview(bpy.data.collections[PISTOL_COLLECTION], preview_root / "vb-pistol-preview.png", (0.0, -0.05, -0.06))
 
-    source_blend = PROJECT_ROOT / "tools" / "blender" / "source" / "weapon_asset_source.blend"
+    source_blend = PROJECT_ROOT / "assets-source" / "blender" / "weapons" / "weapon_asset_source.blend"
     source_blend.parent.mkdir(parents=True, exist_ok=True)
     previous_save_versions = bpy.context.preferences.filepaths.save_version
     bpy.context.preferences.filepaths.save_version = 0

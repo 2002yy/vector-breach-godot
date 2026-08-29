@@ -1847,7 +1847,7 @@ def _create_presentation() -> bpy.types.Object:
 def export_and_save() -> dict:
     output = PROJECT_ROOT / "assets" / "models" / "foundry" / "foundry_reforged.glb"
     preview = PROJECT_ROOT / "assets" / "maps" / "foundry-reforged-preview.png"
-    source = PROJECT_ROOT / "tools" / "blender" / "source" / "foundry_reforged_source.blend"
+    source = PROJECT_ROOT / "assets-source" / "blender" / "maps" / "foundry_reforged_source.blend"
     export_count = export_collection_glb(MAP_COLLECTION, output)
     _create_presentation()
 

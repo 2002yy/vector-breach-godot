@@ -976,7 +976,7 @@ def _create_presentation() -> None:
 
 
 def _render_map_preview_and_save() -> tuple[Path, Path]:
-    source_blend = PROJECT_ROOT / "tools" / "blender" / "source" / "foundry_asset_source.blend"
+    source_blend = PROJECT_ROOT / "assets-source" / "blender" / "maps" / "foundry_asset_source.blend"
     preview = PROJECT_ROOT / "assets" / "maps" / "foundry-depot-preview.png"
     _create_presentation()
     set_collection_hidden(bpy.data.collections[RIFLE_COLLECTION], True)

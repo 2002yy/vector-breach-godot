@@ -423,7 +423,7 @@ def export_and_save() -> dict:
     level = _load_level()
     output = PROJECT_ROOT / "assets" / "models" / "core_vault" / "core_vault.glb"
     preview = PROJECT_ROOT / "assets" / "maps" / "core-vault-preview.png"
-    source_blend = PROJECT_ROOT / "tools" / "blender" / "source" / "core_vault_asset_source.blend"
+    source_blend = PROJECT_ROOT / "assets-source" / "blender" / "maps" / "core_vault_asset_source.blend"
     export_count = export_collection_glb(MAP_COLLECTION, output)
     _create_presentation(level)
     scene = bpy.context.scene
