@@ -6,6 +6,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE_EXTENSIONS = {".blend", ".blend1", ".kra", ".psd"}
+LFS_POINTER_PREFIX = b"version https://git-lfs.github.com/spec/v1\n"
 GENERATED_TRACKED_ALLOWLIST = {
     "assets-generated/.gdignore",
     "assets-generated/README.md",
@@ -35,6 +36,34 @@ def tracked_files() -> set[str]:
     }
 
 
+def lfs_tracked_files(paths: set[str]) -> set[str]:
+    lfs_paths: set[str] = set()
+    ordered = sorted(paths)
+    for start in range(0, len(ordered), 100):
+        chunk = ordered[start : start + 100]
+        result = subprocess.run(
+            ["git", "check-attr", "filter", "--", *chunk],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        for line in result.stdout.splitlines():
+            path, _, value = line.rpartition(": filter: ")
+            if value.strip() == "lfs":
+                lfs_paths.add(path.replace("\\", "/"))
+    return lfs_paths
+
+
+def git_blob(path: str) -> bytes:
+    return subprocess.run(
+        ["git", "cat-file", "-p", f"HEAD:{path}"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+    ).stdout
+
+
 def main() -> int:
     tracked = tracked_files()
     violations: list[str] = []
@@ -54,6 +83,13 @@ def main() -> int:
         if path.startswith("tools/blender/source/") and path not in LEGACY_BLENDER_SOURCE_ALLOWLIST:
             violations.append(
                 "new file added to legacy Blender source root; use assets-source/: " + path
+            )
+
+    for path in sorted(lfs_tracked_files(tracked)):
+        if not git_blob(path).startswith(LFS_POINTER_PREFIX):
+            violations.append(
+                "file matches Git LFS attributes but Git stores raw binary instead of an LFS pointer: "
+                + path
             )
 
     if violations:
