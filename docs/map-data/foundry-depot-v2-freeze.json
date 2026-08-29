@@ -23,7 +23,7 @@
       "sha256": "957C5C592DBF7A63C937A80EA94B123D1B9253BDFCCB6480CAF935354071F79A"
     },
     {
-      "path": "res://tools/blender/source/foundry_asset_source.blend",
+      "path": "res://assets-source/blender/maps/foundry_asset_source.blend",
       "bytes": 381741,
       "sha256": "5902FA6E99839ABCA07FE715A9CE6308AC0F736157236F33DD4E9A3D42F31859"
     }

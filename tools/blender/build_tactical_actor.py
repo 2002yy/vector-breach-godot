@@ -17,7 +17,7 @@ ARMATURE_NAME = "Armature"
 OUTPUT_DIR = r"C:\Users\Zhang\Desktop\3Dgame\godot\assets\models\characters"
 GLB_PATH = os.path.join(OUTPUT_DIR, "tactical_actor_lowpoly.glb")
 BLEND_PATH = os.path.join(
-    r"C:\Users\Zhang\Desktop\3Dgame\godot\tools\blender\source",
+    r"C:\Users\Zhang\Desktop\3Dgame\godot\assets-source\blender\characters",
     "tactical_actor_lowpoly_source.blend",
 )
 

@@ -12,6 +12,11 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Asset layer policy
+        run: python tools/check_asset_layers.py
 
       - name: Install Godot 4.7.1
         run: |

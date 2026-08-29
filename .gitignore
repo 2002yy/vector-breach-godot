@@ -7,6 +7,11 @@ __pycache__/
 assets/local_reference/
 data/levels/*-local.json
 
+# Asset pipeline: reproducible intermediates stay local by default.
+assets-generated/*
+!assets-generated/.gdignore
+!assets-generated/README.md
+
 # Local-only Dustline reference reconstruction. Its collision source is Valve map data.
 assets/maps/dustline-depths-preview.png*
 assets/models/dustline/
@@ -18,7 +23,7 @@ scripts/tests/DustlineVisualProbe.gd*
 tools/blender/audit_dustline_clearance.py
 tools/blender/build_dustline_assets.py
 tools/blender/export_dustline_skywalk.py
-tools/blender/source/dustline_depths_source.blend
+assets-source/blender/maps/dustline_depths_source.blend
 
 # GdUnit4 test reports
 reports/
