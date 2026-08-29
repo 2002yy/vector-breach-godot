@@ -11,7 +11,9 @@
     "license_status": "unknown",
     "ai_usage": "unknown"
   },
-  "runtime_outputs": [],
+  "runtime_outputs": [
+    "assets/missing.glb"
+  ],
   "scale": {
     "unit": "meter"
   },
