@@ -25,6 +25,7 @@ jobs:
 
       - name: Export Windows build
         id: export
+        continue-on-error: true
         uses: firebelley/godot-export@v8.0.0
         with:
           godot_executable_download_url: https://github.com/godotengine/godot/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip
@@ -35,8 +36,52 @@ jobs:
           archive_output: true
           archive_root_folder: true
           cache: true
+          verbose: true
+
+      - name: Capture direct Godot export diagnostics
+        if: steps.export.outcome == 'failure'
+        shell: bash
+        run: |
+          set +e
+          DIAG_DIR="$RUNNER_TEMP/export-diagnostics"
+          mkdir -p "$DIAG_DIR"
+
+          GODOT_BIN="$(find "$HOME/.local/share/godot/godot_executable" -type f -name '*.x86_64' -print -quit)"
+          {
+            echo "GODOT_BIN=$GODOT_BIN"
+            echo "=== Godot version ==="
+            "$GODOT_BIN" --version
+            echo "=== Export templates ==="
+            find "$HOME/.local/share/godot/export_templates" -maxdepth 2 -type f -printf '%p %s bytes\n' | sort
+            echo "=== Direct export ==="
+          } > "$DIAG_DIR/environment.txt" 2>&1
+
+          "$GODOT_BIN" --path "$GITHUB_WORKSPACE" --headless --verbose \
+            --export-release "Windows Desktop" "$DIAG_DIR/VectorBreach.exe" \
+            > "$DIAG_DIR/direct-export.log" 2>&1
+          EXPORT_EXIT=$?
+          echo "$EXPORT_EXIT" > "$DIAG_DIR/direct-export-exit-code.txt"
+
+          cat "$DIAG_DIR/environment.txt"
+          cat "$DIAG_DIR/direct-export.log"
+          echo "DIRECT_EXPORT_EXIT=$EXPORT_EXIT"
+          exit 0
+
+      - name: Upload export diagnostics
+        if: steps.export.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-export-diagnostics
+          path: ${{ runner.temp }}/export-diagnostics
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Fail after diagnostics
+        if: steps.export.outcome == 'failure'
+        run: exit 1
 
       - name: Generate SHA256 manifest
+        if: steps.export.outcome == 'success'
         env:
           ARCHIVE_DIR: ${{ steps.export.outputs.archive_directory }}
         run: |
@@ -46,6 +91,7 @@ jobs:
           cat "$ARCHIVE_DIR/SHA256SUMS.txt"
 
       - name: Upload Windows build
+        if: steps.export.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: vector-breach-windows
