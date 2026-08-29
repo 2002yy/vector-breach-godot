@@ -1,0 +1,40 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Godot 4.7.1
+        run: |
+          curl -sSL -o godot.zip https://github.com/godotengine/godot/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          chmod +x Godot_v4.7.1-stable_linux.x86_64
+
+      - name: Import project resources
+        run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path . --import
+
+      - name: GdUnit4 CLI tests
+        run: >
+          ./Godot_v4.7.1-stable_linux.x86_64 --headless --path .
+          -s -d res://addons/gdUnit4/bin/GdUnitCmdTool.gd -a test
+
+      - name: Native test suites
+        run: bash ./tools/run_godot_tests.sh ./Godot_v4.7.1-stable_linux.x86_64
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gdunit4-reports
+          path: reports/
+          if-no-files-found: ignore
+          retention-days: 7
