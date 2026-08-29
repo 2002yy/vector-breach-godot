@@ -17,15 +17,21 @@ elif ! command -v "$BLENDER_BIN" >/dev/null 2>&1; then
   exit 1
 fi
 
-mapfile -t SOURCES < <(
-  find assets-source/blender -type f \( -name '*.blend' -o -name '*.blend1' \) -print | sort
-)
+SOURCES=()
+while IFS= read -r -d '' path; do
+  case "$path" in
+    *.blend|*.blend1) SOURCES+=("$path") ;;
+  esac
+done < <(git ls-files -z -- assets-source/blender)
 
 if (( ${#SOURCES[@]} == 0 )); then
   echo "BLENDER_ASSET_VALIDATION_ALL=FAIL"
-  echo "- No canonical Blender source masters found under assets-source/blender/"
+  echo "- No tracked canonical Blender source masters found under assets-source/blender/"
   exit 1
 fi
+
+IFS=$'\n' SOURCES=($(printf '%s\n' "${SOURCES[@]}" | sort))
+unset IFS
 
 failures=0
 for source in "${SOURCES[@]}"; do
