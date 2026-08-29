@@ -6,12 +6,16 @@
   "source_role": "canonical_master",
   "source_path": "assets-source/blender/maps/foundry_asset_source.blend",
   "authoring_tool": "Blender",
+  "build_script": "tools/blender/build_foundry_assets.py",
   "provenance": {
     "origin": "unknown",
     "license_status": "unknown",
     "ai_usage": "unknown"
   },
-  "runtime_outputs": [],
+  "runtime_outputs": [
+    "assets/models/foundry/foundry_depot.glb",
+    "assets/maps/foundry-depot-preview.png"
+  ],
   "scale": {
     "unit": "meter"
   },
