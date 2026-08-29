@@ -11,6 +11,7 @@ import bpy
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 GEOMETRY_TYPES = {"MESH", "ARMATURE"}
+EXTERNAL_IMAGE_SOURCES = {"FILE", "SEQUENCE", "MOVIE", "TILED"}
 UNIT_SCALE_EPSILON = 1e-4
 NONZERO_SCALE_EPSILON = 1e-8
 
@@ -58,6 +59,39 @@ def _safe_name(kind: str, name: str, violations: list[str]) -> None:
         violations.append(f"{kind} name contains a path separator: {name!r}")
     if any(ord(char) < 32 or ord(char) == 127 for char in name):
         violations.append(f"{kind} name contains a control character: {name!r}")
+
+
+def _resolve_external_image_path(raw_path: str, source_path: Path | None) -> Path:
+    if raw_path.startswith("//") and source_path is not None:
+        return (source_path.parent / raw_path[2:]).resolve()
+    return Path(bpy.path.abspath(raw_path)).resolve()
+
+
+def _udim_to_uvtile(number: int) -> str:
+    offset = number - 1001
+    return f"u{offset % 10 + 1}_v{offset // 10 + 1}"
+
+
+def _external_image_paths(image: bpy.types.Image, source_path: Path | None) -> list[Path]:
+    raw_path = image.filepath
+    if not raw_path:
+        return []
+
+    if image.source != "TILED":
+        return [_resolve_external_image_path(raw_path, source_path)]
+
+    tile_numbers = [int(tile.number) for tile in image.tiles] or [1001]
+    if "<UDIM>" in raw_path:
+        return [
+            _resolve_external_image_path(raw_path.replace("<UDIM>", str(number)), source_path)
+            for number in tile_numbers
+        ]
+    if "<UVTILE>" in raw_path:
+        return [
+            _resolve_external_image_path(raw_path.replace("<UVTILE>", _udim_to_uvtile(number)), source_path)
+            for number in tile_numbers
+        ]
+    return [_resolve_external_image_path(raw_path, source_path)]
 
 
 def validate_loaded_asset(
@@ -122,15 +156,21 @@ def validate_loaded_asset(
 
     missing_textures: list[str] = []
     for image in bpy.data.images:
-        if image.source != "FILE" or _packed_image(image):
+        if image.source not in EXTERNAL_IMAGE_SOURCES or _packed_image(image):
             continue
         raw_path = image.filepath
         if not raw_path:
-            missing_textures.append(f"{image.name}: empty filepath")
+            missing_textures.append(f"{image.name}: empty filepath ({image.source})")
             continue
-        resolved = Path(bpy.path.abspath(raw_path)).resolve()
-        if not resolved.is_file():
-            missing_textures.append(f"{image.name}: {_repo_path(resolved)}")
+        paths = _external_image_paths(image, source_path)
+        if not paths:
+            missing_textures.append(f"{image.name}: no resolvable path ({image.source})")
+            continue
+        for resolved in paths:
+            if not resolved.is_file():
+                missing_textures.append(
+                    f"{image.name}: {_repo_path(resolved)} ({image.source})"
+                )
     for item in missing_textures:
         violations.append(f"missing external texture: {item}")
 
