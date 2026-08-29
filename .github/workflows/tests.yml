@@ -21,7 +21,7 @@ jobs:
       - name: Asset metadata policy
         run: python tools/check_asset_metadata.py
 
-      - name: Install Blender 4.4.1
+      - name: Install Blender 4.5.13 LTS
         shell: bash
         run: |
           set -euo pipefail
@@ -33,7 +33,7 @@ jobs:
           mkdir -p .tools/blender
           curl --fail --location --retry 3 \
             --output /tmp/blender.tar.xz \
-            https://download.blender.org/release/Blender4.4/blender-4.4.1-linux-x64.tar.xz
+            https://download.blender.org/release/Blender4.5/blender-4.5.13-linux-x64.tar.xz
           tar -xf /tmp/blender.tar.xz -C .tools/blender --strip-components=1
           .tools/blender/blender --version
 
