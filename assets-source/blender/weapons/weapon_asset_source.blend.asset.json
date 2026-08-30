@@ -18,6 +18,46 @@
     "assets/models/weapons/previews/vb-rifle-preview.png",
     "assets/models/weapons/previews/vb-pistol-preview.png"
   ],
+  "runtime_contracts": {
+    "assets/models/weapons/vb_rifle.glb": {
+      "format": "glb2",
+      "max": {
+        "file_size_bytes": 262144,
+        "nodes": 70,
+        "meshes": 70,
+        "primitives": 70,
+        "vertices_by_primitive": 6000,
+        "triangles": 3000,
+        "materials": 12,
+        "textures": 0,
+        "images": 0,
+        "skins": 0,
+        "skin_joints_total": 0,
+        "animations": 0,
+        "animation_channels": 0
+      },
+      "allowed_extensions_used": []
+    },
+    "assets/models/weapons/vb_pistol.glb": {
+      "format": "glb2",
+      "max": {
+        "file_size_bytes": 262144,
+        "nodes": 60,
+        "meshes": 60,
+        "primitives": 60,
+        "vertices_by_primitive": 5000,
+        "triangles": 2500,
+        "materials": 12,
+        "textures": 0,
+        "images": 0,
+        "skins": 0,
+        "skin_joints_total": 0,
+        "animations": 0,
+        "animation_channels": 0
+      },
+      "allowed_extensions_used": []
+    }
+  },
   "scale": {
     "unit": "meter"
   },
