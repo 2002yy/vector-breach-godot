@@ -52,6 +52,27 @@ def restore_paths(paths: set[str]) -> None:
     _git("restore", "--source=HEAD", "--worktree", "--", *sorted(paths))
 
 
+def cleanup_asset_changes(tracked: set[str]) -> None:
+    changes = changed_asset_paths()
+    restore_paths(changes & tracked)
+    for relative_path in sorted(changes - tracked, reverse=True):
+        path = PROJECT_ROOT / relative_path
+        if path.is_dir():
+            shutil.rmtree(path)
+        elif path.exists() or path.is_symlink():
+            path.unlink()
+
+
+def remove_declared_outputs(outputs: set[str]) -> None:
+    for relative_path in sorted(outputs):
+        path = PROJECT_ROOT / relative_path
+        if not path.exists():
+            continue
+        if not path.is_file():
+            raise RuntimeError(f"declared runtime output is not a file: {relative_path}")
+        path.unlink()
+
+
 def validate_runtime_output(relative_path: str) -> tuple[int, str]:
     path = PROJECT_ROOT / relative_path
     if not path.is_file():
@@ -137,6 +158,7 @@ def main() -> int:
         print(f"- Blender executable does not exist: {blender_bin}")
         return 1
 
+    tracked: set[str] = set()
     try:
         tracked = tracked_files()
         jobs = discover_publish_jobs(tracked)
@@ -166,30 +188,41 @@ def main() -> int:
                 if changed_asset_paths():
                     raise RuntimeError("asset working tree was not restored before the next builder")
 
-                run_builder(blender_bin, job)
-
                 source_path = str(job["source_path"])
                 outputs = {str(item) for item in job["runtime_outputs"]}
                 allowed_changes = outputs | {source_path}
-                changes = changed_asset_paths()
-                disallowed = changes - allowed_changes
-                if disallowed:
-                    raise RuntimeError(
-                        f"{job['asset_id']} modified undeclared asset paths: {sorted(disallowed)}"
-                    )
 
-                for output in sorted(outputs):
-                    size, head = validate_runtime_output(output)
-                    total_bytes += size
-                    staged = staging_root / output
-                    staged.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copy2(PROJECT_ROOT / output, staged)
-                    print(
-                        f"PUBLISH_OUTPUT asset={job['asset_id']} path={output} bytes={size} head16={head}",
-                        flush=True,
-                    )
+                # A publish is only fresh if every declared output is recreated by
+                # this invocation. Remove tracked outputs before starting the
+                # builder so a no-op or partial builder cannot pass on stale files.
+                remove_declared_outputs(outputs)
+                try:
+                    run_builder(blender_bin, job)
 
-                restore_paths(allowed_changes & tracked)
+                    changes = changed_asset_paths()
+                    disallowed = changes - allowed_changes
+                    if disallowed:
+                        raise RuntimeError(
+                            f"{job['asset_id']} modified undeclared asset paths: {sorted(disallowed)}"
+                        )
+
+                    for output in sorted(outputs):
+                        size, head = validate_runtime_output(output)
+                        total_bytes += size
+                        staged = staging_root / output
+                        staged.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.copy2(PROJECT_ROOT / output, staged)
+                        print(
+                            f"PUBLISH_OUTPUT asset={job['asset_id']} path={output} bytes={size} head16={head}",
+                            flush=True,
+                        )
+                finally:
+                    # The validator must be safe to run locally as well as in CI.
+                    # Because the working tree was required clean at entry, all
+                    # asset changes made by a failed or successful builder can be
+                    # restored/removed without risking pre-existing work.
+                    cleanup_asset_changes(tracked)
+
                 residual = changed_asset_paths()
                 if residual:
                     raise RuntimeError(
@@ -219,6 +252,8 @@ def main() -> int:
         print("fresh_outputs_ready_for_godot=1")
         return 0
     except (OSError, subprocess.SubprocessError, ValueError, KeyError, json.JSONDecodeError, RuntimeError) as exc:
+        if tracked:
+            cleanup_asset_changes(tracked)
         print("BLENDER_PUBLISH_REBUILD=FAIL")
         print(f"- {exc}")
         return 1
