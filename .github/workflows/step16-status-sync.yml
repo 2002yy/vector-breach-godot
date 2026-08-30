@@ -1,0 +1,34 @@
+name: Step16 Status Sync
+
+on:
+  push:
+    branches: [feature/step16-c4-device]
+
+permissions:
+  contents: write
+
+jobs:
+  sync-status:
+    if: github.event.head_commit.message == 'ci: run one-shot Step 16 status sync'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply exact-match status update
+        run: python tools/step16_sync_project_status.py
+
+      - name: Commit authoritative status
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- docs/PROJECT_STATUS.md; then
+            echo 'PROJECT_STATUS did not change; refusing false-positive sync.' >&2
+            exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/PROJECT_STATUS.md
+          git commit -m 'docs: sync Step 16 C4 pipeline status'
+          git push origin HEAD:feature/step16-c4-device
