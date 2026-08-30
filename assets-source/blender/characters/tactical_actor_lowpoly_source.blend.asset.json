@@ -15,6 +15,32 @@
   "runtime_outputs": [
     "assets/models/characters/tactical_actor_lowpoly.glb"
   ],
+  "runtime_contracts": {
+    "assets/models/characters/tactical_actor_lowpoly.glb": {
+      "format": "glb2",
+      "max": {
+        "file_size_bytes": 262144,
+        "nodes": 70,
+        "meshes": 40,
+        "primitives": 40,
+        "vertices_by_primitive": 2000,
+        "triangles": 1000,
+        "materials": 8,
+        "textures": 0,
+        "images": 0,
+        "skins": 1,
+        "skin_joints_total": 15,
+        "animations": 8,
+        "animation_channels": 300
+      },
+      "min": {
+        "skins": 1,
+        "skin_joints_total": 15,
+        "animations": 5
+      },
+      "allowed_extensions_used": []
+    }
+  },
   "scale": {
     "unit": "meter"
   },

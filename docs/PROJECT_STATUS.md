@@ -57,9 +57,11 @@ Updated: 2026-08-30
 
 - Windows 与 Linux 聚合脚本统一运行十一套原生测试：关卡数据、武器、灰盒关卡、命中反馈、战术 Bot、爆破 AI、比赛生命周期、Gatehouse 场景集成、主状态流、音频资产和性能预算；当前基线为 135 项并出现 `RUN_ALL_OK`。
 - 已接入 GdUnit4 v6.2.1（`addons/gdUnit4`，经 Godot 4.7.1 headless 验证 2 用例 PASS），作为原生测试之外的行业标准补充框架；新测试放 `test/`，报告目录 `reports/` 已忽略，运行方式为 `runtest.cmd`（需 `GODOT_BIN` 指向引擎）。
-- Required `Tests` 已在 Godot 之前执行 Asset Layer 与 Asset Metadata policy：当前 canonical source master 为 6 个，metadata sidecar 覆盖 6/6、资产 ID 唯一，sidecar 中的 runtime outputs 必须是 `assets/` 下规范、去重且 Git tracked 的实存路径；mandatory source coverage 同时包含 Blender/Krita/PSD/FBX 等源资产与音频 master。
+- Required `Tests` 已在 Godot 之前执行 Asset Layer、Asset Metadata 与 Asset Runtime Contract policy：当前 canonical source master 为 6 个，metadata sidecar 覆盖 6/6、资产 ID 唯一；6 个 Blender producer 拥有 13 个 runtime outputs，其中 7 个 GLB 必须具有合法 runtime contract。sidecar 中 runtime outputs 必须是 `assets/` 下规范、去重且 Git tracked 的实存路径；mandatory source coverage 同时包含 Blender/Krita/PSD/FBX 等源资产与音频 master。
 - Step 13 已接入 Blender 5.2.1 LTS headless source gate：6/6 tracked Blender master 在真实 canonical path 上通过 naming safety、外部 FILE/SEQUENCE/MOVIE/TILED/UDIM 资源实存、geometry unit scale、finite/non-singular transform、metadata/source identity 与二进制/LFS preflight；正向 PR #18 随后继续通过 Godot import、GdUnit4 与 native suites。
 - Step 13 的 do-not-merge 负测 PR #19 在 Asset Layer/Metadata 保持 PASS 后，仅在 CI 工作树把 `GEO-pistol-barrel` 临时改为 scale `(2, 1, 1)`；Blender gate 精确报 `geometry object has unapplied scale` 并失败，Godot 安装、import、GdUnit4 与 native suites 全部 skipped。坏 `.blend` 未提交或合并，证明 source-art gate 具备 fail-fast 阻断能力。
+- Step 15 正向 PR #25 head `5f525aeaca53e71f5914a3367db1c784ff4b1265` 的 required `Tests` run `33308981479` 与 legacy `Godot Tests` run `33308981476` 均 success；fresh rebuild 后 7 个 Blender-owned GLB 全部通过 runtime structural/budget validation，随后 Godot import、GdUnit4 与 native suites 全绿。
+- Step 15 do-not-merge 负测 PR #26 仅把 Gatehouse `max.triangles` 从 5000 降为 3000；fresh `gatehouse.glb` 实测 3356 triangles，required `Tests` run `33310639857` 精确报 `actual=3356 max=3000` 并在 Asset Runtime Gate 失败，Godot install/import、GdUnit4、Native 全 skipped。PR #26 已关闭未合并，负向分支已复位到 #25 正向 head。
 - Gatehouse 场景集成测试以真实 `Main.tscn` 覆盖 T/CT 开局与半场、6:6 两局加时、同一 Main 新比赛隔离和重复 end/restart 幂等；验证真实 3v3、出生/换边、经济装备、逐单位统计、C4 唯一归属与旧实体清理。G1 已通过，下一门槛为 G2 十场人工完整比赛。
 - Gatehouse 路线图为 39 节点/48 连接，三路首次接触为 7.83–8.39 秒，A/B 守方轮转为 4.49 秒；西路已绕开检查平台楼梯碰撞。
 - Core Vault 路线图为 44 节点/54 连接，三路首次接触为 8.23–8.42 秒，A/B 轮转为 10.16 秒。
@@ -78,24 +80,25 @@ Updated: 2026-08-30
 - **Asset Layers / LFS（Step 11）：FULL PASS。** 三层为 `assets-source/` canonical source、`assets-generated/` 可重建 staging、`assets/` reviewed runtime。6 个 Blender master 与 HDR 历史资产已完成真实 Git LFS pointer/对象迁移，CI checkout 使用 `lfs: true`；路径门禁已做正/负验收。
 - **Asset Metadata（Step 12）：FULL PASS。** 6/6 canonical Blender master 具有相邻 `*.asset.json`；source identity、provenance/license/AI usage 状态、producer、runtime outputs 等由 CI 校验。历史未知信息保持显式 `unknown`，不伪造来源或许可证。
 - **Blender Source Validation（Step 13）：FULL PASS。** Blender 5.2.1 LTS 在 CI 中直接打开 6/6 canonical zstd-compressed `.blend`，验证命名、外部纹理、scale、finite/non-singular transform、metadata identity 与 LFS/binary preflight。PR #19 的 unapplied-scale 负测证明坏 source 会在 Godot 之前 fail-fast。
-- **Blender Publish/Rebuild（Step 14）：FULL PASS。** 6 个 canonical producer 通过 metadata 合同拥有 13 个 runtime outputs；Gate 会在 builder 前删除旧 declared outputs，要求 fresh 重建，拒绝未声明 asset-side effect，producer 间恢复工作树，然后让 Godot import、GdUnit4、native suites 消费 fresh runtime set。PR #20 已合并为 `bcb24be4a71b6863d558a73511e00d89e612a9fe`，合并后的 main `Tests` 与 `Godot Tests` push workflows 均 success。
+- **Blender Publish/Rebuild（Step 14）：FULL PASS。** 6 个 canonical producer 通过 metadata 合同拥有 13 个 runtime outputs；Gate 会在 builder 前删除旧 declared outputs，要求 fresh 重建，拒绝未声明 asset-side effect，producer 间恢复工作树，然后让 runtime validator、Godot import、GdUnit4、native suites 消费 fresh runtime set。PR #20 已合并为 `bcb24be4a71b6863d558a73511e00d89e612a9fe`，合并后的 main `Tests` 与 `Godot Tests` push workflows 均 success。
 - **Step 14 负向证据：PASS。** do-not-merge PR #22 故意让 Tactical Actor producer 创建未声明的 `assets-source/blender/characters/NEGATIVE_ACCEPTANCE_UNDECLARED.txt`；`Blender publish rebuild validation` 精确失败，Godot install/import、GdUnit4、Native 全 skipped。PR 未合并，负向分支随后复位到正向 head。
+- **Asset Runtime Gate（Step 15）：FULL PASS。** 6 个 sidecar 为 7 个 Blender-owned GLB 提供 asset-specific runtime contracts；cheap contract policy 在 Blender 安装前校验 schema，fresh rebuild 后 `tools/validate_runtime_assets.py` 校验 GLB/glTF container、引用/embedded resource、bufferView/accessor 边界、finite transform metadata、triangle primitives、结构/预算指标与 extension allowlist，再允许 Godot 消费。正向 required `Tests` run `33308981479` 全绿。
+- **Step 15 负向证据：PASS。** PR #26 仅改变 Gatehouse triangle budget `5000 -> 3000`，fresh runtime 实测 3356；runtime gate 精确失败并阻断全部 Godot 后续阶段。负测 PR 已关闭未合并，分支已复位，证明 Gate 基于 fresh artifact fail-closed，而非只验证 tracked stale 文件。
 - **当前人工遗留：OPEN。** 自动化通过不等同于最终人工图形验收；仍保留用户本机 Windows 下的实际画面/输入/声音 smoke，以及必要时 Godot Editor 内的交互式 GdUnit4/场景人工复核。自动化不得替代这些证据。
 
-### 工程管线下一步：Step 15 Asset Runtime Gate
+### 工程管线下一步：Step 16 Visual / Real Feature Pressure Test
 
-Step 15 位于 **fresh Blender publish/rebuild 之后、Godot import 之前**。目标不是再次证明“文件存在”，而是证明 freshly rebuilt runtime GLB 本身满足可解析、结构一致、预算可控的生产合同。
+Step 11–15 已把 source ownership、metadata、canonical Blender source、deterministic publish/rebuild 与 fresh GLB runtime structural/budget validation 串成 required `Tests` 的 fail-closed 链。下一步不再优先安装更多工具，而是验证这套管线能否支撑**真实生产变化**。
 
-第一版按以下顺序执行：
+第一阶段按以下顺序推进：
 
-1. **先审计真实现状，不先拍脑袋定预算。** 收集当前 13 个 Blender-owned runtime outputs 中 GLB 的文件大小、scene/node/mesh/material/skin/animation 数量、vertex/triangle 等可稳定计算指标。
-2. **建立 runtime contract。** 预算和必需结构写入 metadata 或稳定的 schema；静态地图、武器、角色/动画资产允许不同合同，不用一个全局阈值硬套所有资产。
-3. **实现纯 runtime validator。** 至少检查 GLB magic/version/declared length/chunk、glTF JSON、引用范围、bufferView/accessor 边界、finite transform 与基础文件/结构指标；角色资产按实际需要校验 skin/animation，静态资产不虚构动画要求。
-4. **接入 required `Tests`。** 顺序升级为 `Asset Layer -> Metadata -> Blender Source -> Publish/Rebuild -> Asset Runtime -> Godot import -> GdUnit4 -> Native`，runtime failure 必须让 Godot 后续阶段 skipped。
-5. **做正/负验收。** 当前 fresh GLB 全部通过；另建 do-not-merge 负测，只破坏 runtime artifact（例如 GLB header/结构或明确预算），证明 Runtime Gate 精确红灯且 Godot 不启动。
-6. **不在 Step 15 冒充视觉 QA。** 截图视觉等价、材质审美、GPU 性能、LOD/collision 质量、最终角色美术、输入/声音与玩家可读性保持为后续视觉/性能/人工 Gate。
+1. **真实 Feature/Asset Impact Audit。** 选一个中等规模、确实改变游戏或资产的任务，先填写 gameplay/economy/AI/level/UI/tutorial/input/accessibility/save/network/animation/VFX/audio/art/performance/localization/analytics/tests/build/release/legal 的 `Impact` 或 `N/A + reason`，空白禁止。
+2. **走完整 Source → Runtime 链。** 对涉及 Blender 的资产，从 canonical source 改动开始，经 metadata/runtime contract、source validation、fresh rebuild、runtime gate、Godot import 与 tests，不直接手改生成结果冒充完成。
+3. **补视觉/性能证据而非混入结构 Gate。** 对玩家可见变化，保留 Vulkan 截图/录屏和必要的性能基线；视觉、可读性、GPU 与人工体验继续独立验收，不把 Step 15 的结构 PASS 冒充美术 PASS。
+4. **验证回滚与回归。** 故障路径、旧资源兼容、保存/状态边界和已有游戏测试必须重新通过；若真实 Feature 暴露管线缺口，再针对缺口升级工具，而不是预装复杂系统。
+5. **完成一次 Definition of Done。** 最终报告必须包含 TASK / CHANGES / FILES / TESTS / RESULTS / EVIDENCE / REGRESSION / KNOWN ISSUES / NEXT / GATE PASS-FAIL。
 
-Step 15 完成后，工程主线才进入更高层的 runtime 预算、视觉回归与真实新资产/真实 Feature 全流程压力测试；当前不再以安装更多工具为主任务。
+该 Step 16 属于工程压力测试，不解除产品侧 G2 十场人工比赛和 G5 作品集表现 Gate。当前产品主线仍以 Gatehouse G2 为最近人工验收门槛。
 
 ## 下一阶段：Gatehouse 3v3 单机竞技切片
 

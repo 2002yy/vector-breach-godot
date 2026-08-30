@@ -21,6 +21,9 @@ jobs:
       - name: Asset metadata policy
         run: python tools/check_asset_metadata.py
 
+      - name: Asset runtime contract policy
+        run: python tools/check_runtime_asset_contracts.py
+
       - name: Install Blender 5.2.1 LTS
         shell: bash
         run: |
@@ -40,6 +43,9 @@ jobs:
 
       - name: Blender publish rebuild validation
         run: python tools/blender/run_publish_rebuild_validation.py ./.tools/blender/blender
+
+      - name: Asset runtime validation
+        run: python tools/validate_runtime_assets.py
 
       - name: Install Godot 4.7.1
         run: |
