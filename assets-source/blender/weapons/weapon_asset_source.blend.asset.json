@@ -6,12 +6,18 @@
   "source_role": "canonical_master",
   "source_path": "assets-source/blender/weapons/weapon_asset_source.blend",
   "authoring_tool": "Blender",
+  "build_script": "tools/blender/build_weapon_assets.py",
   "provenance": {
     "origin": "unknown",
     "license_status": "unknown",
     "ai_usage": "unknown"
   },
-  "runtime_outputs": [],
+  "runtime_outputs": [
+    "assets/models/weapons/vb_rifle.glb",
+    "assets/models/weapons/vb_pistol.glb",
+    "assets/models/weapons/previews/vb-rifle-preview.png",
+    "assets/models/weapons/previews/vb-pistol-preview.png"
+  ],
   "scale": {
     "unit": "meter"
   },

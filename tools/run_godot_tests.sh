@@ -29,16 +29,40 @@ scenes=(
   "res://scenes/tests/PerformanceBudgetTestRunner.tscn"
 )
 
+run_scene() {
+  local scene="$1"
+  local status
+
+  echo
+  echo "==> Running ${scene}"
+  echo "[native-test] START ${scene}"
+
+  if "${godot_bin}" --headless --path "${project_root}" --scene "${scene}"; then
+    echo "[native-test] PASS ${scene}"
+    return 0
+  else
+    status=$?
+    echo "[native-test] FAIL ${scene} (exit ${status})" >&2
+    echo "::error title=Native test suite failed::${scene} exited with status ${status}"
+    return "${status}"
+  fi
+}
+
 echo "Using Godot: ${godot_bin}"
 echo "Project: ${project_root}"
 echo
 echo "==> Importing project resources"
-"${godot_bin}" --headless --path "${project_root}" --import
+if "${godot_bin}" --headless --path "${project_root}" --import; then
+  echo "[native-test] IMPORT PASS"
+else
+  status=$?
+  echo "[native-test] IMPORT FAIL (exit ${status})" >&2
+  echo "::error title=Native project import failed::Godot import exited with status ${status}"
+  exit "${status}"
+fi
 
 for scene in "${scenes[@]}"; do
-  echo
-  echo "==> Running ${scene}"
-  "${godot_bin}" --headless --path "${project_root}" --scene "${scene}"
+  run_scene "${scene}"
 done
 
 echo
