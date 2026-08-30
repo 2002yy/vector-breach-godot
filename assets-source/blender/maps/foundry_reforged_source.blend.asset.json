@@ -16,6 +16,29 @@
     "assets/models/foundry/foundry_reforged.glb",
     "assets/maps/foundry-reforged-preview.png"
   ],
+  "runtime_contracts": {
+    "assets/models/foundry/foundry_reforged.glb": {
+      "format": "glb2",
+      "max": {
+        "file_size_bytes": 13631488,
+        "nodes": 600,
+        "meshes": 600,
+        "primitives": 650,
+        "vertices_by_primitive": 24000,
+        "triangles": 12500,
+        "materials": 24,
+        "textures": 32,
+        "images": 24,
+        "skins": 0,
+        "skin_joints_total": 0,
+        "animations": 0,
+        "animation_channels": 0
+      },
+      "allowed_extensions_used": [
+        "KHR_materials_emissive_strength"
+      ]
+    }
+  },
   "scale": {
     "unit": "meter"
   },
