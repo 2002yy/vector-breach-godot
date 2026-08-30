@@ -4,7 +4,7 @@ Updated: 2026-08-31
 
 本文档是仓库唯一的状态、边界与优先级来源。README 和各地图设计记录只保留入口说明或设计约束；如与本文冲突，以当前检出、自动测试和本文为准。
 
-当前 Step 16 功能候选分支为 `feature/step16-c4-device`，以 `main@99f05064ef6db592217a4cc898b2642ab6162a1f` 为基线。当前功能/管线证据基线为 `98a417c91139d8a557ed1d05fb4913c6d990012c`：required `Tests #91`、legacy `Godot Tests #120` 与 `Windows Export #12` 均 success。后续状态/文档提交仍必须以各自新 head 的 required `Tests` 为准，不得沿用旧 head 绿灯冒充验证；若后继提交仅修改文档且 runtime/workflow tree 未变，可明确引用直接父 head 的 Windows Export 证据，但不得称为新 head 自己执行过该导出。
+当前 Step 16 功能候选分支为 `feature/step16-c4-device`，以 `main@99f05064ef6db592217a4cc898b2642ab6162a1f` 为基线。当前 runtime/workflow 功能证据基线为 `69d2a3395d2cb7799f923868a1d07adb5fe34e96`：required `Tests #93`（`33326528374`）、legacy `Godot Tests #122`（`33326528372`）与 `Windows Export #14`（`33326528381`）均 success。docs-only 增量门禁验收 head `8d22af07f69a398a6d9d8ea22fecaf80326c4f13` 的 required `Tests #94`（`33327150987`）、legacy `Godot Tests #123`（`33327150981`）与 `Windows Export #15`（`33327150974`）也均 success，其中 #15 明确判定 `should_export=false / synchronize-nonruntime-only`，重型 `export-windows` 与 `smoke-windows` 均 skipped。后续状态/文档提交仍必须以各自新 head 的 required `Tests` 为准；docs-only 后继提交可明确引用直接父 runtime/workflow head 的 Windows Export 证据，但不得称为新 head 自己执行过被跳过的重型导出。
 
 ## 产品方向
 
@@ -57,15 +57,16 @@ Updated: 2026-08-31
 
 ## 当前验证
 
-- Windows 与 Linux 聚合脚本统一运行十一套原生测试：关卡数据、武器、灰盒关卡、命中反馈、战术 Bot、爆破 AI、比赛生命周期、Gatehouse 场景集成、主状态流、音频资产和性能预算。Step 16 功能/管线证据 head `98a417c91139d8a557ed1d05fb4913c6d990012c` 的 required `Tests #91` 与 legacy `Godot Tests #120` 双路径 native 回归均通过；C4Device runner 含 6 项对象级回归。当前不在权威状态中写入无法从现有日志稳定复核的聚合测试总数。
+- Windows 与 Linux 聚合脚本统一运行十一套原生测试：关卡数据、武器、灰盒关卡、命中反馈、战术 Bot、爆破 AI、比赛生命周期、Gatehouse 场景集成、主状态流、音频资产和性能预算。Step 16 runtime/workflow 证据 head `69d2a3395d2cb7799f923868a1d07adb5fe34e96` 的 required `Tests #93` 与 legacy `Godot Tests #122` 双路径 native 回归均通过；docs-only 增量门禁验收 head `8d22af07f69a398a6d9d8ea22fecaf80326c4f13` 的 required `Tests #94` 与 legacy `Godot Tests #123` 也均通过。C4Device runner 含 6 项对象级回归。当前不在权威状态中写入无法从现有日志稳定复核的聚合测试总数。
 - 已接入 GdUnit4 v6.2.1（`addons/gdUnit4`，经 Godot 4.7.1 headless 验证 2 用例 PASS），作为原生测试之外的行业标准补充框架；新测试放 `test/`，报告目录 `reports/` 已忽略，运行方式为 `runtest.cmd`（需 `GODOT_BIN` 指向引擎）。
 - Required `Tests` 已在 Godot 之前执行 Asset Layer、Asset Metadata 与 Asset Runtime Contract policy：当前 canonical source master 为 7 个，metadata sidecar 覆盖 7/7、资产 ID 唯一；7 个 Blender producer 拥有 14 个 runtime outputs，其中 8 个 GLB 必须具有合法 runtime contract。sidecar 中 runtime outputs 必须是 `assets/` 下规范、去重且 Git tracked 的实存路径；mandatory source coverage 同时包含 Blender/Krita/PSD/FBX 等源资产与音频 master。
 - Step 13 已接入 Blender 5.2.1 LTS headless source gate：6/6 tracked Blender master 在真实 canonical path 上通过 naming safety、外部 FILE/SEQUENCE/MOVIE/TILED/UDIM 资源实存、geometry unit scale、finite/non-singular transform、metadata/source identity 与二进制/LFS preflight；正向 PR #18 随后继续通过 Godot import、GdUnit4 与 native suites。
 - Step 13 的 do-not-merge 负测 PR #19 在 Asset Layer/Metadata 保持 PASS 后，仅在 CI 工作树把 `GEO-pistol-barrel` 临时改为 scale `(2, 1, 1)`；Blender gate 精确报 `geometry object has unapplied scale` 并失败，Godot 安装、import、GdUnit4 与 native suites 全部 skipped。坏 `.blend` 未提交或合并，证明 source-art gate 具备 fail-fast 阻断能力。
 - Step 15 正向 PR #25 head `5f525aeaca53e71f5914a3367db1c784ff4b1265` 的 required `Tests` run `33308981479` 与 legacy `Godot Tests` run `33308981476` 均 success；fresh rebuild 后 7 个 Blender-owned GLB 全部通过 runtime structural/budget validation，随后 Godot import、GdUnit4 与 native suites 全绿。
 - Step 15 do-not-merge 负测 PR #26 仅把 Gatehouse `max.triangles` 从 5000 降为 3000；fresh `gatehouse.glb` 实测 3356 triangles，required `Tests` run `33310639857` 精确报 `actual=3356 max=3000` 并在 Asset Runtime Gate 失败，Godot install/import、GdUnit4、Native 全 skipped。PR #26 已关闭未合并，负向分支已复位到 #25 正向 head。
-- Step 16 功能/管线证据 head `98a417c91139d8a557ed1d05fb4913c6d990012c` 的 required `Tests` run `33325864451` 与 legacy `Godot Tests` run `33325864450` 均 success；required 链从 cheap policy、Blender 5.2.1 source validation、fresh publish/rebuild、C4 runtime contract/budget validation继续通过 Godot 4.7.1 import、GdUnit4、native suites 与报告上传。
-- Step 16 `Windows Export` run `33325864453` 在同一 `98a417c9` head 上 success：Godot 4.7.1 完成资源导入与 Windows EXE/PCK 导出，产物校验、ZIP/SHA256 与 artifact 上传均通过；随后 `windows-latest` runner 校验 SHA256、解包并真实启动导出的 `VectorBreach.exe --headless` 成功。`windows-export.yml` 的 PR trigger 已从仅监听工程/导出配置扩展为同时覆盖 `assets/**`、`data/**`、`scenes/**`、`scripts/**`，因此正常 runtime feature 变化不再绕过发布构建验证；`assets-source/`、`assets-generated/`、`test/`、`test_assets/`、`tools/`、`docs/` 的普通改动不会单独触发该重型导出。
+- Step 16 runtime/workflow 证据 head `69d2a3395d2cb7799f923868a1d07adb5fe34e96` 的 required `Tests` run `33326528374` 与 legacy `Godot Tests` run `33326528372` 均 success；required 链从 cheap policy、Blender 5.2.1 source validation、fresh publish/rebuild、C4 runtime contract/budget validation继续通过 Godot 4.7.1 import、GdUnit4、native suites 与报告上传。
+- Step 16 `Windows Export #14`（`33326528381`）在同一 `69d2a339` head 上 success：增量 detector 对 `.github/workflows/windows-export.yml` 的 synchronize 变化输出 `should_export=true / synchronize-runtime-or-export-change`，随后 Godot 4.7.1 完成资源导入与 Windows EXE/PCK 导出，产物校验、ZIP/SHA256、artifact 上传以及 `windows-latest` runner 的 SHA256 校验、解包和真实 `VectorBreach.exe --headless` 启动均 success。
+- Step 16 docs-only 增量门禁验收 head `8d22af07f69a398a6d9d8ea22fecaf80326c4f13` 的 `Windows Export #15`（`33327150974`）success：detector 对唯一变化 `docs/STEP16_WINDOWS_EXPORT_INCREMENTAL_GATE.md` 输出 `should_export=false / synchronize-nonruntime-only`，`export-windows` 与 `smoke-windows` 两个重型 job 均 skipped。由此验证两级门禁同时满足“runtime/workflow 变化必须导出”和“后续 docs-only synchronize 不重复烧重型构建”；若 `before` SHA 缺失或不可验证则 fail-open 到完整导出。长期验收记录见 `docs/STEP16_WINDOWS_EXPORT_INCREMENTAL_GATE.md`。
 - Step 16 do-not-merge 负测 PR #28 将 C4 runtime triangle budget 降到真实产物以下；Asset Layer、Metadata、Runtime Contract policy、Blender source 与 fresh publish/rebuild 均 PASS，Asset Runtime Gate 精确 FAIL，Godot install/import、GdUnit4 与 native suites 全 skipped。PR #28 已关闭未合并，证明 C4 真实 feature 仍遵守 runtime fail-closed 顺序。
 - Gatehouse 场景集成测试以真实 `Main.tscn` 覆盖 T/CT 开局与半场、6:6 两局加时、同一 Main 新比赛隔离和重复 end/restart 幂等；验证真实 3v3、出生/换边、经济装备、逐单位统计、C4 唯一归属与旧实体清理。G1 已通过，下一门槛为 G2 十场人工完整比赛。
 - Gatehouse 路线图为 39 节点/48 连接，三路首次接触为 7.83–8.39 秒，A/B 守方轮转为 4.49 秒；西路已绕开检查平台楼梯碰撞。
@@ -80,15 +81,16 @@ Updated: 2026-08-31
 
 - **Git / main 门禁：PASS。** `main` 已启用 branch protection，required check 为 `tests` 且要求分支 up-to-date；管理员同样受保护，force-push 与删除被禁止。故意失败 PR 已实测在无 `--admin` 绕过时被 GitHub 拒绝合并，证明“CI 变红”与“红灯真的挡 main”已经闭环。
 - **Godot 自动化：PASS。** Godot 4.7.1 headless import、GdUnit4、十一套 native suites 已进入 required `Tests`；native runner 现在会为每个场景打印 START/PASS/FAIL，并在首个失败场景产生 GitHub error annotation。
-- **Windows build：PASS（Step 16 feature-head 已复验）。** 官方 Godot 4.7.1 CLI + matching export templates 已在 CI 生成 Windows EXE/PCK、ZIP、SHA256 和 artifact。`98a417c9` 的 `Windows Export #12` 已对 C4 feature/runtime tree 重新导出成功；同时修复了 PR trigger 覆盖过窄的管线缺口，使 `assets/**`、`data/**`、`scenes/**`、`scripts/**` 的正常运行时变化自动进入 Windows 发布构建验证。早期导出后 SIGABRT 仍由 `exclude_filter="addons/gdUnit4/*"` 按上游建议规避，而非白名单 exit 134。
-- **Windows runtime smoke：PASS（Step 16 feature-head 已复验）。** `Windows Export #12` 的 CI-built artifact 已在 GitHub `windows-latest` runner 上校验 SHA256、解包并真实启动 `VectorBreach.exe --headless --quit-after ...` 成功。该证据关闭了 Step 16 的 feature-head export/runtime-smoke blocker，但仍不替代用户本机的图形、输入和声音人工验收。
+- **Windows build：PASS（Step 16 runtime/workflow head 已复验）。** 官方 Godot 4.7.1 CLI + matching export templates 已在 CI 生成 Windows EXE/PCK、ZIP、SHA256 和 artifact。`69d2a339` 的 `Windows Export #14` 已对当前 C4 runtime/workflow tree 完整导出成功。PR 级 `paths` 覆盖 `assets/**`、`data/**`、`scenes/**`、`scripts/**`、工程/导出配置与 workflow 自身；`synchronize` 再由增量 detector 比较 previous head → new head，只在本次变化触及 runtime/export 路径时运行重型导出，无法验证 `before` SHA 时 fail-open。`8d22af07` 的 `Windows Export #15` 已用 docs-only 提交证明重型 job 会正确跳过。早期导出后 SIGABRT 仍由 `exclude_filter="addons/gdUnit4/*"` 按上游建议规避，而非白名单 exit 134。
+- **Windows runtime smoke：PASS（Step 16 runtime/workflow head 已复验）。** `Windows Export #14` 的 CI-built artifact 已在 GitHub `windows-latest` runner 上校验 SHA256、解包并真实启动 `VectorBreach.exe --headless --quit-after ...` 成功；`Windows Export #15` 同时证明 docs-only synchronize 不会重复运行该重型 smoke。该证据关闭了所有云端 Windows export/runtime-smoke blocker，但仍不替代用户本机的图形、输入和声音人工验收。
 - **Asset Layers / LFS（Step 11）：FULL PASS。** 三层为 `assets-source/` canonical source、`assets-generated/` 可重建 staging、`assets/` reviewed runtime。当前 7 个 Blender master 与 HDR 历史资产已处于真实 Git LFS/受控源资产体系，CI checkout 使用 `lfs: true`；路径门禁已做正/负验收。
 - **Asset Metadata（Step 12）：FULL PASS。** 当前 7/7 canonical Blender master 具有相邻 `*.asset.json`；source identity、provenance/license/AI usage 状态、producer、runtime outputs 等由 CI 校验。历史未知信息保持显式 `unknown`，不伪造来源或许可证。
 - **Blender Source Validation（Step 13）：FULL PASS。** Blender 5.2.1 LTS 在 CI 中直接打开当前 7/7 canonical `.blend`，验证命名、外部纹理、scale、finite/non-singular transform、metadata identity 与 LFS/binary preflight。PR #19 的 unapplied-scale 负测证明坏 source 会在 Godot 之前 fail-fast。
 - **Blender Publish/Rebuild（Step 14）：FULL PASS。** 当前 7 个 canonical producer 通过 metadata 合同拥有 14 个 runtime outputs；Gate 会在 builder 前删除旧 declared outputs，要求 fresh 重建，拒绝未声明 asset-side effect，producer 间恢复工作树，然后让 runtime validator、Godot import、GdUnit4、native suites 消费 fresh runtime set。PR #20 已合并为 `bcb24be4a71b6863d558a73511e00d89e612a9fe`，其建立的 fail-closed publish 机制继续由 Step 16 required `Tests` 成功复用。
 - **Step 14 负向证据：PASS。** do-not-merge PR #22 故意让 Tactical Actor producer 创建未声明的 `assets-source/blender/characters/NEGATIVE_ACCEPTANCE_UNDECLARED.txt`；`Blender publish rebuild validation` 精确失败，Godot install/import、GdUnit4、Native 全 skipped。PR 未合并，负向分支随后复位到正向 head。
-- **Asset Runtime Gate（Step 15）：FULL PASS。** 当前 7 个 sidecar 为 8 个 Blender-owned GLB 提供 asset-specific runtime contracts；cheap contract policy 在 Blender 安装前校验 schema，fresh rebuild 后 `tools/validate_runtime_assets.py` 校验 GLB/glTF container、引用/embedded resource、bufferView/accessor 边界、finite transform metadata、triangle primitives、结构/预算指标与 extension allowlist，再允许 Godot 消费。Step 16 required `Tests` run `33325864451` 已在 C4 与 Windows-export trigger 修复后继续全绿。
+- **Asset Runtime Gate（Step 15）：FULL PASS。** 当前 7 个 sidecar 为 8 个 Blender-owned GLB 提供 asset-specific runtime contracts；cheap contract policy 在 Blender 安装前校验 schema，fresh rebuild 后 `tools/validate_runtime_assets.py` 校验 GLB/glTF container、引用/embedded resource、bufferView/accessor 边界、finite transform metadata、triangle primitives、结构/预算指标与 extension allowlist，再允许 Godot 消费。Step 16 required `Tests #93` run `33326528374` 已在 C4 与最终 Windows-export 增量门禁代码上全绿，docs-only `Tests #94` 又复验同一 runtime tree 全绿。
 - **Step 15 负向证据：PASS。** PR #26 仅改变 Gatehouse triangle budget `5000 -> 3000`，fresh runtime 实测 3356；runtime gate 精确失败并阻断全部 Godot 后续阶段。负测 PR 已关闭未合并，分支已复位，证明 Gate 基于 fresh artifact fail-closed，而非只验证 tracked stale 文件。
+- **云端 / CI / Review：FULL PASS。** PR #27 当前两条 P1 inline review thread 均已修复并 resolved；review submissions 仅为 `COMMENTED`，无 `REQUEST_CHANGES`。Source→Runtime、负向 fail-closed、Godot 4.7.1、GdUnit4、native、Windows export/runtime smoke、Windows 增量正/反路径均已有可执行证据。当前不再保留任何可在 GitHub/CI 侧独立完成的 Step 16 blocker。
 - **当前人工遗留：OPEN。** 自动化通过不等同于最终人工图形验收；仍保留用户本机 Windows 下的实际画面/输入/声音 smoke，以及必要时 Godot Editor 内的交互式 GdUnit4/场景人工复核。Step 16 还必须读取本机 C4 Vulkan visual/performance evidence，自动化不得替代这些证据。
 
 ### Step 16：C4 Device Real Feature Pressure Test（进行中）
@@ -98,21 +100,22 @@ Step 16 已选定 C4 Device 作为第一项真实 asset-driven feature pressure 
 当前已完成：
 
 1. **Feature / Asset Impact Audit。** C4 生产资产、运行时集成、对象状态与测试边界已经进入审计；爆炸半径、致死半径、拾取/交互距离和伤害公式等冻结玩法数值未改。
-2. **完整 Source → Runtime 正向链。** C4 canonical `.blend`、sidecar、producer、runtime contract、fresh GLB rebuild、Godot scene/runtime integration 已由功能/管线证据 head `98a417c91139d8a557ed1d05fb4913c6d990012c` 的 required `Tests` run `33325864451` 全链验证通过。
+2. **完整 Source → Runtime 正向链。** C4 canonical `.blend`、sidecar、producer、runtime contract、fresh GLB rebuild、Godot scene/runtime integration 已由 runtime/workflow 证据 head `69d2a3395d2cb7799f923868a1d07adb5fe34e96` 的 required `Tests #93`（`33326528374`）全链验证通过。
 3. **Fail-closed 负向证据。** PR #28 只降低 C4 triangle budget，精确在 Asset Runtime Gate 失败且阻断全部 Godot 后续阶段；PR 已关闭未合并。
-4. **状态回归补强。** 已修复 armed C4 在跨状态/跨回合时可能残留高亮、beep pitch/播放状态和 site label 的泄漏；C4Device runner 现含 6 项对象级回归，`98a417c9` 的 required 与 legacy 双路径 native 均通过。
-5. **发布门禁压力测试闭环。** Step 16 暴露并修复了 `Windows Export` 只监听工程配置、忽略正常 runtime feature 的路径过滤缺口；`assets/**`、`data/**`、`scenes/**`、`scripts/**` 现会自动触发发布构建。`Windows Export #12` 已在 `98a417c9` 完成 Windows EXE/PCK 导出、ZIP/SHA256/artifact 以及 Windows runner 的真实 headless 启动 smoke。
-6. **本机视觉/性能探针已就绪。** `run-c4-visual-probe.cmd` 会先删除旧证据，再在真实 `Main.tscn` Gatehouse 场景采样 hidden baseline / dropped / planted calm / planted urgent，输出 `reports/step16-c4-evidence.json` 与 dropped/planted/urgent 三张 PNG；探针主动退出属于正常完成行为。
+4. **状态回归补强。** 已修复 armed C4 在跨状态/跨回合时可能残留高亮、beep pitch/播放状态和 site label 的泄漏；C4Device runner 现含 6 项对象级回归，`69d2a339` 的 required `Tests #93` 与 legacy `Godot Tests #122` 双路径 native 均通过，docs-only `8d22af07` 的 #94/#123 又复验同一 runtime tree。
+5. **发布门禁压力测试闭环。** Step 16 暴露并修复了两层 Windows 发布问题：首先让 `assets/**`、`data/**`、`scenes/**`、`scripts/**` 的正常 runtime feature 自动进入发布验证；随后用 previous-head → new-head 增量 detector 阻止同一 PR 后续 docs-only synchronize 重复烧重型构建。`Windows Export #14` 在 `69d2a339` 证明 `should_export=true` 时完整 EXE/PCK + Windows smoke 全绿；`Windows Export #15` 在 `8d22af07` 证明 `should_export=false` 时重型 export/smoke 均正确 skipped；不可验证 previous head 时 fail-open。
+6. **云端审查闭环。** PR #27 两条 P1 finding 均已修复并 resolved，review submissions 无 `REQUEST_CHANGES`；负测 PR #28 已关闭未合并。当前没有可在 GitHub/CI 侧继续完成的 Step 16 review blocker。
+7. **本机视觉/性能探针已就绪。** `run-c4-visual-probe.cmd` 会先删除旧证据，再在真实 `Main.tscn` Gatehouse 场景采样 hidden baseline / dropped / planted calm / planted urgent，输出 `reports/step16-c4-evidence.json` 与 dropped/planted/urgent 三张 PNG；探针主动退出属于正常完成行为。
 
-仍未完成，任何一项缺失都不得将 Step 16 标为 FULL PASS：
+**云端 / CI / Review 侧已无未完成项。以下项目必须依赖用户本机可见/可听/可交互证据，或依赖这些证据后的人工审批，不能由云端自动化替代：**
 
 - **本机 RTX 5060 Forward+/Vulkan visual/performance evidence：OPEN。** 尚未在本对话取得 fresh JSON 与三张截图，因此不能宣称比例、接地、材质可读性、灯光位置、遮挡/HUD 或 avg/p95 delta 已人工通过。
 - **非颜色单一依赖的紧迫感检查：OPEN。** 必须人工确认 planted/urgent 状态除颜色外还能由闪烁/声音等线索可靠区分。
 - **Windows input/audio smoke：OPEN。** 必须在用户本机确认实际输入、拾取/安装/拆除、beep 与状态切换无异常。
-- **Asset review：OPEN。** C4 sidecar 的 `review.status = draft` 是合法且刻意保留的未审状态；metadata policy 只要求状态属于允许集合，不得由 CI 或状态文档擅自晋级为 `approved`。
-- **L3：OPEN。** PR #27 尚无明确 L3/`APPROVED`，不得合并。
+- **Asset review：OPEN。** C4 sidecar 的 `review.status = draft` 是合法且刻意保留的未审状态；只有本机视觉/资产人工审阅通过后才能晋级，不得由 CI 或状态文档擅自改为 `approved`。
+- **L3：OPEN。** 需在上述本机证据完成并复核后取得明确 L3/`APPROVED`；当前不得合并 PR #27。
 
-**GATE = PARTIAL / DO NOT MERGE。** 自动化 Source→Runtime→Godot、fail-closed 负测和 feature-head Windows Export/runtime smoke 已闭环；仍须完成本机 Vulkan 视觉/性能、非颜色紧迫感、输入/声音、人工资产审阅与显式 L3，才能判定 Step 16 是否 FULL PASS。Step 16 未闭环前不启动 Step 17。
+**GATE = PARTIAL / DO NOT MERGE。** 所有不依赖本机的 Step 16 工作已经闭环；当前剩余项仅为本机 Vulkan 视觉/性能、非颜色紧迫感、输入/声音、由这些证据决定的人工资产审阅，以及其后的显式 L3。Step 16 未闭环前不启动 Step 17。
 
 该 Step 16 属于工程压力测试，不解除产品侧 G2 十场人工比赛和 G5 作品集表现 Gate。当前产品主线仍以 Gatehouse G2 为最近人工验收门槛。
 
