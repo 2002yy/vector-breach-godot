@@ -1,18 +1,22 @@
-# Blender source validation gate
+# Blender asset validation and publish gates
 
-Step 13 adds a deterministic headless quality gate for canonical Blender masters under `assets-source/blender/`.
+The repository now has two distinct Blender gates before Godot and a third runtime-quality gate planned next. They must not be conflated:
 
-The validator deliberately reuses the repository's existing Blender builders and `blender_build_utils.py` conventions. It does not create a second export pipeline and does not treat MCP success, a rendered screenshot, or a successful GLB import as proof that an asset source is production-safe.
+1. **Step 13 — Blender Source Validation:** prove that canonical `.blend` masters themselves are structurally safe to open and author from.
+2. **Step 14 — Blender Publish/Rebuild:** prove that canonical masters can reproduce their declared runtime artifacts through the repository's existing deterministic builders without undeclared asset-side effects.
+3. **Step 15 — Asset Runtime Gate (next):** inspect the freshly rebuilt GLB/runtime artifacts for structural integrity and measured production budgets before Godot imports them.
+
+MCP success, a rendered screenshot, an old tracked GLB, or a successful Godot import alone is not proof of any of these gates.
 
 ## Pinned validation runtime
 
-CI uses **Blender 5.2.1 LTS** for this gate. The version is pinned so the same canonical `.blend` files are inspected by a repeatable Blender/Python runtime instead of whichever interactive Blender version happens to be installed on a developer machine.
+CI uses **Blender 5.2.1 LTS** for the Blender gates. The version is pinned so the same canonical `.blend` files are inspected and rebuilt by a repeatable Blender/Python runtime instead of whichever interactive Blender version happens to be installed on a developer machine.
 
 The current canonical masters were written by the Blender 5.2 generation. Blender 4.4 cannot read the 5.x blendfile format. Blender 4.5 LTS can act as a compatibility bridge, but the real masters produce newer-writer/data-loss warnings there, so the production gate is intentionally aligned with Blender 5.2.1 LTS instead of using the compatibility bridge.
 
-The tracked masters are Blender-compressed Zstandard files. The runner recognizes both ordinary `BLENDER` headers and the Zstandard frame header used by compressed `.blend` files, then asks Blender to open the **canonical repository file directly**. It does not externally decompress a source into `/tmp`: doing so changes the base path used by Blender `//` relative resources and can create false missing-texture failures.
+The tracked masters are Blender-compressed Zstandard files. The source runner recognizes both ordinary `BLENDER` headers and the Zstandard frame header used by compressed `.blend` files, then asks Blender to open the **canonical repository file directly**. It does not externally decompress a source into `/tmp`: doing so changes the base path used by Blender `//` relative resources and can create false missing-texture failures.
 
-## Command
+## Step 13 command
 
 Linux / CI:
 
@@ -31,7 +35,7 @@ BLENDER_ASSET_VALIDATION_ALL=PASS
 
 Any source failure makes the runner exit non-zero.
 
-## v1 checks
+## Step 13 v1 checks
 
 ### Naming safety
 
@@ -59,7 +63,7 @@ The logical source must live under `assets-source/blender/`, its adjacent sideca
 
 Before launching Blender, each master is checked for a real Blender/Zstandard binary header. An unresolved Git LFS pointer or an unrelated/invalid binary fails before Blender starts.
 
-## Acceptance evidence
+## Step 13 acceptance evidence
 
 The positive Step 13 PR baseline validates all six tracked canonical Blender masters on Blender 5.2.1 LTS with zero source violations, then continues through Godot import, GdUnit4, and native suites.
 
@@ -71,23 +75,87 @@ geometry object has unapplied scale: 'GEO-pistol-barrel' (2.0, 1.0, 1.0)
 
 The Blender job failed and every later Godot/GdUnit/native stage was skipped. The negative branch changed only the ephemeral CI working tree; no intentionally broken `.blend` was merged or retained as a canonical source asset.
 
-## Deliberate Step 13 exclusions
+## Step 14 — publish/rebuild contract
 
-This first gate does **not** yet claim to validate topology quality, UV coverage, material-count budgets, rig hierarchy, animation clips, collision authoring, LODs, triangle budgets, or GLB visual equivalence. Those checks require asset-type-specific contracts and evidence and will be added only after this baseline remains stable on the real masters.
+Every canonical Blender master now declares one tracked `build_script` and a non-empty list of tracked `runtime_outputs` in its adjacent sidecar. The current baseline is **6 canonical Blender producers owning 13 runtime outputs**. One runtime artifact may have only one canonical producer.
 
-## CI order
+The gate is executed by:
 
-The required `Tests` workflow is ordered to fail cheaply:
+```bash
+python tools/blender/run_publish_rebuild_validation.py /path/to/blender
+```
+
+For each producer the runner:
+
+1. removes that producer's declared runtime outputs from the CI working tree;
+2. invokes the existing deterministic builder through Blender 5.2.1;
+3. requires every declared output to be recreated, non-empty, and structurally recognizable at the file-signature level;
+4. rejects asset-side paths changed outside that producer's declaration;
+5. restores tracked source/runtime state between producers while preserving the newly rebuilt declared outputs in isolated staging;
+6. places the full fresh output set back into the working tree for downstream Godot import, GdUnit4, and native tests.
+
+This prevents a builder that silently failed to rewrite an existing tracked output from producing a stale-output false green.
+
+The Tactical Actor keeps its legacy animation/export logic behind a thin portable adapter. The adapter remaps obsolete local Windows roots to the current checkout and temporarily sets Blender `preferences.filepaths.save_version = 0` so a CI/local rebuild cannot silently rotate ignored `.blend1`/`.blend2` files; the previous preference is restored afterward.
+
+The Foundry map uses a thin publish adapter so map preview generation can remain compatible with the legacy builder without recreating weapon collections. Weapon runtime files are owned only by the independent Weapon producer.
+
+## Step 14 acceptance evidence
+
+Positive acceptance at feature head `72196969d5f81a6fe05b1d2b6c148c5ad1a04b0d` passed required `Tests` and the legacy `Godot Tests`: six real Blender producers rebuilt the declared runtime set, Godot imported the fresh assets, and GdUnit4/native suites passed. PR #20 was merged to `main` as `bcb24be4a71b6863d558a73511e00d89e612a9fe`; both main push workflows also completed successfully after merge.
+
+The dedicated do-not-merge PR #22 injected one undeclared side effect:
+
+```text
+assets-source/blender/characters/NEGATIVE_ACCEPTANCE_UNDECLARED.txt
+```
+
+The gate failed exactly with:
+
+```text
+BLENDER_PUBLISH_REBUILD=FAIL
+- VB-CHAR-TACTICAL-ACTOR modified undeclared asset paths: ['assets-source/blender/characters/NEGATIVE_ACCEPTANCE_UNDECLARED.txt']
+```
+
+Godot installation/import, GdUnit4, and native suites were skipped. The negative PR was closed unmerged and the negative branch was reset to the positive feature head.
+
+A separate integration issue was also exposed during Step 14: a headless Eevee preview needed `libEGL.so.1` on the Ubuntu runner. CI now installs `libegl1`; preview generation was not removed or weakened to obtain a green build.
+
+Foundry's historical freeze manifest was corrected to distinguish immutable gameplay/layout data from regenerable visual outputs. `depot.json` remains byte-frozen, while the deterministic Foundry GLB, preview PNG, and source `.blend` are declared regenerable outputs; a visual rebuild is not required to reproduce obsolete generated hashes byte-for-byte.
+
+## Deliberate exclusions through Step 14
+
+The source and publish gates do **not** yet claim to validate topology quality, UV coverage, triangle budgets, material-count budgets, texture-memory budgets, rig hierarchy correctness, animation clip contracts, LODs, collision authoring, GLB accessor/buffer integrity, or visual equivalence. Those checks need asset-type-specific runtime contracts and measured baselines.
+
+## Step 15 — Asset Runtime Gate
+
+The next automated gate will run **after fresh Blender publish/rebuild and before Godot import**. Its first task is an audit of the current real GLBs so budgets are based on observed assets rather than invented numbers.
+
+Planned v1 checks include:
+
+- valid GLB container magic/version/declared length and chunk layout;
+- parseable glTF JSON chunk;
+- scenes/nodes/meshes/materials/skins/animations references that remain in range;
+- bufferView/accessor bounds and finite transform data;
+- measured file size, vertex/triangle, material, texture/image, skin and animation metrics;
+- metadata-declared runtime expectations per asset class, including required animation/skin expectations where the current asset actually needs them;
+- fail-fast behavior before Godot if the runtime artifact is malformed or exceeds an explicit accepted budget.
+
+Collision/LOD/animation requirements will be added only where the repository has a real contract to enforce. Visual equivalence, screenshot review, final character/art quality, player-visible readability, audio, input feel and GPU performance remain separate manual or later visual/performance evidence.
+
+## Required CI order after Step 14
 
 ```text
 Asset layer policy
   -> Asset metadata policy
   -> Install Blender 5.2.1 LTS
   -> Blender source validation
-  -> Install Godot
+  -> Blender publish/rebuild validation
+  -> [Step 15 Asset Runtime Gate: next]
+  -> Install Godot 4.7.1
   -> Godot import
   -> GdUnit4
   -> native suites
 ```
 
-A source-art violation therefore blocks the expensive Godot stages instead of surfacing later as an import or runtime accident.
+The goal is fail-closed evidence: source or publish defects must be rejected before the engine, and Step 15 will extend that boundary to malformed or over-budget runtime artifacts.
