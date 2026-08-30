@@ -93,7 +93,9 @@ func _capture_view(
 	camera_pivot.rotation.x = 0.0
 	await get_tree().process_frame
 	await RenderingServer.frame_post_draw
-	var output_path := ProjectSettings.globalize_path("user://step16-c4-%s.png" % label)
+	var reports_dir := ProjectSettings.globalize_path("res://reports")
+	DirAccess.make_dir_recursive_absolute(reports_dir)
+	var output_path := ProjectSettings.globalize_path("res://reports/step16-c4-%s.png" % label)
 	var save_error := get_viewport().get_texture().get_image().save_png(output_path)
 	return output_path if save_error == OK else ""
 
