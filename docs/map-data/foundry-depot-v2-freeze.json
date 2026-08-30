@@ -5,27 +5,17 @@
   "status": "frozen",
   "frozenAt": "2026-07-23",
   "successor": "foundry-reforged",
-  "policy": "Layout and collision JSON remain frozen. Deterministic visual-only rebuilds may update the three generated asset fingerprints; future layout work belongs to Foundry Reforged.",
+  "policy": "Layout and collision JSON remain byte-frozen. The three deterministic visual/source outputs below are regenerable and are validated by the Blender publish/rebuild gate; future layout work belongs to Foundry Reforged.",
   "files": [
     {
       "path": "res://data/levels/depot.json",
       "bytes": 10445,
       "sha256": "EFA093E95EEFC292DEE19B514BCA4EA2A420C752669B50F3AB79F242C5F72466"
-    },
-    {
-      "path": "res://assets/models/foundry/foundry_depot.glb",
-      "bytes": 7700888,
-      "sha256": "CC8E71A26557F77690AC46B632FAE92930360103DA95ED9DCD4172044545490B"
-    },
-    {
-      "path": "res://assets/maps/foundry-depot-preview.png",
-      "bytes": 1009379,
-      "sha256": "957C5C592DBF7A63C937A80EA94B123D1B9253BDFCCB6480CAF935354071F79A"
-    },
-    {
-      "path": "res://assets-source/blender/maps/foundry_asset_source.blend",
-      "bytes": 381741,
-      "sha256": "5902FA6E99839ABCA07FE715A9CE6308AC0F736157236F33DD4E9A3D42F31859"
     }
+  ],
+  "regenerableOutputs": [
+    "res://assets/models/foundry/foundry_depot.glb",
+    "res://assets/maps/foundry-depot-preview.png",
+    "res://assets-source/blender/maps/foundry_asset_source.blend"
   ]
 }
