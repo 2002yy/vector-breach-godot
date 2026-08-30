@@ -16,6 +16,29 @@
     "assets/models/core_vault/core_vault.glb",
     "assets/maps/core-vault-preview.png"
   ],
+  "runtime_contracts": {
+    "assets/models/core_vault/core_vault.glb": {
+      "format": "glb2",
+      "max": {
+        "file_size_bytes": 10485760,
+        "nodes": 220,
+        "meshes": 220,
+        "primitives": 220,
+        "vertices_by_primitive": 8000,
+        "triangles": 5000,
+        "materials": 16,
+        "textures": 20,
+        "images": 20,
+        "skins": 0,
+        "skin_joints_total": 0,
+        "animations": 0,
+        "animation_channels": 0
+      },
+      "allowed_extensions_used": [
+        "KHR_materials_emissive_strength"
+      ]
+    }
+  },
   "scale": {
     "unit": "meter"
   },
