@@ -5,6 +5,10 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - "assets/**"
+      - "data/**"
+      - "scenes/**"
+      - "scripts/**"
       - "export_presets.cfg"
       - ".github/workflows/windows-export.yml"
       - "project.godot"
