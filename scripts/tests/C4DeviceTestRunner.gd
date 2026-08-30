@@ -10,6 +10,7 @@ func _ready() -> void:
 	await _run_test("runtime_asset_and_stable_nodes", _test_runtime_asset_and_stable_nodes)
 	await _run_test("carried_drop_pickup_state_contract", _test_carried_drop_pickup_state_contract)
 	await _run_test("planted_state_and_radar_contract", _test_planted_state_and_radar_contract)
+	await _run_test("armed_urgency_audio_light_contract", _test_armed_urgency_audio_light_contract)
 	await _run_test("frozen_gameplay_constants", _test_frozen_gameplay_constants)
 	if _failures.is_empty():
 		print("[C4DeviceTests] PASS (%d tests)" % _passes)
@@ -97,6 +98,36 @@ func _test_planted_state_and_radar_contract() -> void:
 	_assert_equal(radar.get("state"), "planted", "radar state must track planted")
 	_assert_equal(radar.get("site"), "B", "radar site schema must remain stable")
 	_assert_true(radar.has("x") and radar.has("z"), "radar x/z keys must remain stable")
+	await _cleanup_device(device)
+
+func _test_armed_urgency_audio_light_contract() -> void:
+	var device := await _make_device()
+	var emitted_urgencies: Array[float] = []
+	device.beep_emitted.connect(func(_world_position: Vector3, urgency: float) -> void:
+		emitted_urgencies.append(urgency)
+	)
+	RoundManager.start_round()
+	RoundManager.set_live()
+	device.call("plant_at", Vector3.ZERO, "A")
+	_assert_true(RoundManager.plant_bomb("A"), "test setup must enter the real BOMB_PLANTED state")
+	RoundManager.time_remaining = RoundManager.bomb_duration
+	device.set("_beep_timer", 0.0)
+	await get_tree().process_frame
+	var calm_interval := float(device.get("_beep_timer"))
+	var status_light := device.get_node("MeshRoot/StatusLight") as OmniLight3D
+	_assert_true(not emitted_urgencies.is_empty(), "armed C4 must emit the beep signal in the real planted state")
+	_assert_near(emitted_urgencies[-1], 0.0, 0.02, "full bomb timer should begin near zero urgency")
+	_assert_true(status_light.light_energy > 2.0, "beep event must visibly pulse StatusLight brightness")
+
+	RoundManager.time_remaining = 4.0
+	device.set("_beep_timer", 0.0)
+	await get_tree().process_frame
+	var urgent_interval := float(device.get("_beep_timer"))
+	_assert_true(emitted_urgencies.size() >= 2, "urgent armed state must emit another beep signal")
+	_assert_true(emitted_urgencies[-1] > 0.85, "last four seconds must produce high urgency independent of color")
+	_assert_true(urgent_interval < calm_interval * 0.4, "beep cadence must accelerate materially as detonation approaches")
+	_assert_true((device.get_node("BeepPlayer") as AudioStreamPlayer3D).pitch_scale > 1.2, "urgent beep pitch must increase as an additional non-color cue")
+	RoundManager.set_warmup()
 	await _cleanup_device(device)
 
 func _test_frozen_gameplay_constants() -> void:
