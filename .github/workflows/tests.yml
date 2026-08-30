@@ -41,6 +41,9 @@ jobs:
       - name: Blender publish rebuild validation
         run: python tools/blender/run_publish_rebuild_validation.py ./.tools/blender/blender
 
+      - name: Asset runtime baseline audit
+        run: python tools/audit_runtime_assets.py
+
       - name: Install Godot 4.7.1
         run: |
           curl -sSL -o godot.zip https://github.com/godotengine/godot/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip
