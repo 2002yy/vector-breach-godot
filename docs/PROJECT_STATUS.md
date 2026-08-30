@@ -67,6 +67,36 @@ Updated: 2026-08-30
 - Foundry Reforged 在 RTX 5060 Laptop / Godot 4.7.1 Forward+ 的参考基线为 196.40 FPS、平均 5.09 ms、p95 7.15 ms、977 draw calls、18,960 primitives 和 226.93 MiB 报告显存，无趋势警告或硬失败。
 - 枪械确定性构建校验为步枪 55 对象、手枪 42 对象、共享网格 0；显式接口均为零间隙或受控小重叠。`WeaponViewModelVisualProbe` 已在 RTX 5060 Laptop / Forward+ 同时捕获步枪后坐、换弹、落地和手枪持枪画面，并通过显隐与运动状态契约。
 
+## 工程管线状态（不等同于产品 Gate）
+
+以下条目描述“仓库能否以 fail-closed 方式验证、重建、测试和发布”的工程能力，不代表 G2 十场人工比赛、G5 作品集表现或最终游戏内容已经通过。
+
+- **Git / main 门禁：PASS。** `main` 已启用 branch protection，required check 为 `tests` 且要求分支 up-to-date；管理员同样受保护，force-push 与删除被禁止。故意失败 PR 已实测在无 `--admin` 绕过时被 GitHub 拒绝合并，证明“CI 变红”与“红灯真的挡 main”已经闭环。
+- **Godot 自动化：PASS。** Godot 4.7.1 headless import、GdUnit4、十一套 native suites 已进入 required `Tests`；native runner 现在会为每个场景打印 START/PASS/FAIL，并在首个失败场景产生 GitHub error annotation。
+- **Windows build：PASS。** 官方 Godot 4.7.1 CLI + matching export templates 已在 CI 生成 Windows EXE/PCK、ZIP、SHA256 和 artifact。早期导出后 SIGABRT 已定位为 GdUnit4 editor-only 插件退出问题，并通过 `exclude_filter="addons/gdUnit4/*"` 按上游建议解决，而不是白名单 exit 134。
+- **Windows runtime smoke：PASS。** CI-built artifact 已在 GitHub `windows-latest` / Windows Server 2025 runner 上校验 SHA256、解包并真实启动 `VectorBreach.exe --headless --quit-after ...`；主场景和实际资源可加载并正常退出。该证据仍不替代用户本机的图形、输入和声音人工验收。
+- **Asset Layers / LFS（Step 11）：FULL PASS。** 三层为 `assets-source/` canonical source、`assets-generated/` 可重建 staging、`assets/` reviewed runtime。6 个 Blender master 与 HDR 历史资产已完成真实 Git LFS pointer/对象迁移，CI checkout 使用 `lfs: true`；路径门禁已做正/负验收。
+- **Asset Metadata（Step 12）：FULL PASS。** 6/6 canonical Blender master 具有相邻 `*.asset.json`；source identity、provenance/license/AI usage 状态、producer、runtime outputs 等由 CI 校验。历史未知信息保持显式 `unknown`，不伪造来源或许可证。
+- **Blender Source Validation（Step 13）：FULL PASS。** Blender 5.2.1 LTS 在 CI 中直接打开 6/6 canonical zstd-compressed `.blend`，验证命名、外部纹理、scale、finite/non-singular transform、metadata identity 与 LFS/binary preflight。PR #19 的 unapplied-scale 负测证明坏 source 会在 Godot 之前 fail-fast。
+- **Blender Publish/Rebuild（Step 14）：FULL PASS。** 6 个 canonical producer 通过 metadata 合同拥有 13 个 runtime outputs；Gate 会在 builder 前删除旧 declared outputs，要求 fresh 重建，拒绝未声明 asset-side effect，producer 间恢复工作树，然后让 Godot import、GdUnit4、native suites 消费 fresh runtime set。PR #20 已合并为 `bcb24be4a71b6863d558a73511e00d89e612a9fe`，合并后的 main `Tests` 与 `Godot Tests` push workflows 均 success。
+- **Step 14 负向证据：PASS。** do-not-merge PR #22 故意让 Tactical Actor producer 创建未声明的 `assets-source/blender/characters/NEGATIVE_ACCEPTANCE_UNDECLARED.txt`；`Blender publish rebuild validation` 精确失败，Godot install/import、GdUnit4、Native 全 skipped。PR 未合并，负向分支随后复位到正向 head。
+- **当前人工遗留：OPEN。** 自动化通过不等同于最终人工图形验收；仍保留用户本机 Windows 下的实际画面/输入/声音 smoke，以及必要时 Godot Editor 内的交互式 GdUnit4/场景人工复核。自动化不得替代这些证据。
+
+### 工程管线下一步：Step 15 Asset Runtime Gate
+
+Step 15 位于 **fresh Blender publish/rebuild 之后、Godot import 之前**。目标不是再次证明“文件存在”，而是证明 freshly rebuilt runtime GLB 本身满足可解析、结构一致、预算可控的生产合同。
+
+第一版按以下顺序执行：
+
+1. **先审计真实现状，不先拍脑袋定预算。** 收集当前 13 个 Blender-owned runtime outputs 中 GLB 的文件大小、scene/node/mesh/material/skin/animation 数量、vertex/triangle 等可稳定计算指标。
+2. **建立 runtime contract。** 预算和必需结构写入 metadata 或稳定的 schema；静态地图、武器、角色/动画资产允许不同合同，不用一个全局阈值硬套所有资产。
+3. **实现纯 runtime validator。** 至少检查 GLB magic/version/declared length/chunk、glTF JSON、引用范围、bufferView/accessor 边界、finite transform 与基础文件/结构指标；角色资产按实际需要校验 skin/animation，静态资产不虚构动画要求。
+4. **接入 required `Tests`。** 顺序升级为 `Asset Layer -> Metadata -> Blender Source -> Publish/Rebuild -> Asset Runtime -> Godot import -> GdUnit4 -> Native`，runtime failure 必须让 Godot 后续阶段 skipped。
+5. **做正/负验收。** 当前 fresh GLB 全部通过；另建 do-not-merge 负测，只破坏 runtime artifact（例如 GLB header/结构或明确预算），证明 Runtime Gate 精确红灯且 Godot 不启动。
+6. **不在 Step 15 冒充视觉 QA。** 截图视觉等价、材质审美、GPU 性能、LOD/collision 质量、最终角色美术、输入/声音与玩家可读性保持为后续视觉/性能/人工 Gate。
+
+Step 15 完成后，工程主线才进入更高层的 runtime 预算、视觉回归与真实新资产/真实 Feature 全流程压力测试；当前不再以安装更多工具为主任务。
+
 ## 下一阶段：Gatehouse 3v3 单机竞技切片
 
 ### 目标
