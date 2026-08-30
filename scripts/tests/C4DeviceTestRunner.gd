@@ -103,7 +103,7 @@ func _test_planted_state_and_radar_contract() -> void:
 func _test_armed_urgency_audio_light_contract() -> void:
 	var device := await _make_device()
 	var emitted_urgencies: Array[float] = []
-	device.beep_emitted.connect(func(_world_position: Vector3, urgency: float) -> void:
+	device.connect("beep_emitted", func(_world_position: Vector3, urgency: float) -> void:
 		emitted_urgencies.append(urgency)
 	)
 	RoundManager.start_round()
