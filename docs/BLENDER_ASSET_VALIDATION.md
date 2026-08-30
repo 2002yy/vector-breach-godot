@@ -1,10 +1,10 @@
 # Blender asset validation and publish gates
 
-The repository now has two distinct Blender gates before Godot and a third runtime-quality gate planned next. They must not be conflated:
+The repository now has three distinct Blender/runtime gates before Godot. They must not be conflated:
 
 1. **Step 13 — Blender Source Validation:** prove that canonical `.blend` masters themselves are structurally safe to open and author from.
 2. **Step 14 — Blender Publish/Rebuild:** prove that canonical masters can reproduce their declared runtime artifacts through the repository's existing deterministic builders without undeclared asset-side effects.
-3. **Step 15 — Asset Runtime Gate (next):** inspect the freshly rebuilt GLB/runtime artifacts for structural integrity and measured production budgets before Godot imports them.
+3. **Step 15 — Asset Runtime Gate:** inspect the freshly rebuilt GLB runtime artifacts for structural integrity and measured production budgets before Godot imports them.
 
 MCP success, a rendered screenshot, an old tracked GLB, or a successful Godot import alone is not proof of any of these gates.
 
@@ -92,7 +92,7 @@ For each producer the runner:
 3. requires every declared output to be recreated, non-empty, and structurally recognizable at the file-signature level;
 4. rejects asset-side paths changed outside that producer's declaration;
 5. restores tracked source/runtime state between producers while preserving the newly rebuilt declared outputs in isolated staging;
-6. places the full fresh output set back into the working tree for downstream Godot import, GdUnit4, and native tests.
+6. places the full fresh output set back into the working tree for downstream runtime validation and Godot import.
 
 This prevents a builder that silently failed to rewrite an existing tracked output from producing a stale-output false green.
 
@@ -123,39 +123,67 @@ A separate integration issue was also exposed during Step 14: a headless Eevee p
 
 Foundry's historical freeze manifest was corrected to distinguish immutable gameplay/layout data from regenerable visual outputs. `depot.json` remains byte-frozen, while the deterministic Foundry GLB, preview PNG, and source `.blend` are declared regenerable outputs; a visual rebuild is not required to reproduce obsolete generated hashes byte-for-byte.
 
-## Deliberate exclusions through Step 14
-
-The source and publish gates do **not** yet claim to validate topology quality, UV coverage, triangle budgets, material-count budgets, texture-memory budgets, rig hierarchy correctness, animation clip contracts, LODs, collision authoring, GLB accessor/buffer integrity, or visual equivalence. Those checks need asset-type-specific runtime contracts and measured baselines.
-
 ## Step 15 — Asset Runtime Gate
 
-The next automated gate will run **after fresh Blender publish/rebuild and before Godot import**. Its first task is an audit of the current real GLBs so budgets are based on observed assets rather than invented numbers.
+Step 15 runs **after fresh Blender publish/rebuild and before Godot import**. It covers the seven Blender-owned GLB outputs declared by the six canonical producers. Preview PNG pixel/visual quality remains outside this structural gate.
 
-Planned v1 checks include:
+Each relevant sidecar declares a `runtime_contract` for every owned GLB. `tools/check_runtime_asset_contracts.py` validates the contract shape before Blender is installed, and `tools/validate_runtime_assets.py` validates the freshly rebuilt GLBs after Step 14.
 
-- valid GLB container magic/version/declared length and chunk layout;
-- parseable glTF JSON chunk;
-- scenes/nodes/meshes/materials/skins/animations references that remain in range;
-- bufferView/accessor bounds and finite transform data;
-- measured file size, vertex/triangle, material, texture/image, skin and animation metrics;
-- metadata-declared runtime expectations per asset class, including required animation/skin expectations where the current asset actually needs them;
-- fail-fast behavior before Godot if the runtime artifact is malformed or exceeds an explicit accepted budget.
+V1 validates:
 
-Collision/LOD/animation requirements will be added only where the repository has a real contract to enforce. Visual equivalence, screenshot review, final character/art quality, player-visible readability, audio, input feel and GPU performance remain separate manual or later visual/performance evidence.
+- GLB magic/version/declared length and chunk layout;
+- parseable glTF JSON plus required scene graph references;
+- embedded buffer/image resources and index ranges;
+- bufferView/accessor offsets, component/type/count calculations, and bounds within declared buffers;
+- finite node transforms and finite accessor min/max metadata;
+- triangle-mode mesh primitives and measured triangle counts;
+- measured file bytes, node/mesh/primitive/material/texture/image/skin/animation counts;
+- required minimums and explicit maximum budgets from the per-output metadata contracts;
+- allowlisted required/used extensions;
+- asset-class expectations such as skins/animations only where the current runtime asset actually requires them.
 
-## Required CI order after Step 14
+Budgets were chosen from a measurement-only baseline before enforcement rather than from arbitrary global thresholds. Static maps, weapons, and the animated tactical actor therefore use different contracts.
+
+## Step 15 acceptance evidence
+
+Positive PR #25 head `5f525aeaca53e71f5914a3367db1c784ff4b1265` completed both PR workflows successfully:
+
+- required `Tests` run **33308981479**: success;
+- legacy `Godot Tests` run **33308981476**: success.
+
+The required job rebuilt all six Blender producers first, then `Asset runtime validation` passed on the fresh seven-GLB set, and downstream Godot import, GdUnit4, and native suites also passed.
+
+A dedicated **do-not-merge** negative acceptance PR #26 changed exactly one contract value relative to the positive head: Gatehouse `max.triangles` from `5000` to `3000`. The fresh rebuilt Gatehouse GLB measured `3356` triangles. Required `Tests` run **33310639857** failed exactly at the runtime gate with:
+
+```text
+ASSET_RUNTIME_VALIDATION=FAIL
+- assets/models/gatehouse/gatehouse.glb: budget exceeded for triangles: actual=3356 max=3000
+```
+
+Godot installation/import, GdUnit4, and native suites were skipped. PR #26 was closed unmerged and the negative branch was force-reset to the positive #25 head, so no intentionally failing budget remains in repository history as an active branch tip.
+
+This proves Step 15 is fail-closed on a freshly rebuilt over-budget runtime artifact rather than merely checking tracked files or relying on Godot import to catch the defect later.
+
+## Deliberate exclusions after Step 15
+
+Step 15 does **not** claim visual equivalence, UV/artistic quality, texture-memory residency, authored LOD/collision quality, final rig hierarchy semantics, screenshot readability, final character/art quality, input/audio feel, or GPU performance. Those require visual/performance/manual evidence or future asset-type-specific contracts.
+
+The runtime gate currently governs Blender-owned GLBs only. Preview PNGs are rebuild evidence but are not pixel-diff or aesthetic-quality gates.
+
+## Required CI order after Step 15
 
 ```text
 Asset layer policy
   -> Asset metadata policy
+  -> Asset runtime contract policy
   -> Install Blender 5.2.1 LTS
   -> Blender source validation
   -> Blender publish/rebuild validation
-  -> [Step 15 Asset Runtime Gate: next]
+  -> Asset runtime validation
   -> Install Godot 4.7.1
   -> Godot import
   -> GdUnit4
   -> native suites
 ```
 
-The goal is fail-closed evidence: source or publish defects must be rejected before the engine, and Step 15 will extend that boundary to malformed or over-budget runtime artifacts.
+The goal is fail-closed evidence: source defects, producer/rebuild defects, and malformed or over-budget rebuilt runtime GLBs are rejected before the engine. The next engineering work should move upward into visual regression / performance evidence and then a real feature/asset change exercised end-to-end, rather than adding another overlapping DCC or test wrapper.
