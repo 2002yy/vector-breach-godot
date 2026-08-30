@@ -2,6 +2,9 @@ extends Node3D
 
 signal beep_emitted(world_position: Vector3, urgency: float)
 
+const IDLE_LIGHT_ENERGY := 0.45
+const DEFAULT_BEEP_PITCH := 1.0
+
 @export var explosion_radius: float = 22.0
 @export var lethal_radius: float = 5.5
 
@@ -31,27 +34,28 @@ func _process(delta: float) -> void:
 		beep_player.play()
 		beep_emitted.emit(global_position, urgency)
 	else:
-		status_light.light_energy = move_toward(status_light.light_energy, 0.45, delta * 8.0)
+		status_light.light_energy = move_toward(status_light.light_energy, IDLE_LIGHT_ENERGY, delta * 8.0)
 
 func set_carried(team: String = "T") -> void:
 	device_state = "carried"
 	carrier_team = team
 	site_label = ""
 	mesh_root.visible = false
-	_beep_timer = 0.0
+	_reset_armed_feedback()
 
 func drop_at(world_position: Vector3) -> void:
 	device_state = "dropped"
 	global_position = world_position
+	site_label = ""
 	mesh_root.visible = true
-	_beep_timer = 0.0
+	_reset_armed_feedback()
 
 func plant_at(world_position: Vector3, next_site_label: String) -> void:
 	device_state = "planted"
 	global_position = world_position
 	site_label = next_site_label
 	mesh_root.visible = true
-	_beep_timer = 0.0
+	_reset_armed_feedback()
 
 func can_pick_up(player_position: Vector3, player_team: String) -> bool:
 	return device_state == "dropped" and player_team == "T" and global_position.distance_to(player_position) <= 1.8
@@ -88,6 +92,12 @@ func get_radar_record() -> Dictionary:
 		"z": global_position.z,
 		"site": site_label,
 	}
+
+func _reset_armed_feedback() -> void:
+	_beep_timer = 0.0
+	status_light.light_energy = IDLE_LIGHT_ENERGY
+	beep_player.pitch_scale = DEFAULT_BEEP_PITCH
+	beep_player.stop()
 
 func _make_beep_stream() -> AudioStreamWAV:
 	var mix_rate := 22050
