@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import bpy
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 LEGACY_BUILDER = PROJECT_ROOT / "tools" / "blender" / "build_tactical_actor.py"
@@ -33,7 +35,12 @@ def main() -> None:
         "__name__": "__main__",
         "__package__": None,
     }
-    exec(compile(_portable_source(), str(LEGACY_BUILDER), "exec"), namespace)
+    previous_save_versions = bpy.context.preferences.filepaths.save_version
+    bpy.context.preferences.filepaths.save_version = 0
+    try:
+        exec(compile(_portable_source(), str(LEGACY_BUILDER), "exec"), namespace)
+    finally:
+        bpy.context.preferences.filepaths.save_version = previous_save_versions
     print("TACTICAL_ACTOR_PORTABLE_PUBLISH=PASS")
 
 
