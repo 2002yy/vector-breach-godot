@@ -41,6 +41,12 @@ def main() -> None:
         exec(compile(_portable_source(), str(LEGACY_BUILDER), "exec"), namespace)
     finally:
         bpy.context.preferences.filepaths.save_version = previous_save_versions
+
+    # Negative acceptance injection: this path is intentionally NOT declared in
+    # the asset metadata. The publish/rebuild gate must reject it before Godot.
+    undeclared = PROJECT_ROOT / "assets-source" / "blender" / "characters" / "NEGATIVE_ACCEPTANCE_UNDECLARED.txt"
+    undeclared.write_text("intentional undeclared publish side effect\n", encoding="utf-8")
+
     print("TACTICAL_ACTOR_PORTABLE_PUBLISH=PASS")
 
 
