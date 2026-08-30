@@ -33,7 +33,7 @@
         "meshes": 48,
         "primitives": 48,
         "vertices_by_primitive": 4096,
-        "triangles": 2200,
+        "triangles": 1400,
         "materials": 8,
         "textures": 0,
         "images": 0,
