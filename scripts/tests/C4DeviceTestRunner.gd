@@ -11,6 +11,7 @@ func _ready() -> void:
 	await _run_test("carried_drop_pickup_state_contract", _test_carried_drop_pickup_state_contract)
 	await _run_test("planted_state_and_radar_contract", _test_planted_state_and_radar_contract)
 	await _run_test("armed_urgency_audio_light_contract", _test_armed_urgency_audio_light_contract)
+	await _run_test("armed_feedback_resets_between_states", _test_armed_feedback_resets_between_states)
 	await _run_test("frozen_gameplay_constants", _test_frozen_gameplay_constants)
 	if _failures.is_empty():
 		print("[C4DeviceTests] PASS (%d tests)" % _passes)
@@ -127,6 +128,32 @@ func _test_armed_urgency_audio_light_contract() -> void:
 	_assert_true(emitted_urgencies[-1] > 0.85, "last four seconds must produce high urgency independent of color")
 	_assert_true(urgent_interval < calm_interval * 0.4, "beep cadence must accelerate materially as detonation approaches")
 	_assert_true((device.get_node("BeepPlayer") as AudioStreamPlayer3D).pitch_scale > 1.2, "urgent beep pitch must increase as an additional non-color cue")
+	RoundManager.set_warmup()
+	await _cleanup_device(device)
+
+func _test_armed_feedback_resets_between_states() -> void:
+	var device := await _make_device()
+	var status_light := device.get_node("MeshRoot/StatusLight") as OmniLight3D
+	var beep_player := device.get_node("BeepPlayer") as AudioStreamPlayer3D
+	RoundManager.start_round()
+	RoundManager.set_live()
+	device.call("plant_at", Vector3.ZERO, "A")
+	_assert_true(RoundManager.plant_bomb("A"), "reset test setup must enter the real BOMB_PLANTED state")
+	RoundManager.time_remaining = 4.0
+	device.set("_beep_timer", 0.0)
+	await get_tree().process_frame
+	_assert_true(status_light.light_energy > 2.0, "reset test must begin from an active armed light pulse")
+	_assert_true(beep_player.pitch_scale > 1.2, "reset test must begin from urgent pitch")
+
+	device.call("set_carried", "T")
+	_assert_near(status_light.light_energy, 0.45, 0.0001, "carried transition must clear stale armed light energy")
+	_assert_near(beep_player.pitch_scale, 1.0, 0.0001, "carried transition must restore default beep pitch")
+	_assert_true(not beep_player.playing, "carried transition must stop an in-flight armed beep")
+
+	device.call("drop_at", Vector3(1.0, 0.0, 1.0))
+	_assert_near(status_light.light_energy, 0.45, 0.0001, "dropped C4 must not inherit a prior round's armed pulse")
+	_assert_near(beep_player.pitch_scale, 1.0, 0.0001, "dropped C4 must retain default non-armed pitch")
+	_assert_equal(device.get("site_label"), "", "dropped C4 must not leak a previous plant site label")
 	RoundManager.set_warmup()
 	await _cleanup_device(device)
 
