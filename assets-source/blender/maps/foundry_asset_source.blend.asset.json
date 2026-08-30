@@ -16,6 +16,27 @@
     "assets/models/foundry/foundry_depot.glb",
     "assets/maps/foundry-depot-preview.png"
   ],
+  "runtime_contracts": {
+    "assets/models/foundry/foundry_depot.glb": {
+      "format": "glb2",
+      "max": {
+        "file_size_bytes": 10485760,
+        "nodes": 700,
+        "meshes": 700,
+        "primitives": 700,
+        "vertices_by_primitive": 22000,
+        "triangles": 12000,
+        "materials": 18,
+        "textures": 28,
+        "images": 20,
+        "skins": 0,
+        "skin_joints_total": 0,
+        "animations": 0,
+        "animation_channels": 0
+      },
+      "allowed_extensions_used": []
+    }
+  },
   "scale": {
     "unit": "meter"
   },
