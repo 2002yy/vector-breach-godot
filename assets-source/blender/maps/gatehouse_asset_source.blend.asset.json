@@ -16,6 +16,27 @@
     "assets/models/gatehouse/gatehouse.glb",
     "assets/maps/gatehouse-preview.png"
   ],
+  "runtime_contracts": {
+    "assets/models/gatehouse/gatehouse.glb": {
+      "format": "glb2",
+      "max": {
+        "file_size_bytes": 12582912,
+        "nodes": 160,
+        "meshes": 160,
+        "primitives": 160,
+        "vertices_by_primitive": 7000,
+        "triangles": 5000,
+        "materials": 16,
+        "textures": 24,
+        "images": 24,
+        "skins": 0,
+        "skin_joints_total": 0,
+        "animations": 0,
+        "animation_channels": 0
+      },
+      "allowed_extensions_used": []
+    }
+  },
   "scale": {
     "unit": "meter"
   },
