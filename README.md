@@ -150,7 +150,7 @@ powershell -ExecutionPolicy Bypass -File .\tools\validate_g2_records.ps1 -Eviden
 - `Ctrl / C`: 蹲伏；蹲伏状态起跳为经典蹲跳 / Crouch; jump while crouched for a classic crouch-jump
 - `Tab`: 按住显示计分板 / Hold scoreboard
 - `B`: 冻结期打开购买菜单，`1–8` 购买武器、护甲、拆弹钳与投掷物 / Open the freeze-time buy menu; use `1–8` for weapons, armor, kit, and grenades
-- `E`: 持续安装/拆除 C4，或拾取附近武器 / Hold to plant/defuse C4, or pick up nearby weapon
+- `E`: 持续安装/拆除 C4，或拾取附近武器 / Hold to plant/defuse C4, or pick up a nearby weapon
 - `鼠标左键`: 开火 / Fire
 - `R`: 换弹 / Reload
 - `1 / 2 / 3 / 4`: 主武器、副武器、刀、投掷物 / Primary, secondary, knife, and grenades
