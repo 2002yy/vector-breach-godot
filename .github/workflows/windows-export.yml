@@ -62,7 +62,6 @@ jobs:
 
       - name: Export Windows build
         id: export
-        continue-on-error: true
         shell: bash
         run: |
           set +e
@@ -94,17 +93,13 @@ jobs:
           exit "${EXPORT_EXIT}"
 
       - name: Upload export diagnostics
-        if: steps.export.outcome == 'failure'
+        if: failure() && steps.export.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: windows-export-diagnostics
           path: ${{ runner.temp }}/windows-export-diagnostics
           if-no-files-found: error
           retention-days: 7
-
-      - name: Fail if Godot export failed
-        if: steps.export.outcome == 'failure'
-        run: exit 1
 
       - name: Verify exported files
         if: steps.export.outcome == 'success'
