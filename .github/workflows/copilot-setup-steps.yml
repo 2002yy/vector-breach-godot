@@ -1,7 +1,10 @@
-name: "Copilot Setup Steps"
+name: Copilot Setup Steps
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/copilot-setup-steps.yml"
 
 jobs:
   copilot-setup-steps:
@@ -9,9 +12,18 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Install system packages
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Install Godot 4.7.1
+        shell: bash
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends xvfb libgl1 libegl1 libxkbcommon0 libxkbcommon-x11-0
+          set -euo pipefail
+          mkdir -p .tools/godot
+          curl --fail --location --retry 3 \
+            --output /tmp/godot.zip \
+            https://github.com/godotengine/godot/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip
+          unzip -q /tmp/godot.zip -d .tools/godot
+          mv .tools/godot/Godot_v4.7.1-stable_linux.x86_64 .tools/godot/godot
+          chmod +x .tools/godot/godot
+          .tools/godot/godot --version
