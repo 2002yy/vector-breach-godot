@@ -12,6 +12,10 @@ on:
     tags:
       - "v*"
 
+concurrency:
+  group: windows-export-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   export-windows:
     runs-on: ubuntu-latest
@@ -31,27 +35,48 @@ jobs:
         with:
           lfs: true
 
+      - name: Restore Godot export cache
+        id: cache-godot-export
+        uses: actions/cache@v4
+        with:
+          path: |
+            .godot-export-cache
+            ${{ env.TEMPLATE_DIR }}
+          key: godot-export-${{ runner.os }}-${{ env.GODOT_RELEASE }}
+
       - name: Install Godot 4.7.1
+        if: steps.cache-godot-export.outputs.cache-hit != 'true'
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p .godot-export-cache
           curl --fail --location --retry 3 --retry-delay 2 \
-            -o godot.zip \
+            -o .godot-export-cache/godot.zip \
             https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}/Godot_v${GODOT_RELEASE}_linux.x86_64.zip
-          unzip -q godot.zip
+          unzip -q -o .godot-export-cache/godot.zip
           chmod +x "./${GODOT_BIN}"
-          "./${GODOT_BIN}" --version
 
       - name: Install Windows export templates
+        if: steps.cache-godot-export.outputs.cache-hit != 'true'
         shell: bash
         run: |
           set -euo pipefail
           curl --fail --location --retry 3 --retry-delay 2 \
-            -o export_templates.tpz \
+            -o .godot-export-cache/export_templates.tpz \
             https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}/Godot_v${GODOT_RELEASE}_export_templates.tpz
           mkdir -p "${TEMPLATE_DIR}"
-          unzip -q -o -j export_templates.tpz -d "${TEMPLATE_DIR}"
+          unzip -q -o -j .godot-export-cache/export_templates.tpz -d "${TEMPLATE_DIR}"
+
+      - name: Verify Godot export toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! -x "./${GODOT_BIN}" ]]; then
+            unzip -q -o .godot-export-cache/godot.zip
+            chmod +x "./${GODOT_BIN}"
+          fi
           test -s "${TEMPLATE_DIR}/windows_release_x86_64.exe"
+          "./${GODOT_BIN}" --version
           ls -lh "${TEMPLATE_DIR}/windows_release_x86_64.exe"
 
       - name: Import project resources

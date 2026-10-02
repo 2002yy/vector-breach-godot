@@ -6,10 +6,23 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   tests:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    env:
+      BLENDER_VERSION: 5.2.1
+      BLENDER_DIR: .tools/blender
+      GODOT_RELEASE: 4.7.1-stable
+      GODOT_DIR: .tools/godot
+      GODOT_BIN: .tools/godot/Godot_v4.7.1-stable_linux.x86_64
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,46 +37,69 @@ jobs:
       - name: Asset runtime contract policy
         run: python tools/check_runtime_asset_contracts.py
 
-      - name: Install Blender 5.2.1 LTS
+      - name: Install Blender runtime dependency
         shell: bash
         run: |
           set -euo pipefail
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends libegl1
-          mkdir -p .tools/blender
+
+      - name: Restore Blender and Godot cache
+        id: cache-tools
+        uses: actions/cache@v4
+        with:
+          path: |
+            .tools/blender
+            .tools/godot
+          key: tools-${{ runner.os }}-blender-${{ env.BLENDER_VERSION }}-godot-${{ env.GODOT_RELEASE }}
+
+      - name: Install Blender and Godot
+        if: steps.cache-tools.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "${BLENDER_DIR}" "${GODOT_DIR}"
+
           curl --fail --location --retry 3 \
             --output /tmp/blender.tar.xz \
-            https://download.blender.org/release/Blender5.2/blender-5.2.1-linux-x64.tar.xz
-          tar -xf /tmp/blender.tar.xz -C .tools/blender --strip-components=1
-          .tools/blender/blender --version
+            "https://download.blender.org/release/Blender5.2/blender-${BLENDER_VERSION}-linux-x64.tar.xz"
+          tar -xf /tmp/blender.tar.xz -C "${BLENDER_DIR}" --strip-components=1
+
+          curl --fail --location --retry 3 \
+            --output /tmp/godot.zip \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}/Godot_v${GODOT_RELEASE}_linux.x86_64.zip"
+          unzip -q /tmp/godot.zip -d "${GODOT_DIR}"
+
+      - name: Verify toolchains
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x "${BLENDER_DIR}/blender" "${GODOT_BIN}"
+          "${BLENDER_DIR}/blender" --version
+          "${GODOT_BIN}" --version
 
       - name: Blender source validation
         shell: bash
-        run: bash ./tools/blender/run_asset_validation.sh ./.tools/blender/blender
+        run: bash ./tools/blender/run_asset_validation.sh "./${BLENDER_DIR}/blender"
 
       - name: Blender publish rebuild validation
-        run: python tools/blender/run_publish_rebuild_validation.py ./.tools/blender/blender
+        run: python tools/blender/run_publish_rebuild_validation.py "./${BLENDER_DIR}/blender"
 
       - name: Asset runtime validation
         run: python tools/validate_runtime_assets.py
 
-      - name: Install Godot 4.7.1
-        run: |
-          curl -sSL -o godot.zip https://github.com/godotengine/godot/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip
-          unzip -q godot.zip
-          chmod +x Godot_v4.7.1-stable_linux.x86_64
-
       - name: Import project resources
-        run: ./Godot_v4.7.1-stable_linux.x86_64 --headless --path . --import
+        run: |
+          "./${GODOT_BIN}" --headless --path . --import
 
       - name: GdUnit4 CLI tests
         run: >
-          ./Godot_v4.7.1-stable_linux.x86_64 --headless --path .
+          "./${GODOT_BIN}" --headless --path .
           -s -d res://addons/gdUnit4/bin/GdUnitCmdTool.gd -a test
           --ignoreHeadlessMode
 
       - name: Native test suites
-        run: bash ./tools/run_godot_tests.sh ./Godot_v4.7.1-stable_linux.x86_64
+        run: bash ./tools/run_godot_tests.sh "./${GODOT_BIN}"
 
       - name: Upload test reports
         if: always()
