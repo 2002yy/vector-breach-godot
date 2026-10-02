@@ -89,7 +89,8 @@ jobs:
         run: python tools/validate_runtime_assets.py
 
       - name: Import project resources
-        run: "./${GODOT_BIN}" --headless --path . --import
+        run: |
+          "./${GODOT_BIN}" --headless --path . --import
 
       - name: GdUnit4 CLI tests
         run: >
