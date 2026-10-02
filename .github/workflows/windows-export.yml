@@ -5,6 +5,10 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - "assets/**"
+      - "data/**"
+      - "scenes/**"
+      - "scripts/**"
       - "export_presets.cfg"
       - ".github/workflows/windows-export.yml"
       - "project.godot"
@@ -13,11 +17,70 @@ on:
       - "v*"
 
 jobs:
+  detect-runtime-change:
+    name: detect-runtime-change
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      should_export: ${{ steps.detect.outputs.should_export }}
+      reason: ${{ steps.detect.outputs.reason }}
+
+    steps:
+      - name: Checkout history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Decide whether Windows export is needed
+        id: detect
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_ACTION: ${{ github.event.action }}
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          SHOULD_EXPORT=true
+          REASON="${EVENT_NAME}"
+
+          if [[ "${EVENT_NAME}" == "pull_request" && "${EVENT_ACTION}" == "synchronize" ]]; then
+            if [[ -z "${BEFORE_SHA:-}" || "${BEFORE_SHA}" == "null" ]] || ! git cat-file -e "${BEFORE_SHA}^{commit}" 2>/dev/null; then
+              SHOULD_EXPORT=true
+              REASON="synchronize-without-usable-before-sha"
+            else
+              AFTER="${AFTER_SHA:-$(git rev-parse HEAD)}"
+              mapfile -t CHANGED_FILES < <(git diff --name-only "${BEFORE_SHA}" "${AFTER}" --)
+
+              printf 'Changed files in this synchronize event:\n'
+              printf '  %s\n' "${CHANGED_FILES[@]}"
+
+              if printf '%s\n' "${CHANGED_FILES[@]}" | grep -Eq '^(assets/|data/|scenes/|scripts/|export_presets\.cfg$|project\.godot$|\.github/workflows/windows-export\.yml$)'; then
+                SHOULD_EXPORT=true
+                REASON="synchronize-runtime-or-export-change"
+              else
+                SHOULD_EXPORT=false
+                REASON="synchronize-nonruntime-only"
+              fi
+            fi
+          fi
+
+          echo "should_export=${SHOULD_EXPORT}" >> "${GITHUB_OUTPUT}"
+          echo "reason=${REASON}" >> "${GITHUB_OUTPUT}"
+          echo "Windows export decision: should_export=${SHOULD_EXPORT} reason=${REASON}"
+
   export-windows:
+    needs: detect-runtime-change
+    if: needs.detect-runtime-change.outputs.should_export == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
       contents: read
+    concurrency:
+      group: windows-export-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
 
     env:
       GODOT_VERSION: 4.7.1

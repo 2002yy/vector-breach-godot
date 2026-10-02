@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "asset_id": "VB-OBJECTIVE-C4",
+  "display_name": "C4 Objective Device",
+  "category": "prop",
+  "source_role": "canonical_master",
+  "source_path": "assets-source/blender/objectives/c4_device_source.blend",
+  "authoring_tool": "Blender",
+  "build_script": "tools/blender/build_c4_device.py",
+  "provenance": {
+    "origin": "project-authored",
+    "license_status": "project-owned",
+    "ai_usage": "assisted"
+  },
+  "runtime_outputs": [
+    "assets/models/objectives/c4_device.glb"
+  ],
+  "runtime_contracts": {
+    "assets/models/objectives/c4_device.glb": {
+      "format": "glb2",
+      "min": {
+        "file_size_bytes": 80000,
+        "nodes": 20,
+        "meshes": 20,
+        "primitives": 20,
+        "vertices_by_primitive": 1800,
+        "triangles": 800,
+        "materials": 4
+      },
+      "max": {
+        "file_size_bytes": 196608,
+        "nodes": 48,
+        "meshes": 48,
+        "primitives": 48,
+        "vertices_by_primitive": 4096,
+        "triangles": 2200,
+        "materials": 8,
+        "textures": 0,
+        "images": 0,
+        "skins": 0,
+        "skin_joints_total": 0,
+        "animations": 0,
+        "animation_channels": 0
+      },
+      "allowed_extensions_used": []
+    }
+  },
+  "scale": {
+    "unit": "meter"
+  },
+  "review": {
+    "status": "draft"
+  }
+}
