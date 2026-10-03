@@ -10,6 +10,14 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 ASSET_ROOTS = ("assets", "assets-source/blender")
+VALIDATOR_PATH = "tools/blender/run_publish_rebuild_validation.py"
+WORKFLOW_PATH = ".github/workflows/tests.yml"
+UNMAPPED_PUBLISH_INPUT_PREFIXES = (
+    "assets/",
+    "assets-source/blender/",
+    "data/",
+    "tools/blender/",
+)
 
 
 def _git(*args: str, check: bool = True) -> subprocess.CompletedProcess[bytes]:
@@ -27,6 +35,20 @@ def _decode_z(data: bytes) -> list[str]:
 
 def tracked_files() -> set[str]:
     return set(_decode_z(_git("ls-files", "-z").stdout))
+
+
+def changed_paths_since(base: str) -> set[str]:
+    return set(
+        _decode_z(
+            _git(
+                "diff",
+                "--name-only",
+                "--no-renames",
+                "-z",
+                f"{base}...HEAD",
+            ).stdout
+        )
+    )
 
 
 def changed_asset_paths() -> set[str]:
@@ -124,6 +146,50 @@ def discover_publish_jobs(tracked: set[str]) -> list[dict]:
     return jobs
 
 
+def select_publish_jobs(jobs: list[dict], changed_paths: set[str]) -> list[dict]:
+    if VALIDATOR_PATH in changed_paths or WORKFLOW_PATH in changed_paths:
+        print("PUBLISH_SELECTION=full reason=validator_or_workflow_changed")
+        return jobs
+
+    path_to_jobs: dict[str, set[int]] = {}
+    for index, job in enumerate(jobs):
+        owned_paths = {
+            str(job["metadata_path"]),
+            str(job["source_path"]),
+            str(job["build_script"]),
+            *(str(item) for item in job["runtime_outputs"]),
+        }
+        for path in owned_paths:
+            path_to_jobs.setdefault(path, set()).add(index)
+
+    selected: set[int] = set()
+    unmapped_publish_inputs: list[str] = []
+    for path in sorted(changed_paths):
+        owners = path_to_jobs.get(path)
+        if owners:
+            selected.update(owners)
+            continue
+        if path.startswith(UNMAPPED_PUBLISH_INPUT_PREFIXES):
+            unmapped_publish_inputs.append(path)
+
+    if unmapped_publish_inputs:
+        print(
+            "PUBLISH_SELECTION=full reason=unmapped_publish_input paths="
+            + ",".join(unmapped_publish_inputs)
+        )
+        return jobs
+
+    selected_jobs = [job for index, job in enumerate(jobs) if index in selected]
+    if selected_jobs:
+        print(
+            "PUBLISH_SELECTION=incremental assets="
+            + ",".join(str(job["asset_id"]) for job in selected_jobs)
+        )
+    else:
+        print("PUBLISH_SELECTION=skip reason=no_publish_inputs_changed")
+    return selected_jobs
+
+
 def run_builder(blender_bin: Path, job: dict) -> None:
     command = [
         str(blender_bin),
@@ -148,6 +214,10 @@ def run_builder(blender_bin: Path, job: dict) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("blender", help="Path to the pinned Blender executable")
+    parser.add_argument(
+        "--changed-from",
+        help="Git base commit/ref. When supplied, rebuild only canonical assets affected since this ref.",
+    )
     args = parser.parse_args()
 
     blender_bin = Path(args.blender)
@@ -161,7 +231,10 @@ def main() -> int:
     tracked: set[str] = set()
     try:
         tracked = tracked_files()
-        jobs = discover_publish_jobs(tracked)
+        all_jobs = discover_publish_jobs(tracked)
+        jobs = all_jobs
+        if args.changed_from:
+            jobs = select_publish_jobs(all_jobs, changed_paths_since(args.changed_from))
 
         initial_changes = changed_asset_paths()
         if initial_changes:
@@ -169,6 +242,14 @@ def main() -> int:
                 "asset working tree must be clean before publish validation: "
                 + ", ".join(sorted(initial_changes))
             )
+
+        if not jobs:
+            print("BLENDER_PUBLISH_REBUILD=PASS")
+            print("publish_jobs=0")
+            print("runtime_outputs=0")
+            print("staged_bytes=0")
+            print("fresh_outputs_ready_for_godot=0")
+            return 0
 
         declared_owner: dict[str, str] = {}
         for job in jobs:
@@ -192,9 +273,6 @@ def main() -> int:
                 outputs = {str(item) for item in job["runtime_outputs"]}
                 allowed_changes = outputs | {source_path}
 
-                # A publish is only fresh if every declared output is recreated by
-                # this invocation. Remove tracked outputs before starting the
-                # builder so a no-op or partial builder cannot pass on stale files.
                 remove_declared_outputs(outputs)
                 try:
                     run_builder(blender_bin, job)
@@ -217,10 +295,6 @@ def main() -> int:
                             flush=True,
                         )
                 finally:
-                    # The validator must be safe to run locally as well as in CI.
-                    # Because the working tree was required clean at entry, all
-                    # asset changes made by a failed or successful builder can be
-                    # restored/removed without risking pre-existing work.
                     cleanup_asset_changes(tracked)
 
                 residual = changed_asset_paths()

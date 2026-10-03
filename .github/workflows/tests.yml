@@ -27,6 +27,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true
+          fetch-depth: 0
 
       - name: Asset layer policy
         run: python tools/check_asset_layers.py
@@ -83,7 +84,18 @@ jobs:
         run: bash ./tools/blender/run_asset_validation.sh "./${BLENDER_DIR}/blender"
 
       - name: Blender publish rebuild validation
-        run: python tools/blender/run_publish_rebuild_validation.py "./${BLENDER_DIR}/blender"
+        shell: bash
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
+            python tools/blender/run_publish_rebuild_validation.py \
+              "./${BLENDER_DIR}/blender" \
+              --changed-from "${PR_BASE_SHA}"
+          else
+            python tools/blender/run_publish_rebuild_validation.py "./${BLENDER_DIR}/blender"
+          fi
 
       - name: Asset runtime validation
         run: python tools/validate_runtime_assets.py
