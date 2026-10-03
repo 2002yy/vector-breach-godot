@@ -15,7 +15,7 @@ WORKFLOW_PATH = ".github/workflows/tests.yml"
 UNMAPPED_PUBLISH_INPUT_PREFIXES = (
     "assets/",
     "assets-source/blender/",
-    "data/levels/",
+    "data/",
     "tools/blender/",
 )
 
@@ -43,7 +43,7 @@ def changed_paths_since(base: str) -> set[str]:
             _git(
                 "diff",
                 "--name-only",
-                "--diff-filter=ACMRT",
+                "--no-renames",
                 "-z",
                 f"{base}...HEAD",
             ).stdout
