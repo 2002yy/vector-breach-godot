@@ -43,7 +43,7 @@ jobs:
           else
             while IFS= read -r path; do
               case "$path" in
-                assets/*|assets-source/*|data/*|tools/blender/*|tools/check_asset_layers.py|tools/check_asset_metadata.py|tools/check_runtime_asset_contracts.py|tools/validate_runtime_assets.py|.github/workflows/tests.yml)
+                .gitattributes|assets/*|assets-source/*|data/*|tools/blender/*|tools/check_asset_layers.py|tools/check_asset_metadata.py|tools/check_runtime_asset_contracts.py|tools/validate_runtime_assets.py|.github/workflows/tests.yml)
                   blender=true
                   break
                   ;;
