@@ -12,6 +12,12 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 ASSET_ROOTS = ("assets", "assets-source/blender")
 VALIDATOR_PATH = "tools/blender/run_publish_rebuild_validation.py"
 WORKFLOW_PATH = ".github/workflows/tests.yml"
+UNMAPPED_PUBLISH_INPUT_PREFIXES = (
+    "assets/",
+    "assets-source/blender/",
+    "data/levels/",
+    "tools/blender/",
+)
 
 
 def _git(*args: str, check: bool = True) -> subprocess.CompletedProcess[bytes]:
@@ -157,19 +163,19 @@ def select_publish_jobs(jobs: list[dict], changed_paths: set[str]) -> list[dict]
             path_to_jobs.setdefault(path, set()).add(index)
 
     selected: set[int] = set()
-    unknown_blender_paths: list[str] = []
+    unmapped_publish_inputs: list[str] = []
     for path in sorted(changed_paths):
         owners = path_to_jobs.get(path)
         if owners:
             selected.update(owners)
             continue
-        if path.startswith("tools/blender/") or path.startswith("assets-source/blender/"):
-            unknown_blender_paths.append(path)
+        if path.startswith(UNMAPPED_PUBLISH_INPUT_PREFIXES):
+            unmapped_publish_inputs.append(path)
 
-    if unknown_blender_paths:
+    if unmapped_publish_inputs:
         print(
-            "PUBLISH_SELECTION=full reason=unmapped_blender_change paths="
-            + ",".join(unknown_blender_paths)
+            "PUBLISH_SELECTION=full reason=unmapped_publish_input paths="
+            + ",".join(unmapped_publish_inputs)
         )
         return jobs
 
