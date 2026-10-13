@@ -15,7 +15,7 @@ const SHIPPED_LEVEL_OPTIONS := [
 	},
 	{
 		"id": "depot",
-		"name": "铸造仓库 v2（冻结）",
+		"name": "铸造仓库（路线回归）",
 		"preview": "res://assets/maps/foundry-depot-preview.png",
 		"description": "已冻结的铸造仓库 v2：保留现有中路、侧路和上层压制结构，后续设计不再覆盖此版。",
 		"route_profile": "\u4e2d\u8def\u3001\u4fa7\u7ffc\u8def\u3001\u4e0a\u5c42\u538b\u5236\u7ebf",
@@ -55,9 +55,9 @@ const LOCAL_DUSTLINE_LEVEL_PATH := "res://data/levels/dustline-depths.json"
 const LOCAL_DUSTLINE_VISUAL_PATH := "res://assets/models/dustline/dustline_depths.glb"
 const LOCAL_DUSTLINE_OPTION := {
 	"id": "dustline-depths",
-	"name": "沙线深层（本机参考）",
+	"name": "沙线深层（经典 CS 复刻）",
 	"preview": "res://assets/maps/dustline-depths-preview.png",
-	"description": "本机参考试玩：锁定参考地图地面拓扑，仅在 B 区增加一条空中走廊。派生碰撞与参考资源不进入版本库。",
+	"description": "经典 CS 的 de_dust2 地面拓扑复刻研究图，B 区加空中走廊。本机可自由探索和练枪，尚未配置完整爆破 AI；参考资源不进入版本库。",
 	"route_profile": "\u53c2\u8003\u5730\u9762\u4e09\u8def\u7ebf + B \u533a\u5355\u6761\u53ef\u9009\u9ad8\u53f0",
 	"recommended_use": "\u6bd4\u4f8b\u3001\u906e\u6321\u3001\u8def\u7ebf\u4e0e\u4ea4\u706b\u8ddd\u79bb\u5bf9\u7167",
 	"test_focus": "关键门洞、坡度、掩体尺度与空中走廊差异层"
@@ -67,9 +67,9 @@ const LOCAL_REFERENCE_LEVEL_PATH := "res://data/levels/dustline-depths-original-
 const LOCAL_REFERENCE_VISUAL_PATH := "res://assets/local_reference/dustline/de_dust2_original.glb"
 const LOCAL_REFERENCE_OPTION := {
 	"id": "dustline-depths-original-local",
-	"name": "沙线原始材质（本机）",
+	"name": "沙线·原始材质（经典 CS 复刻）",
 	"preview": "res://assets/maps/dustline-depths-preview.png",
-	"description": "仅本机试玩：原始沙线完整视觉 + 已审计碰撞 + B 区空中走廊；参考资源不会进入版本库。",
+	"description": "经典 CS 复刻研究图的原始视觉 / 材质版本，使用审计碰撞与 B 区空中走廊。可探索和练枪，尚未配置完整爆破 AI；仅本机保留。",
 	"route_profile": "\u539f\u59cb\u5730\u9762\u5c42\u89c6\u89c9 + \u5355\u6761 B \u533a\u53ef\u9009\u9ad8\u53f0",
 	"recommended_use": "\u5bf9\u9f50\u539f\u59cb\u6750\u8d28\u3001\u6bd4\u4f8b\u3001\u906e\u6321\u548c\u8def\u7ebf\u8fa8\u8bc6\u5ea6",
 	"test_focus": "视觉/碰撞对齐、材质导入、空中走廊差异层"
@@ -115,6 +115,17 @@ func _ready() -> void:
 	_capture_default_environment()
 	GameState.set_graphics_preset("prototype")
 	level_options = SHIPPED_LEVEL_OPTIONS.duplicate(true)
+	var map_purposes := {
+		"gatehouse": ["主比赛图：三路、双爆点，玩家与两名队友对抗三名敌人。包含手枪局、购买、换边和比赛结算。", "3 对 3 爆破比赛；首次游玩推荐"],
+		"foundry-reforged": ["原创双目标练习与视觉展示图；由铸造仓库经验重新设计，尚未迁移完整 3 对 3 比赛。", "步枪 / 手枪练习、地图探索与画面展示"],
+		"depot": ["冻结的铸造仓库第二版：历史尺度与路线基线，保留作对照，不是主比赛图。", "历史对照与回归测试"],
+		"core-vault": ["源自旧灰盒的密集库区，包含爆破 AI；用于高密度战斗回归，未承诺与主地图同级平衡。", "进阶测试；不作为首次比赛推荐"],
+		"test-collision-room": ["开发测试房：验证移动、台阶、梯子和水体，不是正式比赛地图。", "开发调试与碰撞回归"],
+	}
+	for option in level_options:
+		var purpose: Array = map_purposes[String(option["id"])]
+		option["description"] = purpose[0]
+		option["recommended_use"] = purpose[1]
 	if _has_local_level(LOCAL_DUSTLINE_LEVEL_PATH, LOCAL_DUSTLINE_VISUAL_PATH):
 		level_options.append(LOCAL_DUSTLINE_OPTION.duplicate(true))
 	if _has_local_level(LOCAL_REFERENCE_LEVEL_PATH, LOCAL_REFERENCE_VISUAL_PATH):
@@ -239,6 +250,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		_update_ui(true)
 		get_viewport().set_input_as_handled()
 		return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F1:
+		if game_started and not menu_open:
+			combat_hud.call("toggle_player_help")
+		get_viewport().set_input_as_handled()
+		return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F4:
 		if combat_hud.has_method("toggle_training_telemetry"):
 			combat_hud.call("toggle_training_telemetry")
@@ -348,7 +364,7 @@ func _on_start_pressed() -> void:
 	game_started = true
 	GameState.set_game_started(true)
 	if weapon_system.has_method("configure_default_loadout"):
-		weapon_system.call("configure_default_loadout", true, true)
+		weapon_system.call("configure_default_loadout", true, String(option["id"]) == "gatehouse")
 	tactical_equipment.call("reset_loadout")
 	if weapon_view_model.has_method("set_weapon_slot"):
 		var equipped_slot := int((weapon_system.call("get_runtime_snapshot") as Dictionary).get("weapon_slot", 0))
@@ -694,7 +710,7 @@ func _on_round_restart_requested() -> void:
 	if hard_reset or not player_survived:
 		if not player_survived and not hard_reset:
 			GameState.clear_eliminated_player_equipment()
-		weapon_system.call("configure_default_loadout", true, true)
+		weapon_system.call("configure_default_loadout", true, String(option["id"]) == "gatehouse")
 		tactical_equipment.call("reset_loadout")
 		if weapon_view_model.has_method("set_weapon_slot"):
 			var reset_slot := int((weapon_system.call("get_runtime_snapshot") as Dictionary).get("weapon_slot", 0))

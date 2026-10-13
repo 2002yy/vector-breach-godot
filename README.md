@@ -7,6 +7,8 @@
 </p>
 
 中文优先说明。This repository contains the standalone Godot migration prototype for `Vector Breach`.
+
+本机双击 `play.cmd` 启动。第一次游玩请看 [中文操作与地图档案](docs/GAME_GUIDE_ZH.md)：门厅区用于 3 对 3 比赛，铸造厂用于练习；本机经典 CS 研究图也可直接进入探索与练枪。
 > Portfolio note: this repository is a secondary Godot engineering prototype.
 > For the main polished Godot project, see [BallWar](https://github.com/2002yy/BallWar).
 

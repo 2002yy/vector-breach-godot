@@ -438,7 +438,8 @@ func get_scoreboard_rows() -> Dictionary:
 		if String(entry.get("name", "")) == "你":
 			entry["money"] = player_money
 			entry["weapon"] = current_weapon_name
-		var line := "%s  %d/%d  命中%d  $%d  %s  %s" % [String(entry.get("name", "单位")), int(entry.get("kills", 0)), int(entry.get("deaths", 0)), int(entry.get("hits", 0)), int(entry.get("money", 800)), String(entry.get("weapon", "rifle")), "存活" if bool(entry.get("alive", true)) else "阵亡"]
+		var weapon_text := preload("res://scripts/ui/PlayerGuide.gd").weapon_name(String(entry.get("weapon", "rifle")))
+		var line := "%s  %d/%d  命中%d  $%d  %s  %s" % [String(entry.get("name", "单位")), int(entry.get("kills", 0)), int(entry.get("deaths", 0)), int(entry.get("hits", 0)), int(entry.get("money", 800)), weapon_text, "存活" if bool(entry.get("alive", true)) else "阵亡"]
 		if String(entry.get("team", "")) == player_team:
 			friendly.append(line)
 		else:

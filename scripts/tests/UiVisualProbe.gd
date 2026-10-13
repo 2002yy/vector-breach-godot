@@ -1,7 +1,7 @@
 extends Node
 
 const MAIN_SCENE = preload("res://scenes/Main.tscn")
-const TARGET_LEVEL_ID := "foundry-reforged"
+const TARGET_LEVEL_ID := "gatehouse"
 
 func _ready() -> void:
 	print("UI_PROBE_STAGE=instantiate_main")
@@ -18,16 +18,38 @@ func _ready() -> void:
 		get_tree().quit(1)
 		return
 	var map_select: OptionButton = main.get_node("StartMenu/MenuPanel/Margin/VBox/Controls/MapRow/MapSelect")
-	map_select.select(target_index)
+	map_select.select(map_select.get_item_index(target_index))
 	main.call("_on_map_selected", target_index)
 	await get_tree().process_frame
 	print("UI_PROBE_STAGE=capture_menu")
 	var menu_path := await _capture("ui-menu-reference")
+	main.get_node("StartMenu").call("_toggle_settings", true)
+	var settings_path := await _capture("ui-settings-reference")
+	main.get_node("StartMenu").call("_toggle_settings", false)
+	map_select.show_popup()
+	var playable_maps_path := await _capture("ui-playable-maps-reference")
+	map_select.get_popup().hide()
+	var practice_index := int(main.call("find_level_option_index", "foundry-reforged"))
+	main.call("_on_map_selected", practice_index)
+	await get_tree().process_frame
+	var practice_menu_path := await _capture("ui-practice-menu-reference")
+	main.call("_on_map_selected", target_index)
+	main.get_node("StartMenu/MenuPanel/Margin/VBox/Controls/ArchiveToggle").set_pressed(true)
+	map_select.show_popup()
+	var archive_path := await _capture("ui-map-archive-reference")
+	map_select.get_popup().hide()
+	main.get_node("StartMenu/MenuPanel/Margin/VBox/Controls/ArchiveToggle").set_pressed(false)
+	main.call("_on_map_selected", target_index)
 
 	print("UI_PROBE_STAGE=start_combat")
 	main.call("_on_start_pressed")
 	for _frame in range(12):
 		await get_tree().physics_frame
+	var opening_path := await _capture("ui-opening-pistol-reference")
+	var opening_equipment := main.get_node("WeaponSystem").call("get_runtime_snapshot") as Dictionary
+	var bot_equipment: Array = []
+	for actor in main.get_node("CombatSandbox").get_children():
+		bot_equipment.append(actor.call("get_combat_snapshot"))
 	main.set_process(false)
 	GameState.player_health = 76
 	GameState.sync_weapon_state("\u6b65\u67aa", 8, 52, "", 0.35, 0.22, 0)
@@ -41,6 +63,9 @@ func _ready() -> void:
 	main.get_node("CombatHud").call("set_buy_menu_visible", false)
 	print("UI_PROBE_STAGE=capture_combat")
 	var combat_path := await _capture("ui-combat-reference")
+	main.get_node("CombatHud").call("toggle_player_help")
+	var help_path := await _capture("ui-help-reference")
+	main.get_node("CombatHud").call("toggle_player_help")
 	Input.action_press("show_scoreboard")
 	await get_tree().process_frame
 	print("UI_PROBE_STAGE=capture_scoreboard")
@@ -60,6 +85,14 @@ func _ready() -> void:
 
 	print("UI_VISUAL_PROBE=" + JSON.stringify({
 		"menu": menu_path,
+		"settings": settings_path,
+		"playable_maps": playable_maps_path,
+		"opening": opening_path,
+		"opening_equipment": opening_equipment,
+		"bot_equipment": bot_equipment,
+		"practice_menu": practice_menu_path,
+		"archive": archive_path,
+		"help": help_path,
 		"buy_menu": buy_menu_path,
 		"combat": combat_path,
 		"scoreboard": scoreboard_path,

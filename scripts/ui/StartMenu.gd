@@ -1,5 +1,7 @@
 extends CanvasLayer
 
+const PlayerGuide = preload("res://scripts/ui/PlayerGuide.gd")
+
 signal start_pressed
 signal resume_pressed
 signal map_selected(index: int)
@@ -26,10 +28,34 @@ signal team_selected(team: String)
 @onready var radar_range_value: Label = $MenuPanel/Margin/VBox/Settings/RadarRangeRow/Value
 @onready var radar_rotates_toggle: CheckButton = $MenuPanel/Margin/VBox/Settings/RadarRotates
 
+var _map_options: Array = []
+var _selected_map_index: int = 2
+var _show_archive: bool = false
+var _help_label: Label
+var _settings_panel: PanelContainer
+
 func _ready() -> void:
 	start_button.pressed.connect(func() -> void: start_pressed.emit())
 	resume_button.pressed.connect(func() -> void: resume_pressed.emit())
-	map_select.item_selected.connect(func(index: int) -> void: map_selected.emit(index))
+	map_select.item_selected.connect(func(index: int) -> void:
+		_selected_map_index = map_select.get_item_id(index)
+		map_selected.emit(_selected_map_index)
+	)
+	var archive_toggle := CheckButton.new()
+	archive_toggle.name = "ArchiveToggle"
+	archive_toggle.text = "开发测试地图"
+	$MenuPanel/Margin/VBox/Controls.add_child(archive_toggle)
+	archive_toggle.toggled.connect(func(enabled: bool) -> void:
+		_show_archive = enabled
+		for index in range(_map_options.size()):
+			if _is_test_map(String(_map_options[index]["id"])) == enabled:
+				_selected_map_index = index
+				break
+		_refresh_map_options()
+		map_selected.emit(_selected_map_index)
+	)
+	_create_help_panel()
+	_create_settings_panel()
 	team_select.item_selected.connect(func(index: int) -> void: team_selected.emit("T" if index == 0 else "CT"))
 	team_select.select(0 if GameState.player_team == "T" else 1)
 	update_g2_hint()
@@ -40,35 +66,105 @@ func _ready() -> void:
 	radar_rotates_toggle.toggled.connect(func(_enabled: bool) -> void: _emit_settings())
 
 func set_map_options(options: Array, selected_index: int) -> void:
-	map_select.clear()
-	for option in options:
-		map_select.add_item(String(option["name"]))
-	map_select.select(selected_index)
+	_map_options = options
+	_selected_map_index = selected_index
+	_refresh_map_options()
 	update_g2_hint()
+
+func _refresh_map_options() -> void:
+	map_select.clear()
+	for index in range(_map_options.size()):
+		var option: Dictionary = _map_options[index]
+		var level_id := String(option["id"])
+		var classic_research := level_id.begins_with("dustline-depths")
+		if _is_test_map(level_id) != _show_archive:
+			continue
+		var category := "比赛" if level_id == "gatehouse" else ("练习" if level_id == "foundry-reforged" else ("经典研究" if classic_research else "开发测试"))
+		map_select.add_item("【%s】%s" % [category, String(option["name"])], index)
+		if index == _selected_map_index:
+			map_select.select(map_select.item_count - 1)
+
+func _is_test_map(level_id: String) -> bool:
+	return level_id in ["depot", "core-vault", "test-collision-room"]
+
+func _create_settings_panel() -> void:
+	_settings_panel = PanelContainer.new()
+	_settings_panel.name = "SettingsPanel"
+	_settings_panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	_settings_panel.offset_left = -610
+	_settings_panel.offset_right = -32
+	_settings_panel.offset_top = 70
+	var margin := MarginContainer.new()
+	for side in ["left", "top", "right", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 24)
+	_settings_panel.add_child(margin)
+	$MenuPanel/Margin/VBox/Settings.reparent(margin)
+	var close_button := Button.new()
+	close_button.text = "完成设置"
+	margin.get_child(0).add_child(close_button)
+	close_button.pressed.connect(func() -> void: _toggle_settings(false))
+	add_child(_settings_panel)
+	_settings_panel.hide()
+	var settings_button := Button.new()
+	settings_button.name = "SettingsButton"
+	settings_button.text = "游戏设置"
+	settings_button.custom_minimum_size.y = 42
+	$MenuPanel/Margin/VBox.add_child(settings_button)
+	$MenuPanel/Margin/VBox.move_child(settings_button, $MenuPanel/Margin/VBox/Buttons.get_index())
+	settings_button.pressed.connect(func() -> void: _toggle_settings(not _settings_panel.visible))
+
+func _toggle_settings(enabled: bool) -> void:
+	_settings_panel.visible = enabled
+	$PlayerHelp.visible = not enabled
+
+func _create_help_panel() -> void:
+	var panel := PanelContainer.new()
+	panel.name = "PlayerHelp"
+	panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	panel.offset_left = -610
+	panel.offset_right = -32
+	panel.offset_top = 70
+	var margin := MarginContainer.new()
+	for side in ["left", "top", "right", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 24)
+	panel.add_child(margin)
+	_help_label = Label.new()
+	_help_label.add_theme_font_size_override("font_size", 20)
+	margin.add_child(_help_label)
+	add_child(panel)
 
 func update_g2_hint() -> void:
 	var next_match := GameState.match_serial + 1
 	var recommended_side := "T" if next_match % 2 == 1 else "CT"
-	g2_hint.text = "第 %d 场 · 本场选 %s" % [next_match, recommended_side]
+	g2_hint.text = "第 %d 场 · 建议选择%s" % [next_match, "进攻方" if recommended_side == "T" else "防守方"]
 	team_select.select(0 if recommended_side == "T" else 1)
 
 func set_map_details(option: Dictionary, can_resume: bool) -> void:
+	_show_archive = _is_test_map(String(option["id"]))
+	$MenuPanel/Margin/VBox/Controls/ArchiveToggle.set_pressed_no_signal(_show_archive)
+	for index in range(_map_options.size()):
+		if String(_map_options[index]["id"]) == String(option["id"]):
+			_selected_map_index = index
+			break
+	_refresh_map_options()
 	title_label.text = "矢量突袭"
-	var description_template := (
-		"[color=#dbc774][font_size=14]当前地图[/font_size][/color]\n"
-		+ "[font_size=23][b]%s[/b][/font_size]\n%s\n\n"
-		+ "[color=#aaa98f]\u6838\u5fc3\u8def\u7ebf[/color]  %s\n"
-		+ "[color=#aaa98f]\u8bad\u7ec3\u7528\u9014[/color]  %s"
-	)
-	description_label.text = description_template % [
-		String(option["name"]),
-		String(option["description"]),
-		String(option["route_profile"]),
-		String(option["recommended_use"])
-	]
-	start_button.text = "\u91cd\u65b0\u5f00\u59cb" if can_resume else "\u5f00\u59cb\u8bad\u7ec3"
-	hint_label.text = "WASD \u79fb\u52a8  \u00b7  SHIFT \u9759\u6b65  \u00b7  TAB \u8ba1\u5206\u677f  \u00b7  ESC \u83dc\u5355"
+	var is_match := String(option["id"]) == "gatehouse"
+	var is_research := String(option["id"]).begins_with("dustline-depths")
+	description_label.text = "[font_size=24][b]%s[/b][/font_size]\n\n%s" % [String(option["name"]), String(option["recommended_use"])]
+	$MenuPanel/Margin/VBox/Subtitle.hide()
+	$MenuPanel/Margin/VBox/Controls/TeamRow.visible = is_match
+	g2_hint.hide()
+	start_button.text = "重新开始比赛" if can_resume and is_match else ("重新开始练习" if can_resume else ("开始 3 对 3 比赛" if is_match else "开始练习"))
+	if is_research and not can_resume:
+		start_button.text = "进入经典地图"
+	hint_label.text = "F1 操作帮助 · Esc 暂停菜单"
+	_help_label.text = "操作指南\n\n" + PlayerGuide.CONTROLS + "\n\n" + (PlayerGuide.MATCH_RULES if is_match else PlayerGuide.PRACTICE_RULES)
+	if is_research:
+		_help_label.text = "操作指南\n\n" + PlayerGuide.CONTROLS + "\n\n" + PlayerGuide.RESEARCH_RULES
 	var preview_path: String = String(option["preview"])
+	# These legacy maps shared an unrelated courtyard thumbnail. Show the
+	# actual loaded world behind the menu instead of a misleading reference.
+	preview_rect.visible = false
 	if ResourceLoader.exists(preview_path):
 		preview_rect.texture = load(preview_path)
 	else:

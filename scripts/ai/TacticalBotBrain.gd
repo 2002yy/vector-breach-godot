@@ -17,7 +17,7 @@ enum State {
 
 const WEAPON_PROFILES := {
 	"rifle": {
-		"label": "AI步枪",
+		"label": "步枪",
 		"slot": 0,
 		"damage": 18,
 		"magazine": 30,
@@ -31,7 +31,7 @@ const WEAPON_PROFILES := {
 		"equip": 0.34,
 	},
 	"pistol": {
-		"label": "AI手枪",
+		"label": "手枪",
 		"slot": 1,
 		"damage": 12,
 		"magazine": 12,
@@ -190,8 +190,8 @@ func configure(record: Dictionary) -> void:
 	reaction_time = clampf(float(record.get("aiReactionTime", reaction_time)), 0.05, 1.5)
 	aim_acquisition_time = clampf(float(record.get("aiAimAcquisitionTime", aim_acquisition_time)), 0.05, 1.2)
 	rifle_damage = clampi(int(record.get("aiDamage", rifle_damage)), 1, 100)
-	primary_weapon_id = String(record.get("aiPrimaryWeapon", primary_weapon_id))
-	secondary_weapon_id = String(record.get("aiSecondaryWeapon", secondary_weapon_id))
+	primary_weapon_id = String(record.get("aiPrimaryWeapon", record.get("weapon", "rifle")))
+	secondary_weapon_id = String(record.get("aiSecondaryWeapon", "pistol"))
 	has_knife = bool(record.get("aiHasKnife", has_knife))
 	retreat_health_ratio = clampf(float(record.get("aiRetreatHealthRatio", retreat_health_ratio)), 0.1, 0.9)
 	hold_angle_seconds = clampf(float(record.get("aiHoldAngleSeconds", hold_angle_seconds)), 0.2, 5.0)
@@ -516,10 +516,15 @@ func _find_local_target() -> CharacterBody3D:
 	var my_team := String(actor.get("team"))
 	var best_target: CharacterBody3D = null
 	var best_distance := INF
+	var visible_target: CharacterBody3D = null
+	var visible_distance := INF
 	var candidate := actor.get_tree().get_first_node_in_group("local_player")
 	if candidate is CharacterBody3D and not bool(candidate.get("is_dead")) and my_team != GameState.player_team:
 		best_target = candidate as CharacterBody3D
 		best_distance = actor.global_position.distance_squared_to(candidate.global_position)
+		if _can_see(best_target):
+			visible_target = best_target
+			visible_distance = best_distance
 	for candidate_variant in actor.get_tree().get_nodes_in_group("combat_actors"):
 		if not candidate_variant is CharacterBody3D:
 			continue
@@ -527,10 +532,13 @@ func _find_local_target() -> CharacterBody3D:
 		if combatant == actor or bool(combatant.get("is_dead")) or String(combatant.get("team")) == my_team:
 			continue
 		var distance := actor.global_position.distance_squared_to(combatant.global_position)
+		if distance < visible_distance and _can_see(combatant):
+			visible_target = combatant
+			visible_distance = distance
 		if distance < best_distance:
 			best_target = combatant
 			best_distance = distance
-	return best_target
+	return visible_target if visible_target != null else best_target
 
 func _can_see(target: CharacterBody3D) -> bool:
 	var eye := actor.call("get_eye_position") as Vector3
@@ -866,6 +874,16 @@ func _tick_freeze_purchase() -> void:
 		economy_mode = "eco"
 	if economy_mode == "eco":
 		return
+	# The pistol-round reset changes primary_weapon_id to pistol. Buy the
+	# primary before armor/utility and update the real inventory and ammo.
+	if not _weapon_is_owned("rifle") and ai_money >= 2700:
+		ai_money -= 2700
+		_weapon_owned["rifle"] = true
+		_weapon_ammo["rifle"] = int(WEAPON_PROFILES["rifle"]["magazine"])
+		_weapon_reserve["rifle"] = int(WEAPON_PROFILES["rifle"]["reserve"])
+		primary_weapon_id = "rifle"
+		actor.set("equipped_weapon_id", "rifle")
+		_switch_to_weapon("rifle")
 	var team_name := String(actor.get("team"))
 	if economy_mode == "force" and int(actor.get("current_armor")) < 100 and ai_money >= 650:
 		ai_money -= 650
