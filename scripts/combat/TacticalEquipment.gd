@@ -1,5 +1,8 @@
 extends Node
 
+signal equipment_changed(kind: String)
+signal equipment_used(kind: String)
+
 const GrenadeProjectile = preload("res://scripts/combat/GrenadeProjectile.gd")
 
 var equipped: String = "firearm"
@@ -13,12 +16,19 @@ func reset_loadout() -> void:
 	grenade_counts = {"he_grenade": 0, "flash_grenade": 0, "smoke_grenade": 0}
 	grenade_index = 0
 	use_cooldown = 0.0
+	equipment_changed.emit(equipped)
 
 func tick(delta: float) -> void:
 	use_cooldown = maxf(0.0, use_cooldown - delta)
 
 func select_firearm() -> void:
 	equipped = "firearm"
+	equipment_changed.emit(equipped)
+
+func select_c4() -> void:
+	equipped = "c4"
+	GameState.sync_weapon_state("C4 炸药", 1, 0, "按住 E 安装（爆点内）", 0.0, 0.0, 4)
+	equipment_changed.emit(equipped)
 
 func purchase_grenade(kind: String) -> bool:
 	if not kind in grenade_order:
@@ -31,7 +41,8 @@ func purchase_grenade(kind: String) -> bool:
 
 func select_knife() -> void:
 	equipped = "knife"
-	GameState.sync_weapon_state("战术刀", 0, 0, "", 0.0, 0.0, 2)
+	GameState.sync_weapon_state("战术刀", 0, 0, "左键挥刀", 0.0, 0.0, 2)
+	equipment_changed.emit(equipped)
 
 func select_next_grenade() -> bool:
 	for offset in range(grenade_order.size()):
@@ -41,6 +52,7 @@ func select_next_grenade() -> bool:
 			grenade_index = (candidate_index + 1) % grenade_order.size()
 			equipped = candidate
 			_sync_hud()
+			equipment_changed.emit(equipped)
 			return true
 	return false
 
@@ -48,6 +60,7 @@ func use_primary(player: CharacterBody3D) -> Dictionary:
 	if use_cooldown > 0.0:
 		return {}
 	if equipped == "knife":
+		equipment_used.emit(equipped)
 		use_cooldown = 0.45
 		return _knife_attack(player)
 	if equipped in grenade_order:
@@ -78,6 +91,7 @@ func _throw_grenade(player: CharacterBody3D) -> Dictionary:
 	grenade_counts[equipped] = count - 1
 	use_cooldown = 0.75
 	var thrown_type := equipped
+	equipment_used.emit(thrown_type)
 	if not select_next_grenade():
 		select_knife()
 	return {"thrown": true, "type": thrown_type}

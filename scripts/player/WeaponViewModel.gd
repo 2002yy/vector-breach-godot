@@ -12,6 +12,12 @@ extends Node3D
 @onready var rifle_model: Node3D = $RifleModel
 @onready var pistol_model: Node3D = $PistolModel
 
+const EquipmentVisuals = preload("res://scripts/player/EquipmentVisuals.gd")
+
+var equipment_models: Dictionary = {}
+var equipped_kind := "rifle"
+var _use_blend := 0.0
+var _use_kind := ""
 var current_weapon_slot: int = 0
 var _equip_offset: float = 0.0
 var _shot_kick: float = 0.0
@@ -26,9 +32,25 @@ var _sway_phase: float = 0.0
 var _shot_sequence: int = 0
 
 func _ready() -> void:
+	for kind in ["knife", "he_grenade", "flash_grenade", "smoke_grenade"]:
+		var model := EquipmentVisuals.build(kind, true)
+		model.position = Vector3(0.24, -0.22, -0.43)
+		model.rotation = Vector3(-0.15, -0.3, -0.35)
+		model.visible = false
+		add_child(model)
+		equipment_models[kind] = model
+	var c4 := preload("res://assets/models/objectives/c4_device.glb").instantiate() as Node3D
+	c4.name = "C4Model"
+	c4.position = Vector3(0.20, -0.20, -0.55)
+	c4.scale = Vector3.ONE * 0.72
+	c4.rotation_degrees = Vector3(66, 0, -9)
+	c4.visible = false
+	add_child(c4)
+	equipment_models["c4"] = c4
 	set_weapon_slot(0, false)
 
 func _process(delta: float) -> void:
+	_use_blend = move_toward(_use_blend, 0.0, delta * 4.5)
 	_equip_offset = move_toward(_equip_offset, 0.0, recovery_speed * delta)
 	_shot_kick = move_toward(_shot_kick, 0.0, recovery_speed * delta)
 	_shot_side = move_toward(_shot_side, 0.0, recovery_speed * 0.8 * delta)
@@ -55,14 +77,35 @@ func _process(delta: float) -> void:
 		deg_to_rad(-sin(_sway_phase) * movement_sway_degrees * movement_weight + _reload_blend * 7.5)
 	)
 
+	if _use_blend > 0.0:
+		position.z -= sin(_use_blend * PI) * 0.1
+		rotation.z += sin(_use_blend * PI) * (0.8 if _use_kind == "knife" else -0.35)
+
+func set_equipment(kind: String, animate: bool = true) -> void:
+	if kind not in ["rifle", "pistol"] and not equipment_models.has(kind):
+		return
+	if equipped_kind == kind and rifle_model.visible == (kind == "rifle") and pistol_model.visible == (kind == "pistol"):
+		return
+	equipped_kind = kind
+	current_weapon_slot = 0 if kind == "rifle" else (1 if kind == "pistol" else (2 if kind == "knife" else (4 if kind == "c4" else 3)))
+	rifle_model.visible = kind == "rifle"
+	pistol_model.visible = kind == "pistol"
+	for key in equipment_models:
+		(equipment_models[key] as Node3D).visible = key == kind
+	_reload_active = false
+	_reload_blend = 0.0
+	_shot_kick = 0.0
+	if animate:
+		_equip_offset = equip_drop
+
+func play_equipment_use(kind: String) -> void:
+	_use_kind = kind
+	_use_blend = 1.0
+
 func set_weapon_slot(slot_index: int, animate: bool = true) -> void:
 	if slot_index < 0 or slot_index > 1:
 		return
-	current_weapon_slot = slot_index
-	rifle_model.visible = slot_index == 0
-	pistol_model.visible = slot_index == 1
-	if animate:
-		_equip_offset = equip_drop
+	set_equipment("rifle" if slot_index == 0 else "pistol", animate)
 
 func play_shot() -> void:
 	_shot_sequence += 1
@@ -86,6 +129,9 @@ func play_reload_finished() -> void:
 func get_debug_snapshot() -> Dictionary:
 	return {
 		"weapon_slot": current_weapon_slot,
+		"equipped_kind": equipped_kind,
+		"use_blend": _use_blend,
+		"visible_equipment": equipment_models.keys().filter(func(kind): return (equipment_models[kind] as Node3D).visible),
 		"rifle_visible": rifle_model.visible,
 		"pistol_visible": pistol_model.visible,
 		"shot_kick": _shot_kick,

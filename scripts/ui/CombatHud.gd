@@ -58,7 +58,19 @@ var _player_help: PanelContainer
 var _help_text: Label
 var _controls_hint: Label
 
+var _objective_hint: Label
+
 func _ready() -> void:
+	_objective_hint = Label.new()
+	_objective_hint.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	_objective_hint.position = Vector2(-380, -245)
+	_objective_hint.size = Vector2(760, 42)
+	_objective_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_objective_hint.add_theme_font_size_override("font_size", 24)
+	_objective_hint.add_theme_color_override("font_color", Color(1, 0.83, 0.38))
+	_objective_hint.add_theme_color_override("font_outline_color", Color(0.015, 0.02, 0.025))
+	_objective_hint.add_theme_constant_override("outline_size", 6)
+	hud_root.add_child(_objective_hint)
 	buy_menu.set_script(BuyPage)
 	buy_menu.call("build")
 	buy_menu.connect("purchase_requested", func(item: String) -> void: purchase_requested.emit(item))
@@ -128,6 +140,8 @@ func update_display(snapshot: Dictionary) -> void:
 	_menu_open = bool(snapshot.get("menu_open", true))
 	hud_root.visible = _game_started and not _menu_open
 
+	_objective_hint.text = String(snapshot.get("objective_hint", ""))
+	_objective_hint.visible = not _objective_hint.text.is_empty()
 	var health := int(snapshot.get("health", 100))
 	health_value.text = str(health)
 	health_value.add_theme_color_override(
@@ -146,7 +160,9 @@ func update_display(snapshot: Dictionary) -> void:
 	weapon_status_label.visible = not weapon_status.is_empty()
 
 	var magazine := int(snapshot.get("ammo_in_mag", 30))
-	ammo_magazine.text = str(magazine)
+	ammo_magazine.text = "—" if weapon_slot in [3, 5] else str(magazine)
+	ammo_reserve.visible = weapon_slot in [1, 2]
+	$HudRoot/BottomRight/Margin/Row/AmmoSlash.visible = ammo_reserve.visible
 	ammo_reserve.text = str(int(snapshot.get("ammo_reserve", 90)))
 	ammo_magazine.add_theme_color_override(
 		"font_color",
@@ -167,7 +183,7 @@ func update_display(snapshot: Dictionary) -> void:
 	if bool(bomb.get("bomb_planted", false)):
 		objective_status.text = "C4已安装 · %s区" % String(bomb.get("bomb_site", "A"))
 	elif RoundManager.state == RoundManager.RoundState.LIVE and bool(bomb.get("bomb_carried", false)) and String(snapshot.get("player_team", "T")) == "T":
-		objective_status.text += "  ·  E安装C4"
+		objective_status.text += "  ·  携带 C4"
 	var interaction_type := String(bomb.get("interaction_type", ""))
 	objective_interaction.visible = hud_root.visible and not interaction_type.is_empty()
 	if objective_interaction.visible:
@@ -182,7 +198,7 @@ func update_display(snapshot: Dictionary) -> void:
 	_help_text.text = "操作指南（F1 关闭）\n\n" + PlayerGuide.CONTROLS + "\n\n" + (PlayerGuide.MATCH_RULES if competitive else PlayerGuide.PRACTICE_RULES)
 	if GameState.current_level_id.begins_with("dustline-depths"):
 		_help_text.text = "操作指南（F1 关闭）\n\n" + PlayerGuide.CONTROLS + "\n\n" + PlayerGuide.RESEARCH_RULES
-	_controls_hint.text = "1 / 2 切枪 · R 换弹 · E 交互 · B 购买 · F1 操作帮助"
+	_controls_hint.text = "1 / 2 枪 · 3 刀 · 4 手雷 · 5 C4 · E 交互 · B 购买 · F1 帮助"
 	if competitive and RoundManager.can_buy():
 		_controls_hint.text += "\n手枪开局；步枪 $2700。出生区按 B 购买，当前 $%d" % int(snapshot.get("money", 800))
 	scoreboard_enemy.text = "\n".join(enemy_rows) if not enemy_rows.is_empty() else "暂无敌方单位"

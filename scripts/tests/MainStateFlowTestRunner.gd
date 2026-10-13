@@ -47,6 +47,10 @@ func _run_all_tests() -> void:
 	await _run_test("freeze_allows_weapon_management", _test_freeze_allows_weapon_management)
 	await _run_test("economy_escalates_losses_and_caps_money", _test_economy_escalates_losses_and_caps_money)
 	await _run_test("knife_and_grenade_equipment_are_actionable", _test_knife_and_grenade_equipment_are_actionable)
+	await _run_test("equipment_models_follow_inventory_and_same_gun_reselection", _test_equipment_models)
+	await _run_test("c4_slot_and_context_prompt_guards", _test_c4_prompts)
+	await _run_test("bot_c4_pickup_cannot_duplicate_player_carrier", _test_bot_c4_ownership)
+	await _run_test("c4_ai_hint_distinguishes_enemy_and_ally", _test_c4_ai_hint)
 	await _run_test("player_damage_tags_and_death_ends_round", _test_player_damage_tags_and_death_ends_round)
 	await _run_test("buy_plant_defuse_round_loop", _test_buy_plant_defuse_round_loop)
 
@@ -1022,6 +1026,8 @@ func _test_buy_plant_defuse_round_loop() -> void:
 		_assert_equal(GameState.player_health, 100, "new round should restore player health")
 		_assert_equal(weapon_system.call("get_runtime_snapshot").get("weapon_slot"), 0, "surviving player should retain the purchased rifle next round")
 		GameState.player_team = "T"
+		# This fixture switches sides manually; assign the new local carrier too.
+		main.get_node("C4Device").call("set_carried", "T", player.get_instance_id())
 		RoundManager.set_live()
 		await get_tree().process_frame
 		player.global_position.x = float(target.get("x", 0.0))
@@ -1059,3 +1065,160 @@ func _test_frozen_classic_layout() -> void:
 	_assert_true(LayoutLoader.load_authored(data, manifest_path).is_empty(), "collision change must fail closed rather than regenerate routes")
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(source_path))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(manifest_path))
+
+func _test_equipment_models() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	main.call("_on_start_pressed")
+	await _await_main_ready()
+	main.call("_set_buy_menu", false)
+	var equipment: Node = main.get_node("TacticalEquipment")
+	var view: Node = main.get_node("Player/CameraPivot/Camera3D/WeaponViewModel")
+	equipment.call("select_knife")
+	var state: Dictionary = view.call("get_debug_snapshot")
+	_assert_equal(state.get("visible_equipment"), ["knife"], "knife selection shows only independent knife")
+	_assert_true(not state.get("pistol_visible"), "knife must hide previous pistol")
+	var event := InputEventAction.new()
+	event.action = "weapon_slot_1"
+	event.pressed = true
+	main.call("_unhandled_input", event)
+	_assert_equal(equipment.get("equipped"), "knife", "unowned rifle cannot leave knife equipped")
+	event.action = "weapon_slot_2"
+	main.call("_unhandled_input", event)
+	_assert_equal((view.call("get_debug_snapshot") as Dictionary).get("equipped_kind"), "pistol", "reselecting same pistol restores model without gun switch signal")
+	_assert_equal(GameState.current_weapon_slot, 1, "same gun reselection restores firearm HUD")
+	for kind in ["he_grenade", "flash_grenade", "smoke_grenade"]:
+		equipment.call("purchase_grenade", kind)
+		equipment.call("select_next_grenade")
+		state = view.call("get_debug_snapshot")
+		_assert_equal(state.get("visible_equipment"), [kind], "grenade type has its own exclusive visible model")
+	RoundManager.set_live()
+	var result: Dictionary = equipment.call("use_primary", main.get_node("Player"))
+	_assert_true(result.get("thrown", false), "selected grenade is actually thrown")
+	_assert_true(float((view.call("get_debug_snapshot") as Dictionary).get("use_blend")) > 0, "throw action produces visual feedback")
+	await get_tree().process_frame
+	var projectiles := get_tree().get_nodes_in_group("grenade_projectiles")
+	_assert_true(not projectiles.is_empty(), "throw creates real projectile")
+	if not projectiles.is_empty():
+		_assert_true(projectiles[-1].get_node_or_null("SmokeGrenadeModel") != null, "world projectile uses same smoke shape as held grenade")
+	equipment.call("reset_loadout")
+	_assert_equal((view.call("get_debug_snapshot") as Dictionary).get("equipped_kind"), "pistol", "loadout reset restores gun model")
+	await _cleanup_main(main)
+
+func _test_c4_prompts() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	main.call("_on_start_pressed")
+	await _await_main_ready()
+	main.call("_set_buy_menu", false)
+	var key := InputEventKey.new()
+	key.keycode = KEY_5
+	key.pressed = true
+	main.call("_unhandled_input", key)
+	var view: Node = main.get_node("Player/CameraPivot/Camera3D/WeaponViewModel")
+	_assert_equal((view.call("get_debug_snapshot") as Dictionary).get("equipped_kind"), "c4", "T carrier can inspect C4 via slot five")
+	RoundManager.set_live()
+	var hint := String(main.call("_get_objective_hint"))
+	_assert_true(hint.contains("前往 A / B"), "outside site prompt gives destination rather than false plant instruction")
+	var player: CharacterBody3D = main.get_node("Player")
+	var radar: Dictionary = main.call("_build_radar_snapshot")
+	var target: Dictionary = radar["targets"][0]
+	player.global_position.x = float(target["x"])
+	player.global_position.z = float(target["z"])
+	_assert_true(String(main.call("_get_objective_hint")).contains("[按住 E]"), "inside site prompts actual hold interaction")
+	Input.action_press("interact")
+	main.call("_try_begin_objective_interaction")
+	main.call("_update_objective_interaction", 1.0)
+	_assert_true(String(main.call("_get_objective_hint")).contains("松开即取消"), "active plant explains cancellation")
+	Input.action_release("interact")
+	main.call("_update_objective_interaction", 0.01)
+	_assert_true(not RoundManager.is_objective_interacting(), "release cancels actual install")
+	Input.action_press("fire_primary")
+	main.call("_update_objective_interaction", 0.5)
+	_assert_true(RoundManager.is_objective_interacting(), "holding primary while C4 selected starts actual install")
+	Input.action_release("fire_primary")
+	main.call("_update_objective_interaction", 0.01)
+	_assert_true(not RoundManager.is_objective_interacting(), "releasing C4 primary cancels actual install")
+	var c4: Node = main.get_node("C4Device")
+	RoundManager.bomb_carried = false
+	c4.call("drop_at", player.global_position)
+	_assert_true(String(main.call("_get_objective_hint")).contains("拾取"), "near dropped C4 prompts pickup")
+	GameState.player_team = "CT"
+	main.call("_unhandled_input", key)
+	main.call("_process", 0.0)
+	_assert_true((view.call("get_debug_snapshot") as Dictionary).get("equipped_kind") != "c4", "CT cannot equip C4 and lost carrier model clears")
+	RoundManager.state = RoundManager.RoundState.BOMB_PLANTED
+	c4.call("plant_at", player.global_position, "A")
+	GameState.player_defuse_kit = false
+	_assert_true(String(main.call("_get_objective_hint")).contains("10 秒"), "no kit prompt matches actual duration")
+	GameState.player_defuse_kit = true
+	_assert_true(String(main.call("_get_objective_hint")).contains("5 秒"), "kit prompt matches actual duration")
+	await _cleanup_main(main)
+
+func _test_bot_c4_ownership() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	main.call("_on_start_pressed")
+	await _await_main_ready()
+	main.call("_set_buy_menu", false)
+	RoundManager.set_live()
+	var sandbox: Node = main.get_node("CombatSandbox")
+	var carrier: CharacterBody3D
+	for actor in sandbox.get_children():
+		if actor is CharacterBody3D and String(actor.get("team")) == "T":
+			carrier = actor
+			break
+	_assert_true(is_instance_valid(carrier), "fixture contains a T bot")
+	if not is_instance_valid(carrier):
+		await _cleanup_main(main)
+		return
+	var player: CharacterBody3D = main.get_node("Player")
+	var c4: Node = main.get_node("C4Device")
+	c4.call("drop_at", carrier.global_position)
+	RoundManager.bomb_carried = false
+	var brain: Node = carrier.get_node("TacticalBotBrain")
+	_assert_true(bool(brain.call("_try_pick_up_c4")), "actual bot pickup succeeds")
+	brain.set("bomb_carrier", true)
+	RoundManager.bomb_carried = true
+	_assert_true(bool(c4.call("is_carried_by", carrier)), "C4 identifies actual bot owner")
+	_assert_true(not bool(main.call("_player_has_c4")), "team-wide carried flag does not give player another C4")
+	var hud: Dictionary = main.call("_build_hud_snapshot", GameState.get_hud_snapshot())
+	_assert_true(not bool((hud.get("bomb", {}) as Dictionary).get("bomb_carried")), "HUD never says player carries a bot-owned C4")
+	_assert_true(String(hud.get("objective_hint")).contains("队友携带"), "bot ownership displays cover-carrier hint")
+	var key := InputEventKey.new()
+	key.keycode = KEY_5
+	key.pressed = true
+	main.call("_unhandled_input", key)
+	_assert_true(main.get_node("TacticalEquipment").get("equipped") != "c4", "slot five is rejected after bot pickup")
+	var target: Dictionary = (main.call("_build_radar_snapshot") as Dictionary)["targets"][0]
+	player.global_position.x = float(target["x"])
+	player.global_position.z = float(target["z"])
+	_assert_true(not bool(main.call("_try_begin_objective_interaction")), "E cannot duplicate bot C4 at bomb site")
+	main.get_node("TacticalEquipment").call("select_c4")
+	Input.action_press("fire_primary")
+	main.call("_update_objective_interaction", 3.3)
+	Input.action_release("fire_primary")
+	_assert_true(not RoundManager.is_objective_interacting(), "even a stale C4 model cannot start planting via primary")
+	main.call("_on_player_died")
+	_assert_true(bool(c4.call("is_carried_by", carrier)), "player death cannot drop a bot-owned bomb")
+	sandbox.call("_on_actor_killed", carrier.name, "T", carrier)
+	_assert_equal(c4.get("device_state"), "dropped", "death of recovered bot owner drops actual C4")
+	_assert_true(not RoundManager.bomb_carried, "owner death clears carried team flag")
+	await _cleanup_main(main)
+
+func _test_c4_ai_hint() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	main.call("_on_start_pressed")
+	await _await_main_ready()
+	RoundManager.interaction_owner = "ai"
+	for interaction in ["plant", "defuse"]:
+		RoundManager.interaction_type = interaction
+		var action_team := "T" if interaction == "plant" else "CT"
+		GameState.player_team = action_team
+		_assert_true(String(main.call("_get_objective_hint")).contains("队友"), "same team objective interaction prompts covering ally")
+		GameState.player_team = "CT" if action_team == "T" else "T"
+		_assert_true(String(main.call("_get_objective_hint")).contains("敌方"), "opposite team interaction prompts stopping enemy")
+		_assert_true(not String(main.call("_get_objective_hint")).contains("掩护"), "enemy action never instructs player to cover")
+	RoundManager.cancel_objective_interaction()
+	await _cleanup_main(main)

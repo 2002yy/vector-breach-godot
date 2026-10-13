@@ -138,6 +138,8 @@ func _ready() -> void:
 		level.connect("level_loaded", _on_level_loaded)
 	if weapon_system.has_signal("shot_resolved"):
 		weapon_system.connect("shot_resolved", _on_shot_resolved)
+	tactical_equipment.connect("equipment_changed", _sync_equipment_view)
+	tactical_equipment.connect("equipment_used", weapon_view_model.play_equipment_use)
 	if weapon_system.has_signal("weapon_switched"):
 		weapon_system.connect("weapon_switched", _on_weapon_switched)
 	if weapon_system.has_signal("reload_started"):
@@ -197,17 +199,27 @@ func _on_team_selected(team: String) -> void:
 	(start_menu.get("team_select") as OptionButton).select(0 if selected_start_team == "T" else 1)
 	GameState.player_team = selected_start_team
 	if is_instance_valid(c4_device):
-		c4_device.call("set_carried", "T")
+		c4_device.call("set_carried", "T", player.get_instance_id() if GameState.player_team == "T" else int(c4_device.get("carrier_id")))
 	_update_ui(true)
 
 func _isolate_environment_resource() -> void:
 	if world_environment.environment != null:
 		world_environment.environment = world_environment.environment.duplicate(true) as Environment
 
+func _sync_equipment_view(kind: String) -> void:
+	if kind == "firearm":
+		var state: Dictionary = weapon_system.call("get_runtime_snapshot")
+		weapon_view_model.call("set_weapon_slot", int(state.get("weapon_slot", 1)))
+		weapon_system.call("refresh_equipped_hud")
+	else:
+		weapon_view_model.call("set_equipment", kind)
+
 func _process(delta: float) -> void:
 	_update_objective_interaction(delta)
 	_check_team_elimination()
 	tactical_equipment.call("tick", delta)
+	if String(tactical_equipment.get("equipped")) == "c4" and not _player_has_c4():
+		tactical_equipment.call("select_knife")
 	if weapon_view_model.has_method("update_motion") and player.has_method("get_accuracy_state"):
 		var view_motion := player.call("get_accuracy_state") as Dictionary
 		weapon_view_model.call(
@@ -287,8 +299,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event.is_action_pressed("interact"):
 		if _can_accept_combat_input():
-			if not _try_pickup_weapon():
-				_try_begin_objective_interaction()
+			if not _try_begin_objective_interaction():
+				_try_pickup_weapon()
 		get_viewport().set_input_as_handled()
 		return
 
@@ -301,30 +313,35 @@ func _unhandled_input(event: InputEvent) -> void:
 				pickup.configure(dropped, player.global_position - player.global_transform.basis.z * 0.9 - Vector3.UP * 0.75)
 				if not bool((weapon_system.call("get_runtime_snapshot") as Dictionary).get("owned", false)):
 					tactical_equipment.call("select_knife")
-		elif _can_accept_combat_input() and RoundManager.bomb_carried and GameState.player_team == "T":
+		elif _can_accept_combat_input() and _player_has_c4():
 			RoundManager.bomb_carried = false
-			c4_device.call("drop_at", player.global_position + -player.global_transform.basis.z * 0.8)
+			c4_device.call("drop_at", player.global_position + -player.global_transform.basis.z * 0.8 - Vector3.UP * 0.82)
+			tactical_equipment.call("select_knife")
 			_update_ui(true)
 		get_viewport().set_input_as_handled()
 		return
 
 	if event.is_action_pressed("reload_weapon"):
-		if _can_accept_weapon_management() and weapon_system.has_method("request_reload"):
+		if _can_accept_weapon_management() and String(tactical_equipment.get("equipped")) == "firearm" and weapon_system.has_method("request_reload"):
 			weapon_system.call("request_reload")
 		get_viewport().set_input_as_handled()
 		return
 
 	if event.is_action_pressed("weapon_slot_1"):
 		if _can_accept_weapon_management() and weapon_system.has_method("switch_to_slot"):
-			tactical_equipment.call("select_firearm")
 			weapon_system.call("switch_to_slot", 0)
+			var selected: Dictionary = weapon_system.call("get_runtime_snapshot")
+			if int(selected.get("weapon_slot", -1)) == 0 and bool(selected.get("owned", false)):
+				tactical_equipment.call("select_firearm")
 		get_viewport().set_input_as_handled()
 		return
 
 	if event.is_action_pressed("weapon_slot_2"):
 		if _can_accept_weapon_management() and weapon_system.has_method("switch_to_slot"):
-			tactical_equipment.call("select_firearm")
 			weapon_system.call("switch_to_slot", 1)
+			var selected: Dictionary = weapon_system.call("get_runtime_snapshot")
+			if int(selected.get("weapon_slot", -1)) == 1 and bool(selected.get("owned", false)):
+				tactical_equipment.call("select_firearm")
 		get_viewport().set_input_as_handled()
 		return
 
@@ -337,6 +354,12 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("weapon_slot_4"):
 		if _can_accept_weapon_management():
 			tactical_equipment.call("select_next_grenade")
+		get_viewport().set_input_as_handled()
+		return
+
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_5:
+		if _can_accept_weapon_management() and _player_has_c4():
+			tactical_equipment.call("select_c4")
 		get_viewport().set_input_as_handled()
 		return
 
@@ -388,7 +411,7 @@ func _on_start_pressed() -> void:
 	RoundManager.allow_player_ready = GameState.is_competitive_level()
 	RoundManager.start_round()
 	GameState.begin_match_round(RoundManager.round_serial)
-	c4_device.call("set_carried", "T")
+	c4_device.call("set_carried", "T", player.get_instance_id() if GameState.player_team == "T" else int(c4_device.get("carrier_id")))
 	_resume_game()
 	if GameState.is_competitive_level():
 		_set_buy_menu(true)
@@ -708,7 +731,7 @@ func _on_player_died() -> void:
 	if not GameState.is_competitive_level():
 		RoundManager.end_round("CT" if GameState.player_team == "T" else "T", "ELIMINATION")
 		return
-	if GameState.player_team == "T" and RoundManager.bomb_carried and String(c4_device.get("device_state")) == "carried":
+	if _player_has_c4():
 		c4_device.call("drop_at", player.global_position - Vector3.UP * 0.82)
 		RoundManager.bomb_carried = false
 	_check_team_elimination()
@@ -804,7 +827,7 @@ func _on_round_restart_requested() -> void:
 			weapon_view_model.call("set_weapon_slot", reset_slot, false)
 	RoundManager.start_round()
 	GameState.begin_match_round(RoundManager.round_serial)
-	c4_device.call("set_carried", "T")
+	c4_device.call("set_carried", "T", player.get_instance_id() if GameState.player_team == "T" else int(c4_device.get("carrier_id")))
 	if GameState.is_competitive_level():
 		_set_buy_menu(true)
 
@@ -813,6 +836,7 @@ func _purchase_item(item_id: String) -> void:
 	var result: Dictionary = GameState.purchase(item_id) if bool(offer.get("success", false)) else offer
 	if bool(result.get("success", false)) and item_id in ["rifle", "pistol"]:
 		weapon_system.call("purchase_slot", 0 if item_id == "rifle" else 1)
+		tactical_equipment.call("select_firearm")
 	if bool(result.get("success", false)) and item_id in ["he_grenade", "flash_grenade", "smoke_grenade"]:
 		tactical_equipment.call("purchase_grenade", item_id)
 	combat_hud.call("show_purchase_result", "购买成功" if bool(result.get("success", false)) else String(result.get("reason", "购买失败")))
@@ -860,7 +884,7 @@ func _clear_round_drops() -> void:
 
 func _try_begin_objective_interaction() -> bool:
 	if c4_device.call("can_pick_up", player.global_position, GameState.player_team):
-		if bool(c4_device.call("pick_up", GameState.player_team)):
+		if bool(c4_device.call("pick_up", GameState.player_team, player.get_instance_id())):
 			RoundManager.bomb_carried = true
 			_update_ui(true)
 			return true
@@ -868,7 +892,7 @@ func _try_begin_objective_interaction() -> bool:
 		if bool(c4_device.call("is_player_in_interaction_range", player.global_position)):
 			return RoundManager.begin_defuse(GameState.player_team, GameState.player_defuse_kit)
 		return false
-	if not RoundManager.bomb_carried or GameState.player_team != "T":
+	if not _player_has_c4():
 		return false
 	var site := _get_current_plant_site()
 	return RoundManager.begin_plant(String(site.get("label", "")), GameState.player_team) if not site.is_empty() else false
@@ -891,7 +915,8 @@ func _update_objective_interaction(delta: float) -> void:
 		return
 	if RoundManager.is_objective_interacting() and String(RoundManager.interaction_owner) != "player":
 		return
-	if not Input.is_action_pressed("interact"):
+	var holding_c4_primary := String(tactical_equipment.get("equipped")) == "c4" and Input.is_action_pressed("fire_primary")
+	if not Input.is_action_pressed("interact") and not holding_c4_primary:
 		RoundManager.cancel_objective_interaction()
 		return
 	if not RoundManager.is_objective_interacting():
@@ -903,7 +928,7 @@ func _update_objective_interaction(delta: float) -> void:
 	var still_valid := false
 	if interaction_type == "plant":
 		var site := _get_current_plant_site()
-		still_valid = String(site.get("label", "")) == interaction_site and RoundManager.bomb_carried
+		still_valid = String(site.get("label", "")) == interaction_site and _player_has_c4()
 	elif interaction_type == "defuse":
 		still_valid = bool(c4_device.call("is_player_in_interaction_range", player.global_position))
 	var completed := RoundManager.tick_objective_interaction(delta, still_valid)
@@ -951,6 +976,7 @@ func _on_radio_report(caller: String, message: String) -> void:
 		combat_hud.call("show_radio_report", caller, message)
 
 func _on_weapon_switched(_weapon_name: String, slot_index: int) -> void:
+	tactical_equipment.call("select_firearm")
 	if weapon_view_model.has_method("set_weapon_slot"):
 		weapon_view_model.call("set_weapon_slot", slot_index)
 	if combat_audio_feedback.has_method("play_weapon_switched"):
@@ -1009,9 +1035,47 @@ func _build_hud_snapshot(snapshot: Dictionary) -> Dictionary:
 	var enriched := snapshot.duplicate(true)
 	if is_instance_valid(training_telemetry):
 		enriched["training_debrief"] = training_telemetry.call("get_snapshot")
+	var bomb: Dictionary = enriched.get("bomb", {})
+	bomb["bomb_carried"] = _player_has_c4()
+	enriched["bomb"] = bomb
+	enriched["objective_hint"] = _get_objective_hint()
 	enriched["radar"] = _build_radar_snapshot()
 	enriched["flash_intensity"] = float(player.call("get_flash_intensity"))
 	return enriched
+
+func _player_has_c4() -> bool:
+	return GameState.player_team == "T" and RoundManager.bomb_carried and bool(c4_device.call("is_carried_by", player))
+
+func _get_objective_hint() -> String:
+	if not game_started or bool(player.get("is_dead")):
+		return ""
+	if RoundManager.is_objective_interacting():
+		if String(RoundManager.interaction_owner) != "player":
+			var interacting_team := "T" if RoundManager.interaction_type == "plant" else "CT"
+			if interacting_team == GameState.player_team:
+				return "队友正在处理 C4 · 注意掩护"
+			return "敌方正在%s C4 · 立即阻止" % ("安装" if interacting_team == "T" else "拆除")
+		return "持续按住 E（持 C4 可按左键）· 松开即取消"
+	if RoundManager.state == RoundManager.RoundState.BOMB_PLANTED:
+		if GameState.player_team == "CT":
+			if bool(c4_device.call("is_player_in_interaction_range", player.global_position)):
+				return "[按住 E] 拆除 C4 · %s" % ("有拆弹器：5 秒" if GameState.player_defuse_kit else "无拆弹器：10 秒")
+			return "C4 已安装 · 前往雷达炸弹标记拆除"
+		return "C4 已安装 · 守住爆点，阻止拆除"
+	if RoundManager.state != RoundManager.RoundState.LIVE:
+		return ""
+	if bool(c4_device.call("can_pick_up", player.global_position, GameState.player_team)):
+		return "[E] 拾取地上的 C4"
+	if _player_has_c4():
+		var site := _get_current_plant_site()
+		if not site.is_empty():
+			return "[按住 E] 在 %s 区安装 C4 · 3.2 秒" % String(site.get("label", ""))
+		return "携带 C4 · [5] 查看 · 前往 A / B 爆点安装"
+	if GameState.player_team == "T" and String(c4_device.get("device_state")) == "carried":
+		return "队友携带 C4 · 掩护队友前往爆点"
+	if GameState.player_team == "T" and String(c4_device.get("device_state")) == "dropped":
+		return "C4 已掉落 · 前往雷达标记拾取"
+	return ""
 
 func _build_radar_snapshot() -> Dictionary:
 	var level_data: Dictionary = level.call("get_current_level_data") if level.has_method("get_current_level_data") else {}

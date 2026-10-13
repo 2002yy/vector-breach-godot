@@ -1,5 +1,7 @@
 extends RigidBody3D
 
+const EquipmentVisuals = preload("res://scripts/player/EquipmentVisuals.gd")
+
 var grenade_type: String = "he_grenade"
 var thrower: CharacterBody3D
 var fuse_remaining: float = 1.7
@@ -31,15 +33,11 @@ func _ready() -> void:
 	sphere.radius = 0.09
 	collision.shape = sphere
 	add_child(collision)
-	var mesh := MeshInstance3D.new()
-	var sphere_mesh := SphereMesh.new()
-	sphere_mesh.radius = 0.09
-	sphere_mesh.height = 0.18
-	mesh.mesh = sphere_mesh
-	var material := StandardMaterial3D.new()
-	material.albedo_color = Color(0.14, 0.18, 0.13) if grenade_type == "he_grenade" else (Color(0.68, 0.72, 0.75) if grenade_type == "flash_grenade" else Color(0.25, 0.3, 0.28))
-	mesh.material_override = material
-	add_child(mesh)
+	# configure() follows add_child(); defer until the actual type is assigned.
+	call_deferred("_build_visual")
+
+func _build_visual() -> void:
+	add_child(EquipmentVisuals.build(grenade_type))
 
 func _physics_process(delta: float) -> void:
 	if _detonated:
