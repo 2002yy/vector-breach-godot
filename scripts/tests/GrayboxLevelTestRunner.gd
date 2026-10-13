@@ -32,6 +32,7 @@ func _run_all_tests() -> void:
 	await _run_test("foundry_reforged_builds_independent_ground_graybox", _test_foundry_reforged_builds_independent_ground_graybox)
 	await _run_test("foundry_reforged_routes_clear_solids_and_interfaces", _test_foundry_reforged_routes_clear_solids_and_interfaces)
 	await _run_test("visual_name_filters_hide_helpers_only", _test_visual_name_filters_hide_helpers_only)
+	await _run_test("reference_vertex_repair_preserves_shared_materials", _test_reference_vertex_repair_preserves_shared_materials)
 	await _run_test("missing_level_does_not_clobber_current_state", _test_missing_level_does_not_clobber_current_state)
 
 func _run_test(test_name: String, callable: Callable) -> void:
@@ -617,6 +618,37 @@ func _test_visual_name_filters_hide_helpers_only() -> void:
 	_assert_true(authored_mesh.visible, "visual filters should preserve authored map meshes")
 	_assert_true(not imported_light.visible, "visual filters should disable exported environment lights")
 	visual_fixture.free()
+	await _cleanup_level(level)
+
+func _test_reference_vertex_repair_preserves_shared_materials() -> void:
+	var level: Node3D = _instantiate_level()
+	await get_tree().physics_frame
+	var visual := Node3D.new()
+	var source := StandardMaterial3D.new()
+	source.resource_name = "agave_plant_01"
+	source.vertex_color_use_as_albedo = true
+	source.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+	source.alpha_scissor_threshold = 0.371
+	source.albedo_texture = GradientTexture2D.new()
+	var affected := MeshInstance3D.new()
+	affected.mesh = QuadMesh.new()
+	affected.mesh.surface_set_material(0, source)
+	visual.add_child(affected)
+	var unaffected := MeshInstance3D.new()
+	var wall := source.duplicate() as StandardMaterial3D
+	wall.resource_name = "wall"
+	unaffected.mesh = QuadMesh.new()
+	unaffected.mesh.surface_set_material(0, wall)
+	visual.add_child(unaffected)
+	level.call("_repair_reference_vertex_channels", visual)
+	var repaired := affected.get_active_material(0) as StandardMaterial3D
+	_assert_true(not repaired.vertex_color_use_as_albedo, "animation weights must not tint foliage")
+	_assert_true(source.vertex_color_use_as_albedo, "repair must not mutate the imported shared material")
+	_assert_true(repaired.albedo_texture == source.albedo_texture, "repair must retain original texture")
+	_assert_equal(repaired.transparency, source.transparency, "repair must preserve cutout mode")
+	_assert_equal(repaired.alpha_scissor_threshold, source.alpha_scissor_threshold, "repair must preserve leaf silhouette")
+	_assert_true(unaffected.get_active_material(0) == wall, "unrelated authored vertex tints must stay intact")
+	visual.free()
 	await _cleanup_level(level)
 
 func _test_missing_level_does_not_clobber_current_state() -> void:

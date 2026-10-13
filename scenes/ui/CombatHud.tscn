@@ -425,13 +425,13 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.68, 0.35, 1)
 theme_override_fonts/font = ExtResource("3_semibold")
 theme_override_font_sizes/font_size = 18
-text = "训练目标"
+text = "敌方单位"
 
 [node name="EnemyRow" type="Label" parent="HudRoot/Scoreboard/Margin/Stack"]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_regular")
 theme_override_font_sizes/font_size = 18
-text = "训练目标                          5 存活"
+text = "敌方单位                          5 存活"
 
 [node name="Hint" type="Label" parent="HudRoot/Scoreboard/Margin/Stack"]
 layout_mode = 2

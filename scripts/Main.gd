@@ -2,6 +2,7 @@ extends Node3D
 
 const WorldWeaponPickup = preload("res://scripts/combat/WorldWeaponPickup.gd")
 const TrainingTelemetry = preload("res://scripts/training/TrainingTelemetry.gd")
+const ClassicMatchLayout = preload("res://scripts/level/ClassicMatchLayout.gd")
 
 const SHIPPED_LEVEL_OPTIONS := [
 	{
@@ -15,7 +16,7 @@ const SHIPPED_LEVEL_OPTIONS := [
 	},
 	{
 		"id": "depot",
-		"name": "铸造仓库 v2（冻结）",
+		"name": "铸造仓库（路线回归）",
 		"preview": "res://assets/maps/foundry-depot-preview.png",
 		"description": "已冻结的铸造仓库 v2：保留现有中路、侧路和上层压制结构，后续设计不再覆盖此版。",
 		"route_profile": "\u4e2d\u8def\u3001\u4fa7\u7ffc\u8def\u3001\u4e0a\u5c42\u538b\u5236\u7ebf",
@@ -55,9 +56,9 @@ const LOCAL_DUSTLINE_LEVEL_PATH := "res://data/levels/dustline-depths.json"
 const LOCAL_DUSTLINE_VISUAL_PATH := "res://assets/models/dustline/dustline_depths.glb"
 const LOCAL_DUSTLINE_OPTION := {
 	"id": "dustline-depths",
-	"name": "沙线深层（本机参考）",
+	"name": "沙线深层（经典 CS 复刻）",
 	"preview": "res://assets/maps/dustline-depths-preview.png",
-	"description": "本机参考试玩：锁定参考地图地面拓扑，仅在 B 区增加一条空中走廊。派生碰撞与参考资源不进入版本库。",
+	"description": "经典 CS 的 de_dust2 地面拓扑复刻研究图，B 区加空中走廊。本机可进行 5 对 5 爆破：你与四名 AI 队友对抗五名敌人，含购买、换边和结算；参考资源不进入版本库。",
 	"route_profile": "\u53c2\u8003\u5730\u9762\u4e09\u8def\u7ebf + B \u533a\u5355\u6761\u53ef\u9009\u9ad8\u53f0",
 	"recommended_use": "\u6bd4\u4f8b\u3001\u906e\u6321\u3001\u8def\u7ebf\u4e0e\u4ea4\u706b\u8ddd\u79bb\u5bf9\u7167",
 	"test_focus": "关键门洞、坡度、掩体尺度与空中走廊差异层"
@@ -67,9 +68,9 @@ const LOCAL_REFERENCE_LEVEL_PATH := "res://data/levels/dustline-depths-original-
 const LOCAL_REFERENCE_VISUAL_PATH := "res://assets/local_reference/dustline/de_dust2_original.glb"
 const LOCAL_REFERENCE_OPTION := {
 	"id": "dustline-depths-original-local",
-	"name": "沙线原始材质（本机）",
+	"name": "沙线·原始材质（经典 CS 复刻）",
 	"preview": "res://assets/maps/dustline-depths-preview.png",
-	"description": "仅本机试玩：原始沙线完整视觉 + 已审计碰撞 + B 区空中走廊；参考资源不会进入版本库。",
+	"description": "经典 CS 复刻研究图的原始视觉 / 材质版本，使用审计碰撞与 B 区空中走廊。可进行 5 对 5 爆破，开局购买并点击就绪开战；仅本机保留。",
 	"route_profile": "\u539f\u59cb\u5730\u9762\u5c42\u89c6\u89c9 + \u5355\u6761 B \u533a\u53ef\u9009\u9ad8\u53f0",
 	"recommended_use": "\u5bf9\u9f50\u539f\u59cb\u6750\u8d28\u3001\u6bd4\u4f8b\u3001\u906e\u6321\u548c\u8def\u7ebf\u8fa8\u8bc6\u5ea6",
 	"test_focus": "视觉/碰撞对齐、材质导入、空中走廊差异层"
@@ -104,6 +105,9 @@ var _radar_death_markers: Array[Dictionary] = []
 var training_telemetry: Node
 var selected_start_team: String = "T"
 var _completed_match_record_path: String = ""
+var _level_loading := false
+var _level_load_failed := false
+var _level_load_serial := 0
 const UI_UPDATE_INTERVAL: float = 0.18
 const RADAR_UPDATE_INTERVAL: float = 0.05
 const RADAR_RANGE_METERS: float = 24.0
@@ -115,6 +119,17 @@ func _ready() -> void:
 	_capture_default_environment()
 	GameState.set_graphics_preset("prototype")
 	level_options = SHIPPED_LEVEL_OPTIONS.duplicate(true)
+	var map_purposes := {
+		"gatehouse": ["主比赛图：三路、双爆点，玩家与两名队友对抗三名敌人。包含手枪局、购买、换边和比赛结算。", "3 对 3 爆破比赛；首次游玩推荐"],
+		"foundry-reforged": ["原创双目标练习与视觉展示图；由铸造仓库经验重新设计，尚未迁移完整 3 对 3 比赛。", "步枪 / 手枪练习、地图探索与画面展示"],
+		"depot": ["冻结的铸造仓库第二版：历史尺度与路线基线，保留作对照，不是主比赛图。", "历史对照与回归测试"],
+		"core-vault": ["源自旧灰盒的密集库区，包含爆破 AI；用于高密度战斗回归，未承诺与主地图同级平衡。", "进阶测试；不作为首次比赛推荐"],
+		"test-collision-room": ["开发测试房：验证移动、台阶、梯子和水体，不是正式比赛地图。", "开发调试与碰撞回归"],
+	}
+	for option in level_options:
+		var purpose: Array = map_purposes[String(option["id"])]
+		option["description"] = purpose[0]
+		option["recommended_use"] = purpose[1]
 	if _has_local_level(LOCAL_DUSTLINE_LEVEL_PATH, LOCAL_DUSTLINE_VISUAL_PATH):
 		level_options.append(LOCAL_DUSTLINE_OPTION.duplicate(true))
 	if _has_local_level(LOCAL_REFERENCE_LEVEL_PATH, LOCAL_REFERENCE_VISUAL_PATH):
@@ -163,6 +178,9 @@ func _ready() -> void:
 	start_menu.connect("map_selected", _on_map_selected)
 	start_menu.connect("team_selected", _on_team_selected)
 	start_menu.connect("settings_changed", _on_settings_changed)
+	combat_hud.connect("purchase_requested", _purchase_item)
+	combat_hud.connect("ready_requested", _on_player_ready)
+	combat_hud.connect("buy_closed", func() -> void: _set_buy_menu(false))
 	_apply_selected_map()
 	_open_menu(true)
 	_update_ui(true)
@@ -176,6 +194,7 @@ func _on_team_selected(team: String) -> void:
 	if game_started:
 		return
 	selected_start_team = team if team in ["T", "CT"] else "T"
+	(start_menu.get("team_select") as OptionButton).select(0 if selected_start_team == "T" else 1)
 	GameState.player_team = selected_start_team
 	if is_instance_valid(c4_device):
 		c4_device.call("set_carried", "T")
@@ -187,6 +206,7 @@ func _isolate_environment_resource() -> void:
 
 func _process(delta: float) -> void:
 	_update_objective_interaction(delta)
+	_check_team_elimination()
 	tactical_equipment.call("tick", delta)
 	if weapon_view_model.has_method("update_motion") and player.has_method("get_accuracy_state"):
 		var view_motion := player.call("get_accuracy_state") as Dictionary
@@ -227,7 +247,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event.is_action_pressed("pause"):
 		if game_started:
-			if menu_open:
+			if _buy_menu_open:
+				_set_buy_menu(false)
+			elif menu_open:
 				_resume_game()
 			else:
 				_open_menu(false)
@@ -239,6 +261,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		_update_ui(true)
 		get_viewport().set_input_as_handled()
 		return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F1:
+		if game_started and not menu_open:
+			combat_hud.call("toggle_player_help")
+		get_viewport().set_input_as_handled()
+		return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F4:
 		if combat_hud.has_method("toggle_training_telemetry"):
 			combat_hud.call("toggle_training_telemetry")
@@ -247,9 +274,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event.is_action_pressed("buy_menu"):
 		if game_started and not menu_open and RoundManager.can_buy():
-			_buy_menu_open = not _buy_menu_open
-			if combat_hud.has_method("set_buy_menu_visible"):
-				combat_hud.call("set_buy_menu_visible", _buy_menu_open)
+			_set_buy_menu(not _buy_menu_open)
 		get_viewport().set_input_as_handled()
 		return
 
@@ -331,7 +356,8 @@ func _on_map_selected(index: int) -> void:
 
 func _on_start_pressed() -> void:
 	var option: Dictionary = level_options[selected_level_index]
-	GameState.start_match(selected_start_team)
+	selected_start_team = "T" if (start_menu.get("team_select") as OptionButton).selected == 0 else "CT"
+	GameState.start_match(selected_start_team, 5 if String(option["id"]).begins_with("dustline-depths") else 3)
 	_completed_match_record_path = ""
 	if combat_sandbox.has_method("clear_saved_round_state"):
 		combat_sandbox.call("clear_saved_round_state", true)
@@ -343,20 +369,42 @@ func _on_start_pressed() -> void:
 		training_telemetry.call("begin_round", 1)
 	_clear_round_drops()
 	level.call("load_level", option["id"])
+	while _level_loading:
+		await get_tree().physics_frame
+	if _level_load_failed:
+		_open_menu(true)
+		return
 	if player.has_method("reset_to_spawn"):
 		player.call("reset_to_spawn")
 	game_started = true
 	GameState.set_game_started(true)
 	if weapon_system.has_method("configure_default_loadout"):
-		weapon_system.call("configure_default_loadout", true, true)
+		weapon_system.call("configure_default_loadout", true, GameState.is_competitive_level())
 	tactical_equipment.call("reset_loadout")
 	if weapon_view_model.has_method("set_weapon_slot"):
 		var equipped_slot := int((weapon_system.call("get_runtime_snapshot") as Dictionary).get("weapon_slot", 0))
 		weapon_view_model.call("set_weapon_slot", equipped_slot, false)
+	RoundManager.freeze_duration = 60.0 if GameState.is_competitive_level() else 5.0
+	RoundManager.allow_player_ready = GameState.is_competitive_level()
 	RoundManager.start_round()
 	GameState.begin_match_round(RoundManager.round_serial)
 	c4_device.call("set_carried", "T")
 	_resume_game()
+	if GameState.is_competitive_level():
+		_set_buy_menu(true)
+
+func _set_buy_menu(opened: bool) -> void:
+	_buy_menu_open = opened and game_started and not menu_open and RoundManager.can_buy()
+	combat_hud.call("set_buy_menu_visible", _buy_menu_open)
+	player.call("set_mouse_capture_enabled", not _buy_menu_open and not menu_open)
+	_update_buy_page()
+
+func _on_player_ready() -> void:
+	if not game_started or menu_open or bool(player.get("is_dead")):
+		return
+	if RoundManager.player_ready():
+		_set_buy_menu(false)
+		_update_ui(true)
 
 func _on_resume_pressed() -> void:
 	_resume_game()
@@ -378,6 +426,7 @@ func _resume_game() -> void:
 	_update_ui(true)
 
 func _open_menu(initial_open: bool) -> void:
+	_set_buy_menu(false)
 	menu_open = true
 	GameState.set_menu_state(true)
 	GameState.set_game_started(game_started)
@@ -403,9 +452,31 @@ func _toggle_fullscreen() -> void:
 	_update_ui(true)
 
 func _on_level_loaded(level_data: Dictionary) -> void:
+	_level_load_failed = false
 	_apply_level_environment(level_data)
+	_level_load_serial += 1
+	var serial := _level_load_serial
+	if String(level_data.get("id", "")).begins_with("dustline-depths"):
+		_level_loading = true
+		for _frame in range(2):
+			await get_tree().physics_frame
+		if serial != _level_load_serial:
+			return
+		var layout := ClassicMatchLayout.load_authored(level_data)
+		if layout.is_empty():
+			_level_load_failed = true
+			_level_loading = false
+			push_error("经典地图缺少有效的本机冻结路网 JSON，或碰撞/关卡资源已变更。请显式重建并审计本机基线。")
+			return
+		level_data.merge(layout, true)
+		var spawns: Array = (layout.get("matchSpawns", {}) as Dictionary).get(GameState.player_team, [])
+		if not spawns.is_empty():
+			var spawn: Array = spawns[spawns.size() / 2]
+			GameState.player_spawn = Vector3(float(spawn[0]), float(spawn[1]), float(spawn[2]))
+			GameState.player_spawn_yaw_radians = deg_to_rad(77.0 if GameState.player_team == "T" else -100.0)
 	if combat_sandbox.has_method("load_for_level"):
 		combat_sandbox.call("load_for_level", level_data)
+	_level_loading = false
 
 func _capture_default_environment() -> void:
 	var environment := world_environment.environment
@@ -623,7 +694,8 @@ func _on_shot_resolved(result: Dictionary) -> void:
 			"expires": Time.get_ticks_msec() + 5000,
 		})
 		combat_hud.call("add_kill_feed", "你", String(damage_result.get("target_name", "训练目标")), String(result.get("weapon_name", "步枪")))
-		if GameState.enemy_alive == 0 and RoundManager.state in [RoundManager.RoundState.LIVE, RoundManager.RoundState.BOMB_PLANTED]:
+		_check_team_elimination()
+		if not GameState.is_competitive_level() and GameState.enemy_alive == 0:
 			RoundManager.end_round(GameState.player_team, "ELIMINATION")
 
 func _on_targets_spawned(count: int) -> void:
@@ -633,13 +705,36 @@ func _on_combatants_spawned(friendly_count: int, enemy_count: int) -> void:
 	GameState.set_combatant_counts(friendly_count, enemy_count)
 
 func _on_player_died() -> void:
-	RoundManager.end_round("CT" if GameState.player_team == "T" else "T", "ELIMINATION")
+	if not GameState.is_competitive_level():
+		RoundManager.end_round("CT" if GameState.player_team == "T" else "T", "ELIMINATION")
+		return
+	if GameState.player_team == "T" and RoundManager.bomb_carried and String(c4_device.get("device_state")) == "carried":
+		c4_device.call("drop_at", player.global_position - Vector3.UP * 0.82)
+		RoundManager.bomb_carried = false
+	_check_team_elimination()
+
+func _check_team_elimination() -> void:
+	if not game_started or not GameState.is_competitive_level() or RoundManager.state not in [RoundManager.RoundState.LIVE, RoundManager.RoundState.BOMB_PLANTED]:
+		return
+	var counts := {"T": 0, "CT": 0}
+	if not bool(player.get("is_dead")):
+		counts[GameState.player_team] += 1
+	for actor in combat_sandbox.get_children():
+		if actor is CharacterBody3D and not bool(actor.get("is_dead")):
+			var team := String(actor.get("team"))
+			if team not in ["T", "CT"]:
+				team = "CT" if GameState.player_team == "T" else "T"
+			counts[team] += 1
+	GameState.friendly_alive = int(counts[GameState.player_team])
+	GameState.enemy_alive = int(counts["CT" if GameState.player_team == "T" else "T"])
+	if int(counts["CT"]) == 0:
+		RoundManager.end_round("T", "ELIMINATION")
+	elif int(counts["T"]) == 0 and RoundManager.state != RoundManager.RoundState.BOMB_PLANTED:
+		RoundManager.end_round("CT", "ELIMINATION")
 
 func _on_round_phase_changed(state_name: String) -> void:
 	if not RoundManager.can_buy():
-		_buy_menu_open = false
-		if combat_hud.has_method("set_buy_menu_visible"):
-			combat_hud.call("set_buy_menu_visible", false)
+		_set_buy_menu(false)
 	if combat_hud.has_method("show_radio_report"):
 		if state_name == "Bomb Planted":
 			combat_hud.call("show_radio_report", "指挥", "C4 已安装，立即回防或守包")
@@ -690,11 +785,19 @@ func _on_round_restart_requested() -> void:
 		training_telemetry.call("begin_round", int(completed_round.get("round_number", 1)) + 1)
 	var option: Dictionary = level_options[selected_level_index]
 	level.call("load_level", option["id"])
+	while _level_loading:
+		await get_tree().physics_frame
+	if _level_load_failed:
+		game_started = false
+		GameState.set_game_started(false)
+		RoundManager.set_warmup()
+		_open_menu(true)
+		return
 	player.call("reset_to_spawn")
 	if hard_reset or not player_survived:
 		if not player_survived and not hard_reset:
 			GameState.clear_eliminated_player_equipment()
-		weapon_system.call("configure_default_loadout", true, true)
+		weapon_system.call("configure_default_loadout", true, GameState.is_competitive_level())
 		tactical_equipment.call("reset_loadout")
 		if weapon_view_model.has_method("set_weapon_slot"):
 			var reset_slot := int((weapon_system.call("get_runtime_snapshot") as Dictionary).get("weapon_slot", 0))
@@ -702,27 +805,40 @@ func _on_round_restart_requested() -> void:
 	RoundManager.start_round()
 	GameState.begin_match_round(RoundManager.round_serial)
 	c4_device.call("set_carried", "T")
+	if GameState.is_competitive_level():
+		_set_buy_menu(true)
 
 func _purchase_item(item_id: String) -> void:
-	var in_buy_zone := player.global_position.distance_to(GameState.player_spawn) <= 8.0
-	var slot_index := 0 if item_id == "rifle" else (1 if item_id == "pistol" else -1)
-	var already_owned := slot_index >= 0 and bool(weapon_system.call("is_slot_owned", slot_index))
-	var result: Dictionary
-	if not in_buy_zone:
-		result = {"success": false, "reason": "请返回出生点购买区"}
-	elif already_owned:
-		result = {"success": false, "reason": "已拥有该武器；弹药随武器保留"}
-	else:
-		result = GameState.purchase(item_id)
-	if bool(result.get("success", false)) and item_id in ["rifle", "pistol"] and weapon_system.has_method("purchase_slot"):
+	var offer := _purchase_offer(item_id)
+	var result: Dictionary = GameState.purchase(item_id) if bool(offer.get("success", false)) else offer
+	if bool(result.get("success", false)) and item_id in ["rifle", "pistol"]:
 		weapon_system.call("purchase_slot", 0 if item_id == "rifle" else 1)
 	if bool(result.get("success", false)) and item_id in ["he_grenade", "flash_grenade", "smoke_grenade"]:
-		if not bool(tactical_equipment.call("purchase_grenade", item_id)):
-			GameState.player_money = mini(GameState.MAX_MONEY, GameState.player_money + int(result.get("price", 0)))
-			GameState.notify_player_vitals_changed()
-			result = {"success": false, "reason": "该投掷物已达携带上限"}
-	if combat_hud.has_method("show_purchase_result"):
-		combat_hud.call("show_purchase_result", String(result.get("reason", "购买成功")))
+		tactical_equipment.call("purchase_grenade", item_id)
+	combat_hud.call("show_purchase_result", "购买成功" if bool(result.get("success", false)) else String(result.get("reason", "购买失败")))
+	_update_buy_page()
+
+func _purchase_offer(item_id: String) -> Dictionary:
+	if menu_open or not game_started:
+		return {"success": false, "reason": "比赛尚未开始"}
+	if player.global_position.distance_to(GameState.player_spawn) > 8.0:
+		return {"success": false, "reason": "请返回出生点购买区"}
+	var slot_index := 0 if item_id == "rifle" else (1 if item_id == "pistol" else -1)
+	if slot_index >= 0 and bool(weapon_system.call("is_slot_owned", slot_index)):
+		return {"success": false, "reason": "已持有"}
+	if item_id in ["he_grenade", "flash_grenade", "smoke_grenade"]:
+		var inventory: Dictionary = tactical_equipment.get("grenade_counts")
+		if int(inventory.get(item_id, 0)) >= (2 if item_id == "flash_grenade" else 1):
+			return {"success": false, "reason": "已达携带上限"}
+	return GameState.get_purchase_offer(item_id)
+
+func _update_buy_page() -> void:
+	if not is_instance_valid(combat_hud):
+		return
+	var offers := {}
+	for item in ["rifle", "pistol", "armor", "armor_helmet", "defuse_kit", "he_grenade", "flash_grenade", "smoke_grenade"]:
+		offers[item] = _purchase_offer(item)
+	combat_hud.call("update_buy_page", {"money": GameState.player_money, "seconds": RoundManager.time_remaining, "offers": offers, "team": GameState.player_team, "ready_allowed": RoundManager.allow_player_ready and RoundManager.can_buy()})
 
 func _try_plant_c4() -> bool:
 	return _try_begin_objective_interaction()
@@ -763,6 +879,8 @@ func _get_current_plant_site() -> Dictionary:
 	for target_variant in radar_snapshot.get("targets", []):
 		var target := target_variant as Dictionary
 		var target_position := Vector2(float(target.get("x", 0.0)), float(target.get("z", 0.0)))
+		if target.has("y") and absf(player.global_position.y - float(target["y"])) > 1.5:
+			continue
 		var plant_radius := maxf(3.0, minf(float(target.get("sx", 6.0)), float(target.get("sz", 6.0))) * 0.5)
 		if player_position.distance_to(target_position) <= plant_radius:
 			return target
@@ -854,7 +972,7 @@ func _on_hud_state_changed(snapshot: Dictionary) -> void:
 	combat_hud.call("update_display", _build_hud_snapshot(snapshot))
 
 func _can_accept_combat_input() -> bool:
-	return game_started and not menu_open and RoundManager.can_player_move() and not bool(player.get("is_dead"))
+	return game_started and not menu_open and not _buy_menu_open and RoundManager.can_player_move() and not bool(player.get("is_dead"))
 
 func _can_accept_weapon_management() -> bool:
 	return game_started \
@@ -878,6 +996,7 @@ func _has_local_level(level_path: String, visual_path: String) -> bool:
 
 func _update_ui(force: bool) -> void:
 	combat_hud.call("update_display", _build_hud_snapshot(GameState.get_hud_snapshot()))
+	_update_buy_page()
 	if is_instance_valid(training_telemetry) and combat_hud.has_method("update_training_telemetry"):
 		combat_hud.call("update_training_telemetry", training_telemetry.call("get_snapshot"))
 	var snapshot: Dictionary = {}
@@ -916,6 +1035,8 @@ func _build_radar_snapshot() -> Dictionary:
 			"sx": objective_radius * 2.0,
 			"sz": objective_radius * 2.0,
 		})
+		if objective.has("y"):
+			targets[-1]["y"] = float(objective["y"])
 	for floor_variant in level_data.get("floors", []):
 		if not targets.is_empty():
 			break

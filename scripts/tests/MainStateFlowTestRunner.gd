@@ -19,8 +19,13 @@ func _ready() -> void:
 
 func _run_all_tests() -> void:
 	await _run_test("initial_boot_shows_menu_and_default_map", _test_initial_boot_shows_menu_and_default_map)
+	await _run_test("classic_layout_is_frozen_and_rejects_changed_assets", _test_frozen_classic_layout)
+
+	await _run_test("squad_economy_includes_player_and_help_matches_loadout", _test_squad_economy_includes_player_and_help_matches_loadout)
 	await _run_test("map_selection_updates_game_state_and_menu_copy", _test_map_selection_updates_game_state_and_menu_copy)
 	await _run_test("start_game_enters_freeze_buy_state", _test_start_game_transitions_to_live_state)
+	await _run_test("buy_page_ready_and_pause_contract", _test_buy_page_ready_and_pause_contract)
+	await _run_test("planted_bomb_outlives_attackers", _test_planted_bomb_outlives_attackers)
 	await _run_test("pause_then_resume_restores_live_state", _test_pause_then_resume_restores_live_state)
 	await _run_test("level_environment_overrides_restore_defaults", _test_level_environment_overrides_restore_defaults)
 	await _run_test("weapon_view_model_tracks_switch_and_shot", _test_weapon_view_model_tracks_switch_and_shot)
@@ -85,6 +90,7 @@ func _instantiate_main() -> Node3D:
 	RoundManager.set_warmup()
 	var main: Node3D = MAIN_SCENE.instantiate()
 	add_child(main)
+	main.call("_on_team_selected", "T")
 	return main
 
 func _cleanup_main(main: Node3D) -> void:
@@ -114,12 +120,31 @@ func _test_initial_boot_shows_menu_and_default_map() -> void:
 	_assert_true(bool(main.get("menu_open")), "main should start with menu open")
 	_assert_true(not bool(main.get("game_started")), "main should start before gameplay begins")
 	_assert_true(start_menu.visible, "start menu should be visible on boot")
-	_assert_equal(map_select.item_count, 5, "headless start menu should list only the five publishable maps")
+	_assert_equal(map_select.item_count, 2, "default menu should expose the primary match and practice showcase only")
 	_assert_equal((main.get("level_options") as Array).size(), 5, "local reference maps should stay out of automated headless runs")
 	_assert_equal(title_label.text, "矢量突袭", "menu should expose a concise localized tactical title")
-	_assert_equal(start_button.text, "\u5f00\u59cb\u8bad\u7ec3", "initial primary action should clearly start training")
+	_assert_equal(start_button.text, "开始 3 对 3 比赛", "primary map should clearly start a match")
 	_assert_float_close(menu_panel.anchor_bottom, 1.0, 0.001, "menu panel should remain a full-height left navigation surface")
-	_assert_equal(map_select.selected, 2, "default selected map should be Gatehouse")
+	_assert_equal(map_select.get_selected_id(), 2, "filtered menu must preserve the Gatehouse source index")
+	_assert_true(start_menu.get_node("PlayerHelp").visible, "boot should expose controls and pistol-round rules")
+	start_menu.set("_show_archive", true)
+	start_menu.call("_refresh_map_options")
+	_assert_equal(map_select.item_count, 3, "developer menu should contain only regression maps")
+	for index in range(map_select.item_count):
+		_assert_true(map_select.get_item_id(index) in [0, 1, 3], "developer menu must exclude game maps")
+	_assert_true(not start_menu.get_node("SettingsPanel").visible, "settings must be collapsed on boot")
+	start_menu.call("_toggle_settings", true)
+	_assert_true(start_menu.get_node("SettingsPanel").visible, "settings should open separately")
+	_assert_true(not start_menu.get_node("PlayerHelp").visible, "settings must not overlap controls")
+	start_menu.call("_toggle_settings", false)
+	var local_options: Array = (main.get("level_options") as Array).duplicate(true)
+	local_options.append({"id": "dustline-depths", "name": "沙线深层"})
+	local_options.append({"id": "dustline-depths-original-local", "name": "沙线原始材质"})
+	start_menu.set("_show_archive", false)
+	start_menu.call("set_map_options", local_options, 2)
+	_assert_equal(map_select.item_count, 4, "available classic research variants must be visible without enabling test maps")
+	_assert_equal(map_select.get_item_id(2), 5, "classic map source id must survive menu filtering")
+	_assert_true(map_select.get_item_text(2).contains("经典研究"), "classic playable research maps must not be labeled as tests")
 	_assert_true(not resume_button.visible, "resume button should stay hidden before the first run")
 	_assert_true(not status_panel.visible, "debug status panel should be hidden by default")
 	_assert_equal(String(GameState.current_level_id), "gatehouse", "boot should sync the active 3v3 map id into GameState")
@@ -143,8 +168,8 @@ func _test_map_selection_updates_game_state_and_menu_copy() -> void:
 	if reforged_index < 0:
 		await _cleanup_main(main)
 		return
-	map_select.select(reforged_index)
-	main.call("_on_map_selected", reforged_index)
+	map_select.select(map_select.get_item_index(reforged_index))
+	map_select.item_selected.emit(map_select.selected)
 	await get_tree().process_frame
 
 	_assert_equal(int(main.get("selected_level_index")), reforged_index, "main should store the newly selected level index")
@@ -152,6 +177,84 @@ func _test_map_selection_updates_game_state_and_menu_copy() -> void:
 	_assert_true(String(GameState.current_level_name).contains("\u91cd\u6784"), "selecting Reforged should update GameState level name")
 	_assert_true(description_label.text.contains("\u91cd\u6784"), "menu description should update to the Reforged copy")
 
+	await _cleanup_main(main)
+
+func _test_squad_economy_includes_player_and_help_matches_loadout() -> void:
+	for start_team in ["T", "CT"]:
+		var main: Node3D = _instantiate_main()
+		await _await_main_ready()
+		main.call("_on_team_selected", start_team)
+		main.call("_on_start_pressed")
+		GameState.player_money = 3200
+		var sandbox := main.get_node("CombatSandbox")
+		for actor in sandbox.get_children():
+			actor.get_node("TacticalBotBrain").set("ai_money", 2900)
+		sandbox.call("_sync_team_economy")
+		for actor in sandbox.get_children():
+			var brain := actor.get_node("TacticalBotBrain")
+			var expected_money := 9000 if String(actor.get("team")) == start_team else 8700
+			_assert_equal(int(brain.get("team_money")), expected_money, "player squad economy must count all three participants on either side")
+			_assert_equal(String(brain.get("_current_weapon_id")), "pistol", "real opening AI weapon must match the visible pistol")
+			_assert_true(not bool(brain.call("_weapon_is_owned", "rifle")), "opening AI must not own a hidden free rifle")
+		main.call("_update_ui", true)
+		var hud := main.get_node("CombatHud")
+		_assert_true((hud.get("_controls_hint") as Label).text.contains("2700"), "freeze HUD should explain rifle price")
+		var help_key := InputEventKey.new()
+		help_key.keycode = KEY_F1
+		help_key.pressed = true
+		main.call("_unhandled_input", help_key)
+		_assert_true((hud.get("_player_help") as PanelContainer).visible, "F1 should open actual runtime help")
+		main.call("_unhandled_input", help_key)
+		_assert_true(not (hud.get("_player_help") as PanelContainer).visible, "F1 should close runtime help")
+		await _cleanup_main(main)
+
+func _test_planted_bomb_outlives_attackers() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	await main.call("_on_start_pressed")
+	main.call("_on_player_ready")
+	RoundManager.plant_bomb("A")
+	main.get_node("Player").set("is_dead", true)
+	for actor in main.get_node("CombatSandbox").get_children():
+		if String(actor.get("team")) == "T":
+			actor.set("is_dead", true)
+	main.call("_check_team_elimination")
+	_assert_equal(RoundManager.state, RoundManager.RoundState.BOMB_PLANTED, "planted bomb must remain active after all attackers die")
+	for actor in main.get_node("CombatSandbox").get_children():
+		actor.set("is_dead", true)
+	main.call("_check_team_elimination")
+	_assert_equal(RoundManager.round_winner, "T", "eliminating all defenders should award T even after attackers die")
+	await _cleanup_main(main)
+
+func _test_buy_page_ready_and_pause_contract() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	(main.get_node("StartMenu").get("team_select") as OptionButton).select(1)
+	await main.call("_on_start_pressed")
+	_assert_equal(GameState.player_team, "CT", "actual start must honor the visible menu selection")
+	_assert_true(RoundManager.time_remaining > 55.0, "AI match should allow up to sixty seconds to buy")
+	_assert_true(bool(main.get("_buy_menu_open")), "opening must show the purchase page")
+	var page := main.get_node("CombatHud").get("buy_menu") as PanelContainer
+	var buttons := page.get("_buttons") as Dictionary
+	_assert_true((buttons["rifle"] as Button).disabled, "800-dollar opening must not offer an unaffordable rifle")
+	_assert_true((buttons["pistol"] as Button).disabled, "already-owned pistol must not charge again")
+	_assert_true(not (buttons["armor"] as Button).disabled, "affordable armor should be actionable")
+	(buttons["armor"] as Button).pressed.emit()
+	_assert_equal(GameState.player_money, 150, "actual page purchase should charge exactly once")
+	_assert_equal(GameState.player_armor, 100, "actual page purchase must grant armor")
+	main.call("_open_menu", false)
+	_assert_true(not bool(main.get("_buy_menu_open")), "pause must close the purchase page")
+	page.get("_ready_button").pressed.emit()
+	_assert_equal(RoundManager.state, RoundManager.RoundState.PAUSED_MENU, "ready cannot bypass pause")
+	main.call("_resume_game")
+	main.call("_set_buy_menu", true)
+	page.get("_ready_button").pressed.emit()
+	_assert_equal(RoundManager.state, RoundManager.RoundState.LIVE, "actual ready button should skip remaining wait")
+	_assert_true(not bool(main.get("_buy_menu_open")), "ready must close purchase page")
+	_assert_true(not RoundManager.player_ready(), "repeated ready must not restart a live round")
+	GameState.start_match("T", 5)
+	main.get_node("StartMenu").call("set_match_summary", GameState.get_match_snapshot(), "fixture")
+	_assert_true((main.get_node("StartMenu").get("description_label") as RichTextLabel).text.contains("5V5"), "classic result page must show five-player teams")
 	await _cleanup_main(main)
 
 func _test_start_game_transitions_to_live_state() -> void:
@@ -195,8 +298,9 @@ func _test_start_game_transitions_to_live_state() -> void:
 	_assert_float_close(player.rotation.y, GameState.player_spawn_yaw_radians, 0.001, "starting should face the player along the authored route heading")
 	_assert_true(not bool(player.get("movement_enabled")), "freeze time should block movement while keeping mouse look enabled")
 	_assert_equal(String(RoundManager.get_state_name()), "Freeze", "starting should enter the freeze/buy state")
-	_assert_equal(snapshot.get("weapon_slot"), 1, "competitive loadout should start with the owned pistol")
-	_assert_equal(snapshot.get("ammo_in_mag"), 12, "starting pistol should have a full magazine")
+	_assert_equal(snapshot.get("weapon_slot"), 0, "practice maps should start with the owned rifle")
+	_assert_equal(snapshot.get("ammo_in_mag"), 30, "practice rifle should have a full magazine")
+	_assert_true(bool(weapon_system.call("is_slot_owned", 1)), "practice must also retain the pistol for switching")
 	_assert_true(bool(RoundManager.can_buy()), "freeze time should permit purchases")
 	_assert_true(bool(GameState.game_started), "GameState should reflect started gameplay")
 	_assert_true(not bool(GameState.menu_open), "GameState should reflect closed menu after start")
@@ -845,8 +949,14 @@ func _test_player_damage_tags_and_death_ends_round() -> void:
 	GameState.record_scoreboard_damage("CT-FIXTURE", "CT", death_result)
 	_assert_true(bool(death_result.get("killed", false)), "lethal damage should mark the player dead")
 	_assert_true(bool(player.get("is_dead")), "player controller should retain the dead state")
-	_assert_equal(String(RoundManager.get_state_name()), "Round End", "player death should end the round")
-	_assert_equal(String(RoundManager.round_winner), "CT", "player death should award the CT side")
+	_assert_equal(String(RoundManager.get_state_name()), "Live", "surviving teammates must keep the round alive")
+	_assert_equal(String(main.get_node("C4Device").get("device_state")), "dropped", "player death must leave C4 recoverable")
+	for actor in main.get_node("CombatSandbox").get_children():
+		if String(actor.get("team")) == GameState.player_team:
+			actor.set("is_dead", true)
+	main.call("_check_team_elimination")
+	_assert_equal(String(RoundManager.get_state_name()), "Round End", "whole squad elimination should end the round")
+	_assert_equal(String(RoundManager.round_winner), "CT", "whole T squad elimination should award CT")
 	_assert_equal(int((GameState.unit_scoreboard.get("你", {}) as Dictionary).get("deaths", 0)), 1, "AI damage should record the player death under the stable player identity")
 	_assert_true(not GameState.unit_scoreboard.has("战术单位"), "player death should not create a phantom scoreboard target")
 	await _cleanup_main(main)
@@ -924,3 +1034,28 @@ func _test_buy_plant_defuse_round_loop() -> void:
 		_assert_equal(String(RoundManager.round_winner), "T", "expired bomb timer should award T")
 		_assert_equal(GameState.player_squad_score, 2, "the stable player squad should retain both scripted role wins")
 	await _cleanup_main(main)
+
+func _test_frozen_classic_layout() -> void:
+	var source_path := "user://classic-frozen-source-test.txt"
+	var manifest_path := "user://classic-frozen-manifest-test.json"
+	var file := FileAccess.open(source_path, FileAccess.WRITE)
+	file.store_string("audited collision")
+	file.close()
+	var spawns := [[0, 1, 0], [1, 1, 0], [2, 1, 0], [3, 1, 0], [4, 1, 0]]
+	var expected := {
+		"navigationGraph": {"points": [[0, 1, 0], [1, 1, 0]], "links": [{"from": 0, "to": 1}]},
+		"objectives": [{"x": 10}, {"x": 20}], "matchSpawns": {"T": spawns, "CT": spawns},
+	}
+	var manifest := {"schema": 1, "collision_path": source_path, "collision_sha256": FileAccess.get_sha256(source_path), "level_sha256": {"res://data/levels/gatehouse.json": FileAccess.get_sha256("res://data/levels/gatehouse.json")}, "layout": expected}
+	file = FileAccess.open(manifest_path, FileAccess.WRITE)
+	file.store_string(JSON.stringify(manifest))
+	file.close()
+	var LayoutLoader := preload("res://scripts/level/ClassicMatchLayout.gd")
+	var data := {"id": "gatehouse", "visual_scene": source_path}
+	_assert_equal(LayoutLoader.load_authored(data, manifest_path), JSON.parse_string(JSON.stringify(expected)), "runtime must consume authored positions unchanged")
+	file = FileAccess.open(source_path, FileAccess.WRITE)
+	file.store_string("modified collision")
+	file.close()
+	_assert_true(LayoutLoader.load_authored(data, manifest_path).is_empty(), "collision change must fail closed rather than regenerate routes")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(source_path))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(manifest_path))

@@ -21,6 +21,9 @@ var _loaded_level_id: String = ""
 var _saved_round_loadouts: Dictionary = {}
 var _stable_match_roster: Dictionary = {}
 var _competitive_hard_reset_pending: bool = false
+var _round_economy: Dictionary = {}
+var _team_loss_streaks := {"T": 0, "CT": 0}
+var _income_round_serial := -1
 
 func _ready() -> void:
 	if not RoundManager.round_ended.is_connected(_on_round_ended_capture):
@@ -33,6 +36,7 @@ func load_for_level(level_data: Dictionary) -> void:
 		_loaded_level_id = level_id
 		_saved_round_loadouts.clear()
 	_current_level_data = level_data
+	_round_economy.clear()
 	_bomb_carrier_actor = null
 	if dummy_scene == null:
 		targets_spawned.emit(0)
@@ -45,7 +49,7 @@ func load_for_level(level_data: Dictionary) -> void:
 		if not record_variant is Dictionary:
 			continue
 		var record := record_variant as Dictionary
-		if _competitive_hard_reset_pending and GameState.current_level_id == "gatehouse":
+		if _competitive_hard_reset_pending and GameState.is_competitive_level():
 			_apply_competitive_reset(record)
 		var saved_loadout: Dictionary = _saved_round_loadouts.get(String(record.get("name", "")), {})
 		if not saved_loadout.is_empty():
@@ -94,12 +98,17 @@ func load_for_level(level_data: Dictionary) -> void:
 	for child in get_children():
 		if child is CharacterBody3D and (child as CharacterBody3D).has_method("get_combat_snapshot"):
 			scoreboard_records.append((child as CharacterBody3D).call("get_combat_snapshot"))
+			if GameState.is_competitive_level():
+				_remember_round_loadout(child as CharacterBody3D)
 	GameState.set_scoreboard_combatants(scoreboard_records)
 	_sync_team_economy()
 	_competitive_hard_reset_pending = false
 
 func clear_saved_round_state(reset_roster: bool = false) -> void:
 	_saved_round_loadouts.clear()
+	_round_economy.clear()
+	_team_loss_streaks = {"T": 0, "CT": 0}
+	_income_round_serial = -1
 	_competitive_hard_reset_pending = true
 	if reset_roster:
 		_stable_match_roster.clear()
@@ -139,16 +148,16 @@ func _assign_bomb_roles(level_data: Dictionary) -> void:
 	var objectives: Array = level_data.get("objectives", []) as Array
 	var primary_objective := objectives[0] as Dictionary if not objectives.is_empty() else {"id": "site-a", "x": 0.0, "z": 0.0}
 	var secondary_objective := objectives[1] as Dictionary if objectives.size() > 1 else primary_objective
-	var primary_target := Vector3(float(primary_objective.get("x", 0.0)), 1.15, float(primary_objective.get("z", 0.0)))
+	var primary_target := Vector3(float(primary_objective.get("x", 0.0)), float(primary_objective.get("y", 1.15)), float(primary_objective.get("z", 0.0)))
 	var primary_site := "A" if String(primary_objective.get("id", "")).to_lower().contains("a") else "B"
-	var secondary_target := Vector3(float(secondary_objective.get("x", 0.0)), 1.15, float(secondary_objective.get("z", 0.0)))
+	var secondary_target := Vector3(float(secondary_objective.get("x", 0.0)), float(secondary_objective.get("y", 1.15)), float(secondary_objective.get("z", 0.0)))
 	var secondary_site := "A" if String(secondary_objective.get("id", "")).to_lower().contains("a") else "B"
 	var t_carrier_enabled := GameState.player_team != "T" and not t_actors.is_empty()
 	for index in range(t_actors.size()):
 		var actor := t_actors[index]
 		var role := "plant" if index == 0 else ("support" if index == 1 else "diversion")
 		var objective := primary_objective if index < 2 else secondary_objective
-		var site_target := Vector3(float(objective.get("x", 0.0)), 1.15, float(objective.get("z", 0.0)))
+		var site_target := Vector3(float(objective.get("x", 0.0)), float(objective.get("y", 1.15)), float(objective.get("z", 0.0)))
 		var site_label := "A" if String(objective.get("id", "")).to_lower().contains("a") else "B"
 		if actor.has_node("TacticalBotBrain"):
 			actor.get_node("TacticalBotBrain").call(
@@ -166,7 +175,7 @@ func _assign_bomb_roles(level_data: Dictionary) -> void:
 		var actor := ct_actors[index]
 		var objective_index := index % maxi(1, objectives.size())
 		var objective := objectives[objective_index] as Dictionary if not objectives.is_empty() else primary_objective
-		var site_target := Vector3(float(objective.get("x", 0.0)), 1.15, float(objective.get("z", 0.0)))
+		var site_target := Vector3(float(objective.get("x", 0.0)), float(objective.get("y", 1.15)), float(objective.get("z", 0.0)))
 		var site_label := "A" if String(objective.get("id", "")).to_lower().contains("a") else "B"
 		if actor.has_node("TacticalBotBrain"):
 			actor.get_node("TacticalBotBrain").call("configure_objective", "defend_site", site_target, site_label)
@@ -177,6 +186,9 @@ func _assign_bomb_roles(level_data: Dictionary) -> void:
 
 func _sync_team_economy() -> void:
 	var team_money_totals := {"T": 0, "CT": 0}
+	# Count every squad participant, including the local player.
+	if GameState.player_team in team_money_totals:
+		team_money_totals[GameState.player_team] = GameState.player_money
 	for child in get_children():
 		if child is CharacterBody3D and (child as CharacterBody3D).has_node("TacticalBotBrain"):
 			var team := String((child as CharacterBody3D).get("team"))
@@ -185,30 +197,62 @@ func _sync_team_economy() -> void:
 	for child in get_children():
 		if child is CharacterBody3D and (child as CharacterBody3D).has_node("TacticalBotBrain"):
 			var team := String((child as CharacterBody3D).get("team"))
-			var loss_streak := GameState.loss_streak if team == GameState.player_team else 0
+			var loss_streak := int(_team_loss_streaks.get(team, 0)) if GameState.is_competitive_level() else (GameState.loss_streak if team == GameState.player_team else 0)
 			(child as CharacterBody3D).get_node("TacticalBotBrain").call(
 				"set_team_economy",
 				int(team_money_totals.get(team, 0)),
-				loss_streak
+				loss_streak,
+				GameState.match_team_size
 			)
 
-func _on_round_ended_capture(_winner: String, _reason: String) -> void:
+func _on_round_ended_capture(winner: String, _reason: String) -> void:
+	if GameState.is_competitive_level() and _income_round_serial == RoundManager.round_serial:
+		return
+	if not GameState.is_competitive_level():
+		_round_economy.clear()
 	for child in get_children():
-		if child is CharacterBody3D and not bool((child as CharacterBody3D).get("is_dead")):
-			var snapshot := (child as CharacterBody3D).call("get_combat_snapshot") as Dictionary
-			var ai := snapshot.get("ai", {}) as Dictionary
-			_saved_round_loadouts[String(snapshot.get("name", ""))] = {
-				"weapon": String(snapshot.get("weapon", "rifle")),
-				"ammo_in_mag": int(ai.get("ammo", 30)),
-				"ammo_reserve": int(ai.get("ammo_reserve", 0)),
-				"armor": int(snapshot.get("armor", 0)),
-				"helmet": bool(snapshot.get("helmet", false)),
-				"defuse_kit": bool(snapshot.get("defuse_kit", false)),
-				"money": int(ai.get("money", 800)),
-				"grenades": (ai.get("grenades", {}) as Dictionary).duplicate(true),
-			}
+		if child is CharacterBody3D and (GameState.is_competitive_level() or not bool(child.get("is_dead"))):
+			_remember_round_loadout(child as CharacterBody3D)
+	var rewards := {"T": 0, "CT": 0}
+	if GameState.is_competitive_level() and winner in ["T", "CT"]:
+		_income_round_serial = RoundManager.round_serial
+		for team in ["T", "CT"]:
+			if team == winner:
+				rewards[team] = 3250
+				_team_loss_streaks[team] = 0
+			else:
+				var streak := int(_team_loss_streaks[team])
+				rewards[team] = GameState.LOSS_BONUSES[mini(streak, GameState.LOSS_BONUSES.size() - 1)]
+				_team_loss_streaks[team] = mini(streak + 1, GameState.LOSS_BONUSES.size() - 1)
+				if team == "T" and not RoundManager.bomb_site.is_empty():
+					rewards[team] += 800
+	for actor_name in _round_economy:
+		var participant: Dictionary = _round_economy[actor_name]
+		var loadout: Dictionary = participant["loadout"].duplicate(true)
+		loadout["money"] = mini(GameState.MAX_MONEY, int(loadout["money"]) + int(rewards.get(participant["team"], 0)))
+		_saved_round_loadouts[actor_name] = loadout
+
+func _remember_round_loadout(actor: CharacterBody3D) -> void:
+	var snapshot := actor.call("get_combat_snapshot") as Dictionary
+	var ai: Dictionary = snapshot.get("ai", {})
+	var dead := bool(actor.get("is_dead"))
+	_round_economy[String(snapshot.get("name", ""))] = {
+		"team": String(snapshot.get("team", "")),
+		"loadout": {
+			"weapon": "pistol" if dead else String(snapshot.get("weapon", "rifle")),
+			"ammo_in_mag": 12 if dead else int(ai.get("ammo", 30)),
+			"ammo_reserve": 24 if dead else int(ai.get("ammo_reserve", 0)),
+			"armor": 0 if dead else int(snapshot.get("armor", 0)),
+			"helmet": not dead and bool(snapshot.get("helmet", false)),
+			"defuse_kit": not dead and bool(snapshot.get("defuse_kit", false)),
+			"money": int(ai.get("money", 800)),
+			"grenades": {} if dead else (ai.get("grenades", {}) as Dictionary).duplicate(true),
+		},
+	}
 
 func _on_actor_killed(_actor_name: String, _team: String, actor: CharacterBody3D) -> void:
+	if GameState.is_competitive_level():
+		_remember_round_loadout(actor)
 	if actor != _bomb_carrier_actor:
 		return
 	if c4_device != null and is_instance_valid(c4_device) and String(c4_device.get("device_state")) == "carried":
@@ -256,6 +300,8 @@ func _on_actor_ai_footstep(world_position: Vector3, surface: String, quiet: bool
 	ai_footstep.emit(world_position, surface, quiet)
 
 func _build_navigation_graph(level_data: Dictionary) -> Dictionary:
+	if level_data.has("navigationGraph"):
+		return level_data["navigationGraph"] as Dictionary
 	var points: Array = []
 	var links: Array = []
 	var point_indices: Dictionary = {}
@@ -348,7 +394,7 @@ func _build_spawn_records(level_data: Dictionary) -> Array:
 			"aiReactionTime": float(target.get("aiReactionTime", 0.34)),
 		})
 	if not combat_targets.is_empty():
-		return _build_competitive_roster(records) if GameState.current_level_id == "gatehouse" and GameState.match_phase != "inactive" else records
+		return _build_competitive_roster(records) if GameState.is_competitive_level() and GameState.match_phase != "inactive" else records
 	if use_spawn_points:
 		var spawn_points: Array = level_data.get("spawnPoints", []) as Array
 		for index in range(mini(max_targets, spawn_points.size())):
@@ -387,14 +433,18 @@ func _build_competitive_roster(source_records: Array) -> Array:
 		var player_templates: Array = by_team[GameState.player_team] as Array
 		var opponent_templates: Array = by_team[opponent_team] as Array
 		var player_names: Array[String] = []
-		if player_templates.size() >= 3:
+		if GameState.match_team_size == 5:
+			for index in range(player_templates.size()):
+				if index != player_templates.size() / 2 and player_names.size() < 4:
+					player_names.append(String(player_templates[index].get("name", "ALLY")))
+		elif player_templates.size() >= 3:
 			player_names.append(String((player_templates[0] as Dictionary).get("name", "ALLY-1")))
 			player_names.append(String((player_templates[2] as Dictionary).get("name", "ALLY-2")))
 		else:
 			for record_variant in player_templates.slice(0, 2):
 				player_names.append(String((record_variant as Dictionary).get("name", "ALLY")))
 		var opponent_names: Array[String] = []
-		for record_variant in opponent_templates.slice(0, 3):
+		for record_variant in opponent_templates.slice(0, GameState.match_team_size):
 			opponent_names.append(String((record_variant as Dictionary).get("name", "OPPONENT")))
 		_stable_match_roster = {"player": player_names, "opponent": opponent_names}
 	var output: Array = []
@@ -404,7 +454,12 @@ func _build_competitive_roster(source_records: Array) -> Array:
 
 func _append_squad_records(output: Array, templates: Array, stable_names: Array, player_squad: bool) -> void:
 	var selected_templates: Array = templates
-	if player_squad and templates.size() >= 3:
+	if player_squad and GameState.match_team_size == 5:
+		selected_templates = []
+		for index in range(templates.size()):
+			if index != templates.size() / 2:
+				selected_templates.append(templates[index])
+	elif player_squad and templates.size() >= 3:
 		selected_templates = [templates[0], templates[2]]
 	else:
 		selected_templates = templates.slice(0, stable_names.size())

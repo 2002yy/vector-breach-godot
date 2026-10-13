@@ -1,5 +1,12 @@
 extends CanvasLayer
 
+const PlayerGuide = preload("res://scripts/ui/PlayerGuide.gd")
+const BuyPage = preload("res://scripts/ui/BuyPage.gd")
+
+signal purchase_requested(item_id: String)
+signal ready_requested
+signal buy_closed
+
 const HEALTH_NORMAL_COLOR := Color(0.88, 0.82, 0.54, 1.0)
 const HEALTH_WARNING_COLOR := Color(1.0, 0.38, 0.3, 1.0)
 const AMMO_NORMAL_COLOR := Color(0.88, 0.82, 0.54, 1.0)
@@ -47,9 +54,44 @@ var _menu_open: bool = true
 var _dynamic_crosshair: bool = true
 var _crosshair_size: float = 6.0
 var _telemetry_visible := false
+var _player_help: PanelContainer
+var _help_text: Label
+var _controls_hint: Label
 
 func _ready() -> void:
-	buy_items.text = "[1] 步枪 $2700  [2] 手枪 $500\n[3] 防弹衣 $650  [4] 衣+盔 $1000\n[5] 拆弹钳 $400\n[6] HE $300  [7] 闪光 $200  [8] 烟雾 $300"
+	buy_menu.set_script(BuyPage)
+	buy_menu.call("build")
+	buy_menu.connect("purchase_requested", func(item: String) -> void: purchase_requested.emit(item))
+	buy_menu.connect("ready_requested", func() -> void: ready_requested.emit())
+	buy_menu.connect("closed", func() -> void: buy_closed.emit())
+	buy_items.text = "[1] 步枪 $2700  [2] 手枪 $500\n[3] 防弹衣 $650  [4] 衣+盔 $1000\n[5] 拆弹钳 $400\n[6] 高爆手雷 $300  [7] 闪光 $200  [8] 烟雾 $300"
+	_controls_hint = Label.new()
+	_controls_hint.name = "ControlsHint"
+	_controls_hint.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
+	_controls_hint.offset_left = -400
+	_controls_hint.offset_right = 400
+	_controls_hint.offset_top = -78
+	_controls_hint.offset_bottom = -30
+	_controls_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_controls_hint.add_theme_font_size_override("font_size", 17)
+	_controls_hint.add_theme_color_override("font_outline_color", Color.BLACK)
+	_controls_hint.add_theme_constant_override("outline_size", 4)
+	hud_root.add_child(_controls_hint)
+	_player_help = PanelContainer.new()
+	_player_help.name = "PlayerHelp"
+	_player_help.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	_player_help.offset_left = -320
+	_player_help.offset_top = -240
+	_player_help.offset_right = 320
+	var margin := MarginContainer.new()
+	for side in ["left", "top", "right", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 24)
+	_player_help.add_child(margin)
+	_help_text = Label.new()
+	_help_text.add_theme_font_size_override("font_size", 20)
+	margin.add_child(_help_text)
+	hud_root.add_child(_player_help)
+	_player_help.visible = false
 	apply_settings(UserSettings.get_snapshot())
 	if not UserSettings.settings_changed.is_connected(apply_settings):
 		UserSettings.settings_changed.connect(apply_settings)
@@ -61,6 +103,9 @@ func _process(_delta: float) -> void:
 func toggle_training_telemetry() -> void:
 	_telemetry_visible = not _telemetry_visible
 
+func toggle_player_help() -> void:
+	_player_help.visible = not _player_help.visible
+
 func reset_transients() -> void:
 	for child in kill_feed.get_children():
 		kill_feed.remove_child(child)
@@ -69,6 +114,7 @@ func reset_transients() -> void:
 	objective_interaction.visible = false
 	scoreboard.visible = false
 	_telemetry_visible = false
+	_player_help.visible = false
 
 func update_training_telemetry(snapshot: Dictionary) -> void:
 	telemetry_label.text = "压枪训练 [F4]\n%d 发  ·  %d 中  ·  爆头 %d\n第 %d 发 · 弹着 %s\n命中率 %.1f%% · 投掷：%s" % [
@@ -107,7 +153,7 @@ func update_display(snapshot: Dictionary) -> void:
 		AMMO_WARNING_COLOR if magazine <= 5 else AMMO_NORMAL_COLOR
 	)
 
-	round_state_label.text = "CT %d    %s    %d T" % [
+	round_state_label.text = "防守 %d    %s    %d 进攻" % [
 		int(snapshot.get("ct_score", snapshot.get("friendly_score", 0))),
 		String(snapshot.get("round_time", "1:55")),
 		int(snapshot.get("t_score", snapshot.get("enemy_score", 0))),
@@ -120,7 +166,7 @@ func update_display(snapshot: Dictionary) -> void:
 	objective_status.text = String(snapshot.get("round_label", ""))
 	if bool(bomb.get("bomb_planted", false)):
 		objective_status.text = "C4已安装 · %s区" % String(bomb.get("bomb_site", "A"))
-	elif bool(bomb.get("bomb_carried", false)) and String(snapshot.get("player_team", "T")) == "T":
+	elif RoundManager.state == RoundManager.RoundState.LIVE and bool(bomb.get("bomb_carried", false)) and String(snapshot.get("player_team", "T")) == "T":
 		objective_status.text += "  ·  E安装C4"
 	var interaction_type := String(bomb.get("interaction_type", ""))
 	objective_interaction.visible = hud_root.visible and not interaction_type.is_empty()
@@ -131,7 +177,14 @@ func update_display(snapshot: Dictionary) -> void:
 	var scoreboard_rows: Dictionary = snapshot.get("scoreboard_rows", {}) as Dictionary
 	var friendly_rows: Array = scoreboard_rows.get("friendly", []) as Array
 	var enemy_rows: Array = scoreboard_rows.get("enemy", []) as Array
-	scoreboard_friendly.text = "\n".join(friendly_rows) if not friendly_rows.is_empty() else "你  %d/0  命中%d  $%d  rifle  存活" % [int(snapshot.get("kill_count", 0)), int(snapshot.get("hit_count", 0)), int(snapshot.get("money", 800))]
+	scoreboard_friendly.text = "\n".join(friendly_rows) if not friendly_rows.is_empty() else "你  %d/0  命中%d  $%d  %s  存活" % [int(snapshot.get("kill_count", 0)), int(snapshot.get("hit_count", 0)), int(snapshot.get("money", 800)), String(snapshot.get("weapon_name", "步枪"))]
+	var competitive := GameState.is_competitive_level()
+	_help_text.text = "操作指南（F1 关闭）\n\n" + PlayerGuide.CONTROLS + "\n\n" + (PlayerGuide.MATCH_RULES if competitive else PlayerGuide.PRACTICE_RULES)
+	if GameState.current_level_id.begins_with("dustline-depths"):
+		_help_text.text = "操作指南（F1 关闭）\n\n" + PlayerGuide.CONTROLS + "\n\n" + PlayerGuide.RESEARCH_RULES
+	_controls_hint.text = "1 / 2 切枪 · R 换弹 · E 交互 · B 购买 · F1 操作帮助"
+	if competitive and RoundManager.can_buy():
+		_controls_hint.text += "\n手枪开局；步枪 $2700。出生区按 B 购买，当前 $%d" % int(snapshot.get("money", 800))
 	scoreboard_enemy.text = "\n".join(enemy_rows) if not enemy_rows.is_empty() else "暂无敌方单位"
 	training_end.visible = bool(snapshot.get("training_complete", false)) and _game_started and not _menu_open
 	var result_text := String(snapshot.get("round_result_text", ""))
@@ -210,3 +263,7 @@ func set_buy_menu_visible(visible_state: bool) -> void:
 
 func show_purchase_result(message: String) -> void:
 	buy_result.text = message
+	buy_menu.call("show_result", message)
+
+func update_buy_page(snapshot: Dictionary) -> void:
+	buy_menu.call("update_page", snapshot)

@@ -76,13 +76,13 @@ theme_override_styles/panel = SubResource("MenuPanelStyle")
 [node name="Margin" type="MarginContainer" parent="MenuPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 34
-theme_override_constants/margin_top = 30
+theme_override_constants/margin_top = 20
 theme_override_constants/margin_right = 34
-theme_override_constants/margin_bottom = 28
+theme_override_constants/margin_bottom = 20
 
 [node name="VBox" type="VBoxContainer" parent="MenuPanel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 9
+theme_override_constants/separation = 18
 
 [node name="Eyebrow" type="Label" parent="MenuPanel/Margin/VBox"]
 layout_mode = 2
@@ -91,7 +91,7 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
 theme_override_constants/outline_size = 2
 theme_override_fonts/font = ExtResource("3_semibold")
 theme_override_font_sizes/font_size = 15
-text = "离线战术训练"
+text = "单机战术射击"
 
 [node name="Title" type="Label" parent="MenuPanel/Margin/VBox"]
 layout_mode = 2
@@ -99,7 +99,7 @@ theme_override_colors/font_color = Color(0.94, 0.94, 0.86, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
 theme_override_constants/outline_size = 4
 theme_override_fonts/font = ExtResource("3_semibold")
-theme_override_font_sizes/font_size = 46
+theme_override_font_sizes/font_size = 36
 text = "矢量突袭"
 
 [node name="Subtitle" type="Label" parent="MenuPanel/Margin/VBox"]
@@ -107,7 +107,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.64, 0.65, 0.59, 1)
 theme_override_fonts/font = ExtResource("2_regular")
 theme_override_font_sizes/font_size = 16
-text = "选择地图，进入离线战术训练。"
+text = "门厅区打比赛；铸造厂练枪与探索。"
 
 [node name="Divider" type="ColorRect" parent="MenuPanel/Margin/VBox"]
 custom_minimum_size = Vector2(0, 1)
@@ -116,13 +116,13 @@ color = Color(0.75, 0.67, 0.36, 0.7)
 mouse_filter = 2
 
 [node name="Preview" type="TextureRect" parent="MenuPanel/Margin/VBox"]
-custom_minimum_size = Vector2(0, 186)
+custom_minimum_size = Vector2(0, 110)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 6
 
 [node name="Description" type="RichTextLabel" parent="MenuPanel/Margin/VBox"]
-custom_minimum_size = Vector2(0, 158)
+custom_minimum_size = Vector2(0, 145)
 layout_mode = 2
 bbcode_enabled = true
 scroll_active = false
@@ -189,9 +189,9 @@ theme_override_styles/normal = SubResource("SelectNormal")
 theme_override_styles/hover = SubResource("SelectNormal")
 theme_override_styles/pressed = SubResource("SelectNormal")
 item_count = 2
-popup/item_0/text = "T · 进攻方"
+popup/item_0/text = "进攻方"
 popup/item_0/id = 0
-popup/item_1/text = "CT · 防守方"
+popup/item_1/text = "防守方"
 popup/item_1/id = 1
 
 [node name="G2Hint" type="Label" parent="MenuPanel/Margin/VBox/Controls"]

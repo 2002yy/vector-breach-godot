@@ -1,14 +1,21 @@
 # Vector Breach Project Status
 
-Updated: 2026-10-13
-
-## 2026-10-13 用户授权合并历史 PR
-
-用户明确要求所有 PR 整理合并到 main。PR #33 已合并；PR #27 已补本机 Vulkan 截图检查、短帧时间采样、引擎输入拾取/安装/拆除与实际音频混音器捕获，并通过全部原生测试。Windows 导出并发锁缺陷已修复。详情见 [C4 集成记录](TASK_C4_INTEGRATION_2026-10-13.md)。本次明确集成授权取代旧的等待 L3 合并授权；依然要求当前提交 CI 通过。旧 Step 16 记录描述的是当时未取得本机证据的状态；资产仍保留 draft，真人键鼠、完整人工听感、美术验收和 G2 不宣称完成。
+Updated: 2026-10-14
 
 本文档是仓库唯一的状态、边界与优先级来源。README 和各地图设计记录只保留入口说明或设计约束；如与本文冲突，以当前检出、自动测试和本文为准。
 
-当前 Step 16 功能候选分支为 `feature/step16-c4-device`，以 `main@99f05064ef6db592217a4cc898b2642ab6162a1f` 为基线。当前 runtime/workflow 功能证据基线为 `69d2a3395d2cb7799f923868a1d07adb5fe34e96`：required `Tests #93`（`33326528374`）、legacy `Godot Tests #122`（`33326528372`）与 `Windows Export #14`（`33326528381`）均 success。docs-only 增量门禁验收 head `8d22af07f69a398a6d9d8ea22fecaf80326c4f13` 的 required `Tests #94`（`33327150987`）、legacy `Godot Tests #123`（`33327150981`）与 `Windows Export #15`（`33327150974`）也均 success，其中 #15 明确判定 `should_export=false / synchronize-nonruntime-only`，重型 `export-windows` 与 `smoke-windows` 均 skipped。后续状态/文档提交仍必须以各自新 head 的 required `Tests` 为准；docs-only 后继提交可明确引用直接父 runtime/workflow head 的 Windows Export 证据，但不得称为新 head 自己执行过被跳过的重型导出。
+## 2026-10-13 用户授权的入口与 AI 缺陷修复
+
+历史 PR #33 和 #27 已分别合并。C4 已补本机 Vulkan、输入/混音器与全套原生证据；当前头 `8a68658` 的 Tests 及完整 Windows Export / smoke 均通过，main 合并为 `a97f787`。详情见 [C4 集成记录](TASK_C4_INTEGRATION_2026-10-13.md)。本次明确集成授权覆盖旧记录的待 L3 合并授权；资产人工美术/听感仍保留 draft，不宣称完成 G2。
+
+最新覆盖：用户继续授权经典图 5v5、明确购买页、生成枪械插画、最多 60 秒准备并点击就绪立即开战，以及整理合并所有 PR。两种经典沙线入口现已接入玩家加四名队友对五名敌人的单机爆破，复用经济、换边和结算；首局/换边改为手枪 $800。门厅区保留 3v3。旧的“经典图仅练枪/5v5 未实现”记录已被本段覆盖。购买页面使用 Codex 生成的透明枪械图片，已检查本机 Vulkan 显示。玩家死亡不提前判整队输，AI 斜坡误绕、五人经济阈值与缺少回合收入已修复；经典路网由本机冻结 JSON 控制，资源变动时拒绝启动而不自动重建。范围、执行证据和未完成人工验收见 [5v5 购买任务](TASK_CLASSIC_5V5_BUY_2026-10-13.md)。历史 PR #33/#27 已合并；购买与 5v5 的远程交付见 [PR #34](https://github.com/2002yy/vector-breach-godot/pull/34)；精确提交、CI 与合并状态记入任务的交付 JSON。四类装备的外形与功能差距见 [经典装备核对](CS_WEAPON_SLOTS_AUDIT_2026-10-14.md)。
+
+- 游戏位置、操作和地图历史已集中到 [中文指南](GAME_GUIDE_ZH.md)，桌面 `3Dgame\游戏在哪里.md` 留有入口。工作分支 `fix/onboarding-maps-ai-20261013`，基线 `main / 99f0506`；用户已授权提交并推送，远程交付见任务记录。
+- 菜单分为互斥的游戏 / 开发测试列表；本机可用时两种沙线研究入口默认可见。铸造仓库改名“路线回归”，三张开发图都有现行测试依赖而保留；没有改变碰撞 / 路线数据。开局左侧缩短地图说明并收起设置，右侧独立显示操作或设置。
+- 门厅区保持首局 / 换边手枪与 $800；练习图开局真实拥有步枪与手枪；经典研究图现为竞技手枪局，后续购买主武器。菜单解释规则，战斗常驻按键提示并支持 F1 帮助。
+- 修复 AI 实战武器与显示手枪不一致、没有真实步枪购买步骤、玩家队伍资金漏算和隔墙近敌人压掉可见目标。敌我使用同一修复，未改伤害、反应或瞄准数值。
+- 经典 CS（Dust II / `de_dust2`）两种本机研究版本已验证落地、移动、步枪 / 手枪、切枪与练习靶真实掉血；现为本机 5v5 爆破，两种视觉版本共用同一套路网与规则。原始材质版的顶点动画权重误作颜色已修复，Vulkan 出生点植物 / 布篷截图通过；全图材质和最终美术尚未验收。经典 HUD 显示双方五人、比赛阶段和真实爆破任务。
+- 本次用户明确要求具体 AI 修复，优先于此前 G2 前的缺陷冻结；G2 十场人工比赛、G3 完整战术质量和最终平衡仍未关闭。详情与验收证据见 [任务记录](TASK_ONBOARDING_AI_2026-10-13.md)。
 
 ## 产品方向
 
@@ -61,7 +68,7 @@ Updated: 2026-10-13
 
 ## 当前验证
 
-- Windows 与 Linux 聚合脚本统一运行十一套原生测试：关卡数据、武器、灰盒关卡、命中反馈、战术 Bot、爆破 AI、比赛生命周期、Gatehouse 场景集成、主状态流、音频资产和性能预算。Step 16 runtime/workflow 证据 head `69d2a3395d2cb7799f923868a1d07adb5fe34e96` 的 required `Tests #93` 与 legacy `Godot Tests #122` 双路径 native 回归均通过；docs-only 增量门禁验收 head `8d22af07f69a398a6d9d8ea22fecaf80326c4f13` 的 required `Tests #94` 与 legacy `Godot Tests #123` 也均通过。C4Device runner 含 6 项对象级回归。当前不在权威状态中写入无法从现有日志稳定复核的聚合测试总数。
+- Windows 与 Linux 聚合脚本统一运行十二套原生测试：关卡数据、武器、灰盒关卡、命中反馈、战术 Bot、爆破 AI、比赛生命周期、Gatehouse 场景集成、主状态流、音频资产、C4 设备和性能预算；2026-10-14 本机候选为 152 项并出现 `RUN_ALL_OK`。
 - 已接入 GdUnit4 v6.2.1（`addons/gdUnit4`，经 Godot 4.7.1 headless 验证 2 用例 PASS），作为原生测试之外的行业标准补充框架；新测试放 `test/`，报告目录 `reports/` 已忽略，运行方式为 `runtest.cmd`（需 `GODOT_BIN` 指向引擎）。
 - Required `Tests` 已在 Godot 之前执行 Asset Layer、Asset Metadata 与 Asset Runtime Contract policy：当前 canonical source master 为 7 个，metadata sidecar 覆盖 7/7、资产 ID 唯一；7 个 Blender producer 拥有 14 个 runtime outputs，其中 8 个 GLB 必须具有合法 runtime contract。sidecar 中 runtime outputs 必须是 `assets/` 下规范、去重且 Git tracked 的实存路径；mandatory source coverage 同时包含 Blender/Krita/PSD/FBX 等源资产与音频 master。
 - Step 13 已接入 Blender 5.2.1 LTS headless source gate：6/6 tracked Blender master 在真实 canonical path 上通过 naming safety、外部 FILE/SEQUENCE/MOVIE/TILED/UDIM 资源实存、geometry unit scale、finite/non-singular transform、metadata/source identity 与二进制/LFS preflight；正向 PR #18 随后继续通过 Godot import、GdUnit4 与 native suites。
@@ -146,7 +153,7 @@ Step 16 已选定 C4 Device 作为第一项真实 asset-driven feature pressure 
 
 不得并行扩展多个步骤；前一步验收通过后再进入下一步。
 
-第 1 步的自动化与状态正确性已完成并通过 G1。当前只准备并执行 G2 十场人工完整比赛及其只读证据汇总；G2 通过前不进入 AI 行为质量扩展。
+第 1 步的自动化与状态正确性已完成并通过 G1。G2 十场人工完整比赛仍是整体产品的下一门槛；2026-10-13 用户直接授权的具体武器、经济与视线缺陷修复例外已记录于本文开头，其他 AI 行为质量扩展仍不提前启动。
 
 ### 允许修改的边界
 

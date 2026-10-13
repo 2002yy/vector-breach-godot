@@ -6,6 +6,7 @@ __pycache__/
 *.blend[0-9]
 assets/local_reference/
 data/levels/*-local.json
+data/levels/match-local/
 
 # Asset pipeline: reproducible intermediates stay local by default.
 assets-generated/*

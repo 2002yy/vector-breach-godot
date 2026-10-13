@@ -11,12 +11,16 @@ var _passes: int = 0
 func _ready() -> void:
 	await _run_test("bot_configuration_uses_route_and_classic_timing", _test_bot_configuration_uses_route_and_classic_timing)
 	await _run_test("freeze_holds_then_live_patrols", _test_freeze_holds_then_live_patrols)
+	await _run_test("walkable_ramp_is_not_a_wall", _test_walkable_ramp_is_not_a_wall)
+	await _run_test("five_player_economy_uses_per_player_thresholds", _test_five_player_economy)
 	await _run_test("opponent_sound_triggers_investigation", _test_opponent_sound_triggers_investigation)
 	await _run_test("investigation_uses_connected_navigation_graph", _test_investigation_uses_connected_navigation_graph)
 	await _run_test("navigation_attributes_prefer_cover_and_apply_crouch", _test_navigation_attributes_prefer_cover_and_apply_crouch)
 	await _run_test("navigation_model_preserves_weighted_path_choice", _test_navigation_model_preserves_weighted_path_choice)
 	await _run_test("blocked_bot_detects_stall_and_recovers", _test_blocked_bot_detects_stall_and_recovers)
 	await _run_test("visible_enemy_is_acquired_then_burst_fired", _test_visible_enemy_is_acquired_then_burst_fired)
+	await _run_test("visible_enemy_wins_over_nearer_occluded_enemy", _test_visible_enemy_wins_over_nearer_occluded_enemy)
+	await _run_test("pistol_bot_buys_rifle_before_utility_once", _test_pistol_bot_buys_rifle_before_utility_once)
 	await _run_test("bot_uses_ladder_and_water_semantics", _test_bot_uses_ladder_and_water_semantics)
 	await _run_test("bot_reacts_to_damage_source", _test_bot_reacts_to_damage_source)
 	await _run_test("bot_records_dynamic_danger_and_reroutes", _test_bot_records_dynamic_danger_and_reroutes)
@@ -82,6 +86,47 @@ func _cleanup_fixture(fixture: Dictionary) -> void:
 	await get_tree().physics_frame
 	await get_tree().process_frame
 
+func _test_five_player_economy() -> void:
+	var fixture := await _make_fixture()
+	var brain: Node = fixture.actor.get_node("TacticalBotBrain")
+	brain.call("set_team_economy", 7000, 0, 5)
+	_assert_equal(brain.get("economy_mode"), "eco", "five-player economy should compare funds per participant")
+	brain.call("set_team_economy", 10000, 0, 5)
+	_assert_equal(brain.get("economy_mode"), "half", "10000 divided by five must not become a full buy")
+	brain.call("set_team_economy", 15000, 0, 5)
+	_assert_equal(brain.get("economy_mode"), "force", "five players with 3000 each should reach the same threshold as 3v3")
+	await _cleanup_fixture(fixture)
+
+func _test_walkable_ramp_is_not_a_wall() -> void:
+	var fixture := await _make_fixture()
+	var actor := fixture.actor as CharacterBody3D
+	actor.get_node("TacticalBotBrain").set("enabled", false)
+	actor.set_physics_process(false)
+	var ramp := StaticBody3D.new()
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(6.0, 0.2, 6.0)
+	shape.shape = box
+	ramp.add_child(shape)
+	ramp.position = Vector3(0.0, 1.5, 12.0)
+	ramp.rotation.x = deg_to_rad(-15.0)
+	fixture.world.add_child(ramp)
+	actor.global_position = Vector3(0.0, 2.54, 12.0)
+	await get_tree().physics_frame
+	_assert_true(actor.test_move(actor.global_transform, Vector3(0.0, 0.0, 0.45)), "fixture must actually contact the upward ramp")
+	_assert_true(not bool(actor.call("ai_motion_blocked", Vector3(0.0, 0.0, 0.45))), "walkable upward floor normal must not trigger wall avoidance")
+	var wall := StaticBody3D.new()
+	var wall_shape := CollisionShape3D.new()
+	var wall_box := BoxShape3D.new()
+	wall_box.size = Vector3(2.0, 4.0, 0.2)
+	wall_shape.shape = wall_box
+	wall.add_child(wall_shape)
+	wall.position = actor.global_position + Vector3(0.0, 0.0, -0.7)
+	fixture.world.add_child(wall)
+	await get_tree().physics_frame
+	_assert_true(bool(actor.call("ai_motion_blocked", Vector3(0.0, 0.0, -0.45))), "vertical walls must still block navigation")
+	await _cleanup_fixture(fixture)
+
 func _test_bot_configuration_uses_route_and_classic_timing() -> void:
 	var fixture := await _make_fixture()
 	var actor := fixture.actor as CharacterBody3D
@@ -94,6 +139,55 @@ func _test_bot_configuration_uses_route_and_classic_timing() -> void:
 	_assert_true(bool(ai.get("enabled", false)), "authored enemy record should enable its bot brain")
 	_assert_equal(int(ai.get("route_points", 0)), 3, "bot should parse authored route anchors into its navigation path")
 	_assert_equal(String(ai.get("state", "")), "HOLD", "bot should remain held before live round state")
+	await _cleanup_fixture(fixture)
+
+func _test_pistol_bot_buys_rifle_before_utility_once() -> void:
+	for team in ["T", "CT"]:
+		var fixture := await _make_fixture()
+		var actor := fixture.actor as CharacterBody3D
+		actor.call("configure_from_record", {"name": "购买回归", "team": team, "aiEnabled": true, "weapon": "pistol", "armor": 0, "aiMoney": 2700, "aiGrenades": {"he_grenade": 0, "flash_grenade": 0, "smoke_grenade": 0}})
+		var brain := actor.get_node("TacticalBotBrain")
+		brain.call("set_team_economy", 9000, 0)
+		brain.call("_tick_freeze_purchase")
+		_assert_equal(String(brain.get("_current_weapon_id")), "rifle", "both teams should buy and equip a rifle before utility")
+		_assert_equal(int(brain.get("ai_money")), 0, "rifle should cost exactly 2700 without overdraft")
+		_assert_equal(int(brain.get("ammo_in_mag")), 30, "purchased rifle must have its own full magazine")
+		_assert_equal(int((brain.get("_weapon_reserve") as Dictionary).get("rifle", 0)), 90, "purchased rifle must have real reserve ammo")
+		brain.call("_tick_freeze_purchase")
+		_assert_equal(int(brain.get("ai_money")), 0, "freeze ticks must not purchase twice")
+		actor.call("configure_from_record", {"name": "手枪局回归", "team": team, "aiEnabled": true, "weapon": "pistol", "aiMoney": 800})
+		brain.call("set_team_economy", 2400, 0)
+		brain.call("_tick_freeze_purchase")
+		_assert_equal(String(brain.get("_current_weapon_id")), "pistol", "pistol rounds must remain symmetric eco rounds")
+		_assert_equal(int(brain.get("ai_money")), 800, "eco must not grant free weapons or spend unavailable cash")
+		await _cleanup_fixture(fixture)
+
+func _test_visible_enemy_wins_over_nearer_occluded_enemy() -> void:
+	var fixture := await _make_fixture()
+	var world := fixture.world as Node3D
+	var actor := fixture.actor as CharacterBody3D
+	var player := fixture.player as CharacterBody3D
+	actor.call("configure_from_record", {"name": "视线回归", "team": "CT", "aiEnabled": true})
+	var visible_enemy := ACTOR_SCENE.instantiate() as CharacterBody3D
+	visible_enemy.position = Vector3(4.0, 1.15, -2.0)
+	world.add_child(visible_enemy)
+	visible_enemy.call("configure_from_record", {"name": "可见敌人", "team": "T", "aiEnabled": false})
+	var wall := StaticBody3D.new()
+	wall.collision_layer = 1
+	wall.position = Vector3(0.0, 1.5, 3.0)
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(1.0, 3.0, 0.4)
+	shape.shape = box
+	wall.add_child(shape)
+	world.add_child(wall)
+	await get_tree().physics_frame
+	var brain := actor.get_node("TacticalBotBrain")
+	_assert_true(not bool(brain.call("_can_see", player)), "nearer player must actually be hidden by collision")
+	_assert_true(bool(brain.call("_can_see", visible_enemy)), "farther enemy must actually be visible")
+	_assert_true(brain.call("_find_local_target") == visible_enemy, "occluded near enemy must not suppress visible enemy")
+	visible_enemy.set("team", "CT")
+	_assert_true(brain.call("_find_local_target") == player, "visible teammate must never be selected as enemy")
 	await _cleanup_fixture(fixture)
 
 func _test_freeze_holds_then_live_patrols() -> void:

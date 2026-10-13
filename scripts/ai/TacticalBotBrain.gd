@@ -17,7 +17,7 @@ enum State {
 
 const WEAPON_PROFILES := {
 	"rifle": {
-		"label": "AI步枪",
+		"label": "步枪",
 		"slot": 0,
 		"damage": 18,
 		"magazine": 30,
@@ -31,7 +31,7 @@ const WEAPON_PROFILES := {
 		"equip": 0.34,
 	},
 	"pistol": {
-		"label": "AI手枪",
+		"label": "手枪",
 		"slot": 1,
 		"damage": 12,
 		"magazine": 12,
@@ -99,6 +99,7 @@ var grenade_counts: Dictionary = {"he_grenade": 0, "flash_grenade": 0, "smoke_gr
 var economy_mode: String = "force"
 var save_gun_enabled: bool = true
 var team_money: int = -1
+var _economy_team_size: int = 3
 var team_loss_streak: int = 0
 
 var _route_points: Array[Vector3] = []
@@ -190,8 +191,8 @@ func configure(record: Dictionary) -> void:
 	reaction_time = clampf(float(record.get("aiReactionTime", reaction_time)), 0.05, 1.5)
 	aim_acquisition_time = clampf(float(record.get("aiAimAcquisitionTime", aim_acquisition_time)), 0.05, 1.2)
 	rifle_damage = clampi(int(record.get("aiDamage", rifle_damage)), 1, 100)
-	primary_weapon_id = String(record.get("aiPrimaryWeapon", primary_weapon_id))
-	secondary_weapon_id = String(record.get("aiSecondaryWeapon", secondary_weapon_id))
+	primary_weapon_id = String(record.get("aiPrimaryWeapon", record.get("weapon", "rifle")))
+	secondary_weapon_id = String(record.get("aiSecondaryWeapon", "pistol"))
 	has_knife = bool(record.get("aiHasKnife", has_knife))
 	retreat_health_ratio = clampf(float(record.get("aiRetreatHealthRatio", retreat_health_ratio)), 0.1, 0.9)
 	hold_angle_seconds = clampf(float(record.get("aiHoldAngleSeconds", hold_angle_seconds)), 0.2, 5.0)
@@ -348,12 +349,13 @@ func configure_objective(role: String, target: Vector3, site_label: String = "",
 	plant_site_label = site_label
 	bomb_carrier = carrier
 
-func set_team_economy(team_money_value: int, loss_streak_value: int) -> void:
+func set_team_economy(team_money_value: int, loss_streak_value: int, team_size_value: int = 3) -> void:
 	team_money = maxi(0, team_money_value)
+	_economy_team_size = clampi(team_size_value, 3, 5)
 	team_loss_streak = maxi(0, loss_streak_value)
-	if team_money >= 9000:
+	if team_money >= 3000 * _economy_team_size:
 		economy_mode = "force"
-	elif team_money >= 4500:
+	elif team_money >= 1500 * _economy_team_size:
 		economy_mode = "half"
 	else:
 		economy_mode = "eco"
@@ -516,10 +518,15 @@ func _find_local_target() -> CharacterBody3D:
 	var my_team := String(actor.get("team"))
 	var best_target: CharacterBody3D = null
 	var best_distance := INF
+	var visible_target: CharacterBody3D = null
+	var visible_distance := INF
 	var candidate := actor.get_tree().get_first_node_in_group("local_player")
 	if candidate is CharacterBody3D and not bool(candidate.get("is_dead")) and my_team != GameState.player_team:
 		best_target = candidate as CharacterBody3D
 		best_distance = actor.global_position.distance_squared_to(candidate.global_position)
+		if _can_see(best_target):
+			visible_target = best_target
+			visible_distance = best_distance
 	for candidate_variant in actor.get_tree().get_nodes_in_group("combat_actors"):
 		if not candidate_variant is CharacterBody3D:
 			continue
@@ -527,10 +534,13 @@ func _find_local_target() -> CharacterBody3D:
 		if combatant == actor or bool(combatant.get("is_dead")) or String(combatant.get("team")) == my_team:
 			continue
 		var distance := actor.global_position.distance_squared_to(combatant.global_position)
+		if distance < visible_distance and _can_see(combatant):
+			visible_target = combatant
+			visible_distance = distance
 		if distance < best_distance:
 			best_target = combatant
 			best_distance = distance
-	return best_target
+	return visible_target if visible_target != null else best_target
 
 func _can_see(target: CharacterBody3D) -> bool:
 	var eye := actor.call("get_eye_position") as Vector3
@@ -856,8 +866,8 @@ func _tick_freeze_purchase() -> void:
 		return
 	_purchased_this_round = true
 	var economy_money := ai_money if team_money < 0 else team_money
-	var force_threshold := 9000 if team_money >= 0 else 4200
-	var half_threshold := 4500 if team_money >= 0 else 1800
+	var force_threshold := 3000 * _economy_team_size if team_money >= 0 else 4200
+	var half_threshold := 1500 * _economy_team_size if team_money >= 0 else 1800
 	if economy_money >= force_threshold:
 		economy_mode = "force"
 	elif economy_money >= half_threshold:
@@ -866,6 +876,16 @@ func _tick_freeze_purchase() -> void:
 		economy_mode = "eco"
 	if economy_mode == "eco":
 		return
+	# The pistol-round reset changes primary_weapon_id to pistol. Buy the
+	# primary before armor/utility and update the real inventory and ammo.
+	if not _weapon_is_owned("rifle") and ai_money >= 2700:
+		ai_money -= 2700
+		_weapon_owned["rifle"] = true
+		_weapon_ammo["rifle"] = int(WEAPON_PROFILES["rifle"]["magazine"])
+		_weapon_reserve["rifle"] = int(WEAPON_PROFILES["rifle"]["reserve"])
+		primary_weapon_id = "rifle"
+		actor.set("equipped_weapon_id", "rifle")
+		_switch_to_weapon("rifle")
 	var team_name := String(actor.get("team"))
 	if economy_mode == "force" and int(actor.get("current_armor")) < 100 and ai_money >= 650:
 		ai_money -= 650
@@ -1201,12 +1221,12 @@ func _move_toward(destination: Vector3, delta: float) -> void:
 	if _recovery_seconds > 0.0:
 		_recovery_seconds = maxf(0.0, _recovery_seconds - delta)
 		direction = _choose_open_recovery_direction(_recovery_direction, desired_direction)
-	elif actor.test_move(actor.global_transform, direction * 0.45):
+	elif bool(actor.call("ai_motion_blocked", direction * 0.45)):
 		var left := direction.rotated(Vector3.UP, PI * 0.5)
 		var right := direction.rotated(Vector3.UP, -PI * 0.5)
-		if not actor.test_move(actor.global_transform, left * 0.45):
+		if not bool(actor.call("ai_motion_blocked", left * 0.45)):
 			direction = left
-		elif not actor.test_move(actor.global_transform, right * 0.45):
+		elif not bool(actor.call("ai_motion_blocked", right * 0.45)):
 			direction = right
 	var precise := bool(_active_navigation_link.get("precise", false))
 	var crouch := bool(_active_navigation_link.get("crouch", false))
@@ -1297,7 +1317,7 @@ func _choose_open_recovery_direction(preferred: Vector3, desired_direction: Vect
 	]
 	for candidate_variant in candidates:
 		var candidate := candidate_variant as Vector3
-		if not actor.test_move(actor.global_transform, candidate * 0.45):
+		if not bool(actor.call("ai_motion_blocked", candidate * 0.45)):
 			return candidate
 	return preferred
 

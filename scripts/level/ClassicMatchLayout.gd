@@ -1,0 +1,38 @@
+extends RefCounted
+
+const AUTHORED_PATH := "res://data/levels/match-local/dustline.json"
+
+
+# Runtime consumes frozen local JSON. Only the explicit authoring tool scans
+# collision; asset/data changes invalidate this baseline instead of moving routes.
+static func load_authored(data: Dictionary, manifest_path: String = AUTHORED_PATH) -> Dictionary:
+	if not FileAccess.file_exists(manifest_path):
+		return {}
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(manifest_path))
+	if not parsed is Dictionary:
+		return {}
+	var manifest: Dictionary = parsed
+	var collision_path := String(data.get("runtime_collision_scene", data.get("visual_scene", "")))
+	var level_path := "res://data/levels/%s.json" % String(data.get("id", ""))
+	var level_hashes: Dictionary = manifest.get("level_sha256", {})
+	if manifest.get("schema", 0) != 1 or manifest.get("collision_path", "") != collision_path:
+		return {}
+	var collision_hash := FileAccess.get_sha256(collision_path)
+	if collision_hash.is_empty() or collision_hash != String(manifest.get("collision_sha256", "")):
+		return {}
+	var level_hash := FileAccess.get_sha256(level_path)
+	if level_hash.is_empty() or level_hash != String(level_hashes.get(level_path, "")):
+		return {}
+	var layout: Dictionary = manifest.get("layout", {})
+	var graph: Dictionary = layout.get("navigationGraph", {})
+	var spawns: Dictionary = layout.get("matchSpawns", {})
+	if (
+		(graph.get("points", []) as Array).is_empty()
+		or (graph.get("links", []) as Array).is_empty()
+	):
+		return {}
+	if (layout.get("objectives", []) as Array).size() != 2:
+		return {}
+	if (spawns.get("T", []) as Array).size() != 5 or (spawns.get("CT", []) as Array).size() != 5:
+		return {}
+	return layout.duplicate(true)
