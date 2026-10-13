@@ -304,7 +304,7 @@ func _test_hud_uses_familiar_information_zones(fixture: Dictionary) -> void:
 	_assert_equal(magazine_label.text, "4", "magazine count should remain the dominant ammo number")
 	_assert_equal(reserve_label.text, "24", "reserve count should remain separate from magazine ammo")
 	_assert_equal(armor_value.text, "100", "armor should sit beside health in the lower-left zone")
-	_assert_true(round_state_label.text.contains("CT 0") and round_state_label.text.contains("0 T"), "top center should show team scores and round time")
+	_assert_true(round_state_label.text.contains("防守 0") and round_state_label.text.contains("0 进攻"), "top center should show localized team scores and round time")
 	_assert_float_close(round_panel.anchor_left, 0.5, 0.001, "round context should stay centered at the top")
 	_assert_float_close(health_panel.anchor_bottom, 1.0, 0.001, "health should stay anchored to the lower-left")
 	_assert_float_close(ammo_panel.anchor_left, 1.0, 0.001, "ammo should stay anchored to the lower-right")

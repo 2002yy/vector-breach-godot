@@ -177,6 +177,9 @@ func _assign_bomb_roles(level_data: Dictionary) -> void:
 
 func _sync_team_economy() -> void:
 	var team_money_totals := {"T": 0, "CT": 0}
+	# Both squads contain three participants, including the local player.
+	if GameState.player_team in team_money_totals:
+		team_money_totals[GameState.player_team] = GameState.player_money
 	for child in get_children():
 		if child is CharacterBody3D and (child as CharacterBody3D).has_node("TacticalBotBrain"):
 			var team := String((child as CharacterBody3D).get("team"))

@@ -19,6 +19,7 @@ func _ready() -> void:
 
 func _run_all_tests() -> void:
 	await _run_test("initial_boot_shows_menu_and_default_map", _test_initial_boot_shows_menu_and_default_map)
+	await _run_test("squad_economy_includes_player_and_help_matches_loadout", _test_squad_economy_includes_player_and_help_matches_loadout)
 	await _run_test("map_selection_updates_game_state_and_menu_copy", _test_map_selection_updates_game_state_and_menu_copy)
 	await _run_test("start_game_enters_freeze_buy_state", _test_start_game_transitions_to_live_state)
 	await _run_test("pause_then_resume_restores_live_state", _test_pause_then_resume_restores_live_state)
@@ -114,12 +115,31 @@ func _test_initial_boot_shows_menu_and_default_map() -> void:
 	_assert_true(bool(main.get("menu_open")), "main should start with menu open")
 	_assert_true(not bool(main.get("game_started")), "main should start before gameplay begins")
 	_assert_true(start_menu.visible, "start menu should be visible on boot")
-	_assert_equal(map_select.item_count, 5, "headless start menu should list only the five publishable maps")
+	_assert_equal(map_select.item_count, 2, "default menu should expose the primary match and practice showcase only")
 	_assert_equal((main.get("level_options") as Array).size(), 5, "local reference maps should stay out of automated headless runs")
 	_assert_equal(title_label.text, "矢量突袭", "menu should expose a concise localized tactical title")
-	_assert_equal(start_button.text, "\u5f00\u59cb\u8bad\u7ec3", "initial primary action should clearly start training")
+	_assert_equal(start_button.text, "开始 3 对 3 比赛", "primary map should clearly start a match")
 	_assert_float_close(menu_panel.anchor_bottom, 1.0, 0.001, "menu panel should remain a full-height left navigation surface")
-	_assert_equal(map_select.selected, 2, "default selected map should be Gatehouse")
+	_assert_equal(map_select.get_selected_id(), 2, "filtered menu must preserve the Gatehouse source index")
+	_assert_true(start_menu.get_node("PlayerHelp").visible, "boot should expose controls and pistol-round rules")
+	start_menu.set("_show_archive", true)
+	start_menu.call("_refresh_map_options")
+	_assert_equal(map_select.item_count, 3, "developer menu should contain only regression maps")
+	for index in range(map_select.item_count):
+		_assert_true(map_select.get_item_id(index) in [0, 1, 3], "developer menu must exclude game maps")
+	_assert_true(not start_menu.get_node("SettingsPanel").visible, "settings must be collapsed on boot")
+	start_menu.call("_toggle_settings", true)
+	_assert_true(start_menu.get_node("SettingsPanel").visible, "settings should open separately")
+	_assert_true(not start_menu.get_node("PlayerHelp").visible, "settings must not overlap controls")
+	start_menu.call("_toggle_settings", false)
+	var local_options: Array = (main.get("level_options") as Array).duplicate(true)
+	local_options.append({"id": "dustline-depths", "name": "沙线深层"})
+	local_options.append({"id": "dustline-depths-original-local", "name": "沙线原始材质"})
+	start_menu.set("_show_archive", false)
+	start_menu.call("set_map_options", local_options, 2)
+	_assert_equal(map_select.item_count, 4, "available classic research variants must be visible without enabling test maps")
+	_assert_equal(map_select.get_item_id(2), 5, "classic map source id must survive menu filtering")
+	_assert_true(map_select.get_item_text(2).contains("经典研究"), "classic playable research maps must not be labeled as tests")
 	_assert_true(not resume_button.visible, "resume button should stay hidden before the first run")
 	_assert_true(not status_panel.visible, "debug status panel should be hidden by default")
 	_assert_equal(String(GameState.current_level_id), "gatehouse", "boot should sync the active 3v3 map id into GameState")
@@ -143,8 +163,8 @@ func _test_map_selection_updates_game_state_and_menu_copy() -> void:
 	if reforged_index < 0:
 		await _cleanup_main(main)
 		return
-	map_select.select(reforged_index)
-	main.call("_on_map_selected", reforged_index)
+	map_select.select(map_select.get_item_index(reforged_index))
+	map_select.item_selected.emit(map_select.selected)
 	await get_tree().process_frame
 
 	_assert_equal(int(main.get("selected_level_index")), reforged_index, "main should store the newly selected level index")
@@ -153,6 +173,35 @@ func _test_map_selection_updates_game_state_and_menu_copy() -> void:
 	_assert_true(description_label.text.contains("\u91cd\u6784"), "menu description should update to the Reforged copy")
 
 	await _cleanup_main(main)
+
+func _test_squad_economy_includes_player_and_help_matches_loadout() -> void:
+	for start_team in ["T", "CT"]:
+		var main: Node3D = _instantiate_main()
+		await _await_main_ready()
+		main.call("_on_team_selected", start_team)
+		main.call("_on_start_pressed")
+		GameState.player_money = 3200
+		var sandbox := main.get_node("CombatSandbox")
+		for actor in sandbox.get_children():
+			actor.get_node("TacticalBotBrain").set("ai_money", 2900)
+		sandbox.call("_sync_team_economy")
+		for actor in sandbox.get_children():
+			var brain := actor.get_node("TacticalBotBrain")
+			var expected_money := 9000 if String(actor.get("team")) == start_team else 8700
+			_assert_equal(int(brain.get("team_money")), expected_money, "player squad economy must count all three participants on either side")
+			_assert_equal(String(brain.get("_current_weapon_id")), "pistol", "real opening AI weapon must match the visible pistol")
+			_assert_true(not bool(brain.call("_weapon_is_owned", "rifle")), "opening AI must not own a hidden free rifle")
+		main.call("_update_ui", true)
+		var hud := main.get_node("CombatHud")
+		_assert_true((hud.get("_controls_hint") as Label).text.contains("2700"), "freeze HUD should explain rifle price")
+		var help_key := InputEventKey.new()
+		help_key.keycode = KEY_F1
+		help_key.pressed = true
+		main.call("_unhandled_input", help_key)
+		_assert_true((hud.get("_player_help") as PanelContainer).visible, "F1 should open actual runtime help")
+		main.call("_unhandled_input", help_key)
+		_assert_true(not (hud.get("_player_help") as PanelContainer).visible, "F1 should close runtime help")
+		await _cleanup_main(main)
 
 func _test_start_game_transitions_to_live_state() -> void:
 	var main: Node3D = _instantiate_main()
@@ -195,8 +244,9 @@ func _test_start_game_transitions_to_live_state() -> void:
 	_assert_float_close(player.rotation.y, GameState.player_spawn_yaw_radians, 0.001, "starting should face the player along the authored route heading")
 	_assert_true(not bool(player.get("movement_enabled")), "freeze time should block movement while keeping mouse look enabled")
 	_assert_equal(String(RoundManager.get_state_name()), "Freeze", "starting should enter the freeze/buy state")
-	_assert_equal(snapshot.get("weapon_slot"), 1, "competitive loadout should start with the owned pistol")
-	_assert_equal(snapshot.get("ammo_in_mag"), 12, "starting pistol should have a full magazine")
+	_assert_equal(snapshot.get("weapon_slot"), 0, "practice maps should start with the owned rifle")
+	_assert_equal(snapshot.get("ammo_in_mag"), 30, "practice rifle should have a full magazine")
+	_assert_true(bool(weapon_system.call("is_slot_owned", 1)), "practice must also retain the pistol for switching")
 	_assert_true(bool(RoundManager.can_buy()), "freeze time should permit purchases")
 	_assert_true(bool(GameState.game_started), "GameState should reflect started gameplay")
 	_assert_true(not bool(GameState.menu_open), "GameState should reflect closed menu after start")

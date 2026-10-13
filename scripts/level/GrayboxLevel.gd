@@ -51,6 +51,8 @@ func _apply_visual_scene(level_data: Dictionary, emit_errors: bool) -> void:
 	if visual_instance != null:
 		has_visible_scene = true
 		_hide_filtered_visual_meshes(visual_instance, level_data.get("hidden_visual_name_contains", []) as Array)
+		if String(level_data.get("id", "")) == "dustline-depths-original-local":
+			_repair_reference_vertex_channels(visual_instance)
 		if bool(level_data.get("runtime_collision_from_visual", false)):
 			_build_runtime_collision(visual_instance, emit_errors)
 
@@ -73,6 +75,26 @@ func _apply_visual_scene(level_data: Dictionary, emit_errors: bool) -> void:
 		has_visible_scene = true
 
 	geometry_root.visible = not has_visible_scene
+
+func _repair_reference_vertex_channels(node: Node) -> void:
+	# Source 2 foliage / fabric packs animation weights into COLOR_0.
+	# glTF imports these as albedo tint, producing black / magenta surfaces.
+	# Keep the original texture, alpha cutout and material tint; override only
+	# the affected visual surfaces, never the shared resource or collision.
+	if node is MeshInstance3D:
+		var instance := node as MeshInstance3D
+		for surface in range(instance.mesh.get_surface_count()):
+			var material := instance.get_active_material(surface) as StandardMaterial3D
+			if material == null or not material.vertex_color_use_as_albedo:
+				continue
+			var name_key := material.resource_name.to_lower()
+			if name_key not in ["agave_plant_01", "dust_weeds_01", "grape_leaves_01", "olive_branch_01", "palm_bark_01", "palm_frond_01", "sagebrush_01", "sumac_01", "weeds_cressa_01", "zebra_grass_01", "dust_awning_fabric_01", "dust_awning_fabric_ripped_01"]:
+				continue
+			var repaired := material.duplicate() as StandardMaterial3D
+			repaired.vertex_color_use_as_albedo = false
+			instance.set_surface_override_material(surface, repaired)
+	for child in node.get_children():
+		_repair_reference_vertex_channels(child)
 
 func _instantiate_visual_resource(scene_path: String, stable_name: String, emit_errors: bool) -> Node:
 	if scene_path.is_empty():

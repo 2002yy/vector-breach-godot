@@ -638,6 +638,8 @@ func _assert_bot_hard_reset(actors: Array[CharacterBody3D], prefix: String) -> v
 		var snapshot := actor.call("get_combat_snapshot") as Dictionary
 		var ai := snapshot.get("ai", {}) as Dictionary
 		_assert_equal(String(snapshot.get("weapon", "")), "pistol", "%s: bot snapshot should reset to pistol" % prefix)
+		_assert_equal(String(ai.get("weapon_id", "")), "pistol", "%s: actual AI firing profile should reset to pistol" % prefix)
+		_assert_equal(int(ai.get("ammo", -1)), 12, "%s: actual pistol magazine must contain 12 rounds" % prefix)
 		_assert_equal(int(snapshot.get("armor", -1)), 0, "%s: bot snapshot should reset to zero armor" % prefix)
 		_assert_true(not bool(snapshot.get("helmet", true)), "%s: bot snapshot should reset helmet" % prefix)
 		_assert_true(not bool(snapshot.get("defuse_kit", true)), "%s: bot snapshot should reset defuse kit" % prefix)
