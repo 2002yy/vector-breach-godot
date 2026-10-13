@@ -47,6 +47,8 @@ func _run_all_tests() -> void:
 	await _run_test("freeze_allows_weapon_management", _test_freeze_allows_weapon_management)
 	await _run_test("economy_escalates_losses_and_caps_money", _test_economy_escalates_losses_and_caps_money)
 	await _run_test("knife_and_grenade_equipment_are_actionable", _test_knife_and_grenade_equipment_are_actionable)
+	await _run_test("equipment_models_follow_inventory_and_same_gun_reselection", _test_equipment_models)
+	await _run_test("c4_slot_and_context_prompt_guards", _test_c4_prompts)
 	await _run_test("player_damage_tags_and_death_ends_round", _test_player_damage_tags_and_death_ends_round)
 	await _run_test("buy_plant_defuse_round_loop", _test_buy_plant_defuse_round_loop)
 
@@ -1059,3 +1061,92 @@ func _test_frozen_classic_layout() -> void:
 	_assert_true(LayoutLoader.load_authored(data, manifest_path).is_empty(), "collision change must fail closed rather than regenerate routes")
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(source_path))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(manifest_path))
+
+func _test_equipment_models() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	main.call("_on_start_pressed")
+	await _await_main_ready()
+	main.call("_set_buy_menu", false)
+	var equipment: Node = main.get_node("TacticalEquipment")
+	var view: Node = main.get_node("Player/CameraPivot/Camera3D/WeaponViewModel")
+	equipment.call("select_knife")
+	var state: Dictionary = view.call("get_debug_snapshot")
+	_assert_equal(state.get("visible_equipment"), ["knife"], "knife selection shows only independent knife")
+	_assert_true(not state.get("pistol_visible"), "knife must hide previous pistol")
+	var event := InputEventAction.new()
+	event.action = "weapon_slot_1"
+	event.pressed = true
+	main.call("_unhandled_input", event)
+	_assert_equal(equipment.get("equipped"), "knife", "unowned rifle cannot leave knife equipped")
+	event.action = "weapon_slot_2"
+	main.call("_unhandled_input", event)
+	_assert_equal((view.call("get_debug_snapshot") as Dictionary).get("equipped_kind"), "pistol", "reselecting same pistol restores model without gun switch signal")
+	_assert_equal(GameState.current_weapon_slot, 1, "same gun reselection restores firearm HUD")
+	for kind in ["he_grenade", "flash_grenade", "smoke_grenade"]:
+		equipment.call("purchase_grenade", kind)
+		equipment.call("select_next_grenade")
+		state = view.call("get_debug_snapshot")
+		_assert_equal(state.get("visible_equipment"), [kind], "grenade type has its own exclusive visible model")
+	RoundManager.set_live()
+	var result: Dictionary = equipment.call("use_primary", main.get_node("Player"))
+	_assert_true(result.get("thrown", false), "selected grenade is actually thrown")
+	_assert_true(float((view.call("get_debug_snapshot") as Dictionary).get("use_blend")) > 0, "throw action produces visual feedback")
+	await get_tree().process_frame
+	var projectiles := get_tree().get_nodes_in_group("grenade_projectiles")
+	_assert_true(not projectiles.is_empty(), "throw creates real projectile")
+	if not projectiles.is_empty():
+		_assert_true(projectiles[-1].get_node_or_null("SmokeGrenadeModel") != null, "world projectile uses same smoke shape as held grenade")
+	equipment.call("reset_loadout")
+	_assert_equal((view.call("get_debug_snapshot") as Dictionary).get("equipped_kind"), "pistol", "loadout reset restores gun model")
+	await _cleanup_main(main)
+
+func _test_c4_prompts() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	main.call("_on_start_pressed")
+	await _await_main_ready()
+	main.call("_set_buy_menu", false)
+	var key := InputEventKey.new()
+	key.keycode = KEY_5
+	key.pressed = true
+	main.call("_unhandled_input", key)
+	var view: Node = main.get_node("Player/CameraPivot/Camera3D/WeaponViewModel")
+	_assert_equal((view.call("get_debug_snapshot") as Dictionary).get("equipped_kind"), "c4", "T carrier can inspect C4 via slot five")
+	RoundManager.set_live()
+	var hint := String(main.call("_get_objective_hint"))
+	_assert_true(hint.contains("前往 A / B"), "outside site prompt gives destination rather than false plant instruction")
+	var player: CharacterBody3D = main.get_node("Player")
+	var radar: Dictionary = main.call("_build_radar_snapshot")
+	var target: Dictionary = radar["targets"][0]
+	player.global_position.x = float(target["x"])
+	player.global_position.z = float(target["z"])
+	_assert_true(String(main.call("_get_objective_hint")).contains("[按住 E]"), "inside site prompts actual hold interaction")
+	Input.action_press("interact")
+	main.call("_try_begin_objective_interaction")
+	main.call("_update_objective_interaction", 1.0)
+	_assert_true(String(main.call("_get_objective_hint")).contains("松开即取消"), "active plant explains cancellation")
+	Input.action_release("interact")
+	main.call("_update_objective_interaction", 0.01)
+	_assert_true(not RoundManager.is_objective_interacting(), "release cancels actual install")
+	Input.action_press("fire_primary")
+	main.call("_update_objective_interaction", 0.5)
+	_assert_true(RoundManager.is_objective_interacting(), "holding primary while C4 selected starts actual install")
+	Input.action_release("fire_primary")
+	main.call("_update_objective_interaction", 0.01)
+	_assert_true(not RoundManager.is_objective_interacting(), "releasing C4 primary cancels actual install")
+	var c4: Node = main.get_node("C4Device")
+	RoundManager.bomb_carried = false
+	c4.call("drop_at", player.global_position)
+	_assert_true(String(main.call("_get_objective_hint")).contains("拾取"), "near dropped C4 prompts pickup")
+	GameState.player_team = "CT"
+	main.call("_unhandled_input", key)
+	main.call("_process", 0.0)
+	_assert_true((view.call("get_debug_snapshot") as Dictionary).get("equipped_kind") != "c4", "CT cannot equip C4 and lost carrier model clears")
+	RoundManager.state = RoundManager.RoundState.BOMB_PLANTED
+	c4.call("plant_at", player.global_position, "A")
+	GameState.player_defuse_kit = false
+	_assert_true(String(main.call("_get_objective_hint")).contains("10 秒"), "no kit prompt matches actual duration")
+	GameState.player_defuse_kit = true
+	_assert_true(String(main.call("_get_objective_hint")).contains("5 秒"), "kit prompt matches actual duration")
+	await _cleanup_main(main)

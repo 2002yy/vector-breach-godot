@@ -16,12 +16,24 @@ var device_state: String = "carried"
 var carrier_team: String = "T"
 var site_label: String = ""
 var _beep_timer: float = 0.0
+var _world_label: Label3D
 
 func _ready() -> void:
+	_world_label = Label3D.new()
+	_world_label.position = Vector3(0, 0.42, 0)
+	_world_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_world_label.font_size = 32
+	_world_label.pixel_size = 0.0009
+	_world_label.outline_size = 4
+	_world_label.modulate = Color(1, 0.78, 0.25)
+	mesh_root.add_child(_world_label)
 	beep_player.stream = _make_beep_stream()
 	set_carried(carrier_team)
 
 func _process(delta: float) -> void:
+	_world_label.text = "C4 · [E] 拾取" if device_state == "dropped" and GameState.player_team == "T" else "C4"
+	if device_state == "planted":
+		_world_label.text = "C4 · %s区 · %02d秒" % [site_label, ceili(RoundManager.time_remaining)]
 	if device_state != "planted" or RoundManager.state != RoundManager.RoundState.BOMB_PLANTED:
 		return
 	var urgency := 1.0 - clampf(RoundManager.time_remaining / maxf(RoundManager.bomb_duration, 0.001), 0.0, 1.0)

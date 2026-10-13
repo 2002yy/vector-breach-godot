@@ -530,3 +530,6 @@ func _store_current_state(state: Dictionary) -> void:
 	if _current_weapon_index < 0 or _current_weapon_index >= _weapon_states.size():
 		return
 	_weapon_states[_current_weapon_index] = state
+
+func refresh_equipped_hud() -> void:
+	_sync_game_state("")
