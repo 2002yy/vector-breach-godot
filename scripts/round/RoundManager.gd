@@ -18,6 +18,7 @@ enum RoundState {
 var state: RoundState = RoundState.WARMUP
 var _state_before_pause: RoundState = RoundState.WARMUP
 var freeze_duration: float = 5.0
+var allow_player_ready: bool = false
 var round_duration: float = 115.0
 var bomb_duration: float = 40.0
 var round_end_duration: float = 5.0
@@ -62,6 +63,12 @@ func set_live() -> void:
 	if state != RoundState.LIVE:
 		time_remaining = round_duration
 	_set_state(RoundState.LIVE)
+
+func player_ready() -> bool:
+	if state != RoundState.FREEZE or not allow_player_ready:
+		return false
+	set_live()
+	return true
 
 func start_round(duration: float = 115.0) -> void:
 	round_serial += 1

@@ -22,6 +22,7 @@ func _run_all_tests() -> void:
 	await _run_test("squad_economy_includes_player_and_help_matches_loadout", _test_squad_economy_includes_player_and_help_matches_loadout)
 	await _run_test("map_selection_updates_game_state_and_menu_copy", _test_map_selection_updates_game_state_and_menu_copy)
 	await _run_test("start_game_enters_freeze_buy_state", _test_start_game_transitions_to_live_state)
+	await _run_test("buy_page_ready_and_pause_contract", _test_buy_page_ready_and_pause_contract)
 	await _run_test("pause_then_resume_restores_live_state", _test_pause_then_resume_restores_live_state)
 	await _run_test("level_environment_overrides_restore_defaults", _test_level_environment_overrides_restore_defaults)
 	await _run_test("weapon_view_model_tracks_switch_and_shot", _test_weapon_view_model_tracks_switch_and_shot)
@@ -202,6 +203,32 @@ func _test_squad_economy_includes_player_and_help_matches_loadout() -> void:
 		main.call("_unhandled_input", help_key)
 		_assert_true(not (hud.get("_player_help") as PanelContainer).visible, "F1 should close runtime help")
 		await _cleanup_main(main)
+
+func _test_buy_page_ready_and_pause_contract() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	await main.call("_on_start_pressed")
+	_assert_true(RoundManager.time_remaining > 55.0, "AI match should allow up to sixty seconds to buy")
+	_assert_true(bool(main.get("_buy_menu_open")), "opening must show the purchase page")
+	var page := main.get_node("CombatHud").get("buy_menu") as PanelContainer
+	var buttons := page.get("_buttons") as Dictionary
+	_assert_true((buttons["rifle"] as Button).disabled, "800-dollar opening must not offer an unaffordable rifle")
+	_assert_true((buttons["pistol"] as Button).disabled, "already-owned pistol must not charge again")
+	_assert_true(not (buttons["armor"] as Button).disabled, "affordable armor should be actionable")
+	(buttons["armor"] as Button).pressed.emit()
+	_assert_equal(GameState.player_money, 150, "actual page purchase should charge exactly once")
+	_assert_equal(GameState.player_armor, 100, "actual page purchase must grant armor")
+	main.call("_open_menu", false)
+	_assert_true(not bool(main.get("_buy_menu_open")), "pause must close the purchase page")
+	page.get("_ready_button").pressed.emit()
+	_assert_equal(RoundManager.state, RoundManager.RoundState.PAUSED_MENU, "ready cannot bypass pause")
+	main.call("_resume_game")
+	main.call("_set_buy_menu", true)
+	page.get("_ready_button").pressed.emit()
+	_assert_equal(RoundManager.state, RoundManager.RoundState.LIVE, "actual ready button should skip remaining wait")
+	_assert_true(not bool(main.get("_buy_menu_open")), "ready must close purchase page")
+	_assert_true(not RoundManager.player_ready(), "repeated ready must not restart a live round")
+	await _cleanup_main(main)
 
 func _test_start_game_transitions_to_live_state() -> void:
 	var main: Node3D = _instantiate_main()
@@ -895,8 +922,14 @@ func _test_player_damage_tags_and_death_ends_round() -> void:
 	GameState.record_scoreboard_damage("CT-FIXTURE", "CT", death_result)
 	_assert_true(bool(death_result.get("killed", false)), "lethal damage should mark the player dead")
 	_assert_true(bool(player.get("is_dead")), "player controller should retain the dead state")
-	_assert_equal(String(RoundManager.get_state_name()), "Round End", "player death should end the round")
-	_assert_equal(String(RoundManager.round_winner), "CT", "player death should award the CT side")
+	_assert_equal(String(RoundManager.get_state_name()), "Live", "surviving teammates must keep the round alive")
+	_assert_equal(String(main.get_node("C4Device").get("device_state")), "dropped", "player death must leave C4 recoverable")
+	for actor in main.get_node("CombatSandbox").get_children():
+		if String(actor.get("team")) == GameState.player_team:
+			actor.set("is_dead", true)
+	main.call("_check_team_elimination")
+	_assert_equal(String(RoundManager.get_state_name()), "Round End", "whole squad elimination should end the round")
+	_assert_equal(String(RoundManager.round_winner), "CT", "whole T squad elimination should award CT")
 	_assert_equal(int((GameState.unit_scoreboard.get("你", {}) as Dictionary).get("deaths", 0)), 1, "AI damage should record the player death under the stable player identity")
 	_assert_true(not GameState.unit_scoreboard.has("战术单位"), "player death should not create a phantom scoreboard target")
 	await _cleanup_main(main)

@@ -16,6 +16,7 @@ func _ready() -> void:
 	_run_test("terminal_duplicate_serial_is_idempotent", _test_terminal_duplicate_serial)
 	_run_test("new_match_resets_match_authority", _test_new_match_reset)
 	_run_test("gatehouse_competitive_roster_is_three_v_three", _test_gatehouse_roster)
+	_run_test("classic_five_v_five_roster_survives_halftime", _test_classic_roster)
 	_run_test("competitive_bot_reset_uses_economy_baseline", _test_competitive_bot_reset)
 	_run_test("match_record_exports_json", _test_export)
 	if _failures.is_empty():
@@ -143,6 +144,28 @@ func _test_gatehouse_roster() -> void:
 	_assert_equal(records.size(), 5, "player should replace one authored bot")
 	_assert_equal(friendly.size(), 2, "3v3 should spawn exactly two AI teammates")
 	sandbox.free()
+
+func _test_classic_roster() -> void:
+	for starting_team in ["T", "CT"]:
+		GameState.set_level("dustline-depths", "经典地图")
+		GameState.start_match(starting_team, 5)
+		var source: Array = []
+		for team in ["T", "CT"]:
+			for index in range(5):
+				source.append({"name": team + str(index), "team": team, "x": index, "z": 0})
+		var sandbox := CombatSandboxScript.new()
+		var records := sandbox.call("_build_competitive_roster", source) as Array
+		_assert_equal(records.size(), 9, "5v5 must create four teammates and five opponents")
+		var friends := records.filter(func(record): return record.team == GameState.player_team)
+		_assert_equal(friends.size(), 4, "local player replaces the middle slot")
+		var names := friends.map(func(record): return record.name)
+		for serial in range(1, 7):
+			GameState.complete_round("T", "TIME", serial)
+		records = sandbox.call("_build_competitive_roster", source)
+		friends = records.filter(func(record): return record.team == GameState.player_team)
+		_assert_equal(friends.map(func(record): return record.name), names, "halftime must preserve squad identities")
+		_assert_equal(GameState.get_match_snapshot().team_size, 5, "exported match must retain five-player teams")
+		sandbox.free()
 
 func _test_competitive_bot_reset() -> void:
 	var sandbox := CombatSandboxScript.new()

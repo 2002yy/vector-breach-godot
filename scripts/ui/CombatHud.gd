@@ -1,6 +1,11 @@
 extends CanvasLayer
 
 const PlayerGuide = preload("res://scripts/ui/PlayerGuide.gd")
+const BuyPage = preload("res://scripts/ui/BuyPage.gd")
+
+signal purchase_requested(item_id: String)
+signal ready_requested
+signal buy_closed
 
 const HEALTH_NORMAL_COLOR := Color(0.88, 0.82, 0.54, 1.0)
 const HEALTH_WARNING_COLOR := Color(1.0, 0.38, 0.3, 1.0)
@@ -54,6 +59,11 @@ var _help_text: Label
 var _controls_hint: Label
 
 func _ready() -> void:
+	buy_menu.set_script(BuyPage)
+	buy_menu.call("build")
+	buy_menu.connect("purchase_requested", func(item: String) -> void: purchase_requested.emit(item))
+	buy_menu.connect("ready_requested", func() -> void: ready_requested.emit())
+	buy_menu.connect("closed", func() -> void: buy_closed.emit())
 	buy_items.text = "[1] 步枪 $2700  [2] 手枪 $500\n[3] 防弹衣 $650  [4] 衣+盔 $1000\n[5] 拆弹钳 $400\n[6] 高爆手雷 $300  [7] 闪光 $200  [8] 烟雾 $300"
 	_controls_hint = Label.new()
 	_controls_hint.name = "ControlsHint"
@@ -156,7 +166,7 @@ func update_display(snapshot: Dictionary) -> void:
 	objective_status.text = String(snapshot.get("round_label", ""))
 	if bool(bomb.get("bomb_planted", false)):
 		objective_status.text = "C4已安装 · %s区" % String(bomb.get("bomb_site", "A"))
-	elif bool(bomb.get("bomb_carried", false)) and String(snapshot.get("player_team", "T")) == "T":
+	elif RoundManager.state == RoundManager.RoundState.LIVE and bool(bomb.get("bomb_carried", false)) and String(snapshot.get("player_team", "T")) == "T":
 		objective_status.text += "  ·  E安装C4"
 	var interaction_type := String(bomb.get("interaction_type", ""))
 	objective_interaction.visible = hud_root.visible and not interaction_type.is_empty()
@@ -168,14 +178,10 @@ func update_display(snapshot: Dictionary) -> void:
 	var friendly_rows: Array = scoreboard_rows.get("friendly", []) as Array
 	var enemy_rows: Array = scoreboard_rows.get("enemy", []) as Array
 	scoreboard_friendly.text = "\n".join(friendly_rows) if not friendly_rows.is_empty() else "你  %d/0  命中%d  $%d  %s  存活" % [int(snapshot.get("kill_count", 0)), int(snapshot.get("hit_count", 0)), int(snapshot.get("money", 800)), String(snapshot.get("weapon_name", "步枪"))]
-	var competitive := GameState.current_level_id == "gatehouse"
+	var competitive := GameState.is_competitive_level()
 	_help_text.text = "操作指南（F1 关闭）\n\n" + PlayerGuide.CONTROLS + "\n\n" + (PlayerGuide.MATCH_RULES if competitive else PlayerGuide.PRACTICE_RULES)
 	if GameState.current_level_id.begins_with("dustline-depths"):
 		_help_text.text = "操作指南（F1 关闭）\n\n" + PlayerGuide.CONTROLS + "\n\n" + PlayerGuide.RESEARCH_RULES
-		round_state_label.text = "经典地图练习"
-		level_name_label.text = "剩余练习靶：%d" % int(snapshot.get("enemy_alive", 0))
-		objective_status.text = "自由探索 · 射击练习"
-		objective_interaction.visible = false
 	_controls_hint.text = "1 / 2 切枪 · R 换弹 · E 交互 · B 购买 · F1 操作帮助"
 	if competitive and RoundManager.can_buy():
 		_controls_hint.text += "\n手枪开局；步枪 $2700。出生区按 B 购买，当前 $%d" % int(snapshot.get("money", 800))
@@ -257,3 +263,7 @@ func set_buy_menu_visible(visible_state: bool) -> void:
 
 func show_purchase_result(message: String) -> void:
 	buy_result.text = message
+	buy_menu.call("show_result", message)
+
+func update_buy_page(snapshot: Dictionary) -> void:
+	buy_menu.call("update_page", snapshot)

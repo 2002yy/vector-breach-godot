@@ -11,6 +11,8 @@ var _passes: int = 0
 func _ready() -> void:
 	await _run_test("bot_configuration_uses_route_and_classic_timing", _test_bot_configuration_uses_route_and_classic_timing)
 	await _run_test("freeze_holds_then_live_patrols", _test_freeze_holds_then_live_patrols)
+	await _run_test("walkable_ramp_is_not_a_wall", _test_walkable_ramp_is_not_a_wall)
+	await _run_test("five_player_economy_uses_per_player_thresholds", _test_five_player_economy)
 	await _run_test("opponent_sound_triggers_investigation", _test_opponent_sound_triggers_investigation)
 	await _run_test("investigation_uses_connected_navigation_graph", _test_investigation_uses_connected_navigation_graph)
 	await _run_test("navigation_attributes_prefer_cover_and_apply_crouch", _test_navigation_attributes_prefer_cover_and_apply_crouch)
@@ -83,6 +85,47 @@ func _cleanup_fixture(fixture: Dictionary) -> void:
 	(fixture.world as Node).queue_free()
 	await get_tree().physics_frame
 	await get_tree().process_frame
+
+func _test_five_player_economy() -> void:
+	var fixture := await _make_fixture()
+	var brain := fixture.actor.get_node("TacticalBotBrain")
+	brain.call("set_team_economy", 7000, 0, 5)
+	_assert_equal(brain.get("economy_mode"), "eco", "five-player economy should compare funds per participant")
+	brain.call("set_team_economy", 10000, 0, 5)
+	_assert_equal(brain.get("economy_mode"), "half", "10000 divided by five must not become a full buy")
+	brain.call("set_team_economy", 15000, 0, 5)
+	_assert_equal(brain.get("economy_mode"), "force", "five players with 3000 each should reach the same threshold as 3v3")
+	await _cleanup_fixture(fixture)
+
+func _test_walkable_ramp_is_not_a_wall() -> void:
+	var fixture := await _make_fixture()
+	var actor := fixture.actor as CharacterBody3D
+	actor.get_node("TacticalBotBrain").set("enabled", false)
+	actor.set_physics_process(false)
+	var ramp := StaticBody3D.new()
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(6.0, 0.2, 6.0)
+	shape.shape = box
+	ramp.add_child(shape)
+	ramp.position = Vector3(0.0, 1.5, 12.0)
+	ramp.rotation.x = deg_to_rad(-15.0)
+	fixture.world.add_child(ramp)
+	actor.global_position = Vector3(0.0, 2.54, 12.0)
+	await get_tree().physics_frame
+	_assert_true(actor.test_move(actor.global_transform, Vector3(0.0, 0.0, 0.45)), "fixture must actually contact the upward ramp")
+	_assert_true(not bool(actor.call("ai_motion_blocked", Vector3(0.0, 0.0, 0.45))), "walkable upward floor normal must not trigger wall avoidance")
+	var wall := StaticBody3D.new()
+	var wall_shape := CollisionShape3D.new()
+	var wall_box := BoxShape3D.new()
+	wall_box.size = Vector3(2.0, 4.0, 0.2)
+	wall_shape.shape = wall_box
+	wall.add_child(wall_shape)
+	wall.position = actor.global_position + Vector3(0.0, 0.0, -0.7)
+	fixture.world.add_child(wall)
+	await get_tree().physics_frame
+	_assert_true(bool(actor.call("ai_motion_blocked", Vector3(0.0, 0.0, -0.45))), "vertical walls must still block navigation")
+	await _cleanup_fixture(fixture)
 
 func _test_bot_configuration_uses_route_and_classic_timing() -> void:
 	var fixture := await _make_fixture()

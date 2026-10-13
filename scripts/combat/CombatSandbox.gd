@@ -45,7 +45,7 @@ func load_for_level(level_data: Dictionary) -> void:
 		if not record_variant is Dictionary:
 			continue
 		var record := record_variant as Dictionary
-		if _competitive_hard_reset_pending and GameState.current_level_id == "gatehouse":
+		if _competitive_hard_reset_pending and GameState.is_competitive_level():
 			_apply_competitive_reset(record)
 		var saved_loadout: Dictionary = _saved_round_loadouts.get(String(record.get("name", "")), {})
 		if not saved_loadout.is_empty():
@@ -139,16 +139,16 @@ func _assign_bomb_roles(level_data: Dictionary) -> void:
 	var objectives: Array = level_data.get("objectives", []) as Array
 	var primary_objective := objectives[0] as Dictionary if not objectives.is_empty() else {"id": "site-a", "x": 0.0, "z": 0.0}
 	var secondary_objective := objectives[1] as Dictionary if objectives.size() > 1 else primary_objective
-	var primary_target := Vector3(float(primary_objective.get("x", 0.0)), 1.15, float(primary_objective.get("z", 0.0)))
+	var primary_target := Vector3(float(primary_objective.get("x", 0.0)), float(primary_objective.get("y", 1.15)), float(primary_objective.get("z", 0.0)))
 	var primary_site := "A" if String(primary_objective.get("id", "")).to_lower().contains("a") else "B"
-	var secondary_target := Vector3(float(secondary_objective.get("x", 0.0)), 1.15, float(secondary_objective.get("z", 0.0)))
+	var secondary_target := Vector3(float(secondary_objective.get("x", 0.0)), float(secondary_objective.get("y", 1.15)), float(secondary_objective.get("z", 0.0)))
 	var secondary_site := "A" if String(secondary_objective.get("id", "")).to_lower().contains("a") else "B"
 	var t_carrier_enabled := GameState.player_team != "T" and not t_actors.is_empty()
 	for index in range(t_actors.size()):
 		var actor := t_actors[index]
 		var role := "plant" if index == 0 else ("support" if index == 1 else "diversion")
 		var objective := primary_objective if index < 2 else secondary_objective
-		var site_target := Vector3(float(objective.get("x", 0.0)), 1.15, float(objective.get("z", 0.0)))
+		var site_target := Vector3(float(objective.get("x", 0.0)), float(objective.get("y", 1.15)), float(objective.get("z", 0.0)))
 		var site_label := "A" if String(objective.get("id", "")).to_lower().contains("a") else "B"
 		if actor.has_node("TacticalBotBrain"):
 			actor.get_node("TacticalBotBrain").call(
@@ -166,7 +166,7 @@ func _assign_bomb_roles(level_data: Dictionary) -> void:
 		var actor := ct_actors[index]
 		var objective_index := index % maxi(1, objectives.size())
 		var objective := objectives[objective_index] as Dictionary if not objectives.is_empty() else primary_objective
-		var site_target := Vector3(float(objective.get("x", 0.0)), 1.15, float(objective.get("z", 0.0)))
+		var site_target := Vector3(float(objective.get("x", 0.0)), float(objective.get("y", 1.15)), float(objective.get("z", 0.0)))
 		var site_label := "A" if String(objective.get("id", "")).to_lower().contains("a") else "B"
 		if actor.has_node("TacticalBotBrain"):
 			actor.get_node("TacticalBotBrain").call("configure_objective", "defend_site", site_target, site_label)
@@ -177,7 +177,7 @@ func _assign_bomb_roles(level_data: Dictionary) -> void:
 
 func _sync_team_economy() -> void:
 	var team_money_totals := {"T": 0, "CT": 0}
-	# Both squads contain three participants, including the local player.
+	# Count every squad participant, including the local player.
 	if GameState.player_team in team_money_totals:
 		team_money_totals[GameState.player_team] = GameState.player_money
 	for child in get_children():
@@ -192,7 +192,8 @@ func _sync_team_economy() -> void:
 			(child as CharacterBody3D).get_node("TacticalBotBrain").call(
 				"set_team_economy",
 				int(team_money_totals.get(team, 0)),
-				loss_streak
+				loss_streak,
+				GameState.match_team_size
 			)
 
 func _on_round_ended_capture(_winner: String, _reason: String) -> void:
@@ -259,6 +260,8 @@ func _on_actor_ai_footstep(world_position: Vector3, surface: String, quiet: bool
 	ai_footstep.emit(world_position, surface, quiet)
 
 func _build_navigation_graph(level_data: Dictionary) -> Dictionary:
+	if level_data.has("navigationGraph"):
+		return level_data["navigationGraph"] as Dictionary
 	var points: Array = []
 	var links: Array = []
 	var point_indices: Dictionary = {}
@@ -351,7 +354,7 @@ func _build_spawn_records(level_data: Dictionary) -> Array:
 			"aiReactionTime": float(target.get("aiReactionTime", 0.34)),
 		})
 	if not combat_targets.is_empty():
-		return _build_competitive_roster(records) if GameState.current_level_id == "gatehouse" and GameState.match_phase != "inactive" else records
+		return _build_competitive_roster(records) if GameState.is_competitive_level() and GameState.match_phase != "inactive" else records
 	if use_spawn_points:
 		var spawn_points: Array = level_data.get("spawnPoints", []) as Array
 		for index in range(mini(max_targets, spawn_points.size())):
@@ -390,14 +393,18 @@ func _build_competitive_roster(source_records: Array) -> Array:
 		var player_templates: Array = by_team[GameState.player_team] as Array
 		var opponent_templates: Array = by_team[opponent_team] as Array
 		var player_names: Array[String] = []
-		if player_templates.size() >= 3:
+		if GameState.match_team_size == 5:
+			for index in range(player_templates.size()):
+				if index != player_templates.size() / 2 and player_names.size() < 4:
+					player_names.append(String(player_templates[index].get("name", "ALLY")))
+		elif player_templates.size() >= 3:
 			player_names.append(String((player_templates[0] as Dictionary).get("name", "ALLY-1")))
 			player_names.append(String((player_templates[2] as Dictionary).get("name", "ALLY-2")))
 		else:
 			for record_variant in player_templates.slice(0, 2):
 				player_names.append(String((record_variant as Dictionary).get("name", "ALLY")))
 		var opponent_names: Array[String] = []
-		for record_variant in opponent_templates.slice(0, 3):
+		for record_variant in opponent_templates.slice(0, GameState.match_team_size):
 			opponent_names.append(String((record_variant as Dictionary).get("name", "OPPONENT")))
 		_stable_match_roster = {"player": player_names, "opponent": opponent_names}
 	var output: Array = []
@@ -407,7 +414,12 @@ func _build_competitive_roster(source_records: Array) -> Array:
 
 func _append_squad_records(output: Array, templates: Array, stable_names: Array, player_squad: bool) -> void:
 	var selected_templates: Array = templates
-	if player_squad and templates.size() >= 3:
+	if player_squad and GameState.match_team_size == 5:
+		selected_templates = []
+		for index in range(templates.size()):
+			if index != templates.size() / 2:
+				selected_templates.append(templates[index])
+	elif player_squad and templates.size() >= 3:
 		selected_templates = [templates[0], templates[2]]
 	else:
 		selected_templates = templates.slice(0, stable_names.size())

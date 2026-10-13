@@ -39,6 +39,7 @@ var match_active: bool = false
 var match_phase: String = "inactive"
 var match_result: String = ""
 var match_serial: int = 0
+var match_team_size: int = 3
 var initial_player_team: String = "T"
 var player_squad_score: int = 0
 var opponent_squad_score: int = 0
@@ -61,6 +62,7 @@ func set_level(level_id: String, level_name: String = "") -> void:
 		_emit_hud_state_changed()
 
 func reset_runtime_state() -> void:
+	match_team_size = 3
 	match_active = false
 	match_phase = "inactive"
 	match_result = ""
@@ -88,8 +90,9 @@ func reset_runtime_state() -> void:
 	unit_scoreboard.clear()
 	_emit_hud_state_changed()
 
-func start_match(starting_team: String = "T") -> Dictionary:
+func start_match(starting_team: String = "T", team_size: int = 3) -> Dictionary:
 	reset_runtime_state()
+	match_team_size = clampi(team_size, 3, 5)
 	match_serial += 1
 	match_active = true
 	match_phase = "first_half"
@@ -128,14 +131,14 @@ func prepare_next_round() -> void:
 	round_result_text = ""
 	_emit_hud_state_changed()
 
-func purchase(item_id: String) -> Dictionary:
+func get_purchase_offer(item_id: String) -> Dictionary:
 	if not RoundManager.can_buy():
 		return {"success": false, "reason": "只能在冻结期购买"}
 	var prices := {"rifle": 2700, "pistol": 500, "armor": 650, "helmet": 350, "armor_helmet": 1000, "defuse_kit": 400, "he_grenade": 300, "flash_grenade": 200, "smoke_grenade": 300}
 	if not prices.has(item_id):
 		return {"success": false, "reason": "未知商品"}
 	if item_id == "defuse_kit" and player_team != "CT":
-		return {"success": false, "reason": "只有 CT 可以购买拆弹钳"}
+		return {"success": false, "reason": "仅防守方可购买拆弹钳"}
 	if item_id == "defuse_kit" and player_defuse_kit:
 		return {"success": false, "reason": "已拥有拆弹钳"}
 	if item_id == "armor" and player_armor >= 100:
@@ -150,7 +153,14 @@ func purchase(item_id: String) -> Dictionary:
 	elif item_id == "armor_helmet":
 		price = ceili(float(100 - player_armor) * 6.5) + (0 if player_helmet else 350)
 	if player_money < price:
-		return {"success": false, "reason": "金钱不足"}
+		return {"success": false, "reason": "金钱不足", "price": price}
+	return {"success": true, "price": price, "item_id": item_id}
+
+func purchase(item_id: String) -> Dictionary:
+	var offer := get_purchase_offer(item_id)
+	if not bool(offer.get("success", false)):
+		return offer
+	var price := int(offer["price"])
 	player_money -= price
 	if item_id in ["armor", "armor_helmet"]:
 		player_armor = 100
@@ -279,6 +289,7 @@ func clear_eliminated_player_equipment() -> void:
 
 func get_match_snapshot() -> Dictionary:
 	return {
+		"team_size": match_team_size,
 		"schema_version": 1, "match_serial": match_serial, "level_id": current_level_id, "level_name": current_level_name,
 		"active": match_active, "phase": match_phase, "result": match_result,
 		"initial_player_team": initial_player_team, "player_team": player_team,
@@ -288,6 +299,9 @@ func get_match_snapshot() -> Dictionary:
 		"regulation_rounds": regulation_rounds_played, "overtime_rounds": overtime_rounds_played,
 		"rounds": match_rounds.duplicate(true), "scoreboard": unit_scoreboard.duplicate(true),
 	}
+
+func is_competitive_level() -> bool:
+	return current_level_id == "gatehouse" or current_level_id.begins_with("dustline-depths")
 
 func export_match_record(path: String = "") -> String:
 	var output_path := path

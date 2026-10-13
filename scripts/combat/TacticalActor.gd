@@ -209,6 +209,15 @@ func emit_ai_spot(world_position: Vector3, enemy_team: String) -> void:
 func emit_ai_shot(result: Dictionary, world_position: Vector3) -> void:
 	ai_shot.emit(result, world_position)
 
+func ai_motion_blocked(motion: Vector3) -> bool:
+	var collision := KinematicCollision3D.new()
+	if not test_move(global_transform, motion, collision):
+		return false
+	for index in range(collision.get_collision_count()):
+		if collision.get_normal(index).y < cos(floor_max_angle):
+			return true
+	return false
+
 func apply_ai_navigation(direction: Vector3, speed: float, target_y: float, delta: float) -> void:
 	if _current_ladder != null:
 		var ladder_normal := _current_ladder.get_meta("ladder_normal", Vector3.FORWARD) as Vector3

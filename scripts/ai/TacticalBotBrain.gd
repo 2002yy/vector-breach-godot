@@ -99,6 +99,7 @@ var grenade_counts: Dictionary = {"he_grenade": 0, "flash_grenade": 0, "smoke_gr
 var economy_mode: String = "force"
 var save_gun_enabled: bool = true
 var team_money: int = -1
+var _economy_team_size: int = 3
 var team_loss_streak: int = 0
 
 var _route_points: Array[Vector3] = []
@@ -348,12 +349,13 @@ func configure_objective(role: String, target: Vector3, site_label: String = "",
 	plant_site_label = site_label
 	bomb_carrier = carrier
 
-func set_team_economy(team_money_value: int, loss_streak_value: int) -> void:
+func set_team_economy(team_money_value: int, loss_streak_value: int, team_size_value: int = 3) -> void:
 	team_money = maxi(0, team_money_value)
+	_economy_team_size = clampi(team_size_value, 3, 5)
 	team_loss_streak = maxi(0, loss_streak_value)
-	if team_money >= 9000:
+	if team_money >= 3000 * _economy_team_size:
 		economy_mode = "force"
-	elif team_money >= 4500:
+	elif team_money >= 1500 * _economy_team_size:
 		economy_mode = "half"
 	else:
 		economy_mode = "eco"
@@ -864,8 +866,8 @@ func _tick_freeze_purchase() -> void:
 		return
 	_purchased_this_round = true
 	var economy_money := ai_money if team_money < 0 else team_money
-	var force_threshold := 9000 if team_money >= 0 else 4200
-	var half_threshold := 4500 if team_money >= 0 else 1800
+	var force_threshold := 3000 * _economy_team_size if team_money >= 0 else 4200
+	var half_threshold := 1500 * _economy_team_size if team_money >= 0 else 1800
 	if economy_money >= force_threshold:
 		economy_mode = "force"
 	elif economy_money >= half_threshold:
@@ -1219,12 +1221,12 @@ func _move_toward(destination: Vector3, delta: float) -> void:
 	if _recovery_seconds > 0.0:
 		_recovery_seconds = maxf(0.0, _recovery_seconds - delta)
 		direction = _choose_open_recovery_direction(_recovery_direction, desired_direction)
-	elif actor.test_move(actor.global_transform, direction * 0.45):
+	elif bool(actor.call("ai_motion_blocked", direction * 0.45)):
 		var left := direction.rotated(Vector3.UP, PI * 0.5)
 		var right := direction.rotated(Vector3.UP, -PI * 0.5)
-		if not actor.test_move(actor.global_transform, left * 0.45):
+		if not bool(actor.call("ai_motion_blocked", left * 0.45)):
 			direction = left
-		elif not actor.test_move(actor.global_transform, right * 0.45):
+		elif not bool(actor.call("ai_motion_blocked", right * 0.45)):
 			direction = right
 	var precise := bool(_active_navigation_link.get("precise", false))
 	var crouch := bool(_active_navigation_link.get("crouch", false))
@@ -1315,7 +1317,7 @@ func _choose_open_recovery_direction(preferred: Vector3, desired_direction: Vect
 	]
 	for candidate_variant in candidates:
 		var candidate := candidate_variant as Vector3
-		if not actor.test_move(actor.global_transform, candidate * 0.45):
+		if not bool(actor.call("ai_motion_blocked", candidate * 0.45)):
 			return candidate
 	return preferred
 

@@ -148,15 +148,16 @@ func set_map_details(option: Dictionary, can_resume: bool) -> void:
 			break
 	_refresh_map_options()
 	title_label.text = "矢量突袭"
-	var is_match := String(option["id"]) == "gatehouse"
 	var is_research := String(option["id"]).begins_with("dustline-depths")
+	var is_match := String(option["id"]) == "gatehouse" or is_research
 	description_label.text = "[font_size=24][b]%s[/b][/font_size]\n\n%s" % [String(option["name"]), String(option["recommended_use"])]
 	$MenuPanel/Margin/VBox/Subtitle.hide()
 	$MenuPanel/Margin/VBox/Controls/TeamRow.visible = is_match
 	g2_hint.hide()
 	start_button.text = "重新开始比赛" if can_resume and is_match else ("重新开始练习" if can_resume else ("开始 3 对 3 比赛" if is_match else "开始练习"))
 	if is_research and not can_resume:
-		start_button.text = "进入经典地图"
+		start_button.text = "开始 5 对 5 爆破"
+		description_label.text = "[font_size=24][b]%s[/b][/font_size]\n\n你 + 四名 AI 队友，对五名敌人。" % String(option["name"])
 	hint_label.text = "F1 操作帮助 · Esc 暂停菜单"
 	_help_label.text = "操作指南\n\n" + PlayerGuide.CONTROLS + "\n\n" + (PlayerGuide.MATCH_RULES if is_match else PlayerGuide.PRACTICE_RULES)
 	if is_research:

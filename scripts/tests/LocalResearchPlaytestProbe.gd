@@ -21,8 +21,27 @@ func _ready() -> void:
 		main.call("_on_map_selected", map_index)
 		await get_tree().process_frame
 		var menu_image := await _capture(level_id + "-play-menu")
-		main.call("_on_start_pressed")
-		RoundManager.set_live()
+		await main.call("_on_start_pressed")
+		var sandbox := main.get_node("CombatSandbox")
+		var match_count_ok := (
+			sandbox.get_child_count() == 9
+			and GameState.friendly_alive == 5
+			and GameState.enemy_alive == 5
+		)
+		var freeze_ok := (
+			RoundManager.time_remaining > 55.0
+			and RoundManager.state == RoundManager.RoundState.FREEZE
+		)
+		var buy_image := await _capture(level_id + "-buy-opening")
+		GameState.player_money = 4000
+		main.call("_purchase_item", "rifle")
+		main.call("_on_player_ready")
+		var ready_ok := (
+			RoundManager.state == RoundManager.RoundState.LIVE
+			and not bool(main.get("_buy_menu_open"))
+		)
+		for actor in sandbox.get_children():
+			actor.get_node("TacticalBotBrain").set("enabled", false)
 		var player := main.get_node("Player") as CharacterBody3D
 		player.call("set_mouse_capture_enabled", false)
 		for _frame in range(20):
@@ -45,7 +64,11 @@ func _ready() -> void:
 		var damaged_target := false
 		if not targets.is_empty():
 			var target := targets[0] as CharacterBody3D
-			player.global_position = target.global_position + Vector3(0.0, 0.0, 3.0)
+			for candidate in targets:
+				if String(candidate.get("team")) != GameState.player_team:
+					target = candidate as CharacterBody3D
+					break
+			target.global_position = player.global_position - player.global_transform.basis.z * 3.0
 			player.velocity = Vector3.ZERO
 			player.set_physics_process(false)
 			var camera := player.call("get_camera_node") as Camera3D
@@ -64,8 +87,29 @@ func _ready() -> void:
 		var pistol_selected := (
 			int((weapon.call("get_runtime_snapshot") as Dictionary).get("weapon_slot", -1)) == 1
 		)
+		var objectives: Array = (
+			(main.get_node("Level").get("_current_level_data") as Dictionary).get("objectives", [])
+		)
+		var bomb_loop_ok := false
+		if not objectives.is_empty():
+			var site: Dictionary = objectives[0]
+			player.global_position = Vector3(float(site["x"]), float(site["y"]), float(site["z"]))
+			Input.action_press("interact")
+			main.call("_update_objective_interaction", 3.3)
+			Input.action_release("interact")
+			var planted := RoundManager.state == RoundManager.RoundState.BOMB_PLANTED
+			GameState.player_team = "CT"
+			GameState.player_defuse_kit = true
+			Input.action_press("interact")
+			main.call("_update_objective_interaction", 5.1)
+			Input.action_release("interact")
+			bomb_loop_ok = planted and RoundManager.round_reason == "BOMB DEFUSED"
 		var passed := (
-			spawn_on_floor
+			match_count_ok
+			and freeze_ok
+			and ready_ok
+			and bomb_loop_ok
+			and spawn_on_floor
 			and moved_distance > 0.2
 			and rifle_owned
 			and pistol_owned
@@ -88,7 +132,12 @@ func _ready() -> void:
 				"target_damaged": damaged_target,
 				"pistol_selected": pistol_selected,
 				"target_count": targets.size(),
-				"mode": "controlled_practice_not_bomb_match"
+				"mode": "controlled_5v5_bomb_match",
+				"roster_ok": match_count_ok,
+				"freeze_ok": freeze_ok,
+				"ready_ok": ready_ok,
+				"buy_opening": buy_image,
+				"bomb_loop_ok": bomb_loop_ok
 			}
 		)
 		main.queue_free()
