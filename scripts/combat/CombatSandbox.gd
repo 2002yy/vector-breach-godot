@@ -21,6 +21,9 @@ var _loaded_level_id: String = ""
 var _saved_round_loadouts: Dictionary = {}
 var _stable_match_roster: Dictionary = {}
 var _competitive_hard_reset_pending: bool = false
+var _round_economy: Dictionary = {}
+var _team_loss_streaks := {"T": 0, "CT": 0}
+var _income_round_serial := -1
 
 func _ready() -> void:
 	if not RoundManager.round_ended.is_connected(_on_round_ended_capture):
@@ -33,6 +36,7 @@ func load_for_level(level_data: Dictionary) -> void:
 		_loaded_level_id = level_id
 		_saved_round_loadouts.clear()
 	_current_level_data = level_data
+	_round_economy.clear()
 	_bomb_carrier_actor = null
 	if dummy_scene == null:
 		targets_spawned.emit(0)
@@ -94,12 +98,17 @@ func load_for_level(level_data: Dictionary) -> void:
 	for child in get_children():
 		if child is CharacterBody3D and (child as CharacterBody3D).has_method("get_combat_snapshot"):
 			scoreboard_records.append((child as CharacterBody3D).call("get_combat_snapshot"))
+			if GameState.is_competitive_level():
+				_remember_round_loadout(child as CharacterBody3D)
 	GameState.set_scoreboard_combatants(scoreboard_records)
 	_sync_team_economy()
 	_competitive_hard_reset_pending = false
 
 func clear_saved_round_state(reset_roster: bool = false) -> void:
 	_saved_round_loadouts.clear()
+	_round_economy.clear()
+	_team_loss_streaks = {"T": 0, "CT": 0}
+	_income_round_serial = -1
 	_competitive_hard_reset_pending = true
 	if reset_roster:
 		_stable_match_roster.clear()
@@ -188,7 +197,7 @@ func _sync_team_economy() -> void:
 	for child in get_children():
 		if child is CharacterBody3D and (child as CharacterBody3D).has_node("TacticalBotBrain"):
 			var team := String((child as CharacterBody3D).get("team"))
-			var loss_streak := GameState.loss_streak if team == GameState.player_team else 0
+			var loss_streak := int(_team_loss_streaks.get(team, 0)) if GameState.is_competitive_level() else (GameState.loss_streak if team == GameState.player_team else 0)
 			(child as CharacterBody3D).get_node("TacticalBotBrain").call(
 				"set_team_economy",
 				int(team_money_totals.get(team, 0)),
@@ -196,23 +205,54 @@ func _sync_team_economy() -> void:
 				GameState.match_team_size
 			)
 
-func _on_round_ended_capture(_winner: String, _reason: String) -> void:
+func _on_round_ended_capture(winner: String, _reason: String) -> void:
+	if GameState.is_competitive_level() and _income_round_serial == RoundManager.round_serial:
+		return
+	if not GameState.is_competitive_level():
+		_round_economy.clear()
 	for child in get_children():
-		if child is CharacterBody3D and not bool((child as CharacterBody3D).get("is_dead")):
-			var snapshot := (child as CharacterBody3D).call("get_combat_snapshot") as Dictionary
-			var ai := snapshot.get("ai", {}) as Dictionary
-			_saved_round_loadouts[String(snapshot.get("name", ""))] = {
-				"weapon": String(snapshot.get("weapon", "rifle")),
-				"ammo_in_mag": int(ai.get("ammo", 30)),
-				"ammo_reserve": int(ai.get("ammo_reserve", 0)),
-				"armor": int(snapshot.get("armor", 0)),
-				"helmet": bool(snapshot.get("helmet", false)),
-				"defuse_kit": bool(snapshot.get("defuse_kit", false)),
-				"money": int(ai.get("money", 800)),
-				"grenades": (ai.get("grenades", {}) as Dictionary).duplicate(true),
-			}
+		if child is CharacterBody3D and (GameState.is_competitive_level() or not bool(child.get("is_dead"))):
+			_remember_round_loadout(child as CharacterBody3D)
+	var rewards := {"T": 0, "CT": 0}
+	if GameState.is_competitive_level() and winner in ["T", "CT"]:
+		_income_round_serial = RoundManager.round_serial
+		for team in ["T", "CT"]:
+			if team == winner:
+				rewards[team] = 3250
+				_team_loss_streaks[team] = 0
+			else:
+				var streak := int(_team_loss_streaks[team])
+				rewards[team] = GameState.LOSS_BONUSES[mini(streak, GameState.LOSS_BONUSES.size() - 1)]
+				_team_loss_streaks[team] = mini(streak + 1, GameState.LOSS_BONUSES.size() - 1)
+				if team == "T" and not RoundManager.bomb_site.is_empty():
+					rewards[team] += 800
+	for actor_name in _round_economy:
+		var participant: Dictionary = _round_economy[actor_name]
+		var loadout: Dictionary = participant["loadout"].duplicate(true)
+		loadout["money"] = mini(GameState.MAX_MONEY, int(loadout["money"]) + int(rewards.get(participant["team"], 0)))
+		_saved_round_loadouts[actor_name] = loadout
+
+func _remember_round_loadout(actor: CharacterBody3D) -> void:
+	var snapshot := actor.call("get_combat_snapshot") as Dictionary
+	var ai: Dictionary = snapshot.get("ai", {})
+	var dead := bool(actor.get("is_dead"))
+	_round_economy[String(snapshot.get("name", ""))] = {
+		"team": String(snapshot.get("team", "")),
+		"loadout": {
+			"weapon": "pistol" if dead else String(snapshot.get("weapon", "rifle")),
+			"ammo_in_mag": 12 if dead else int(ai.get("ammo", 30)),
+			"ammo_reserve": 24 if dead else int(ai.get("ammo_reserve", 0)),
+			"armor": 0 if dead else int(snapshot.get("armor", 0)),
+			"helmet": not dead and bool(snapshot.get("helmet", false)),
+			"defuse_kit": not dead and bool(snapshot.get("defuse_kit", false)),
+			"money": int(ai.get("money", 800)),
+			"grenades": {} if dead else (ai.get("grenades", {}) as Dictionary).duplicate(true),
+		},
+	}
 
 func _on_actor_killed(_actor_name: String, _team: String, actor: CharacterBody3D) -> void:
+	if GameState.is_competitive_level():
+		_remember_round_loadout(actor)
 	if actor != _bomb_carrier_actor:
 		return
 	if c4_device != null and is_instance_valid(c4_device) and String(c4_device.get("device_state")) == "carried":

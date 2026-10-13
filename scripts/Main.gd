@@ -462,15 +462,11 @@ func _on_level_loaded(level_data: Dictionary) -> void:
 			await get_tree().physics_frame
 		if serial != _level_load_serial:
 			return
-		var exclude: Array[RID] = [player.get_rid()]
-		for actor in get_tree().get_nodes_in_group("combat_actors"):
-			if actor is CollisionObject3D:
-				exclude.append((actor as CollisionObject3D).get_rid())
-		var layout := ClassicMatchLayout.build(get_world_3d().direct_space_state, level_data, exclude)
+		var layout := ClassicMatchLayout.load_authored(level_data)
 		if layout.is_empty():
 			_level_load_failed = true
 			_level_loading = false
-			push_error("经典地图无法建立完整队伍与爆点，请检查本机碰撞资源。")
+			push_error("经典地图缺少有效的本机冻结路网 JSON，或碰撞/关卡资源已变更。请显式重建并审计本机基线。")
 			return
 		level_data.merge(layout, true)
 		var spawns: Array = (layout.get("matchSpawns", {}) as Dictionary).get(GameState.player_team, [])
@@ -791,6 +787,12 @@ func _on_round_restart_requested() -> void:
 	level.call("load_level", option["id"])
 	while _level_loading:
 		await get_tree().physics_frame
+	if _level_load_failed:
+		game_started = false
+		GameState.set_game_started(false)
+		RoundManager.set_warmup()
+		_open_menu(true)
+		return
 	player.call("reset_to_spawn")
 	if hard_reset or not player_survived:
 		if not player_survived and not hard_reset:

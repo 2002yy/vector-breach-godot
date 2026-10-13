@@ -25,6 +25,41 @@ func _run_all_tests() -> void:
 	await _run_test("gatehouse_six_six_overtime_pair_real_scene", _test_overtime_pair)
 	await _run_test("gatehouse_opposite_side_new_match_isolation", _test_new_match_isolation)
 	await _run_test("gatehouse_duplicate_end_restart_is_idempotent", _test_duplicate_end_restart_idempotence)
+	await _run_test("bot_round_income_survives_death_and_enables_rifle", _test_bot_round_income)
+
+
+func _test_bot_round_income() -> void:
+	var main := await _instantiate_main("T")
+	var sandbox := main.get_node("CombatSandbox")
+	var survivor: CharacterBody3D
+	var fallen: CharacterBody3D
+	for actor in _get_actors(main):
+		actor.get_node("TacticalBotBrain").set("enabled", false)
+		if String(actor.get("team")) == "T":
+			survivor = actor
+		else:
+			fallen = actor
+	var survivor_name := String(survivor.get("display_name"))
+	var fallen_name := String(fallen.get("display_name"))
+	fallen.get_node("TacticalBotBrain").set("ai_money", 500)
+	RoundManager.set_live()
+	fallen.call("apply_hitscan_damage", 200, fallen.global_position, 1.0, false, "T", Vector3.ZERO)
+	fallen.queue_free()
+	await get_tree().process_frame
+	RoundManager.end_round("T", "ELIMINATION")
+	var saved: Dictionary = sandbox.get("_saved_round_loadouts")
+	_assert_equal(int(saved[survivor_name]["money"]), 4050, "survivor must receive win income")
+	_assert_equal(int(saved[fallen_name]["money"]), 1900, "freed dead bot must retain unspent money plus loss income")
+	_assert_equal(String(saved[fallen_name]["weapon"]), "pistol", "dead bot must lose carried primary")
+	sandbox.call("_on_round_ended_capture", "T", "ELIMINATION")
+	_assert_equal(int(saved[survivor_name]["money"]), 4050, "duplicate settlement must not pay twice")
+	_trigger_round_restart()
+	await _await_reload_frames()
+	for actor in _get_actors(main):
+		if String(actor.get("display_name")) == survivor_name:
+			var brain := actor.get_node("TacticalBotBrain")
+			_assert_equal(String(brain.get("primary_weapon_id")), "rifle", "second-round win income must enable real rifle purchase")
+	await _cleanup_main(main)
 
 
 func _run_test(test_name: String, callable: Callable) -> void:

@@ -23,6 +23,6 @@
 | 4 | 高爆/闪光/烟雾 | 投掷实体为简化彩色球体；缺第一人称持雷模型 | 物理抛投/引信、爆炸伤害、闪光致盲、烟雾遮挡已接入；按 4 轮选有库存的类型。不是三类正式美术完成 |
 | 5 | C4 | 掉落/安装模型已通过历史 PR #27 集成 | 尚无 5 键装备槽；目前靠 E 拾取/持续安装/拆除以及条件掉落交互 |
 
-代码核对范围：`WeaponViewModel.set_weapon_slot` 只支持 0/1；`TacticalEquipment.select_knife`、`select_next_grenade`、`primary_attack`；`GrenadeProjectile` 的实体与效果；`Main` 的输入和 C4 交互。枪械与爆破本次有原生/Vulkan执行证据；刀与各投掷物的当前结论是代码与现有回归核对，不冒充新增完整视觉验收。
+代码核对范围：`WeaponViewModel.set_weapon_slot` 只支持 0/1；`TacticalEquipment.select_knife`、`select_next_grenade`、`use_primary`；`GrenadeProjectile` 的实体与效果；`Main` 的输入和 C4 交互。枪械与爆破本次有原生/Vulkan执行证据；刀与各投掷物的当前结论是代码与现有回归核对，不冒充新增完整视觉验收。
 
 结论：四类可用逻辑不等于四类外形与完整经典效果均完成。下一执行片段为独立持刀/持雷模型、正确视觉切换及效果专项验收，再补 5 键 C4 一致操作；本次不隐瞒这些缺口，也不把它们计作 5v5/购买页已完成范围。

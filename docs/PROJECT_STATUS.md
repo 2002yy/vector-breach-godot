@@ -8,7 +8,7 @@ Updated: 2026-10-14
 
 历史 PR #33 和 #27 已分别合并。C4 已补本机 Vulkan、输入/混音器与全套原生证据；当前头 `8a68658` 的 Tests 及完整 Windows Export / smoke 均通过，main 合并为 `a97f787`。详情见 [C4 集成记录](TASK_C4_INTEGRATION_2026-10-13.md)。本次明确集成授权覆盖旧记录的待 L3 合并授权；资产人工美术/听感仍保留 draft，不宣称完成 G2。
 
-最新覆盖：用户继续授权经典图 5v5、明确购买页、生成枪械插画、最多 60 秒准备并点击就绪立即开战，以及整理合并所有 PR。两种经典沙线入口现已接入玩家加四名队友对五名敌人的单机爆破，复用经济、换边和结算；首局/换边改为手枪 $800。门厅区保留 3v3。旧的“经典图仅练枪/5v5 未实现”记录已被本段覆盖。购买页面使用 Codex 生成的透明枪械图片，已检查本机 Vulkan 显示。玩家死亡不提前判整队输，AI 斜坡误绕和五人经济阈值已修复。范围、执行证据和未完成人工验收见 [5v5 购买任务](TASK_CLASSIC_5V5_BUY_2026-10-13.md)。历史 PR #33/#27 已合并；当前购买与 5v5 候选已通过本机完整检查，待当前头 CI/review 后提交合并。四类装备的外形与功能差距见 [经典装备核对](CS_WEAPON_SLOTS_AUDIT_2026-10-14.md)。
+最新覆盖：用户继续授权经典图 5v5、明确购买页、生成枪械插画、最多 60 秒准备并点击就绪立即开战，以及整理合并所有 PR。两种经典沙线入口现已接入玩家加四名队友对五名敌人的单机爆破，复用经济、换边和结算；首局/换边改为手枪 $800。门厅区保留 3v3。旧的“经典图仅练枪/5v5 未实现”记录已被本段覆盖。购买页面使用 Codex 生成的透明枪械图片，已检查本机 Vulkan 显示。玩家死亡不提前判整队输，AI 斜坡误绕、五人经济阈值与缺少回合收入已修复；经典路网由本机冻结 JSON 控制，资源变动时拒绝启动而不自动重建。范围、执行证据和未完成人工验收见 [5v5 购买任务](TASK_CLASSIC_5V5_BUY_2026-10-13.md)。历史 PR #33/#27 已合并；购买与 5v5 的远程交付见 [PR #34](https://github.com/2002yy/vector-breach-godot/pull/34)；精确提交、CI 与合并状态记入任务的交付 JSON。四类装备的外形与功能差距见 [经典装备核对](CS_WEAPON_SLOTS_AUDIT_2026-10-14.md)。
 
 - 游戏位置、操作和地图历史已集中到 [中文指南](GAME_GUIDE_ZH.md)，桌面 `3Dgame\游戏在哪里.md` 留有入口。工作分支 `fix/onboarding-maps-ai-20261013`，基线 `main / 99f0506`；用户已授权提交并推送，远程交付见任务记录。
 - 菜单分为互斥的游戏 / 开发测试列表；本机可用时两种沙线研究入口默认可见。铸造仓库改名“路线回归”，三张开发图都有现行测试依赖而保留；没有改变碰撞 / 路线数据。开局左侧缩短地图说明并收起设置，右侧独立显示操作或设置。
@@ -68,7 +68,7 @@ Updated: 2026-10-14
 
 ## 当前验证
 
-- Windows 与 Linux 聚合脚本统一运行十二套原生测试：关卡数据、武器、灰盒关卡、命中反馈、战术 Bot、爆破 AI、比赛生命周期、Gatehouse 场景集成、主状态流、音频资产、C4 设备和性能预算；2026-10-14 本机候选为 150 项并出现 `RUN_ALL_OK`。
+- Windows 与 Linux 聚合脚本统一运行十二套原生测试：关卡数据、武器、灰盒关卡、命中反馈、战术 Bot、爆破 AI、比赛生命周期、Gatehouse 场景集成、主状态流、音频资产、C4 设备和性能预算；2026-10-14 本机候选为 152 项并出现 `RUN_ALL_OK`。
 - 已接入 GdUnit4 v6.2.1（`addons/gdUnit4`，经 Godot 4.7.1 headless 验证 2 用例 PASS），作为原生测试之外的行业标准补充框架；新测试放 `test/`，报告目录 `reports/` 已忽略，运行方式为 `runtest.cmd`（需 `GODOT_BIN` 指向引擎）。
 - Required `Tests` 已在 Godot 之前执行 Asset Layer、Asset Metadata 与 Asset Runtime Contract policy：当前 canonical source master 为 7 个，metadata sidecar 覆盖 7/7、资产 ID 唯一；7 个 Blender producer 拥有 14 个 runtime outputs，其中 8 个 GLB 必须具有合法 runtime contract。sidecar 中 runtime outputs 必须是 `assets/` 下规范、去重且 Git tracked 的实存路径；mandatory source coverage 同时包含 Blender/Krita/PSD/FBX 等源资产与音频 master。
 - Step 13 已接入 Blender 5.2.1 LTS headless source gate：6/6 tracked Blender master 在真实 canonical path 上通过 naming safety、外部 FILE/SEQUENCE/MOVIE/TILED/UDIM 资源实存、geometry unit scale、finite/non-singular transform、metadata/source identity 与二进制/LFS preflight；正向 PR #18 随后继续通过 Godot import、GdUnit4 与 native suites。

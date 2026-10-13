@@ -19,6 +19,8 @@ func _ready() -> void:
 
 func _run_all_tests() -> void:
 	await _run_test("initial_boot_shows_menu_and_default_map", _test_initial_boot_shows_menu_and_default_map)
+	await _run_test("classic_layout_is_frozen_and_rejects_changed_assets", _test_frozen_classic_layout)
+
 	await _run_test("squad_economy_includes_player_and_help_matches_loadout", _test_squad_economy_includes_player_and_help_matches_loadout)
 	await _run_test("map_selection_updates_game_state_and_menu_copy", _test_map_selection_updates_game_state_and_menu_copy)
 	await _run_test("start_game_enters_freeze_buy_state", _test_start_game_transitions_to_live_state)
@@ -1032,3 +1034,28 @@ func _test_buy_plant_defuse_round_loop() -> void:
 		_assert_equal(String(RoundManager.round_winner), "T", "expired bomb timer should award T")
 		_assert_equal(GameState.player_squad_score, 2, "the stable player squad should retain both scripted role wins")
 	await _cleanup_main(main)
+
+func _test_frozen_classic_layout() -> void:
+	var source_path := "user://classic-frozen-source-test.txt"
+	var manifest_path := "user://classic-frozen-manifest-test.json"
+	var file := FileAccess.open(source_path, FileAccess.WRITE)
+	file.store_string("audited collision")
+	file.close()
+	var spawns := [[0, 1, 0], [1, 1, 0], [2, 1, 0], [3, 1, 0], [4, 1, 0]]
+	var expected := {
+		"navigationGraph": {"points": [[0, 1, 0], [1, 1, 0]], "links": [{"from": 0, "to": 1}]},
+		"objectives": [{"x": 10}, {"x": 20}], "matchSpawns": {"T": spawns, "CT": spawns},
+	}
+	var manifest := {"schema": 1, "collision_path": source_path, "collision_sha256": FileAccess.get_sha256(source_path), "level_sha256": {"res://data/levels/gatehouse.json": FileAccess.get_sha256("res://data/levels/gatehouse.json")}, "layout": expected}
+	file = FileAccess.open(manifest_path, FileAccess.WRITE)
+	file.store_string(JSON.stringify(manifest))
+	file.close()
+	var LayoutLoader := preload("res://scripts/level/ClassicMatchLayout.gd")
+	var data := {"id": "gatehouse", "visual_scene": source_path}
+	_assert_equal(LayoutLoader.load_authored(data, manifest_path), JSON.parse_string(JSON.stringify(expected)), "runtime must consume authored positions unchanged")
+	file = FileAccess.open(source_path, FileAccess.WRITE)
+	file.store_string("modified collision")
+	file.close()
+	_assert_true(LayoutLoader.load_authored(data, manifest_path).is_empty(), "collision change must fail closed rather than regenerate routes")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(source_path))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(manifest_path))
