@@ -16,9 +16,14 @@
 
 ## 验证与边界
 
-- 两种本机地图 Vulkan 控制探针：5v5、60 秒准备、就绪、实际移动、购买步枪/切枪、真实命中和安装/拆除全部通过，见 `D:\AgentGamePipeline\evidence\classic5v5-final-vulkan.log`。此为控制探针，不冒充自然比赛。
+- 两种本机地图 Vulkan 控制探针：5v5、60 秒准备、就绪、实际移动、购买步枪/切枪、真实命中和安装/拆除全部通过，见 `D:\AgentGamePipeline\evidence\classic5v5-delivery-vulkan.log`。RTX 5060 Laptop / Forward+；6 张菜单、购买与出生截图已人工检查并归档。此为控制探针，不冒充自然比赛。
 - 自然 AI：修复前 40 秒零射击，斜坡误绕导致多次恢复；修复后相同窗口 24 次射击，进攻队员位移 61–86 米，存活队员没有触发卡住恢复，见 `classic5v5-natural-verified.log`。玩家静止防守，AI 未强制移动/命中/购买。短局不代表最终平衡。
-- 原生回归覆盖 5v5 换边后队伍身份、实际页面购买/就绪、暂停限制、玩家阵亡与炸弹规则、斜坡/墙体判定、人均经济阈值。最终完整套件、静态检查和精确提交 CI 结果在交付时补录。
+- 自然回合扩展至最多 120 模拟秒：53 次实际射击，AI 自行安装并自行拆除，防守胜出；见 `classic5v5-natural-fullround.log`。一局仍不代表十场人工比赛或最终平衡。
+- 原生回归覆盖 5v5 换边后队伍身份、实际页面购买/就绪、暂停限制、玩家阵亡与炸弹规则、斜坡/墙体判定、人均经济阈值、菜单阵营与真实阵营一致、结算人数动态显示。最终完整 12 套 / 150 项 `RUN_ALL_OK`：`classic5v5-delivery-native.log`；GdUnit 两项通过。新增文件格式检查通过，gdlint 无新增问题（AI 文件仅保留 main 已有的未使用参数），四项资产策略通过。
 - 参考素材仅本机；完整人工十场比赛、最终 AI 战术质量、全图贴图与美术、联网均不宣称完成。C4 的资产 review 仍为 draft。
 
-下一步：合入历史 C4 main，执行最终整套检查，提交购买页与 5v5 PR，在当前头 CI/review 通过后合并 main。
+四类装备不是全部美术完成：枪械模型与购买插画已接入；刀/手雷的第一人称模型及 5 键 C4 尚缺，详见 [装备实况核对](CS_WEAPON_SLOTS_AUDIT_2026-10-14.md)。
+
+交付证据目录：`D:\AgentGamePipeline\evidence\classic5v5-ready-buy-verified`；提交、PR 与当前头 CI/run ID 记录在该目录的交付 JSON，GitHub PR 是远程合并状态权威。
+
+下一步：提交购买页与 5v5 PR，在当前头 CI/review 通过后合并 main；之后另做刀/手雷模型与切换表现的独立验收片段。

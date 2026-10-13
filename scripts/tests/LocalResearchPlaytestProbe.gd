@@ -19,6 +19,7 @@ func _ready() -> void:
 			get_tree().quit(1)
 			return
 		main.call("_on_map_selected", map_index)
+		main.call("_on_team_selected", "T")
 		await get_tree().process_frame
 		var menu_image := await _capture(level_id + "-play-menu")
 		await main.call("_on_start_pressed")

@@ -88,7 +88,7 @@ func _cleanup_fixture(fixture: Dictionary) -> void:
 
 func _test_five_player_economy() -> void:
 	var fixture := await _make_fixture()
-	var brain := fixture.actor.get_node("TacticalBotBrain")
+	var brain: Node = fixture.actor.get_node("TacticalBotBrain")
 	brain.call("set_team_economy", 7000, 0, 5)
 	_assert_equal(brain.get("economy_mode"), "eco", "five-player economy should compare funds per participant")
 	brain.call("set_team_economy", 10000, 0, 5)

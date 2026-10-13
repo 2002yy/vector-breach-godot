@@ -23,6 +23,7 @@ func _run_all_tests() -> void:
 	await _run_test("map_selection_updates_game_state_and_menu_copy", _test_map_selection_updates_game_state_and_menu_copy)
 	await _run_test("start_game_enters_freeze_buy_state", _test_start_game_transitions_to_live_state)
 	await _run_test("buy_page_ready_and_pause_contract", _test_buy_page_ready_and_pause_contract)
+	await _run_test("planted_bomb_outlives_attackers", _test_planted_bomb_outlives_attackers)
 	await _run_test("pause_then_resume_restores_live_state", _test_pause_then_resume_restores_live_state)
 	await _run_test("level_environment_overrides_restore_defaults", _test_level_environment_overrides_restore_defaults)
 	await _run_test("weapon_view_model_tracks_switch_and_shot", _test_weapon_view_model_tracks_switch_and_shot)
@@ -87,6 +88,7 @@ func _instantiate_main() -> Node3D:
 	RoundManager.set_warmup()
 	var main: Node3D = MAIN_SCENE.instantiate()
 	add_child(main)
+	main.call("_on_team_selected", "T")
 	return main
 
 func _cleanup_main(main: Node3D) -> void:
@@ -204,10 +206,30 @@ func _test_squad_economy_includes_player_and_help_matches_loadout() -> void:
 		_assert_true(not (hud.get("_player_help") as PanelContainer).visible, "F1 should close runtime help")
 		await _cleanup_main(main)
 
-func _test_buy_page_ready_and_pause_contract() -> void:
+func _test_planted_bomb_outlives_attackers() -> void:
 	var main: Node3D = _instantiate_main()
 	await _await_main_ready()
 	await main.call("_on_start_pressed")
+	main.call("_on_player_ready")
+	RoundManager.plant_bomb("A")
+	main.get_node("Player").set("is_dead", true)
+	for actor in main.get_node("CombatSandbox").get_children():
+		if String(actor.get("team")) == "T":
+			actor.set("is_dead", true)
+	main.call("_check_team_elimination")
+	_assert_equal(RoundManager.state, RoundManager.RoundState.BOMB_PLANTED, "planted bomb must remain active after all attackers die")
+	for actor in main.get_node("CombatSandbox").get_children():
+		actor.set("is_dead", true)
+	main.call("_check_team_elimination")
+	_assert_equal(RoundManager.round_winner, "T", "eliminating all defenders should award T even after attackers die")
+	await _cleanup_main(main)
+
+func _test_buy_page_ready_and_pause_contract() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	(main.get_node("StartMenu").get("team_select") as OptionButton).select(1)
+	await main.call("_on_start_pressed")
+	_assert_equal(GameState.player_team, "CT", "actual start must honor the visible menu selection")
 	_assert_true(RoundManager.time_remaining > 55.0, "AI match should allow up to sixty seconds to buy")
 	_assert_true(bool(main.get("_buy_menu_open")), "opening must show the purchase page")
 	var page := main.get_node("CombatHud").get("buy_menu") as PanelContainer
@@ -228,6 +250,9 @@ func _test_buy_page_ready_and_pause_contract() -> void:
 	_assert_equal(RoundManager.state, RoundManager.RoundState.LIVE, "actual ready button should skip remaining wait")
 	_assert_true(not bool(main.get("_buy_menu_open")), "ready must close purchase page")
 	_assert_true(not RoundManager.player_ready(), "repeated ready must not restart a live round")
+	GameState.start_match("T", 5)
+	main.get_node("StartMenu").call("set_match_summary", GameState.get_match_snapshot(), "fixture")
+	_assert_true((main.get_node("StartMenu").get("description_label") as RichTextLabel).text.contains("5V5"), "classic result page must show five-player teams")
 	await _cleanup_main(main)
 
 func _test_start_game_transitions_to_live_state() -> void:

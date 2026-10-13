@@ -194,6 +194,7 @@ func _on_team_selected(team: String) -> void:
 	if game_started:
 		return
 	selected_start_team = team if team in ["T", "CT"] else "T"
+	(start_menu.get("team_select") as OptionButton).select(0 if selected_start_team == "T" else 1)
 	GameState.player_team = selected_start_team
 	if is_instance_valid(c4_device):
 		c4_device.call("set_carried", "T")
@@ -355,6 +356,7 @@ func _on_map_selected(index: int) -> void:
 
 func _on_start_pressed() -> void:
 	var option: Dictionary = level_options[selected_level_index]
+	selected_start_team = "T" if (start_menu.get("team_select") as OptionButton).selected == 0 else "CT"
 	GameState.start_match(selected_start_team, 5 if String(option["id"]).begins_with("dustline-depths") else 3)
 	_completed_match_record_path = ""
 	if combat_sandbox.has_method("clear_saved_round_state"):
