@@ -14,6 +14,7 @@ const DEFAULT_BEEP_PITCH := 1.0
 
 var device_state: String = "carried"
 var carrier_team: String = "T"
+var carrier_id: int = 0
 var site_label: String = ""
 var _beep_timer: float = 0.0
 var _world_label: Label3D
@@ -48,14 +49,16 @@ func _process(delta: float) -> void:
 	else:
 		status_light.light_energy = move_toward(status_light.light_energy, IDLE_LIGHT_ENERGY, delta * 8.0)
 
-func set_carried(team: String = "T") -> void:
+func set_carried(team: String = "T", owner_id: int = 0) -> void:
 	device_state = "carried"
 	carrier_team = team
+	carrier_id = owner_id
 	site_label = ""
 	mesh_root.visible = false
 	_reset_armed_feedback()
 
 func drop_at(world_position: Vector3) -> void:
+	carrier_id = 0
 	device_state = "dropped"
 	global_position = world_position
 	site_label = ""
@@ -63,6 +66,7 @@ func drop_at(world_position: Vector3) -> void:
 	_reset_armed_feedback()
 
 func plant_at(world_position: Vector3, next_site_label: String) -> void:
+	carrier_id = 0
 	device_state = "planted"
 	global_position = world_position
 	site_label = next_site_label
@@ -72,11 +76,14 @@ func plant_at(world_position: Vector3, next_site_label: String) -> void:
 func can_pick_up(player_position: Vector3, player_team: String) -> bool:
 	return device_state == "dropped" and player_team == "T" and global_position.distance_to(player_position) <= 1.8
 
-func pick_up(player_team: String) -> bool:
+func pick_up(player_team: String, owner_id: int = 0) -> bool:
 	if device_state != "dropped" or player_team != "T":
 		return false
-	set_carried(player_team)
+	set_carried(player_team, owner_id)
 	return true
+
+func is_carried_by(actor: Node) -> bool:
+	return is_instance_valid(actor) and device_state == "carried" and carrier_id == actor.get_instance_id()
 
 func is_player_in_interaction_range(player_position: Vector3) -> bool:
 	return device_state == "planted" and global_position.distance_to(player_position) <= 2.0

@@ -49,6 +49,8 @@ func _run_all_tests() -> void:
 	await _run_test("knife_and_grenade_equipment_are_actionable", _test_knife_and_grenade_equipment_are_actionable)
 	await _run_test("equipment_models_follow_inventory_and_same_gun_reselection", _test_equipment_models)
 	await _run_test("c4_slot_and_context_prompt_guards", _test_c4_prompts)
+	await _run_test("bot_c4_pickup_cannot_duplicate_player_carrier", _test_bot_c4_ownership)
+	await _run_test("c4_ai_hint_distinguishes_enemy_and_ally", _test_c4_ai_hint)
 	await _run_test("player_damage_tags_and_death_ends_round", _test_player_damage_tags_and_death_ends_round)
 	await _run_test("buy_plant_defuse_round_loop", _test_buy_plant_defuse_round_loop)
 
@@ -1024,6 +1026,8 @@ func _test_buy_plant_defuse_round_loop() -> void:
 		_assert_equal(GameState.player_health, 100, "new round should restore player health")
 		_assert_equal(weapon_system.call("get_runtime_snapshot").get("weapon_slot"), 0, "surviving player should retain the purchased rifle next round")
 		GameState.player_team = "T"
+		# This fixture switches sides manually; assign the new local carrier too.
+		main.get_node("C4Device").call("set_carried", "T", player.get_instance_id())
 		RoundManager.set_live()
 		await get_tree().process_frame
 		player.global_position.x = float(target.get("x", 0.0))
@@ -1149,4 +1153,72 @@ func _test_c4_prompts() -> void:
 	_assert_true(String(main.call("_get_objective_hint")).contains("10 秒"), "no kit prompt matches actual duration")
 	GameState.player_defuse_kit = true
 	_assert_true(String(main.call("_get_objective_hint")).contains("5 秒"), "kit prompt matches actual duration")
+	await _cleanup_main(main)
+
+func _test_bot_c4_ownership() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	main.call("_on_start_pressed")
+	await _await_main_ready()
+	main.call("_set_buy_menu", false)
+	RoundManager.set_live()
+	var sandbox: Node = main.get_node("CombatSandbox")
+	var carrier: CharacterBody3D
+	for actor in sandbox.get_children():
+		if actor is CharacterBody3D and String(actor.get("team")) == "T":
+			carrier = actor
+			break
+	_assert_true(is_instance_valid(carrier), "fixture contains a T bot")
+	if not is_instance_valid(carrier):
+		await _cleanup_main(main)
+		return
+	var player: CharacterBody3D = main.get_node("Player")
+	var c4: Node = main.get_node("C4Device")
+	c4.call("drop_at", carrier.global_position)
+	RoundManager.bomb_carried = false
+	var brain: Node = carrier.get_node("TacticalBotBrain")
+	_assert_true(bool(brain.call("_try_pick_up_c4")), "actual bot pickup succeeds")
+	brain.set("bomb_carrier", true)
+	RoundManager.bomb_carried = true
+	_assert_true(bool(c4.call("is_carried_by", carrier)), "C4 identifies actual bot owner")
+	_assert_true(not bool(main.call("_player_has_c4")), "team-wide carried flag does not give player another C4")
+	var hud: Dictionary = main.call("_build_hud_snapshot", GameState.get_hud_snapshot())
+	_assert_true(not bool((hud.get("bomb", {}) as Dictionary).get("bomb_carried")), "HUD never says player carries a bot-owned C4")
+	_assert_true(String(hud.get("objective_hint")).contains("队友携带"), "bot ownership displays cover-carrier hint")
+	var key := InputEventKey.new()
+	key.keycode = KEY_5
+	key.pressed = true
+	main.call("_unhandled_input", key)
+	_assert_true(main.get_node("TacticalEquipment").get("equipped") != "c4", "slot five is rejected after bot pickup")
+	var target: Dictionary = (main.call("_build_radar_snapshot") as Dictionary)["targets"][0]
+	player.global_position.x = float(target["x"])
+	player.global_position.z = float(target["z"])
+	_assert_true(not bool(main.call("_try_begin_objective_interaction")), "E cannot duplicate bot C4 at bomb site")
+	main.get_node("TacticalEquipment").call("select_c4")
+	Input.action_press("fire_primary")
+	main.call("_update_objective_interaction", 3.3)
+	Input.action_release("fire_primary")
+	_assert_true(not RoundManager.is_objective_interacting(), "even a stale C4 model cannot start planting via primary")
+	main.call("_on_player_died")
+	_assert_true(bool(c4.call("is_carried_by", carrier)), "player death cannot drop a bot-owned bomb")
+	sandbox.call("_on_actor_killed", carrier.name, "T", carrier)
+	_assert_equal(c4.get("device_state"), "dropped", "death of recovered bot owner drops actual C4")
+	_assert_true(not RoundManager.bomb_carried, "owner death clears carried team flag")
+	await _cleanup_main(main)
+
+func _test_c4_ai_hint() -> void:
+	var main: Node3D = _instantiate_main()
+	await _await_main_ready()
+	main.call("_on_start_pressed")
+	await _await_main_ready()
+	RoundManager.interaction_owner = "ai"
+	for interaction in ["plant", "defuse"]:
+		RoundManager.interaction_type = interaction
+		var action_team := "T" if interaction == "plant" else "CT"
+		GameState.player_team = action_team
+		_assert_true(String(main.call("_get_objective_hint")).contains("队友"), "same team objective interaction prompts covering ally")
+		GameState.player_team = "CT" if action_team == "T" else "T"
+		_assert_true(String(main.call("_get_objective_hint")).contains("敌方"), "opposite team interaction prompts stopping enemy")
+		_assert_true(not String(main.call("_get_objective_hint")).contains("掩护"), "enemy action never instructs player to cover")
+	RoundManager.cancel_objective_interaction()
 	await _cleanup_main(main)

@@ -170,7 +170,7 @@ func _assign_bomb_roles(level_data: Dictionary) -> void:
 		if t_carrier_enabled and index == 0:
 			_bomb_carrier_actor = actor
 	if c4_device != null and is_instance_valid(c4_device):
-		c4_device.call("set_carried", "T")
+		c4_device.call("set_carried", "T", _bomb_carrier_actor.get_instance_id() if is_instance_valid(_bomb_carrier_actor) else 0)
 	for index in range(ct_actors.size()):
 		var actor := ct_actors[index]
 		var objective_index := index % maxi(1, objectives.size())
@@ -253,7 +253,7 @@ func _remember_round_loadout(actor: CharacterBody3D) -> void:
 func _on_actor_killed(_actor_name: String, _team: String, actor: CharacterBody3D) -> void:
 	if GameState.is_competitive_level():
 		_remember_round_loadout(actor)
-	if actor != _bomb_carrier_actor:
+	if c4_device == null or not is_instance_valid(c4_device) or not bool(c4_device.call("is_carried_by", actor)):
 		return
 	if c4_device != null and is_instance_valid(c4_device) and String(c4_device.get("device_state")) == "carried":
 		c4_device.call("drop_at", actor.global_position)

@@ -805,7 +805,7 @@ func _try_pick_up_c4() -> bool:
 		return false
 	if not bool(_c4_device.call("can_pick_up", actor.global_position, "T")):
 		return false
-	return bool(_c4_device.call("pick_up", "T"))
+	return bool(_c4_device.call("pick_up", "T", actor.get_instance_id()))
 
 func _begin_plant() -> void:
 	if _c4_device == null or not is_instance_valid(_c4_device):
