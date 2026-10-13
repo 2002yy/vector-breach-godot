@@ -15,15 +15,15 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
-      - name: Install Godot 4.6.2
+      - name: Install Godot 4.7.1
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p .tools/godot
           curl --fail --location --retry 3 \
             --output /tmp/godot.zip \
-            https://github.com/godotengine/godot/releases/download/4.6.2-stable/Godot_v4.6.2-stable_linux.x86_64.zip
+            https://github.com/godotengine/godot/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip
           unzip -q /tmp/godot.zip -d .tools/godot
-          mv .tools/godot/Godot_v4.6.2-stable_linux.x86_64 .tools/godot/godot
+          mv .tools/godot/Godot_v4.7.1-stable_linux.x86_64 .tools/godot/godot
           chmod +x .tools/godot/godot
           .tools/godot/godot --version

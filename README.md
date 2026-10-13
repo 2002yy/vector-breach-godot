@@ -2,7 +2,7 @@
 
 <p>
   <img src="https://img.shields.io/badge/Status-Prototype%20%2F%20Experimental-yellow" alt="Prototype">
-  <img src="https://img.shields.io/badge/Godot-4.6-blue" alt="Godot 4.6">
+  <img src="https://img.shields.io/badge/Godot-4.7.1-blue" alt="Godot 4.7.1">
   <img src="https://img.shields.io/badge/tests-9%20suites-green" alt="9 test suites">
 </p>
 
@@ -27,7 +27,7 @@ This repo is still in a prototype-validation phase. The goal is not content volu
 
 ## 当前内容 / Current Scope
 
-- Godot 4.6 项目骨架 / Godot 4.6 project scaffold
+- Godot 4.7.1 项目骨架 / Godot 4.7.1 project scaffold
 - 语义灰盒地图加载与构建 / Semantic graybox level loading and building
 - 第一版玩家移动与碰撞校准 / First-pass player movement and collision tuning
 - 双武器骨架 / Two-weapon scaffold
@@ -64,7 +64,7 @@ This repo is still in a prototype-validation phase. The goal is not content volu
 
 ## 环境要求 / Requirements
 
-- Godot `4.6.x`
+- Godot `4.7.1`
 - Windows PowerShell
 
 如果 `Godot.exe` 不在系统 `PATH` 中，可以：
