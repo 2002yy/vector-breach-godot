@@ -261,6 +261,12 @@ func _get_penetration_resistance(surface_type: String) -> float:
 		_:
 			return 1.35
 
+func cancel_reload() -> void:
+	var current_state: Dictionary = _current_state()
+	current_state["is_reloading"] = false
+	current_state["reload_timer"] = 0.0
+	_store_current_state(current_state)
+
 func switch_to_slot(slot_index: int) -> void:
 	if slot_index < 0 or slot_index >= _weapon_states.size():
 		return

@@ -118,6 +118,9 @@ var _recovery_direction: Vector3 = Vector3.ZERO
 var _recovery_flip: bool = false
 var _stuck_recoveries: int = 0
 var _target: CharacterBody3D
+var _acquired_target_id := 0
+var _watch_yaw := 0.0
+var _watch_time := 0.0
 var _last_known_position: Vector3 = Vector3.ZERO
 var _heard_seconds: float = 999.0
 var _visible_seconds: float = 0.0
@@ -249,6 +252,10 @@ func tick(delta: float) -> void:
 		return
 
 	_target = _find_local_target()
+	var target_id := _target.get_instance_id() if _target != null else 0
+	if target_id != _acquired_target_id:
+		_visible_seconds = 0.0
+		_acquired_target_id = target_id
 	var visible := _target != null and _can_see(_target)
 	if visible:
 		_lost_sight_seconds = 0.0
@@ -452,6 +459,9 @@ func reset_runtime() -> void:
 func _reset_runtime() -> void:
 	state = State.HOLD
 	_target = null
+	_acquired_target_id = 0
+	_watch_time = 0.0
+	_watch_yaw = actor.rotation.y if actor != null else 0.0
 	_last_known_position = actor.global_position if actor != null else Vector3.ZERO
 	_heard_seconds = 999.0
 	_visible_seconds = 0.0
@@ -582,7 +592,12 @@ func _tick_engage(delta: float) -> void:
 	if _current_weapon_id == "knife":
 		_dodge_active = 0.0
 		_dodge_timer = maxf(_dodge_timer, dodge_interval + _rng.randf_range(0.0, 0.55))
-		_stop(delta)
+		if distance > 1.8:
+			var approach := _target.global_position - actor.global_position
+			approach.y = 0.0
+			actor.call("apply_ai_navigation", approach.normalized(), move_speed * 0.7, actor.global_position.y, delta)
+		else:
+			_stop(delta)
 		actor.call("set_ai_crouching", _crouch_active > 0.0)
 	else:
 		if _dodge_active > 0.0:
@@ -796,8 +811,10 @@ func _move_to_or_hold(delta: float, destination: Vector3) -> void:
 		return
 	if actor.global_position.distance_to(destination) <= 1.2:
 		_stop(delta)
-		_aim_at(destination, delta, 0.25)
+		_watch_time += delta
+		actor.rotation.y = lerp_angle(actor.rotation.y, _watch_yaw + sin(_watch_time * 0.7) * 0.65, minf(delta * 2.0, 1.0))
 	else:
+		_watch_time = 0.0
 		_move_toward(destination, delta)
 
 func _try_pick_up_c4() -> bool:
@@ -1052,6 +1069,11 @@ func _update_dodge(delta: float) -> void:
 	)
 
 func _strafe_dodge(delta: float) -> void:
+	# Side-step on a fixed vector, stop at walls and never curve around a target.
+	if bool(actor.call("ai_motion_blocked", _dodge_direction * 0.5)):
+		_dodge_active = 0.0
+		_stop(delta)
+		return
 	actor.call("apply_ai_navigation", _dodge_direction, move_speed * 0.58, actor.global_position.y, delta)
 
 func _update_weapon_selection(distance: float) -> void:
@@ -1059,9 +1081,9 @@ func _update_weapon_selection(distance: float) -> void:
 	if has_knife:
 		if _current_weapon_id == "knife":
 			desired = "knife"
-			if distance > melee_commit_range_meters:
+			if distance > melee_commit_range_meters or _damage_seconds < 1.2:
 				desired = primary_weapon_id
-		elif distance <= melee_switch_range_meters and _damage_seconds > 1.2:
+		elif distance <= minf(melee_switch_range_meters, 2.0) and _damage_seconds > 1.2:
 			desired = "knife"
 	if (
 		desired == primary_weapon_id
@@ -1233,6 +1255,7 @@ func _move_toward(destination: Vector3, delta: float) -> void:
 	var movement_scale := 0.54 if crouch else (0.72 if precise else 1.0)
 	actor.call("set_ai_crouching", crouch)
 	_aim_at(actor.global_position + direction, delta, 0.18)
+	_watch_yaw = actor.rotation.y
 	actor.call("apply_ai_navigation", direction, move_speed * movement_scale, steering_target.y, delta)
 
 func _stop(delta: float) -> void:
@@ -1261,6 +1284,11 @@ func _resolve_navigation_target(destination: Vector3) -> Vector3:
 		or _navigation_destination.distance_to(destination) > 1.8
 	)
 	if destination_changed or _repath_seconds <= 0.0 or _navigation_path.is_empty():
+		var previous_start := -1
+		var previous_next := -1
+		if not destination_changed and _navigation_path_index > 0 and _navigation_path_index < _navigation_path.size():
+			previous_start = _navigation_path[_navigation_path_index - 1]
+			previous_next = _navigation_path[_navigation_path_index]
 		_navigation_destination = destination
 		_navigation_path = _navigation.find_path(
 			_navigation.nearest_index(actor.global_position),
@@ -1268,6 +1296,9 @@ func _resolve_navigation_target(destination: Vector3) -> Vector3:
 			_danger_events
 		)
 		_navigation_path_index = 0
+		# Refresh danger weights without walking back to the start of this edge.
+		if _navigation_path.size() > 1 and _navigation_path[0] == previous_start and _navigation_path[1] == previous_next:
+			_navigation_path_index = 1
 		_repath_seconds = 0.65
 	while _navigation_path_index < _navigation_path.size():
 		var point := _navigation.points[_navigation_path[_navigation_path_index]]

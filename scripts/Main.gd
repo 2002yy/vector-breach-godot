@@ -212,12 +212,12 @@ func _sync_equipment_view(kind: String) -> void:
 		weapon_view_model.call("set_weapon_slot", int(state.get("weapon_slot", 1)))
 		weapon_system.call("refresh_equipped_hud")
 	else:
+		weapon_system.call("cancel_reload")
 		weapon_view_model.call("set_equipment", kind)
 
 func _process(delta: float) -> void:
 	_update_objective_interaction(delta)
 	_check_team_elimination()
-	tactical_equipment.call("tick", delta)
 	if String(tactical_equipment.get("equipped")) == "c4" and not _player_has_c4():
 		tactical_equipment.call("select_knife")
 	if weapon_view_model.has_method("update_motion") and player.has_method("get_accuracy_state"):
@@ -229,6 +229,13 @@ func _process(delta: float) -> void:
 			bool(view_motion.get("crouching", false))
 		)
 	var combat_enabled := _can_accept_combat_input() and not RoundManager.is_objective_interacting()
+	weapon_view_model.call("set_objective_action", RoundManager.interaction_type if RoundManager.is_objective_interacting() and RoundManager.interaction_owner == "player" else "")
+	if not combat_enabled:
+		tactical_equipment.call("cancel_use", false)
+		if not RoundManager.is_objective_interacting():
+			weapon_view_model.call("cancel_actions", not bool(player.get("is_dead")) and String(tactical_equipment.get("equipped")) == "firearm")
+	weapon_view_model.call("set_reload_paused", not combat_enabled)
+	tactical_equipment.call("tick", delta)
 	if game_started and not menu_open and player.has_method("set_controls_enabled"):
 		player.call("set_controls_enabled", not bool(player.get("is_dead")))
 		if player.has_method("set_movement_enabled"):
@@ -238,6 +245,8 @@ func _process(delta: float) -> void:
 		var fire_held: bool = Input.is_action_pressed("fire_primary")
 		if String(tactical_equipment.get("equipped")) == "firearm" and weapon_system.has_method("tick"):
 			weapon_system.call("tick", delta, fire_pressed, fire_held, player)
+		elif Input.is_action_just_pressed("fire_secondary"):
+			tactical_equipment.call("use_secondary", player)
 		elif fire_pressed:
 			tactical_equipment.call("use_primary", player)
 
