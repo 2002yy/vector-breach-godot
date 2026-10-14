@@ -14,6 +14,8 @@ func _ready() -> void:
 	await _run_test("bot_targets_enemy_bot_not_only_player", _test_bot_targets_enemy_bot_not_only_player)
 	await _run_test("teammate_report_shared_to_same_team", _test_teammate_report_shared_to_same_team)
 	await _run_test("c4_drop_pickup_transfers_carrier", _test_c4_drop_pickup_transfers_carrier)
+	await _run_test("distant_c4_drop_assigns_one_recoverer", _test_distant_c4_recovery)
+	await _run_test("dead_c4_recoverer_is_reassigned", _test_dead_c4_recoverer)
 	await _run_test("combat_sandbox_assigns_bomb_carrier", _test_combat_sandbox_assigns_bomb_carrier)
 	await _run_test("bot_buys_grenades_and_defuse_kit_in_freeze", _test_bot_buys_grenades_and_defuse_kit_in_freeze)
 	await _run_test("bot_throws_smoke_toward_objective_before_plant", _test_bot_throws_smoke_toward_objective_before_plant)
@@ -112,6 +114,49 @@ func _test_bot_carries_plants_c4_at_objective() -> void:
 	_assert_equal(String(RoundManager.get_state_name()), "Bomb Planted", "T bomb carrier should complete a continuous plant interaction")
 	_assert_equal(String(c4.get("device_state")), "planted", "planted C4 should move to the planted world state")
 	_assert_true(not bool(objective.get("carrier", true)), "carrier flag should clear after planting")
+	await _cleanup_fixture(fixture)
+
+func _test_distant_c4_recovery() -> void:
+	var fixture := await _make_fixture()
+	var c4: Node3D = fixture.c4
+	var near := _make_actor(fixture.world, "回收兵", "T", Vector3(0, 1.15, 6))
+	var far := _make_actor(fixture.world, "支援兵", "T", Vector3(-8, 1.15, 6))
+	for actor in [near, far]:
+		var brain: Node = actor.get_node("TacticalBotBrain")
+		brain.call("set_c4_device", c4)
+		brain.call("configure_objective", "support", Vector3(-15, 1.15, -10), "A", false)
+	c4.call("drop_at", Vector3(6, 0.18, 6))
+	RoundManager.set_live()
+	RoundManager.bomb_carried = false
+	for actor in [near, far]:
+		actor.get_node("TacticalBotBrain").call("_refresh_c4_knowledge")
+	_assert_true(near.get_node("TacticalBotBrain").call("_is_c4_recoverer"), "nearest eligible survivor receives recovery task")
+	_assert_true(not far.get_node("TacticalBotBrain").call("_is_c4_recoverer"), "other teammates keep their objective instead of all chasing the bomb")
+	for _frame in range(180):
+		await get_tree().physics_frame
+	_assert_true(c4.call("is_carried_by", near), "designated AI travels away from its old objective and picks up the actual dropped C4")
+	await _cleanup_fixture(fixture)
+
+func _test_dead_c4_recoverer() -> void:
+	var fixture := await _make_fixture()
+	var c4: Node3D = fixture.c4
+	var near := _make_actor(fixture.world, "原回收兵", "T", Vector3(0, 1.15, 6))
+	var far := _make_actor(fixture.world, "接替兵", "T", Vector3(-4, 1.15, 6))
+	for actor in [near, far]:
+		var brain: Node = actor.get_node("TacticalBotBrain")
+		brain.call("set_c4_device", c4)
+		brain.call("configure_objective", "support", Vector3(-15, 1.15, -10), "A", false)
+	c4.call("drop_at", Vector3(6, 0.18, 6))
+	for actor in [near, far]:
+		actor.get_node("TacticalBotBrain").call("_refresh_c4_knowledge")
+	_assert_true(near.get_node("TacticalBotBrain").call("_is_c4_recoverer"), "first recovery assignment is stable")
+	near.set("is_dead", true)
+	_assert_true(far.get_node("TacticalBotBrain").call("_is_c4_recoverer"), "dead recovery owner cannot strand the task")
+	RoundManager.set_live()
+	RoundManager.bomb_carried = false
+	for _frame in range(210):
+		await get_tree().physics_frame
+	_assert_true(c4.call("is_carried_by", far), "replacement survivor actually recovers the same unique C4")
 	await _cleanup_fixture(fixture)
 
 func _test_ct_bot_defuses_planted_bomb() -> void:

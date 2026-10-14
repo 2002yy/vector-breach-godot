@@ -777,6 +777,9 @@ func _tick_t_side_objective(delta: float) -> void:
 		RoundManager.bomb_carried = true
 	_maybe_throw_objective_smoke()
 	if not bomb_carrier:
+		if not RoundManager.bomb_carried and _c4_known_state == "dropped" and _is_c4_recoverer():
+			_move_to_or_hold(delta, _c4_known_position + Vector3.UP * 0.82)
+			return
 		_move_to_or_hold(delta, objective_target)
 		return
 	if not objective_target.is_finite():
@@ -877,6 +880,33 @@ func _refresh_c4_knowledge() -> void:
 	_c4_known_state = device_state
 	if device_state in ["planted", "dropped"]:
 		_c4_known_position = _c4_device.global_position
+	elif _c4_device.has_meta("recovery_actor"):
+		_c4_device.remove_meta("recovery_actor")
+
+func _is_c4_recoverer() -> bool:
+	if not is_instance_valid(_c4_device) or _c4_known_state != "dropped":
+		return false
+	var recoverer: CharacterBody3D = null
+	if _c4_device.has_meta("recovery_actor"):
+		var reference := _c4_device.get_meta("recovery_actor") as WeakRef
+		recoverer = reference.get_ref() as CharacterBody3D
+		if is_instance_valid(recoverer) and bool(recoverer.get("is_dead")):
+			recoverer = null
+	if not is_instance_valid(recoverer):
+		var best_distance := INF
+		for candidate in actor.get_tree().get_nodes_in_group("combat_actors"):
+			if not candidate is CharacterBody3D or bool(candidate.get("is_dead")) or String(candidate.get("team")) != "T":
+				continue
+			var brain := candidate.get_node("TacticalBotBrain")
+			if not bool(brain.get("enabled")) or String(brain.get("objective_role")) not in ["plant", "support", "diversion"]:
+				continue
+			var distance := (candidate as CharacterBody3D).global_position.distance_squared_to(_c4_known_position)
+			if distance < best_distance:
+				best_distance = distance
+				recoverer = candidate
+		if recoverer != null:
+			_c4_device.set_meta("recovery_actor", weakref(recoverer))
+	return recoverer == actor
 
 func _tick_freeze_purchase() -> void:
 	if _purchased_this_round:

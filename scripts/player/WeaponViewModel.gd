@@ -130,6 +130,8 @@ func play_equipment_use(kind: String) -> void:
 func set_objective_action(kind: String) -> void:
 	if kind in ["plant", "defuse"]:
 		if hands.action != kind:
+			_reload_active = false
+			_reload_blend = 0.0
 			rifle_model.visible = false
 			pistol_model.visible = false
 			for key in equipment_models:

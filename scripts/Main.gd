@@ -933,6 +933,7 @@ func _update_objective_interaction(delta: float) -> void:
 	if not RoundManager.is_objective_interacting():
 		return
 	var interaction_type := RoundManager.interaction_type
+	weapon_system.call("cancel_reload")
 	var interaction_site := RoundManager.interaction_site
 	var still_valid := false
 	if interaction_type == "plant":
