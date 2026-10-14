@@ -1116,6 +1116,20 @@ func _test_reload_pause_and_cancel() -> void:
 	main.get_node("TacticalEquipment").call("select_knife")
 	_assert_true(not (weapon.call("get_runtime_snapshot") as Dictionary).get("is_reloading"), "switching to knife cancels the actual reload")
 	_assert_equal((weapon.call("get_runtime_snapshot") as Dictionary).get("ammo_in_mag"), 5, "canceled reload cannot grant ammo")
+	main.get_node("TacticalEquipment").call("select_firearm")
+	weapon.call("request_reload")
+	var player: Node3D = main.get_node("Player")
+	var target: Dictionary = (main.call("_build_radar_snapshot") as Dictionary).get("targets")[0]
+	player.set_physics_process(false)
+	player.global_position.x = target.x
+	player.global_position.z = target.z
+	Input.action_press("interact")
+	main.call("_process", 0.1)
+	_assert_equal(hands.get("action"), "plant", "real E input replaces reload with C4 hand animation")
+	_assert_equal((hands.get("animator") as AnimationPlayer).speed_scale, 1.0, "real objective action keeps animating")
+	_assert_true(not (weapon.call("get_runtime_snapshot") as Dictionary).get("is_reloading"), "objective cancels the actual firearm reload")
+	_assert_true(GameState.weapon_status_text != "换弹中", "objective must clear the stale reload HUD message")
+	Input.action_release("interact")
 	await _cleanup_main(main)
 
 func _test_buy_plant_defuse_round_loop() -> void:

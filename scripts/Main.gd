@@ -934,6 +934,8 @@ func _update_objective_interaction(delta: float) -> void:
 		return
 	var interaction_type := RoundManager.interaction_type
 	weapon_system.call("cancel_reload")
+	if String(tactical_equipment.get("equipped")) == "firearm":
+		weapon_system.call("refresh_equipped_hud")
 	var interaction_site := RoundManager.interaction_site
 	var still_valid := false
 	if interaction_type == "plant":
