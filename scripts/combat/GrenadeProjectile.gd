@@ -37,7 +37,10 @@ func _ready() -> void:
 	call_deferred("_build_visual")
 
 func _build_visual() -> void:
-	add_child(EquipmentVisuals.build(grenade_type))
+	var visual := EquipmentVisuals.build(grenade_type)
+	add_child(visual)
+	for part in ["SafetyRing", "SafetyLever"]:
+		(visual.get_node(part) as Node3D).visible = false
 
 func _physics_process(delta: float) -> void:
 	if _detonated:

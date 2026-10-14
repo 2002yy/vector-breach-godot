@@ -56,6 +56,7 @@ static func build(kind: String, held: bool = false) -> Node3D:
 			_cylinder(root, Vector3(0, y, 0), 0.054, 0.018, _material(band))
 		_cylinder(root, Vector3(0, height * 0.5 + 0.014, 0), 0.031, 0.028, steel)
 		_box(root, Vector3(0.044, 0.025, 0), Vector3(0.018, height + 0.035, 0.026), steel)
+		root.get_child(root.get_child_count() - 1).name = "SafetyLever"
 		var ring := MeshInstance3D.new()
 		var torus := TorusMesh.new()
 		torus.inner_radius = 0.012
@@ -63,6 +64,7 @@ static func build(kind: String, held: bool = false) -> Node3D:
 		torus.rings = 12
 		torus.ring_segments = 8
 		ring.mesh = torus
+		ring.name = "SafetyRing"
 		ring.material_override = steel
 		ring.position = Vector3(-0.034, height * 0.5 + 0.017, 0)
 		ring.rotation.x = PI * 0.5

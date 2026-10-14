@@ -11,6 +11,7 @@ var _passes: int = 0
 func _ready() -> void:
 	await _run_test("bot_configuration_uses_route_and_classic_timing", _test_bot_configuration_uses_route_and_classic_timing)
 	await _run_test("freeze_holds_then_live_patrols", _test_freeze_holds_then_live_patrols)
+	await _run_test("long_navigation_edge_preserves_forward_progress", _test_long_navigation_edge)
 	await _run_test("walkable_ramp_is_not_a_wall", _test_walkable_ramp_is_not_a_wall)
 	await _run_test("five_player_economy_uses_per_player_thresholds", _test_five_player_economy)
 	await _run_test("opponent_sound_triggers_investigation", _test_opponent_sound_triggers_investigation)
@@ -25,6 +26,8 @@ func _ready() -> void:
 	await _run_test("bot_reacts_to_damage_source", _test_bot_reacts_to_damage_source)
 	await _run_test("bot_records_dynamic_danger_and_reroutes", _test_bot_records_dynamic_danger_and_reroutes)
 	await _run_test("bot_switches_to_knife_at_close_range", _test_bot_switches_to_knife_at_close_range)
+	await _run_test("knife_commit_pursues_stationary_target_into_reach", _test_knife_pursuit)
+	await _run_test("combat_side_step_stops_at_obstruction", _test_blocked_side_step)
 	await _run_test("bot_dodges_and_crouches_during_combat", _test_bot_dodges_and_crouches_during_combat)
 	await _run_test("bot_retreats_at_low_health", _test_bot_retreats_at_low_health)
 	await _run_test("bot_spray_plan_scales_with_distance", _test_bot_spray_plan_scales_with_distance)
@@ -80,6 +83,26 @@ func _make_fixture() -> Dictionary:
 	world.add_child(actor)
 	await get_tree().physics_frame
 	return {"world": world, "player": player, "actor": actor}
+
+func _test_long_navigation_edge() -> void:
+	var fixture := await _make_fixture()
+	var actor: CharacterBody3D = fixture.actor
+	actor.call("configure_from_record", {
+		"name": "静止玩家路线回归", "team": "friendly", "aiEnabled": true,
+		"aiCombatEnabled": false,
+		"navigationGraph": {
+			"points": [[0, 1.15, 6], [2, 1.15, 0], [0, 1.15, -6]],
+			"links": [[0, 1], [1, 2]],
+		},
+	})
+	RoundManager.set_live()
+	var brain: Node = actor.get_node("TacticalBotBrain")
+	brain.call("configure_objective", "support", Vector3(0, 1.15, -6))
+	for _frame in range(360):
+		await get_tree().physics_frame
+	print("LONG_EDGE_REPRO=" + str(actor.global_position))
+	_assert_true(actor.global_position.z < -4.0, "repath must not send a moving ally back to the nearest start node every 0.65s")
+	await _cleanup_fixture(fixture)
 
 func _cleanup_fixture(fixture: Dictionary) -> void:
 	(fixture.world as Node).queue_free()
@@ -499,6 +522,34 @@ func _test_bot_dodges_and_crouches_during_combat() -> void:
 	var ai := (actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
 	_assert_true(int(ai.get("dodges", 0)) > 0, "engaged bot should perform side-step dodges between bursts")
 	_assert_true(int(ai.get("crouches", 0)) > 0, "engaged bot should occasionally crouch during combat")
+	await _cleanup_fixture(fixture)
+
+func _test_knife_pursuit() -> void:
+	var fixture := await _make_fixture()
+	var actor: CharacterBody3D = fixture.actor
+	actor.global_position = Vector3(0, 1.15, 3.1)
+	actor.call("configure_from_record", {
+		"team": "enemy", "aiEnabled": true,
+		"aiReactionTime": 0.05, "aiAimAcquisitionTime": 0.05,
+	})
+	actor.get_node("TacticalBotBrain").call("_switch_to_weapon", "knife")
+	RoundManager.set_live()
+	for _frame in range(70):
+		await get_tree().physics_frame
+	_assert_true(GameState.player_health < 100, "committed knife bot must close to real damage range rather than stop at 3.1m")
+	await _cleanup_fixture(fixture)
+
+func _test_blocked_side_step() -> void:
+	var fixture := await _make_fixture()
+	_add_test_wall(fixture.world, Vector3(0.72, 1.5, 6), Vector3(0.3, 3, 4))
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	var brain: Node = fixture.actor.get_node("TacticalBotBrain")
+	brain.set("_dodge_direction", Vector3.RIGHT)
+	brain.set("_dodge_active", 0.22)
+	brain.call("_strafe_dodge", 1.0 / 60.0)
+	_assert_true(Vector2(fixture.actor.velocity.x, fixture.actor.velocity.z).length() < 0.1, "blocked dodge should brake instead of continuously driving into the wall")
+	_assert_equal(brain.get("_dodge_active"), 0.0, "blocked dodge gives aiming and fire priority")
 	await _cleanup_fixture(fixture)
 
 func _test_bot_retreats_at_low_health() -> void:
