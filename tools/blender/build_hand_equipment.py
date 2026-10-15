@@ -460,9 +460,9 @@ def sleeve():
         ]
         mesh("SleeveTailoringSeam", seam_verts, seam_faces, "fabric", root)
     # Knit cuff occupies the last 24mm; it overlaps the cloth by 2mm.
-    profile = [(0.474, 0.0315), (0.478, 0.032)]
+    profile = [(0.474, 0.034), (0.478, 0.0345)]
     for i in range(11):
-        profile.append((0.48 + i * 0.002, 0.032 + (0.0007 if i % 2 else 0)))
+        profile.append((0.48 + i * 0.002, 0.0345 + (0.0007 if i % 2 else 0)))
     cuff = lathe("SleeveKnitCuff", profile, "fabric", root, segments=40)
     # Elliptical cuff matches the body's wrist cross-section, not a round bracelet.
     for v in cuff.data.vertices:
