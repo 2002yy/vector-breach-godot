@@ -49,8 +49,21 @@ func _test_training_mode() -> void:
 	var reset := InputEventKey.new()
 	reset.keycode = KEY_F5
 	reset.pressed = true
+	var training_player = main.get_node("Player")
+	training_player.call("apply_explosive_damage", 30)
+	training_player.call("apply_flash_effect", 1.0, 3.0)
+	GameState.record_scoreboard_damage("你", "T", {"hit":true,"killed":true,"target_name":"训练靶","target_team":"CT"})
 	main.call("_unhandled_input", reset)
 	_assert_equal(int(main.get("training_telemetry").call("get_snapshot")["shots"]), 0, "F5 must clear training statistics")
+	_assert_equal(GameState.player_health, 100, "F5 must heal actual self-damage")
+	_assert_equal(float(training_player.call("get_flash_intensity")), 0.0, "respawn must clear old flash blindness")
+	for row in GameState.unit_scoreboard.values():
+		_assert_true(int(row.get("kills",0)) == 0 and int(row.get("hits",0)) == 0 and int(row.get("deaths",0)) == 0, "F5 must clear Tab scoreboard statistics as well as aggregate counters")
+	training_player.call("apply_explosive_damage", 1000)
+	await get_tree().process_frame
+	await get_tree().physics_frame
+	_assert_equal(GameState.player_health, 100, "death must defer a healthy training respawn")
+	_assert_true(not bool(training_player.get("is_dead")) and bool(training_player.get("controls_enabled")) and bool(training_player.get("movement_enabled")), "death reset must restore living movement controls")
 	var leave := InputEventKey.new()
 	leave.keycode = KEY_F7
 	leave.pressed = true

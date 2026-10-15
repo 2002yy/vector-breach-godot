@@ -407,6 +407,8 @@ func _apply_spawn() -> void:
 	is_crouching = false
 	is_dead = false
 	_tagging_multiplier = 1.0
+	_flash_seconds = 0.0
+	_flash_intensity = 0.0
 	current_ladder = null
 	current_water = null
 	is_on_ladder = false

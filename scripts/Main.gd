@@ -129,6 +129,14 @@ func _reset_training() -> void:
 	if not _training_active():
 		return
 	_training_respawn_seconds = 0.0
+	GameState.player_health = 100
+	GameState.player_armor = 0
+	GameState.player_helmet = false
+	GameState.player_defuse_kit = false
+	GameState.player_money = 0
+	GameState.hit_count = 0
+	GameState.kill_count = 0
+	GameState.unit_scoreboard.clear()
 	RoundManager.cancel_objective_interaction()
 	RoundManager.bomb_carried = false
 	c4_device.call("set_carried", "T", 0)
@@ -140,11 +148,12 @@ func _reset_training() -> void:
 	tactical_equipment.call("reset_loadout")
 	tactical_equipment.call("select_firearm")
 	training_telemetry.call("begin_round", 1)
-	GameState.hit_count = 0
-	GameState.kill_count = 0
-	GameState.player_money = 0
 	_training_supply(true)
-	RoundManager.set_live()
+	if not menu_open:
+		RoundManager.set_live()
+	player.call("set_controls_enabled", not menu_open)
+	player.call("set_movement_enabled", _can_accept_combat_input())
+	player.call("set_mouse_capture_enabled", not menu_open)
 	combat_hud.call("show_training_panel", true)
 	_update_ui(true)
 
