@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "asset_id": "VB-HAND-EQUIPMENT",
+  "display_name": "Original Hand and Tactical Equipment",
+  "category": "prop",
+  "source_role": "canonical_master",
+  "source_path": "assets-source/blender/equipment/hand_equipment_source.blend",
+  "authoring_tool": "Blender",
+  "build_script": "tools/blender/build_hand_equipment.py",
+  "provenance": {
+    "origin": "project-authored",
+    "license_status": "project-owned",
+    "ai_usage": "assisted"
+  },
+  "runtime_outputs": [
+    "assets/models/equipment/hand_equipment.glb"
+  ],
+  "runtime_contracts": {
+    "assets/models/equipment/hand_equipment.glb": {
+      "format": "glb2",
+      "min": {
+        "file_size_bytes": 50000,
+        "nodes": 60,
+        "meshes": 45,
+        "triangles": 1500,
+        "materials": 6
+      },
+      "max": {
+        "file_size_bytes": 2097152,
+        "nodes": 160,
+        "meshes": 150,
+        "primitives": 150,
+        "triangles": 24000,
+        "vertices_by_primitive": 45000,
+        "materials": 10,
+        "textures": 0,
+        "images": 0,
+        "skins": 0,
+        "animations": 0,
+        "skin_joints_total": 0,
+        "animation_channels": 0
+      },
+      "allowed_extensions_used": []
+    }
+  },
+  "scale": {
+    "unit": "meter"
+  },
+  "review": {
+    "status": "draft"
+  }
+}

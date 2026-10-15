@@ -488,7 +488,8 @@ func register_hit(killed: bool, weapon_id: String = "rifle", target_team: String
 		else:
 			kill_count += 1
 			var rewards := {"rifle": 300, "pistol": 300, "knife": 1500, "he_grenade": 300}
-			player_money = mini(MAX_MONEY, player_money + int(rewards.get(weapon_id, 300)))
+			if current_level_id != "training-range":
+				player_money = mini(MAX_MONEY, player_money + int(rewards.get(weapon_id, 300)))
 			enemy_alive = maxi(0, enemy_alive - 1)
 	_emit_hud_state_changed()
 

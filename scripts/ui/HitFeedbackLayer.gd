@@ -43,7 +43,9 @@ func show_shot_feedback(result: Dictionary) -> void:
 	marker_label.visible = true
 	_marker_timer = marker_duration
 
-	if killed:
+	if bool(damage_result.get("backstab", false)):
+		_show_message("背刺 · %d 伤害%s" % [int(damage_result.get("damage", 0)), " · 击倒" if killed else ""], kill_color)
+	elif killed:
 		_show_message("\u51fb\u5012\u76ee\u6807", kill_color)
 	else:
 		_show_message("\u547d\u4e2d  \u5269\u4f59\u751f\u547d %d" % remaining_health, hit_color)

@@ -2,6 +2,7 @@ extends Node
 
 const GrenadeProjectile = preload("res://scripts/combat/GrenadeProjectile.gd")
 const BotNavigationModel = preload("res://scripts/ai/BotNavigationModel.gd")
+const MeleeRules = preload("res://scripts/combat/MeleeRules.gd")
 
 enum State {
 	HOLD,
@@ -780,7 +781,7 @@ func _tick_t_side_objective(delta: float) -> void:
 		if not RoundManager.bomb_carried and _c4_known_state == "dropped" and _is_c4_recoverer():
 			_move_to_or_hold(delta, _c4_known_position + Vector3.UP * 0.82)
 			return
-		_move_to_or_hold(delta, objective_target)
+		_move_to_or_hold(delta, objective_target, true)
 		return
 	if not objective_target.is_finite():
 		_stop(delta)
@@ -806,19 +807,67 @@ func _tick_ct_side_objective(delta: float) -> void:
 		):
 			_begin_defuse()
 	else:
-		_move_to_or_hold(delta, objective_target)
+		_move_to_or_hold(delta, objective_target, true)
 
-func _move_to_or_hold(delta: float, destination: Vector3) -> void:
+func _move_to_or_hold(delta: float, destination: Vector3, formation_hold: bool = false) -> void:
 	if not destination.is_finite():
 		_stop(delta)
 		return
-	if actor.global_position.distance_to(destination) <= 1.2:
+	var arrival_radius := 1.2
+	if formation_hold and actor.global_position.distance_to(destination) < 2.5:
+		for teammate in actor.get_tree().get_nodes_in_group("combat_actors"):
+			if teammate == actor or bool(teammate.get("is_dead")) or teammate.get("team") != actor.get("team"):
+				continue
+			if actor.global_position.distance_to(teammate.global_position) < 1.4 and teammate.global_position.distance_to(destination) < 2.5:
+				arrival_radius = 2.5
+				break
+	if actor.global_position.distance_to(destination) <= arrival_radius:
+		if formation_hold and _yield_to_passing_teammate(delta, destination):
+			return
 		_stop(delta)
 		_watch_time += delta
 		actor.rotation.y = lerp_angle(actor.rotation.y, _watch_yaw + sin(_watch_time * 0.7) * 0.65, minf(delta * 2.0, 1.0))
 	else:
 		_watch_time = 0.0
 		_move_toward(destination, delta)
+
+func _yield_to_passing_teammate(delta: float, hold_position: Vector3) -> bool:
+	for teammate in actor.get_tree().get_nodes_in_group("combat_actors"):
+		if teammate == actor or bool(teammate.get("is_dead")) or teammate.get("team") != actor.get("team"):
+			continue
+		var offset: Vector3 = actor.global_position - teammate.global_position
+		offset.y = 0.0
+		if offset.length() > 1.5:
+			continue
+		var brain: Node = teammate.get_node_or_null("TacticalBotBrain")
+		if brain == null or not bool(brain.get("enabled")):
+			continue
+		if int(brain.get("state")) not in [State.OBJECTIVE, State.INVESTIGATE, State.RETREAT, State.PATROL]:
+			continue
+		var destination: Vector3 = brain.get("_navigation_destination")
+		if not destination.is_finite() or destination.distance_to(hold_position) < 3.0:
+			continue
+		if teammate.global_position.distance_to(destination) <= 2.5:
+			continue
+		var path: Array = brain.get("_navigation_path")
+		var path_index: int = brain.get("_navigation_path_index")
+		if path_index >= path.size():
+			continue
+		var navigation: BotNavigationModel = brain.get("_navigation")
+		var travel: Vector3 = navigation.points[int(path[path_index])] - teammate.global_position
+		travel.y = 0.0
+		if travel.length_squared() < 0.01 or offset.dot(travel.normalized()) < -0.3:
+			continue
+		var side: Vector3 = travel.normalized().rotated(Vector3.UP, PI * 0.5)
+		if side.dot(offset) < 0.0:
+			side = -side
+		for direction in [side, -side]:
+			if (actor.global_position + direction * 0.5).distance_to(hold_position) > 3.5:
+				continue
+			if not bool(actor.call("ai_motion_blocked", direction * 0.5)):
+				actor.call("apply_ai_navigation", direction, move_speed * 0.55, actor.global_position.y, delta)
+				return true
+	return false
 
 func _try_pick_up_c4() -> bool:
 	if _c4_device == null or not is_instance_valid(_c4_device):
@@ -1205,7 +1254,7 @@ func _fire_melee(target_point: Vector3, profile: Dictionary, weapon_name: String
 			if collider_team.is_empty() or collider_team != String(actor.get("team")):
 				damage_result = collider.call(
 					"apply_hitscan_damage",
-					int(profile.get("damage", 55)),
+					MeleeRules.damage(int(profile.get("damage", 55)), actor, collider),
 					hit.get("position", Vector3.ZERO),
 					1.0,
 					false,

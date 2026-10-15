@@ -2,8 +2,10 @@ extends Node
 
 signal equipment_changed(kind: String)
 signal equipment_used(kind: String)
+signal melee_resolved(result: Dictionary)
 
 const GrenadeProjectile = preload("res://scripts/combat/GrenadeProjectile.gd")
+const MeleeRules = preload("res://scripts/combat/MeleeRules.gd")
 
 var equipped: String = "firearm"
 var grenade_order := ["he_grenade", "flash_grenade", "smoke_grenade"]
@@ -118,9 +120,14 @@ func _knife_attack(player: CharacterBody3D, heavy: bool = false) -> Dictionary:
 	var hit := camera.get_world_3d().direct_space_state.intersect_ray(query)
 	var collider: Variant = hit.get("collider", null)
 	if not hit.is_empty() and collider != null and collider.has_method("apply_hitscan_damage"):
-		var result := collider.call("apply_hitscan_damage", 65 if heavy else 40, hit.get("position", Vector3.ZERO), 1.0, false, GameState.player_team, camera.global_position) as Dictionary
+		if collider.is_in_group("combat_actors") and String(collider.get("team")) == GameState.player_team:
+			return {"hit": false}
+		var backstab := MeleeRules.is_backstab(player, collider)
+		var result := collider.call("apply_hitscan_damage", MeleeRules.damage(65 if heavy else 40, player, collider), hit.get("position", Vector3.ZERO), 1.0, false, GameState.player_team, camera.global_position) as Dictionary
+		result["backstab"] = backstab and bool(result.get("hit", false))
 		if bool(result.get("hit", false)):
 			GameState.register_hit(bool(result.get("killed", false)), "knife", String(result.get("target_team", "")))
+			melee_resolved.emit(result)
 		return result
 	return {"hit": false}
 

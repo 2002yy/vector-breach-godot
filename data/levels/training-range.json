@@ -1,0 +1,75 @@
+{
+  "id": "training-range",
+  "name": "独立训练场",
+  "arenaSize": 44,
+  "start": [
+    0,
+    14
+  ],
+  "startHeight": 1.05,
+  "exit": [
+    0,
+    -18
+  ],
+  "startYawDegrees": 0,
+  "enemies": 3,
+  "teamActors": [],
+  "combatTargets": [
+    {
+      "name": "13米训练靶",
+      "team": "CT",
+      "x": -8,
+      "y": 0.95,
+      "z": 4,
+      "aiEnabled": false,
+      "armor": 0,
+      "weapon": "pistol"
+    },
+    {
+      "name": "18米训练靶",
+      "team": "CT",
+      "x": 0,
+      "y": 0.95,
+      "z": -4,
+      "aiEnabled": false,
+      "armor": 0,
+      "weapon": "pistol"
+    },
+    {
+      "name": "29米训练靶",
+      "team": "CT",
+      "x": 8,
+      "y": 0.95,
+      "z": -14,
+      "aiEnabled": false,
+      "armor": 0,
+      "weapon": "pistol"
+    }
+  ],
+  "walls": [
+    {
+      "id": "backstop",
+      "x": 0,
+      "z": -19,
+      "sx": 38,
+      "sz": 1,
+      "h": 5
+    }
+  ],
+  "covers": [
+    {
+      "id": "firing-line",
+      "x": 0,
+      "z": 11,
+      "sx": 24,
+      "sz": 0.5,
+      "h": 0.6
+    }
+  ],
+  "routes": {},
+  "landmarks": [],
+  "spawnPoints": [],
+  "lights": {
+    "points": []
+  }
+}

@@ -1,9 +1,130 @@
 extends Node
 
 const MAIN_SCENE = preload("res://scenes/Main.tscn")
+const ACTOR_SCENE = preload("res://scenes/combat/TacticalActor.tscn")
 
 var _failures: PackedStringArray = []
 var _passes: int = 0
+
+func _test_training_mode() -> void:
+	var main := _instantiate_main()
+	await _await_main_ready()
+	main.call("_on_map_selected", main.call("find_level_option_index", "training-range"))
+	await main.call("_on_start_pressed")
+	_assert_true(not GameState.match_active, "training must not start a scored match")
+	_assert_equal(RoundManager.state, RoundManager.RoundState.LIVE, "training must begin immediately")
+	RoundManager.call("_process", 2000.0)
+	_assert_equal(RoundManager.state, RoundManager.RoundState.LIVE, "training must have no round timeout")
+	var weapons = main.get_node("WeaponSystem")
+	var states: Array = weapons.get("_weapon_states")
+	states[0]["ammo_in_mag"] = 2
+	states[0]["ammo_reserve"] = 0
+	weapons.call("refill_training_reserve")
+	_assert_equal(states[0]["ammo_in_mag"], 2, "infinite reserve must preserve magazine and normal reload discipline")
+	_assert_true(int(states[0]["ammo_reserve"]) > 0, "training reserves must replenish")
+	var knife_key := InputEventKey.new()
+	knife_key.keycode = KEY_3
+	knife_key.physical_keycode = KEY_3
+	knife_key.pressed = true
+	main.call("_unhandled_input", knife_key)
+	_assert_equal(String(main.get_node("TacticalEquipment").get("equipped")), "knife", "training shortcuts must not swallow normal equipment keys")
+	var rifle_key := InputEventKey.new()
+	rifle_key.keycode = KEY_1
+	rifle_key.physical_keycode = KEY_1
+	rifle_key.pressed = true
+	main.call("_unhandled_input", rifle_key)
+	_assert_equal(String(main.get_node("TacticalEquipment").get("equipped")), "firearm", "normal weapon selection must work in training")
+	var equipment = main.get_node("TacticalEquipment")
+	(equipment.get("grenade_counts") as Dictionary)["he_grenade"] = 0
+	main.call("_training_supply")
+	_assert_equal(int(equipment.get("grenade_counts")["he_grenade"]), 1, "training must replenish grenades")
+	GameState.register_hit(true, "knife", "CT")
+	_assert_equal(GameState.player_money, 0, "training hits must not award match economy")
+	for target in main.get_node("CombatSandbox").get_children():
+		target.call("apply_hitscan_damage", 1000, target.global_position)
+	main.call("_tick_training", 2.1)
+	await get_tree().physics_frame
+	_assert_equal(main.get_node("CombatSandbox").get_child_count(), 3, "killed targets must automatically respawn")
+	_assert_equal(get_tree().get_nodes_in_group("weapon_pickups").size(), 0, "repeated training resets must not accumulate target weapon drops")
+	var reset := InputEventKey.new()
+	reset.keycode = KEY_F5
+	reset.pressed = true
+	var training_player = main.get_node("Player")
+	training_player.call("apply_explosive_damage", 30)
+	training_player.call("apply_flash_effect", 1.0, 3.0)
+	GameState.record_scoreboard_damage("你", "T", {"hit":true,"killed":true,"target_name":"训练靶","target_team":"CT"})
+	main.call("_unhandled_input", reset)
+	_assert_equal(int(main.get("training_telemetry").call("get_snapshot")["shots"]), 0, "F5 must clear training statistics")
+	_assert_equal(GameState.player_health, 100, "F5 must heal actual self-damage")
+	_assert_equal(float(training_player.call("get_flash_intensity")), 0.0, "respawn must clear old flash blindness")
+	for row in GameState.unit_scoreboard.values():
+		_assert_true(int(row.get("kills",0)) == 0 and int(row.get("hits",0)) == 0 and int(row.get("deaths",0)) == 0, "F5 must clear Tab scoreboard statistics as well as aggregate counters")
+	training_player.call("apply_explosive_damage", 1000)
+	await get_tree().process_frame
+	await get_tree().physics_frame
+	_assert_equal(GameState.player_health, 100, "death must defer a healthy training respawn")
+	_assert_true(not bool(training_player.get("is_dead")) and bool(training_player.get("controls_enabled")) and bool(training_player.get("movement_enabled")), "death reset must restore living movement controls")
+	var leave := InputEventKey.new()
+	leave.keycode = KEY_F7
+	leave.pressed = true
+	main.call("_unhandled_input", leave)
+	_assert_true(not bool(main.get("game_started")) and bool(main.get("menu_open")), "F7 must return to selectable menu")
+	main.call("_on_map_selected", main.call("find_level_option_index", "gatehouse"))
+	await main.call("_on_start_pressed")
+	_assert_true(GameState.match_active, "normal match must start after training")
+	_assert_equal(GameState.player_money, 800, "normal match must restore pistol-round economy")
+	_assert_equal(String(equipment.get("equipped")), "firearm", "training equipment must not leak into a match")
+	_assert_equal(int(equipment.get("grenade_counts")["he_grenade"]), 0, "training grenades must not leak")
+	main.call("_on_player_ready")
+	var time_before := RoundManager.time_remaining
+	RoundManager.call("_process", 1.0)
+	_assert_true(RoundManager.time_remaining < time_before, "match timer must resume after training")
+	await _cleanup_main(main)
+
+func _test_knife_backstab() -> void:
+	var main := _instantiate_main()
+	await get_tree().physics_frame
+	main.set_process(false)
+	for bot in main.get_node("CombatSandbox").get_children():
+		bot.queue_free()
+	var player: CharacterBody3D = main.get_node("Player")
+	player.set_physics_process(false)
+	player.global_position = Vector3(0, 15, 0)
+	player.rotation = Vector3.ZERO
+	var camera: Camera3D = player.call("get_camera_node")
+	camera.rotation = Vector3.ZERO
+	var victim: CharacterBody3D = ACTOR_SCENE.instantiate()
+	main.add_child(victim)
+	victim.set_physics_process(false)
+	victim.team = "CT" if GameState.player_team == "T" else "T"
+	victim.current_health = 1000
+	victim.current_armor = 0
+	victim.global_position = camera.global_position + Vector3.FORWARD * 1.35
+	var equipment = main.get_node("TacticalEquipment")
+	await get_tree().physics_frame
+	var rear: Dictionary = equipment.call("_knife_attack", player, true)
+	_assert_equal(int(rear.get("damage", 0)), 195, "rear heavy stab must deal three times base through the real hit resolver")
+	_assert_true(bool(rear.get("backstab", false)), "rear contact should be tagged")
+	_assert_true(String(main.get_node("HitFeedbackLayer/BottomMessage").text).contains("背刺"), "backstab must produce visible contact feedback")
+	victim.rotation.y = PI
+	var front: Dictionary = equipment.call("_knife_attack", player, true)
+	_assert_equal(int(front.get("damage", 0)), 65, "front heavy stab must retain base damage")
+	victim.rotation.y = PI / 2
+	var side: Dictionary = equipment.call("_knife_attack", player, false)
+	_assert_equal(int(side.get("damage", 0)), 40, "side contact must not count as backstab")
+	var wall := StaticBody3D.new()
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(3, 3, 0.1)
+	shape.shape = box
+	wall.add_child(shape)
+	main.add_child(wall)
+	wall.global_position = camera.global_position + Vector3.FORWARD * 0.5
+	await get_tree().physics_frame
+	var before: int = victim.current_health
+	equipment.call("_knife_attack", player, true)
+	_assert_equal(victim.current_health, before, "backstab must never pass through a wall")
+	await _cleanup_main(main)
 
 func _ready() -> void:
 	await _run_all_tests()
@@ -18,6 +139,8 @@ func _ready() -> void:
 	get_tree().quit(1)
 
 func _run_all_tests() -> void:
+	await _run_test("independent_training_resupply_reset_and_match_isolation", _test_training_mode)
+	await _run_test("knife_backstab_uses_contact_facing_and_real_occlusion", _test_knife_backstab)
 	await _run_test("initial_boot_shows_menu_and_default_map", _test_initial_boot_shows_menu_and_default_map)
 	await _run_test("classic_layout_is_frozen_and_rejects_changed_assets", _test_frozen_classic_layout)
 
@@ -128,8 +251,8 @@ func _test_initial_boot_shows_menu_and_default_map() -> void:
 	_assert_true(bool(main.get("menu_open")), "main should start with menu open")
 	_assert_true(not bool(main.get("game_started")), "main should start before gameplay begins")
 	_assert_true(start_menu.visible, "start menu should be visible on boot")
-	_assert_equal(map_select.item_count, 2, "default menu should expose the primary match and practice showcase only")
-	_assert_equal((main.get("level_options") as Array).size(), 5, "local reference maps should stay out of automated headless runs")
+	_assert_equal(map_select.item_count, 3, "game menu should expose the match, showcase and independent training range")
+	_assert_equal((main.get("level_options") as Array).size(), 6, "five existing maps plus the independent training range should be available without local references")
 	_assert_equal(title_label.text, "矢量突袭", "menu should expose a concise localized tactical title")
 	_assert_equal(start_button.text, "开始 3 对 3 比赛", "primary map should clearly start a match")
 	_assert_float_close(menu_panel.anchor_bottom, 1.0, 0.001, "menu panel should remain a full-height left navigation surface")
@@ -150,9 +273,9 @@ func _test_initial_boot_shows_menu_and_default_map() -> void:
 	local_options.append({"id": "dustline-depths-original-local", "name": "沙线原始材质"})
 	start_menu.set("_show_archive", false)
 	start_menu.call("set_map_options", local_options, 2)
-	_assert_equal(map_select.item_count, 4, "available classic research variants must be visible without enabling test maps")
-	_assert_equal(map_select.get_item_id(2), 5, "classic map source id must survive menu filtering")
-	_assert_true(map_select.get_item_text(2).contains("经典研究"), "classic playable research maps must not be labeled as tests")
+	_assert_equal(map_select.item_count, 5, "available classic research variants and training must be visible without enabling test maps")
+	_assert_equal(map_select.get_item_id(3), 6, "classic map source id must survive menu filtering")
+	_assert_true(map_select.get_item_text(3).contains("经典研究"), "classic playable research maps must not be labeled as tests")
 	_assert_true(not resume_button.visible, "resume button should stay hidden before the first run")
 	_assert_true(not status_panel.visible, "debug status panel should be hidden by default")
 	_assert_equal(String(GameState.current_level_id), "gatehouse", "boot should sync the active 3v3 map id into GameState")
@@ -1001,7 +1124,7 @@ func _test_heavy_stab() -> void:
 	player.set_physics_process(false)
 	player.global_position = Vector3(0, 8, 0)
 	var camera: Camera3D = player.call("get_camera_node")
-	var target: CharacterBody3D = preload("res://scenes/combat/TacticalActor.tscn").instantiate()
+	var target: CharacterBody3D = ACTOR_SCENE.instantiate()
 	main.add_child(target)
 	target.set_physics_process(false)
 	target.global_position = camera.global_position - camera.global_transform.basis.z * 1.4 - Vector3.UP * 0.18
