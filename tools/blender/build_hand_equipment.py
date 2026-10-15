@@ -353,9 +353,19 @@ def glove():
             ]
         )
     faces.append(tuple(24 + i for i in range(8)))
-    mesh("GloveLeather", verts, faces, "rubber", palm)
+    leather = mesh("GloveLeather", verts, faces, "rubber", palm)
+    # Soft glove edges, unlike the intentionally crisp hard-surface equipment.
+    for poly in leather.data.polygons:
+        poly.use_smooth = len(poly.vertices) == 4
     for x in [-0.029, -0.009, 0.011, 0.031]:
-        box("DorsalKnuckle", (x, 0.022, -0.021), (0.016, 0.011, 0.023), "fabric", palm)
+        pad = box(
+            "DorsalKnuckle", (x, 0.022, -0.021), (0.016, 0.011, 0.023), "fabric", palm
+        )
+        bpy.context.view_layer.objects.active = pad
+        bevel = pad.modifiers.new("SoftPaddingEdge", "BEVEL")
+        bevel.width = 0.003
+        bevel.segments = 3
+        bpy.ops.object.modifier_apply(modifier=bevel.name)
     box("DorsalPanel", (0, 0.022, 0.014), (0.062, 0.006, 0.030), "olive", palm)
     for side in [-1, 1]:
         for z in [-0.028, -0.018, -0.008, 0.002, 0.012, 0.022, 0.032]:
@@ -369,7 +379,7 @@ def glove():
     box("PalmReinforcement", (0, -0.021, 0), (0.057, 0.004, 0.057), "fabric", palm)
     finger = empty("GloveFinger")
     # One 31mm phalange; runtime's existing joint chain bends these modules.
-    loft(
+    finger_body = loft(
         "FingerLeather",
         [
             (-0.015, 0.0075, 0.008, 0),
@@ -380,6 +390,8 @@ def glove():
         "rubber",
         finger,
     )
+    for poly in finger_body.data.polygons:
+        poly.use_smooth = len(poly.vertices) == 4
     # Convert this module from +Y length to runtime -Z length at origin.
     for child in list(finger.children):
         for v in child.data.vertices:
@@ -391,6 +403,79 @@ def glove():
     box("CuffWrap", (0, -0.004, 0.055), (0.064, 0.040, 0.024), "olive", cuff)
     box("CuffStrap", (0, 0.019, 0.055), (0.061, 0.008, 0.014), "rubber", cuff)
     box("CuffPatch", (0.017, 0.024, 0.055), (0.016, 0.003, 0.010), "ochre", cuff)
+
+
+def sleeve():
+    # Godot +Y runs elbow -> wrist. 500mm master is stretched only longitudinally.
+    # Anatomy: broad elliptical elbow, tailored forearm, gathered wrist, knit cuff.
+    root = empty("TailoredSleeve")
+    rings, sides = 65, 40
+    verts = []
+    for j in range(rings):
+        t = j / (rings - 1)
+        radius = 0.050 - 0.020 * t + 0.006 * math.sin(math.pi * t)
+        for i in range(sides):
+            a = math.tau * i / sides
+            # Localized diagonal cloth gathers, fading to the exact cuff interface.
+            envelope = math.sin(math.pi * t) ** 0.65
+            folds = (
+                0.0028
+                * envelope
+                * (
+                    math.sin(t * 37 + 2.4 * math.sin(a) + 0.6 * math.cos(3 * a))
+                    + 0.45 * math.sin(t * 61 - 3 * a)
+                )
+            )
+            r = radius + folds
+            verts.append((r * math.cos(a), t * 0.5, r * 0.82 * math.sin(a)))
+    faces = []
+    for j in range(rings - 1):
+        for i in range(sides):
+            n = (i + 1) % sides
+            faces.append(
+                (j * sides + i, j * sides + n, (j + 1) * sides + n, (j + 1) * sides + i)
+            )
+    # Closed topology gives the normal solver an unambiguous outward volume.
+    faces.extend(
+        [
+            tuple(range(sides)),
+            tuple(reversed([(rings - 1) * sides + i for i in range(sides)])),
+        ]
+    )
+    body = mesh("SleeveWovenCloth", verts, faces, "sleeve_fabric", root)
+    for poly in body.data.polygons:
+        poly.use_smooth = True
+    # Two stitched tailoring seams follow the same deformed cloth rings. Their
+    # 0.4mm offset is deliberate thread relief, not floating trim guessed in space.
+    for seam_side in [0, sides // 2]:
+        seam_verts = []
+        for j in range(rings):
+            x, y, z = verts[j * sides + seam_side]
+            sign = 1 if x > 0 else -1
+            seam_verts.extend(
+                [(x + sign * 0.0004, y, z - 0.0006), (x + sign * 0.0004, y, z + 0.0006)]
+            )
+        seam_faces = [
+            (j * 2, j * 2 + 1, j * 2 + 3, j * 2 + 2) for j in range(rings - 1)
+        ]
+        mesh("SleeveTailoringSeam", seam_verts, seam_faces, "fabric", root)
+    # Knit cuff occupies the last 24mm; it overlaps the cloth by 2mm.
+    profile = [(0.474, 0.0315), (0.478, 0.032)]
+    for i in range(11):
+        profile.append((0.48 + i * 0.002, 0.032 + (0.0007 if i % 2 else 0)))
+    cuff = lathe("SleeveKnitCuff", profile, "fabric", root, segments=40)
+    # Elliptical cuff matches the body's wrist cross-section, not a round bracelet.
+    for v in cuff.data.vertices:
+        v.co.y *= 0.82
+    CONTACTS.append({"interface": "sleeve_knit_cloth", "overlap_m": 0.002})
+    CONTACTS.append(
+        {
+            "interface": "sleeve_wrist_anchor",
+            "length_m": 0.5,
+            "end_radius_m": 0.03,
+            "axis": "Godot +Y",
+        }
+    )
 
 
 def build_all():
@@ -406,6 +491,7 @@ def build_all():
         "silver": ((0.40, 0.44, 0.46, 1), 0.8, 0.32),
         "ochre": ((0.64, 0.36, 0.065, 1), 0.15, 0.55),
         "ivory": ((0.68, 0.70, 0.60, 1), 0, 0.73),
+        "sleeve_fabric": ((0.19, 0.225, 0.175, 1), 0, 0.96),
     }
     MATS = {
         key: make_material("MAT_equipment_" + key, c, metallic=m, roughness=r)
@@ -415,6 +501,7 @@ def build_all():
     for kind in ["he_grenade", "flash_grenade", "smoke_grenade"]:
         utility(kind)
     glove()
+    sleeve()
     # Recalculate outward normals for every closed part; no negative mesh scales.
     for obj in list(COL.all_objects):
         if obj.type != "MESH":
@@ -427,6 +514,15 @@ def build_all():
         bpy.ops.mesh.normals_make_consistent(inside=False)
         bpy.ops.uv.smart_project(angle_limit=1.1519, island_margin=0.02)
         bpy.ops.object.mode_set(mode="OBJECT")
+        if obj.name == "SleeveWovenCloth":
+            # Open tubes can be consistently inward-facing. Check actual radial
+            # normals so six-side/game lighting cannot silently lose the folds.
+            for poly in obj.data.polygons:
+                if len(poly.vertices) == 4:
+                    radial_dot = (
+                        poly.normal.x * poly.center.x + poly.normal.y * poly.center.y
+                    )
+                    assert radial_dot > 0, "Sleeve cloth normal points inward"
     result = validate_collection(COLLECTION)
     output = ROOT / "assets/models/equipment/hand_equipment.glb"
     export_collection_glb(COLLECTION, output)

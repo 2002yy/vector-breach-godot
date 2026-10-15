@@ -56,11 +56,11 @@ func _process(delta: float) -> void:
 	for label in _forearms:
 		var wrist: Node3D = right if label == "Right" else left
 		var elbow := Vector3(0.36 if label == "Right" else -0.36, -0.36, 0.06)
-		var end := wrist.position + wrist.basis * Vector3(0, 0, 0.025)
-		var forearm: MeshInstance3D = _forearms[label]
+		var end := wrist.position + wrist.basis * Vector3(0, 0, 0.055)
+		var forearm: Node3D = _forearms[label]
 		var length := elbow.distance_to(end)
-		(forearm.mesh as CapsuleMesh).height = length + 0.04
-		forearm.position = (elbow + end) * 0.5
+		forearm.scale = Vector3(1, length / 0.5, 1)
+		forearm.position = elbow
 		forearm.quaternion = Quaternion(Vector3.UP, (end - elbow).normalized())
 
 
@@ -68,17 +68,8 @@ func _hand(label: String, side: float) -> Node3D:
 	var wrist := Node3D.new()
 	wrist.name = label
 	add_child(wrist)
-	var sleeve := _material(Color(0.12, 0.17, 0.15))
-	var forearm := MeshInstance3D.new()
+	var forearm := EquipmentVisuals.part("TailoredSleeve")
 	forearm.name = label + "Forearm"
-	var arm_mesh := CapsuleMesh.new()
-	arm_mesh.radius = 0.036
-	arm_mesh.height = 0.35
-	arm_mesh.radial_segments = 12
-	arm_mesh.rings = 4
-	forearm.mesh = arm_mesh
-	forearm.material_override = sleeve
-	forearm.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(forearm)
 	_forearms[label] = forearm
 	wrist.add_child(EquipmentVisuals.part("GlovePalm"))
@@ -115,7 +106,7 @@ func _material(color: Color) -> StandardMaterial3D:
 func set_equipment(kind: String, animate: bool = true) -> void:
 	_kind = kind
 	_base_right = Vector3(0.24, -0.19, -0.48)
-	_base_left = Vector3(-0.10, -0.19, -0.59)
+	_base_left = Vector3(0.23, -0.19, -0.70)
 	if kind == "pistol":
 		_base_left = Vector3(0.17, -0.22, -0.50)
 	elif kind == "knife":
