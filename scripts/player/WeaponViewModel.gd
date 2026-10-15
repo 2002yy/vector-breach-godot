@@ -38,6 +38,12 @@ func _ready() -> void:
 	hands = Hands.new()
 	hands.name = "Hands"
 	add_child(hands)
+	# Older weapon GLBs include rigid display arms. The articulated hands own this
+	# presentation now; leaving both visible creates floating cylinders and gloves.
+	for weapon in [rifle_model, pistol_model]:
+		for part in weapon.find_children("GEO-*", "MeshInstance3D", true, false):
+			if "-sleeve-" in part.name or "-glove-" in part.name:
+				part.hide()
 	for kind in ["knife", "he_grenade", "flash_grenade", "smoke_grenade"]:
 		var model := EquipmentVisuals.build(kind, false)
 		model.position = Vector3(0.24, -0.22, -0.43)

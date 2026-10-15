@@ -173,6 +173,7 @@ func _run_all_tests() -> void:
 	await _run_test("heavy_stab_has_contact_damage_range_and_shared_cooldown", _test_heavy_stab)
 	await _run_test("pending_equipment_use_cancels_on_switch_and_pause", _test_pending_use_cancellation)
 	await _run_test("hands_animate_joints_and_cancel_objective_reload", _test_hands_actions)
+	await _run_test("sleeves_follow_wrist_without_duplicate_weapon_arms", _test_sleeve_contacts)
 	await _run_test("reload_animation_pauses_and_equipment_switch_cancels_ammo_load", _test_reload_pause_and_cancel)
 	await _run_test("equipment_models_follow_inventory_and_same_gun_reselection", _test_equipment_models)
 	await _run_test("c4_slot_and_context_prompt_guards", _test_c4_prompts)
@@ -1214,6 +1215,31 @@ func _test_hands_actions() -> void:
 	view.call("set_objective_action", "")
 	_assert_equal(hands.get("action"), "idle", "released interaction cannot leave a looping hand action")
 	await _cleanup_main(main)
+
+func _test_sleeve_contacts() -> void:
+	var main := _instantiate_main()
+	await get_tree().physics_frame
+	var view: Node3D = main.get_node("Player/CameraPivot/Camera3D/WeaponViewModel")
+	var hands: Node3D = view.get("hands")
+	for weapon_name in ["RifleModel", "PistolModel"]:
+		for part in hands.get_node("Right/" + weapon_name).find_children("GEO-*", "MeshInstance3D", true, false):
+			if "-sleeve-" in part.name or "-glove-" in part.name:
+				_assert_true(not part.visible, "static imported weapon arms must not overlap articulated hands")
+	for kind in ["rifle", "pistol", "knife", "he_grenade", "c4"]:
+		hands.call("set_equipment", kind, false)
+		for action_name in ["idle", "reload", "knife_heavy", "throw", "plant"]:
+			if action_name != "idle":
+				hands.call("play_action", action_name, 0.95)
+				(hands.get("animator") as AnimationPlayer).seek(0.22, true)
+			hands.call("_process", 0.0)
+			for label in ["Right", "Left"]:
+				var wrist: Node3D = hands.get(label.to_lower())
+				var sleeve: Node3D = hands.get_node(label + "Forearm")
+				var sleeve_end := sleeve.to_global(Vector3(0, 0.5, 0))
+				var cuff_anchor := wrist.to_global(Vector3(0, 0, 0.055))
+				_assert_true(sleeve_end.distance_to(cuff_anchor) < 0.0001, "cloth must stay seated at the animated glove cuff")
+	await _cleanup_main(main)
+
 
 func _test_reload_pause_and_cancel() -> void:
 	var main := _instantiate_main()
