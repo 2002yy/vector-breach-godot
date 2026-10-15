@@ -12,6 +12,7 @@ func _ready() -> void:
 	await _run_test("bot_configuration_uses_route_and_classic_timing", _test_bot_configuration_uses_route_and_classic_timing)
 	await _run_test("freeze_holds_then_live_patrols", _test_freeze_holds_then_live_patrols)
 	await _run_test("long_navigation_edge_preserves_forward_progress", _test_long_navigation_edge)
+	await _run_test("holding_ally_yields_to_passing_teammate", _test_teammate_yield)
 	await _run_test("walkable_ramp_is_not_a_wall", _test_walkable_ramp_is_not_a_wall)
 	await _run_test("bot_walks_from_flat_ground_onto_steep_ramp", _test_ramp_entry)
 	await _run_test("five_player_economy_uses_per_player_thresholds", _test_five_player_economy)
@@ -109,6 +110,27 @@ func _cleanup_fixture(fixture: Dictionary) -> void:
 	(fixture.world as Node).queue_free()
 	await get_tree().physics_frame
 	await get_tree().process_frame
+
+func _test_teammate_yield() -> void:
+	var fixture := await _make_fixture()
+	fixture.player.position.x = 12.0
+	var holder: CharacterBody3D = fixture.actor
+	holder.global_position = Vector3(0, 1.0, 0)
+	var graph := {"points": [[0, 1, 2], [0, 1, 0], [0, 1, -6]], "links": [[0, 1], [1, 2]]}
+	holder.call("configure_from_record", {"team":"T", "aiEnabled":true, "aiCombatEnabled":false, "navigationGraph":graph})
+	holder.get_node("TacticalBotBrain").call("configure_objective", "support", Vector3(0, 1, 0))
+	var mover := ACTOR_SCENE.instantiate() as CharacterBody3D
+	mover.position = Vector3(0, 1.0, 2)
+	fixture.world.add_child(mover)
+	mover.call("configure_from_record", {"team":"T", "aiEnabled":true, "aiCombatEnabled":false, "navigationGraph":graph})
+	mover.get_node("TacticalBotBrain").call("configure_objective", "support", Vector3(0, 1, -6))
+	RoundManager.bomb_carried = true
+	RoundManager.set_live()
+	for _frame in range(240):
+		await get_tree().physics_frame
+	_assert_true(absf(holder.global_position.x) > 0.3, "a holding ally must actively step aside from a teammate's different route")
+	_assert_true(mover.global_position.z < -4.0, "passing teammate must clear the held point without permanent crowding")
+	await _cleanup_fixture(fixture)
 
 func _test_five_player_economy() -> void:
 	var fixture := await _make_fixture()
