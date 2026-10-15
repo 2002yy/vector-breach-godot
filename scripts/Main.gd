@@ -108,9 +108,72 @@ var _completed_match_record_path: String = ""
 var _level_loading := false
 var _level_load_failed := false
 var _level_load_serial := 0
+var _training_respawn_seconds := 0.0
 const UI_UPDATE_INTERVAL: float = 0.18
 const RADAR_UPDATE_INTERVAL: float = 0.05
 const RADAR_RANGE_METERS: float = 24.0
+
+func _training_active() -> bool:
+	return game_started and GameState.current_level_id == "training-range"
+
+func _training_supply(clear_projectiles: bool = false) -> void:
+	if not _training_active():
+		return
+	weapon_system.call("refill_training_reserve")
+	for kind in ["he_grenade", "flash_grenade", "smoke_grenade"]:
+		(tactical_equipment.get("grenade_counts") as Dictionary)[kind] = 2 if kind == "flash_grenade" else 1
+	if clear_projectiles:
+		_clear_round_drops()
+
+func _reset_training() -> void:
+	if not _training_active():
+		return
+	_training_respawn_seconds = 0.0
+	RoundManager.cancel_objective_interaction()
+	RoundManager.bomb_carried = false
+	c4_device.call("set_carried", "T", 0)
+	_clear_round_drops()
+	combat_sandbox.call("clear_saved_round_state", true)
+	combat_sandbox.call("load_for_level", level.call("get_current_level_data"))
+	player.call("reset_to_spawn")
+	weapon_system.call("configure_default_loadout", true, false)
+	tactical_equipment.call("reset_loadout")
+	tactical_equipment.call("select_firearm")
+	training_telemetry.call("begin_round", 1)
+	GameState.hit_count = 0
+	GameState.kill_count = 0
+	GameState.player_money = 0
+	_training_supply(true)
+	RoundManager.set_live()
+	combat_hud.call("show_training_panel", true)
+	_update_ui(true)
+
+func _tick_training(delta: float) -> void:
+	_training_supply()
+	var living := 0
+	for target in combat_sandbox.get_children():
+		if not bool(target.get("is_dead")):
+			living += 1
+	if living < 3:
+		_training_respawn_seconds += delta
+		if _training_respawn_seconds >= 2.0:
+			for pickup in get_tree().get_nodes_in_group("weapon_pickups"):
+				pickup.queue_free()
+			combat_sandbox.call("load_for_level", level.call("get_current_level_data"))
+			_training_respawn_seconds = 0.0
+	else:
+		_training_respawn_seconds = 0.0
+
+func _leave_training() -> void:
+	if not _training_active():
+		return
+	_training_supply(true)
+	_clear_round_drops()
+	game_started = false
+	GameState.reset_runtime_state()
+	GameState.set_game_started(false)
+	combat_hud.call("show_training_panel", false)
+	_open_menu(true)
 
 func _ready() -> void:
 	training_telemetry = TrainingTelemetry.new()
@@ -119,6 +182,7 @@ func _ready() -> void:
 	_capture_default_environment()
 	GameState.set_graphics_preset("prototype")
 	level_options = SHIPPED_LEVEL_OPTIONS.duplicate(true)
+	level_options.append({"id": "training-range", "name": "独立训练场", "preview": "res://assets/maps/yard-preview.png", "description": "独立射击与投掷训练：无限备弹、自动补雷，靶子击倒后重生。F5 重置全部，F6 补给/清场，F7 返回选图。练习命中、爆头、压枪及投掷距离和飞行时间。", "recommended_use": "自由训练，不计比赛成绩与经济"})
 	var map_purposes := {
 		"gatehouse": ["主比赛图：三路、双爆点，玩家与两名队友对抗三名敌人。包含手枪局、购买、换边和比赛结算。", "3 对 3 爆破比赛；首次游玩推荐"],
 		"foundry-reforged": ["原创双目标练习与视觉展示图；由铸造仓库经验重新设计，尚未迁移完整 3 对 3 比赛。", "步枪 / 手枪练习、地图探索与画面展示"],
@@ -127,6 +191,8 @@ func _ready() -> void:
 		"test-collision-room": ["开发测试房：验证移动、台阶、梯子和水体，不是正式比赛地图。", "开发调试与碰撞回归"],
 	}
 	for option in level_options:
+		if String(option["id"]) == "training-range":
+			continue
 		var purpose: Array = map_purposes[String(option["id"])]
 		option["description"] = purpose[0]
 		option["recommended_use"] = purpose[1]
@@ -140,6 +206,7 @@ func _ready() -> void:
 		weapon_system.connect("shot_resolved", _on_shot_resolved)
 	tactical_equipment.connect("equipment_changed", _sync_equipment_view)
 	tactical_equipment.connect("equipment_used", weapon_view_model.play_equipment_use)
+	tactical_equipment.connect("melee_resolved", _on_melee_resolved)
 	if weapon_system.has_signal("weapon_switched"):
 		weapon_system.connect("weapon_switched", _on_weapon_switched)
 	if weapon_system.has_signal("reload_started"):
@@ -216,6 +283,8 @@ func _sync_equipment_view(kind: String) -> void:
 		weapon_view_model.call("set_equipment", kind)
 
 func _process(delta: float) -> void:
+	if _training_active() and not menu_open:
+		_tick_training(delta)
 	_update_objective_interaction(delta)
 	_check_team_elimination()
 	if String(tactical_equipment.get("equipped")) == "c4" and not _player_has_c4():
@@ -290,6 +359,15 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F4:
 		if combat_hud.has_method("toggle_training_telemetry"):
 			combat_hud.call("toggle_training_telemetry")
+		get_viewport().set_input_as_handled()
+		return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode in [KEY_F5, KEY_F6, KEY_F7] and _training_active() and not menu_open:
+		if event.keycode == KEY_F5:
+			_reset_training()
+		elif event.keycode == KEY_F6:
+			_training_supply(true)
+		elif event.keycode == KEY_F7:
+			_leave_training()
 		get_viewport().set_input_as_handled()
 		return
 
@@ -388,8 +466,13 @@ func _on_map_selected(index: int) -> void:
 
 func _on_start_pressed() -> void:
 	var option: Dictionary = level_options[selected_level_index]
+	combat_hud.call("show_training_panel", false)
 	selected_start_team = "T" if (start_menu.get("team_select") as OptionButton).selected == 0 else "CT"
-	GameState.start_match(selected_start_team, 5 if String(option["id"]).begins_with("dustline-depths") else 3)
+	if String(option["id"]) == "training-range":
+		GameState.reset_runtime_state()
+		GameState.player_team = "T"
+	else:
+		GameState.start_match(selected_start_team, 5 if String(option["id"]).begins_with("dustline-depths") else 3)
 	_completed_match_record_path = ""
 	if combat_sandbox.has_method("clear_saved_round_state"):
 		combat_sandbox.call("clear_saved_round_state", true)
@@ -422,6 +505,8 @@ func _on_start_pressed() -> void:
 	GameState.begin_match_round(RoundManager.round_serial)
 	c4_device.call("set_carried", "T", player.get_instance_id() if GameState.player_team == "T" else int(c4_device.get("carrier_id")))
 	_resume_game()
+	if _training_active():
+		_reset_training()
 	if GameState.is_competitive_level():
 		_set_buy_menu(true)
 
@@ -727,8 +812,15 @@ func _on_shot_resolved(result: Dictionary) -> void:
 		})
 		combat_hud.call("add_kill_feed", "你", String(damage_result.get("target_name", "训练目标")), String(result.get("weapon_name", "步枪")))
 		_check_team_elimination()
-		if not GameState.is_competitive_level() and GameState.enemy_alive == 0:
+		if not _training_active() and not GameState.is_competitive_level() and GameState.enemy_alive == 0:
 			RoundManager.end_round(GameState.player_team, "ELIMINATION")
+
+func _on_melee_resolved(result: Dictionary) -> void:
+	GameState.record_scoreboard_damage("你", GameState.player_team, result)
+	hit_feedback_layer.call("show_shot_feedback", {"hit": true, "damage_result": result})
+	if bool(result.get("killed", false)):
+		combat_hud.call("add_kill_feed", "你", String(result.get("target_name", "目标")), "背刺" if bool(result.get("backstab", false)) else "战术刀")
+	_check_team_elimination()
 
 func _on_targets_spawned(count: int) -> void:
 	GameState.set_training_target_count(count)
@@ -737,6 +829,9 @@ func _on_combatants_spawned(friendly_count: int, enemy_count: int) -> void:
 	GameState.set_combatant_counts(friendly_count, enemy_count)
 
 func _on_player_died() -> void:
+	if _training_active():
+		_reset_training.call_deferred()
+		return
 	if not GameState.is_competitive_level():
 		RoundManager.end_round("CT" if GameState.player_team == "T" else "T", "ELIMINATION")
 		return
@@ -892,6 +987,8 @@ func _clear_round_drops() -> void:
 				node.queue_free()
 
 func _try_begin_objective_interaction() -> bool:
+	if _training_active():
+		return false
 	if c4_device.call("can_pick_up", player.global_position, GameState.player_team):
 		if bool(c4_device.call("pick_up", GameState.player_team, player.get_instance_id())):
 			RoundManager.bomb_carried = true
@@ -1059,6 +1156,8 @@ func _player_has_c4() -> bool:
 	return GameState.player_team == "T" and RoundManager.bomb_carried and bool(c4_device.call("is_carried_by", player))
 
 func _get_objective_hint() -> String:
+	if _training_active():
+		return ""
 	if not game_started or bool(player.get("is_dead")):
 		return ""
 	if RoundManager.is_objective_interacting():

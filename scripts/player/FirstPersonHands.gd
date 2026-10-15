@@ -1,5 +1,7 @@
 extends Node3D
 
+const EquipmentVisuals = preload("res://scripts/player/EquipmentVisuals.gd")
+
 # Original articulated gloves: wrist, palm, thumb and three joints per finger.
 # Presentation only. Animation never determines collision or damage authority.
 var right: Node3D
@@ -66,8 +68,6 @@ func _hand(label: String, side: float) -> Node3D:
 	var wrist := Node3D.new()
 	wrist.name = label
 	add_child(wrist)
-	var glove := _material(Color(0.085, 0.10, 0.105))
-	var pads := _material(Color(0.19, 0.22, 0.21))
 	var sleeve := _material(Color(0.12, 0.17, 0.15))
 	var forearm := MeshInstance3D.new()
 	forearm.name = label + "Forearm"
@@ -81,8 +81,8 @@ func _hand(label: String, side: float) -> Node3D:
 	forearm.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(forearm)
 	_forearms[label] = forearm
-	_segment(wrist, Vector3(0, 0, 0.005), Vector3(0.086, 0.041, 0.092), glove)
-	_segment(wrist, Vector3(0, 0.024, 0.008), Vector3(0.071, 0.012, 0.058), pads)
+	wrist.add_child(EquipmentVisuals.part("GlovePalm"))
+	wrist.add_child(EquipmentVisuals.part("GloveCuff"))
 	for digit in range(5):
 		var parent: Node3D = wrist
 		for joint in range(3):
@@ -97,26 +97,12 @@ func _hand(label: String, side: float) -> Node3D:
 			pivot.set_meta("bend", 0.9 if digit == 4 else 1.1)
 			pivot.set_meta("hand", label)
 			parent.add_child(pivot)
-			_segment(pivot, Vector3(0, 0, -0.013), Vector3(0.019, 0.022, 0.031), glove)
+			var phalange := EquipmentVisuals.part("GloveFinger")
+			phalange.position = Vector3(0, 0, -0.013)
+			pivot.add_child(phalange)
 			_fingers.append(pivot)
 			parent = pivot
 	return wrist
-
-
-func _segment(parent: Node3D, offset: Vector3, size: Vector3, material: Material) -> void:
-	var part := MeshInstance3D.new()
-	var mesh := CapsuleMesh.new()
-	mesh.radius = minf(size.x, size.y) * 0.5
-	mesh.height = maxf(size.z, mesh.radius * 2.0)
-	mesh.radial_segments = 12
-	mesh.rings = 4
-	part.mesh = mesh
-	part.scale.x = size.x / (mesh.radius * 2.0)
-	part.rotation.x = PI * 0.5
-	part.position = offset
-	part.material_override = material
-	part.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	parent.add_child(part)
 
 
 func _material(color: Color) -> StandardMaterial3D:
@@ -220,6 +206,7 @@ func play_action(kind: String, duration: float = 0.45) -> void:
 	for track in ["Right:position", "Right:rotation", "Left:position", "Left:rotation", ".:grip"]:
 		var index := clip.add_track(Animation.TYPE_VALUE)
 		clip.track_set_path(index, NodePath(track))
+		clip.track_set_interpolation_type(index, Animation.INTERPOLATION_CUBIC)
 		for key in range(4):
 			var value: Variant = curls[key]
 			match track:

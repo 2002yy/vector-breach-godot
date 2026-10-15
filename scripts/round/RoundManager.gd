@@ -42,6 +42,8 @@ func _process(delta: float) -> void:
 			if time_remaining == 0.0:
 				set_live()
 		RoundState.LIVE:
+			if GameState.current_level_id == "training-range":
+				return
 			time_remaining = maxf(0.0, time_remaining - delta)
 			if time_remaining == 0.0:
 				end_round("CT", "TIME")

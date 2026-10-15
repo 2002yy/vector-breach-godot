@@ -79,7 +79,7 @@ func _refresh_map_options() -> void:
 		var classic_research := level_id.begins_with("dustline-depths")
 		if _is_test_map(level_id) != _show_archive:
 			continue
-		var category := "比赛" if level_id == "gatehouse" else ("练习" if level_id == "foundry-reforged" else ("经典研究" if classic_research else "开发测试"))
+		var category := "比赛" if level_id == "gatehouse" else ("练习" if level_id in ["foundry-reforged", "training-range"] else ("经典研究" if classic_research else "开发测试"))
 		map_select.add_item("【%s】%s" % [category, String(option["name"])], index)
 		if index == _selected_map_index:
 			map_select.select(map_select.item_count - 1)

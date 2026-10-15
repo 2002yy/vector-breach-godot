@@ -118,6 +118,24 @@ func toggle_training_telemetry() -> void:
 func toggle_player_help() -> void:
 	_player_help.visible = not _player_help.visible
 
+func show_training_panel(enabled: bool) -> void:
+	var panel := get_node_or_null("HudRoot/TrainingModeHint") as Label
+	if panel == null:
+		panel = Label.new()
+		panel.name = "TrainingModeHint"
+		panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+		panel.position = Vector2(-310, 118)
+		panel.add_theme_font_size_override("font_size", 18)
+		panel.add_theme_color_override("font_color", Color("e3c992"))
+		panel.add_theme_color_override("font_shadow_color", Color.BLACK)
+		panel.add_theme_constant_override("shadow_offset_x", 2)
+		panel.add_theme_constant_override("shadow_offset_y", 2)
+		panel.text = "独立训练 · 无限备弹 / 自动补雷\nF5 重置全部　F6 补给清场　F7 返回选图　F4 统计"
+		hud_root.add_child(panel)
+	panel.visible = enabled
+	_telemetry_visible = enabled
+	telemetry_label.visible = enabled
+
 func reset_transients() -> void:
 	for child in kill_feed.get_children():
 		kill_feed.remove_child(child)
@@ -203,6 +221,14 @@ func update_display(snapshot: Dictionary) -> void:
 		_controls_hint.text += "\n手枪开局；步枪 $2700。出生区按 B 购买，当前 $%d" % int(snapshot.get("money", 800))
 	scoreboard_enemy.text = "\n".join(enemy_rows) if not enemy_rows.is_empty() else "暂无敌方单位"
 	training_end.visible = bool(snapshot.get("training_complete", false)) and _game_started and not _menu_open
+	var training := GameState.current_level_id == "training-range"
+	stats_label.visible = not training
+	if training:
+		round_state_label.text = "独立训练场 · 不限时"
+		level_name_label.text = "射击 / 压枪 / 投掷"
+		objective_status.text = "靶子击倒后自动重生"
+		training_end.visible = false
+		_controls_hint.text = "1 步枪 · 2 手枪 · 3 刀 · 4 手雷 · F1 帮助"
 	var result_text := String(snapshot.get("round_result_text", ""))
 	var debrief: Dictionary = snapshot.get("training_debrief", {}) as Dictionary
 	training_result.text = result_text if not result_text.is_empty() else "回合训练完成"

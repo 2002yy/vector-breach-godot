@@ -1,8 +1,19 @@
 # Vector Breach Project Status
 
-Updated: 2026-10-14
+Updated: 2026-10-15
 
 本文档是仓库唯一的状态、边界与优先级来源。README 和各地图设计记录只保留入口说明或设计约束；如与本文冲突，以当前检出、自动测试和本文为准。
+
+## 2026-10-15 经典图修复、背刺、独立训练和装备升级
+
+用户明确授权本批改造、验证和既有远程交付流程，覆盖旧的 G2 前具体功能冻结。基线 main `1e2f1b8`；当前功能、证据和交付状态见 [任务记录](TASK_CLASSIC_TRAINING_ART_2026-10-15.md)。
+
+- 经典图回收路线卡点根因为三角网格坡脚处的小步横向速度被 floor-stop 取消；共享 TacticalActor 以真实接触法线补入切线抬升，不跳跃、不瞬移、不修改地图碰撞或路网。守点队友在目标附近让位，安装/拆除/回收仍保持严格交互距离。隔离旧卡点的完整回收探针实际捡到 C4，0 次脱困；自然 CT 局最大 1 次脱困，没有旧循环，但以 TIME 结束，不宣称全面战术或平衡通过。
+- 两种经典视觉版本沿 A 长路、A 小道、中路至 B、B 通道和高架共 40 个视角检查。额外修正 olive_bark_01 的动画权重误作紫色顶点色；保留原贴图与透明规则。重构版为简化风格，未冒充恢复原图全部纹理；研究素材继续仅本机保留。
+- 刀具背后 120 度扇区接触伤害为基础 3 倍，轻砍 120 / 重刺 195（本作规则，仍经部位与护甲结算）。判定使用接触时的位置和目标朝向；敌我 AI 共用。真实命中、正面/侧面、墙体阻挡及背刺提示有回归。
+- 默认游戏菜单新增独立训练场，不计比赛分数/经济，不限时。步枪/手枪、无限备弹（保留弹匣和换弹）、自动补雷、靶子重生；F5 重置玩家/目标/统计，F6 补给清场，F7 返回选图，F4 统计。回到比赛后恢复 $800 手枪局、计时与实际库存。
+- 新原创 Blender canonical master 和运行 GLB 替换手套掌背/指节、刀与三类手雷；PBR 材质、UV、外部保险环/压杆和 32 关节动作保留，插值细化。六面正交与第一人称动作检查独立留证，仍为风格化资产，未宣称最终写实蒙皮双手。
+- C4 六面、掉落/安装/紧迫状态已重新采样审查。资产人工签核字段仍为 draft；不将自动化或截图代替最终用户美术/听感批准。G2 十场人工比赛与 G3 全面战术质量仍开放。
 
 ## 2026-10-13 用户授权的入口与 AI 缺陷修复
 
@@ -21,7 +32,7 @@ Updated: 2026-10-14
 
 5v5 / 购买页 PR #34 已合入 main `7e2aaec`；精确头 `886ec89` 的 Tests `38442545583` 与 Windows Export / smoke `38442545406` 全绿，两个审阅缺陷已修复并关闭。
 
-用户继续授权刀具、手雷等接入第一人称，同时改善 C4 交互与显著提示。本次基线 `7e2aaec`，分支 `feature/equipment-viewmodel-c4-20261014`：刀、高爆、闪光、烟雾为原创程序化显示模型，手持与投出共用类型外形；C4 复用已集成的 GLB 并调整第一人称尺度/朝向。装备选择、使用、自动切换与重置同步显示；同一枪槽重新选取和未持有枪的输入已明确处理。按 5 查看持有的 C4，爆点内按住 E 或持 C4 按住左键安装，释放取消；附近拾取与拆除提示、真实进度、拆弹器 5/10 秒说明、世界 C4 状态标签已接入。刀的右键重刺/背刺及最终手部骨骼动画仍未实现，不宣称正式美术验收。证据和远程交付见 [装备显示任务](TASK_EQUIPMENT_VIEWMODEL_2026-10-14.md)。
+用户继续授权刀具、手雷等接入第一人称，同时改善 C4 交互与显著提示。本次基线 `7e2aaec`，分支 `feature/equipment-viewmodel-c4-20261014`：刀、高爆、闪光、烟雾为原创程序化显示模型，手持与投出共用类型外形；C4 复用已集成的 GLB 并调整第一人称尺度/朝向。装备选择、使用、自动切换与重置同步显示；同一枪槽重新选取和未持有枪的输入已明确处理。按 5 查看持有的 C4，爆点内按住 E 或持 C4 按住左键安装，释放取消；附近拾取与拆除提示、真实进度、拆弹器 5/10 秒说明、世界 C4 状态标签已接入。此段记录 PR #35 时的状态；右键重刺与关节双手已由 PR #36 实现，背刺和可编辑资产升级见 2026-10-15 记录。证据和远程交付见 [装备显示任务](TASK_EQUIPMENT_VIEWMODEL_2026-10-14.md)。
 
 ## 2026-10-14 双手动作、右键重刺与 AI 路径进度
 
@@ -85,7 +96,7 @@ Updated: 2026-10-14
 
 ## 当前验证
 
-- Windows 与 Linux 聚合脚本统一运行十二套原生测试：关卡数据、武器、灰盒关卡、命中反馈、战术 Bot、爆破 AI、比赛生命周期、Gatehouse 场景集成、主状态流、音频资产、C4 设备和性能预算；2026-10-14 本机候选为 152 项并出现 `RUN_ALL_OK`。
+- Windows 与 Linux 聚合脚本统一运行十二套原生测试：关卡数据、武器、灰盒关卡、命中反馈、战术 Bot、爆破 AI、比赛生命周期、Gatehouse 场景集成、主状态流、音频资产、C4 设备和性能预算；上一轮 main `1e2f1b8` 为 165 项；本轮增加坡脚、背刺和训练回归，最终数量与执行结果见当前任务记录。
 - 已接入 GdUnit4 v6.2.1（`addons/gdUnit4`，经 Godot 4.7.1 headless 验证 2 用例 PASS），作为原生测试之外的行业标准补充框架；新测试放 `test/`，报告目录 `reports/` 已忽略，运行方式为 `runtest.cmd`（需 `GODOT_BIN` 指向引擎）。
 - Required `Tests` 已在 Godot 之前执行 Asset Layer、Asset Metadata 与 Asset Runtime Contract policy：当前 canonical source master 为 7 个，metadata sidecar 覆盖 7/7、资产 ID 唯一；7 个 Blender producer 拥有 14 个 runtime outputs，其中 8 个 GLB 必须具有合法 runtime contract。sidecar 中 runtime outputs 必须是 `assets/` 下规范、去重且 Git tracked 的实存路径；mandatory source coverage 同时包含 Blender/Krita/PSD/FBX 等源资产与音频 master。
 - Step 13 已接入 Blender 5.2.1 LTS headless source gate：6/6 tracked Blender master 在真实 canonical path 上通过 naming safety、外部 FILE/SEQUENCE/MOVIE/TILED/UDIM 资源实存、geometry unit scale、finite/non-singular transform、metadata/source identity 与二进制/LFS preflight；正向 PR #18 随后继续通过 Godot import、GdUnit4 与 native suites。
@@ -121,7 +132,7 @@ Updated: 2026-10-14
 - **云端 / CI / Review：FULL PASS。** PR #27 当前两条 P1 inline review thread 均已修复并 resolved；review submissions 仅为 `COMMENTED`，无 `REQUEST_CHANGES`。Source→Runtime、负向 fail-closed、Godot 4.7.1、GdUnit4、native、Windows export/runtime smoke、Windows 增量正/反路径均已有可执行证据。当前不再保留任何可在 GitHub/CI 侧独立完成的 Step 16 blocker。
 - **当前人工遗留：OPEN。** 自动化通过不等同于最终人工图形验收；仍保留用户本机 Windows 下的实际画面/输入/声音 smoke，以及必要时 Godot Editor 内的交互式 GdUnit4/场景人工复核。Step 16 还必须读取本机 C4 Vulkan visual/performance evidence，自动化不得替代这些证据。
 
-### Step 16：C4 Device Real Feature Pressure Test（进行中）
+### Step 16：C4 工程集成已闭环，最终美术签核待定
 
 Step 16 已选定 C4 Device 作为第一项真实 asset-driven feature pressure test，而不是继续预装更多工具。它验证 Step 11–15 的 source ownership、metadata、canonical Blender source、deterministic publish/rebuild 与 fresh GLB runtime gate 是否能支撑真实玩家可见功能变化。
 
@@ -135,15 +146,7 @@ Step 16 已选定 C4 Device 作为第一项真实 asset-driven feature pressure 
 6. **云端审查闭环。** PR #27 两条 P1 finding 均已修复并 resolved，review submissions 无 `REQUEST_CHANGES`；负测 PR #28 已关闭未合并。当前没有可在 GitHub/CI 侧继续完成的 Step 16 review blocker。
 7. **本机视觉/性能探针已就绪。** `run-c4-visual-probe.cmd` 会先删除旧证据，再在真实 `Main.tscn` Gatehouse 场景采样 hidden baseline / dropped / planted calm / planted urgent，输出 `reports/step16-c4-evidence.json` 与 dropped/planted/urgent 三张 PNG；探针主动退出属于正常完成行为。
 
-**云端 / CI / Review 侧已无未完成项。以下项目必须依赖用户本机可见/可听/可交互证据，或依赖这些证据后的人工审批，不能由云端自动化替代：**
-
-- **本机 RTX 5060 Forward+/Vulkan visual/performance evidence：OPEN。** 尚未在本对话取得 fresh JSON 与三张截图，因此不能宣称比例、接地、材质可读性、灯光位置、遮挡/HUD 或 avg/p95 delta 已人工通过。
-- **非颜色单一依赖的紧迫感检查：OPEN。** 必须人工确认 planted/urgent 状态除颜色外还能由闪烁/声音等线索可靠区分。
-- **Windows input/audio smoke：OPEN。** 必须在用户本机确认实际输入、拾取/安装/拆除、beep 与状态切换无异常。
-- **Asset review：OPEN。** C4 sidecar 的 `review.status = draft` 是合法且刻意保留的未审状态；只有本机视觉/资产人工审阅通过后才能晋级，不得由 CI 或状态文档擅自改为 `approved`。
-- **L3：OPEN。** 需在上述本机证据完成并复核后取得明确 L3/`APPROVED`；当前不得合并 PR #27。
-
-**GATE = PARTIAL / DO NOT MERGE。** 所有不依赖本机的 Step 16 工作已经闭环；当前剩余项仅为本机 Vulkan 视觉/性能、非颜色紧迫感、输入/声音、由这些证据决定的人工资产审阅，以及其后的显式 L3。Step 16 未闭环前不启动 Step 17。
+**当前覆盖状态（2026-10-15）：** 原 PR #27 已合并，旧的 DO NOT MERGE / L3 等待不再适用。2026-10-13 已补本机输入/混音器和 Vulkan 证据；本轮再补 C4 六面、掉落、安装及紧迫状态截图与性能采样。紧迫状态灯光能量和声音 pitch 状态可执行验证通过；主观听感与最终美术签核仍开放，sidecar 保留 draft。旧的“尚无本机证据”不是当前待办。
 
 该 Step 16 属于工程压力测试，不解除产品侧 G2 十场人工比赛和 G5 作品集表现 Gate。当前产品主线仍以 Gatehouse G2 为最近人工验收门槛。
 

@@ -81,9 +81,24 @@ func _physics_process(delta: float) -> void:
 	else:
 		if _current_ladder == null:
 			velocity.y = 0.0
+			_follow_walkable_slope(delta)
 	move_and_slide()
 	_update_ai_footsteps(position_before)
 	_update_presentation(delta)
+
+func _follow_walkable_slope(delta: float) -> void:
+	# At a slope seam small accelerated horizontal steps can be cancelled by
+	# floor-stop-on-slope. Supply the tangent rise, never a jump or teleport.
+	var horizontal := Vector3(velocity.x, 0, velocity.z)
+	if horizontal.length_squared() < 0.0001:
+		return
+	var collision := KinematicCollision3D.new()
+	if not test_move(global_transform, horizontal.normalized() * maxf(0.12, horizontal.length() * delta), collision):
+		return
+	for index in range(collision.get_collision_count()):
+		var normal := collision.get_normal(index)
+		if normal.y >= cos(floor_max_angle):
+			velocity.y = maxf(velocity.y, -horizontal.dot(normal) / normal.y)
 
 func configure_from_record(record: Dictionary) -> void:
 	display_name = String(record.get("name", display_name))

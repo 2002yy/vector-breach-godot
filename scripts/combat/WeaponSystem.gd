@@ -15,6 +15,12 @@ var _weapon_states: Array[Dictionary] = []
 var _runtime_profiles: Array[Resource] = []
 var _current_weapon_index: int = 0
 
+func refill_training_reserve() -> void:
+	if GameState.current_level_id != "training-range":
+		return
+	for index in range(_weapon_states.size()):
+		_weapon_states[index]["ammo_reserve"] = _runtime_profiles[index].reserve_ammo_on_spawn
+
 func configure_default_loadout(emit_warnings: bool = true, competitive_loadout: bool = false) -> void:
 	_weapon_states.clear()
 	_runtime_profiles.clear()

@@ -640,10 +640,17 @@ func _test_reference_vertex_repair_preserves_shared_materials() -> void:
 	unaffected.mesh = QuadMesh.new()
 	unaffected.mesh.surface_set_material(0, wall)
 	visual.add_child(unaffected)
+	var bark := source.duplicate() as StandardMaterial3D
+	bark.resource_name = "olive_bark_01"
+	var trunk := MeshInstance3D.new()
+	trunk.mesh = QuadMesh.new()
+	trunk.mesh.surface_set_material(0, bark)
+	visual.add_child(trunk)
 	level.call("_repair_reference_vertex_channels", visual)
 	var repaired := affected.get_active_material(0) as StandardMaterial3D
 	_assert_true(not repaired.vertex_color_use_as_albedo, "animation weights must not tint foliage")
 	_assert_true(source.vertex_color_use_as_albedo, "repair must not mutate the imported shared material")
+	_assert_true(not (trunk.get_active_material(0) as StandardMaterial3D).vertex_color_use_as_albedo, "olive bark animation weights must not tint the trunk purple")
 	_assert_true(repaired.albedo_texture == source.albedo_texture, "repair must retain original texture")
 	_assert_equal(repaired.transparency, source.transparency, "repair must preserve cutout mode")
 	_assert_equal(repaired.alpha_scissor_threshold, source.alpha_scissor_threshold, "repair must preserve leaf silhouette")

@@ -13,6 +13,7 @@ func _ready() -> void:
 	await _run_test("freeze_holds_then_live_patrols", _test_freeze_holds_then_live_patrols)
 	await _run_test("long_navigation_edge_preserves_forward_progress", _test_long_navigation_edge)
 	await _run_test("walkable_ramp_is_not_a_wall", _test_walkable_ramp_is_not_a_wall)
+	await _run_test("bot_walks_from_flat_ground_onto_steep_ramp", _test_ramp_entry)
 	await _run_test("five_player_economy_uses_per_player_thresholds", _test_five_player_economy)
 	await _run_test("opponent_sound_triggers_investigation", _test_opponent_sound_triggers_investigation)
 	await _run_test("investigation_uses_connected_navigation_graph", _test_investigation_uses_connected_navigation_graph)
@@ -148,6 +149,32 @@ func _test_walkable_ramp_is_not_a_wall() -> void:
 	fixture.world.add_child(wall)
 	await get_tree().physics_frame
 	_assert_true(bool(actor.call("ai_motion_blocked", Vector3(0.0, 0.0, -0.45))), "vertical walls must still block navigation")
+	await _cleanup_fixture(fixture)
+
+func _test_ramp_entry() -> void:
+	var fixture := await _make_fixture()
+	fixture.player.position.x = 12.0
+	var ramp := StaticBody3D.new()
+	var shape := CollisionShape3D.new()
+	var wedge := ConcavePolygonShape3D.new()
+	wedge.set_faces(PackedVector3Array([
+		Vector3(-3, 0, 3), Vector3(3, 2.18, 0), Vector3(3, 0, 3),
+		Vector3(-3, 0, 3), Vector3(-3, 2.18, 0), Vector3(3, 2.18, 0),
+	]))
+	shape.shape = wedge
+	ramp.add_child(shape)
+	fixture.world.add_child(ramp)
+	var actor: CharacterBody3D = fixture.actor
+	actor.call("configure_from_record", {
+		"team": "friendly", "aiEnabled": true, "aiCombatEnabled": false,
+		"navigationGraph": {"points": [[0, 0.96, 6], [0, 0.96, 3], [0, 3.14, 0]], "links": [[0, 1], [1, 2]]},
+	})
+	RoundManager.set_live()
+	actor.get_node("TacticalBotBrain").call("configure_objective", "support", Vector3(0, 3.14, 0))
+	for _frame in range(240):
+		await get_tree().physics_frame
+	print("RAMP_ENTRY=" + str(actor.global_position))
+	_assert_true(actor.global_position.y > 2.25 and actor.global_position.z < 1.1, "a walkable 36-degree ramp must be climbed from flat ground without a recovery loop")
 	await _cleanup_fixture(fixture)
 
 func _test_bot_configuration_uses_route_and_classic_timing() -> void:

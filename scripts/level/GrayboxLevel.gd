@@ -88,7 +88,7 @@ func _repair_reference_vertex_channels(node: Node) -> void:
 			if material == null or not material.vertex_color_use_as_albedo:
 				continue
 			var name_key := material.resource_name.to_lower()
-			if name_key not in ["agave_plant_01", "dust_weeds_01", "grape_leaves_01", "olive_branch_01", "palm_bark_01", "palm_frond_01", "sagebrush_01", "sumac_01", "weeds_cressa_01", "zebra_grass_01", "dust_awning_fabric_01", "dust_awning_fabric_ripped_01"]:
+			if name_key not in ["agave_plant_01", "dust_weeds_01", "grape_leaves_01", "olive_branch_01", "olive_bark_01", "palm_bark_01", "palm_frond_01", "sagebrush_01", "sumac_01", "weeds_cressa_01", "zebra_grass_01", "dust_awning_fabric_01", "dust_awning_fabric_ripped_01"]:
 				continue
 			var repaired := material.duplicate() as StandardMaterial3D
 			repaired.vertex_color_use_as_albedo = false
