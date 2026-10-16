@@ -58,3 +58,13 @@ powershell -ExecutionPolicy Bypass -File tools/run_godot_tests.ps1 -GodotExe '<G
 - 私有 Windows 完整包：`D:/AgentGamePipeline/builds/VectorBreach-cs-characters-20261016/`。EXE 与 PCK、`assets/` 必须一起保留。本机所有 18 个角色 GLB 和清单已进入 PCK。
 - 私有打包验收发现原有经典地图冻结校验读取原始碰撞 GLB 的 SHA-256，而 Godot 导出默认仅保留其导入场景。没有绕过或削弱校验；完整包额外携带原始 `assets/models/dustline/dustline_depths.glb`，其 SHA-256 与冻结基线一致，之后导出 PCK 的实际经典 5v5 验证通过。这属于本地打包所需文件，不将第三方地图资源提交公开库。release 模板禁止命令行场景覆盖，因此动作探针使用同版本 Godot 加载该导出 PCK，EXE 本体另验正常入口。
 - 剩余下一步：用户实际试玩六套外观，针对专用第一人称网格/纹理密度与握持细节继续打磨；不以本批截图取代用户美术签核。
+
+
+合并前最终复查补修：原型双手在换弹/拆装时会固定持物右手的握力，新蒙皮路径起初只复制了左手持刀例外，导致右手随动作的松手曲线展开。现统一使用 `_resolved_curl()`，实际原型关节与原蒙皮手指共用规则。新增比较实际手指骨姿态的回归，在 `913b68c` 复现 6 套 × 3 个动作共 18 次失败，修复后 0；证据 `grip-before.log` / `grip-after.log`。修复后重新执行全套原生验证、Vulkan 和私有包验证；最终头、PR/CI 与收据见 `delivery.json`。
+
+私有包经典图碰撞校验文件的重建补充（保留原始哈希验证）：
+
+```powershell
+New-Item -ItemType Directory -Force '<build>/assets/models/dustline'
+Copy-Item -LiteralPath 'assets/models/dustline/dustline_depths.glb' -Destination '<build>/assets/models/dustline/dustline_depths.glb'
+```

@@ -18,12 +18,7 @@ var grip: float = 0.85:
 	set(value):
 		grip = value
 		for finger in _fingers:
-			var flex := value
-			if finger.get_meta("hand") == "Left" and _kind == "knife" and action == "idle":
-				flex *= 0.32
-			elif finger.get_meta("hand") == "Right" and action in ["reload", "plant", "defuse"]:
-				flex = 0.85
-			finger.rotation.x = -flex * float(finger.get_meta("bend", 1.0))
+			finger.rotation.x = -_resolved_curl(String(finger.get_meta("hand"))) * float(finger.get_meta("bend", 1.0))
 var action := "idle"
 var _fingers: Array[Node3D] = []
 var _forearms: Dictionary = {}
@@ -70,8 +65,7 @@ func _process(delta: float) -> void:
 		forearm.position = elbow
 		forearm.quaternion = Quaternion(Vector3.UP, (end - elbow).normalized())
 		if _native_hands != null:
-			var curl := grip * (0.32 if label == "Left" and _kind == "knife" and action == "idle" else 1.0)
-			_native_hands.update_pose("R" if label == "Right" else "L", wrist.transform, elbow, curl)
+			_native_hands.update_pose("R" if label == "Right" else "L", wrist.transform, elbow, _resolved_curl(label))
 
 
 func _hand(label: String, side: float) -> Node3D:
@@ -273,3 +267,11 @@ func _update_appearance() -> void:
 				child.visible = _native_hands == null
 	for sleeve in _forearms.values():
 		sleeve.visible = _native_hands == null
+
+
+func _resolved_curl(label: String) -> float:
+	if label == "Left" and _kind == "knife" and action == "idle":
+		return grip * 0.32
+	if label == "Right" and action in ["reload", "plant", "defuse"]:
+		return 0.85
+	return grip

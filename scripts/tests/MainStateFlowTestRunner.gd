@@ -1545,6 +1545,7 @@ func _test_character_profiles() -> void:
 			_assert_equal(native != null, Appearance.available(id), "local assets must load when installed and fall back when absent")
 			if native == null:
 				continue
+			var pinned_right_grip := Quaternion.IDENTITY
 			for action_name in ["idle", "reload", "knife_heavy", "throw", "plant", "defuse"]:
 				hands.call("set_equipment", "knife", false)
 				if action_name != "idle":
@@ -1555,6 +1556,12 @@ func _test_character_profiles() -> void:
 					var rig: Dictionary = native.rigs[side]
 					var skeleton: Skeleton3D = rig.skeleton
 					skeleton.force_update_all_bone_transforms()
+					if side == "R":
+						var finger_pose := skeleton.get_bone_pose_rotation(skeleton.find_bone("finger_middle_1_R"))
+						if action_name == "idle":
+							pinned_right_grip = finger_pose
+						elif action_name in ["reload", "plant", "defuse"]:
+							_assert_true(finger_pose.is_equal_approx(pinned_right_grip), "the hand holding equipment must retain its grip while the other hand works")
 					var wrist: Node3D = hands.get("right" if side == "R" else "left")
 					var actual_wrist := skeleton.global_transform * skeleton.get_bone_global_pose(rig.hand).origin
 					_assert_true(actual_wrist.distance_to(wrist.global_position) < 0.005, "native glove stays on weapon wrist through every action")
