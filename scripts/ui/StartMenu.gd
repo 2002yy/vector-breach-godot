@@ -1,5 +1,8 @@
 extends CanvasLayer
 
+const Appearance = preload("res://scripts/characters/CharacterAppearance.gd")
+var _appearance_choices: Dictionary = {}
+
 const PlayerGuide = preload("res://scripts/ui/PlayerGuide.gd")
 
 signal start_pressed
@@ -99,6 +102,21 @@ func _create_settings_panel() -> void:
 		margin.add_theme_constant_override("margin_" + side, 24)
 	_settings_panel.add_child(margin)
 	$MenuPanel/Margin/VBox/Settings.reparent(margin)
+	for appearance_team in ["CT", "T"]:
+		var row := HBoxContainer.new()
+		var label := Label.new()
+		label.text = "防守方外观" if appearance_team == "CT" else "进攻方外观"
+		label.custom_minimum_size.x = 160
+		row.add_child(label)
+		var choice := OptionButton.new()
+		choice.name = appearance_team + "Appearance"
+		for id in Appearance.PROFILES[appearance_team]:
+			choice.add_item(Appearance.NAMES[id] + ("" if Appearance.available(id) else "（本机未安装）"))
+		choice.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(choice)
+		margin.get_child(0).add_child(row)
+		_appearance_choices[appearance_team] = choice
+		choice.item_selected.connect(func(_index: int) -> void: _emit_settings())
 	var close_button := Button.new()
 	close_button.text = "完成设置"
 	margin.get_child(0).add_child(close_button)
@@ -204,6 +222,10 @@ func _load_settings_controls(snapshot: Dictionary) -> void:
 	dynamic_crosshair_toggle.set_pressed_no_signal(bool(snapshot.get("dynamic_crosshair", true)))
 	radar_range_slider.set_value_no_signal(float(snapshot.get("radar_range", 24.0)))
 	radar_rotates_toggle.set_pressed_no_signal(bool(snapshot.get("radar_rotates", true)))
+	for appearance_team in ["CT", "T"]:
+		var key := "ct_appearance" if appearance_team == "CT" else "t_appearance"
+		var choices: Array = Appearance.PROFILES[appearance_team]
+		_appearance_choices[appearance_team].select(maxi(0, choices.find(snapshot.get(key, choices[0]))))
 	_update_setting_labels()
 
 func _on_setting_control_changed(_value: float) -> void:
@@ -218,6 +240,8 @@ func _emit_settings() -> void:
 		"dynamic_crosshair": dynamic_crosshair_toggle.button_pressed,
 		"radar_range": radar_range_slider.value,
 		"radar_rotates": radar_rotates_toggle.button_pressed,
+		"ct_appearance": Appearance.profile_for("CT", _appearance_choices["CT"].selected),
+		"t_appearance": Appearance.profile_for("T", _appearance_choices["T"].selected),
 	}
 	_update_setting_labels()
 	settings_changed.emit(snapshot)
