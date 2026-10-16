@@ -1,12 +1,14 @@
 extends CanvasLayer
 
 const Appearance = preload("res://scripts/characters/CharacterAppearance.gd")
+const LocalClassicMaps = preload("res://scripts/level/LocalClassicMaps.gd")
 var _appearance_choices: Dictionary = {}
 
 const PlayerGuide = preload("res://scripts/ui/PlayerGuide.gd")
 
 signal start_pressed
 signal resume_pressed
+signal return_to_maps_pressed
 signal map_selected(index: int)
 signal settings_changed(snapshot: Dictionary)
 signal team_selected(team: String)
@@ -36,6 +38,7 @@ var _selected_map_index: int = 2
 var _show_archive: bool = false
 var _help_label: Label
 var _settings_panel: PanelContainer
+var _return_to_maps_button: Button
 
 func _ready() -> void:
 	start_button.pressed.connect(func() -> void: start_pressed.emit())
@@ -59,6 +62,13 @@ func _ready() -> void:
 	)
 	_create_help_panel()
 	_create_settings_panel()
+	_return_to_maps_button = Button.new()
+	_return_to_maps_button.name = "ReturnToMaps"
+	_return_to_maps_button.text = "结束当前对局，返回选图"
+	_return_to_maps_button.custom_minimum_size.y = 42
+	$MenuPanel/Margin/VBox.add_child(_return_to_maps_button)
+	$MenuPanel/Margin/VBox.move_child(_return_to_maps_button, $MenuPanel/Margin/VBox/Buttons.get_index())
+	_return_to_maps_button.pressed.connect(func() -> void: return_to_maps_pressed.emit())
 	team_select.item_selected.connect(func(index: int) -> void: team_selected.emit("T" if index == 0 else "CT"))
 	team_select.select(0 if GameState.player_team == "T" else 1)
 	update_g2_hint()
@@ -79,7 +89,7 @@ func _refresh_map_options() -> void:
 	for index in range(_map_options.size()):
 		var option: Dictionary = _map_options[index]
 		var level_id := String(option["id"])
-		var classic_research := level_id.begins_with("dustline-depths")
+		var classic_research := LocalClassicMaps.is_classic(level_id)
 		if _is_test_map(level_id) != _show_archive:
 			continue
 		var category := "比赛" if level_id == "gatehouse" else ("练习" if level_id in ["foundry-reforged", "training-range"] else ("经典研究" if classic_research else "开发测试"))
@@ -117,6 +127,10 @@ func _create_settings_panel() -> void:
 		margin.get_child(0).add_child(row)
 		_appearance_choices[appearance_team] = choice
 		choice.item_selected.connect(func(_index: int) -> void: _emit_settings())
+	var appearance_hint := Label.new()
+	appearance_hint.text = "所选外观用于你的第一人称袖子和手套。\n同队 AI 轮换三套角色外观。"
+	appearance_hint.add_theme_font_size_override("font_size", 16)
+	margin.get_child(0).add_child(appearance_hint)
 	var close_button := Button.new()
 	close_button.text = "完成设置"
 	margin.get_child(0).add_child(close_button)
@@ -166,7 +180,7 @@ func set_map_details(option: Dictionary, can_resume: bool) -> void:
 			break
 	_refresh_map_options()
 	title_label.text = "矢量突袭"
-	var is_research := String(option["id"]).begins_with("dustline-depths")
+	var is_research := LocalClassicMaps.is_classic(String(option["id"]))
 	var is_match := String(option["id"]) == "gatehouse" or is_research
 	description_label.text = "[font_size=24][b]%s[/b][/font_size]\n\n%s" % [String(option["name"]), String(option["recommended_use"])]
 	$MenuPanel/Margin/VBox/Subtitle.hide()
@@ -184,11 +198,15 @@ func set_map_details(option: Dictionary, can_resume: bool) -> void:
 	# These legacy maps shared an unrelated courtyard thumbnail. Show the
 	# actual loaded world behind the menu instead of a misleading reference.
 	preview_rect.visible = false
-	if ResourceLoader.exists(preview_path):
+	if not preview_path.is_empty() and ResourceLoader.exists(preview_path):
 		preview_rect.texture = load(preview_path)
 	else:
 		preview_rect.texture = null
 	resume_button.visible = can_resume
+	_return_to_maps_button.visible = can_resume
+	map_select.disabled = can_resume
+	$MenuPanel/Margin/VBox/Controls/ArchiveToggle.disabled = can_resume
+	map_select.tooltip_text = "先结束当前对局，再选择新地图" if can_resume else ""
 
 func set_match_summary(snapshot: Dictionary, record_path: String) -> void:
 	title_label.text = "比赛结算"

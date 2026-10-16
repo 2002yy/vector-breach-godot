@@ -3,6 +3,7 @@ extends Node3D
 const WorldWeaponPickup = preload("res://scripts/combat/WorldWeaponPickup.gd")
 const TrainingTelemetry = preload("res://scripts/training/TrainingTelemetry.gd")
 const ClassicMatchLayout = preload("res://scripts/level/ClassicMatchLayout.gd")
+const LocalClassicMaps = preload("res://scripts/level/LocalClassicMaps.gd")
 
 const SHIPPED_LEVEL_OPTIONS := [
 	{
@@ -209,6 +210,7 @@ func _ready() -> void:
 		level_options.append(LOCAL_DUSTLINE_OPTION.duplicate(true))
 	if _has_local_level(LOCAL_REFERENCE_LEVEL_PATH, LOCAL_REFERENCE_VISUAL_PATH):
 		level_options.append(LOCAL_REFERENCE_OPTION.duplicate(true))
+	level_options.append_array(LocalClassicMaps.installed_options())
 	if level.has_signal("level_loaded"):
 		level.connect("level_loaded", _on_level_loaded)
 	if weapon_system.has_signal("shot_resolved"):
@@ -253,6 +255,7 @@ func _ready() -> void:
 	start_menu.call("set_map_options", level_options, selected_level_index)
 	start_menu.connect("start_pressed", _on_start_pressed)
 	start_menu.connect("resume_pressed", _on_resume_pressed)
+	start_menu.connect("return_to_maps_pressed", _return_to_map_selection)
 	start_menu.connect("map_selected", _on_map_selected)
 	start_menu.connect("team_selected", _on_team_selected)
 	start_menu.connect("settings_changed", _on_settings_changed)
@@ -473,6 +476,15 @@ func _on_map_selected(index: int) -> void:
 	selected_level_index = clampi(index, 0, level_options.size() - 1)
 	_apply_selected_map()
 
+func _return_to_map_selection() -> void:
+	if not menu_open or not game_started:
+		return
+	_clear_round_drops()
+	game_started = false
+	GameState.reset_runtime_state()
+	GameState.set_game_started(false)
+	_open_menu(true)
+
 func _on_start_pressed() -> void:
 	var option: Dictionary = level_options[selected_level_index]
 	combat_hud.call("show_training_panel", false)
@@ -481,7 +493,7 @@ func _on_start_pressed() -> void:
 		GameState.reset_runtime_state()
 		GameState.player_team = "T"
 	else:
-		GameState.start_match(selected_start_team, 5 if String(option["id"]).begins_with("dustline-depths") else 3)
+		GameState.start_match(selected_start_team, 5 if LocalClassicMaps.is_classic(String(option["id"])) else 3)
 	_completed_match_record_path = ""
 	if combat_sandbox.has_method("clear_saved_round_state"):
 		combat_sandbox.call("clear_saved_round_state", true)
@@ -582,7 +594,7 @@ func _on_level_loaded(level_data: Dictionary) -> void:
 	_apply_level_environment(level_data)
 	_level_load_serial += 1
 	var serial := _level_load_serial
-	if String(level_data.get("id", "")).begins_with("dustline-depths"):
+	if LocalClassicMaps.is_classic(String(level_data.get("id", ""))):
 		_level_loading = true
 		for _frame in range(2):
 			await get_tree().physics_frame
@@ -599,7 +611,9 @@ func _on_level_loaded(level_data: Dictionary) -> void:
 		if not spawns.is_empty():
 			var spawn: Array = spawns[spawns.size() / 2]
 			GameState.player_spawn = Vector3(float(spawn[0]), float(spawn[1]), float(spawn[2]))
-			GameState.player_spawn_yaw_radians = deg_to_rad(77.0 if GameState.player_team == "T" else -100.0)
+			var yaw_defaults := {"T": 77.0, "CT": -100.0}
+			var spawn_yaws: Dictionary = level_data.get("spawnYawDegrees", yaw_defaults)
+			GameState.player_spawn_yaw_radians = deg_to_rad(float(spawn_yaws.get(GameState.player_team, 0.0)))
 	if combat_sandbox.has_method("load_for_level"):
 		combat_sandbox.call("load_for_level", level_data)
 	_level_loading = false

@@ -6,6 +6,7 @@ const AUTHORED_PATH := "res://data/levels/match-local/dustline.json"
 # Runtime consumes frozen local JSON. Only the explicit authoring tool scans
 # collision; asset/data changes invalidate this baseline instead of moving routes.
 static func load_authored(data: Dictionary, manifest_path: String = AUTHORED_PATH) -> Dictionary:
+	manifest_path = String(data.get("match_manifest", manifest_path))
 	if not FileAccess.file_exists(manifest_path):
 		return {}
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(manifest_path))

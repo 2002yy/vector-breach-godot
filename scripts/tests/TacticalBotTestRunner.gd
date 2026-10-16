@@ -15,6 +15,8 @@ func _ready() -> void:
 	await _run_test("holding_ally_yields_to_passing_teammate", _test_teammate_yield)
 	await _run_test("walkable_ramp_is_not_a_wall", _test_walkable_ramp_is_not_a_wall)
 	await _run_test("bot_walks_from_flat_ground_onto_steep_ramp", _test_ramp_entry)
+	await _run_test("bot_climbs_low_steps_but_keeps_tall_cover_blocking", _test_low_steps)
+	await _run_test("dense_portal_path_keeps_authored_arrival_radius", _test_portal_arrival)
 	await _run_test("five_player_economy_uses_per_player_thresholds", _test_five_player_economy)
 	await _run_test("opponent_sound_triggers_investigation", _test_opponent_sound_triggers_investigation)
 	await _run_test("investigation_uses_connected_navigation_graph", _test_investigation_uses_connected_navigation_graph)
@@ -212,6 +214,41 @@ func _test_bot_configuration_uses_route_and_classic_timing() -> void:
 	_assert_true(bool(ai.get("enabled", false)), "authored enemy record should enable its bot brain")
 	_assert_equal(int(ai.get("route_points", 0)), 3, "bot should parse authored route anchors into its navigation path")
 	_assert_equal(String(ai.get("state", "")), "HOLD", "bot should remain held before live round state")
+	await _cleanup_fixture(fixture)
+
+func _test_low_steps() -> void:
+	var fixture := await _make_fixture()
+	fixture.player.position.x = 12.0
+	for index in range(3):
+		var height := float(index + 1) * 0.3
+		_add_test_wall(fixture.world, Vector3(0, height * 0.5, -0.5 if index == 2 else 3.0 - index), Vector3(3, height, 4 if index == 2 else 1))
+	var actor: CharacterBody3D = fixture.actor
+	actor.call("configure_from_record", {"team": "T", "aiEnabled": true, "aiCombatEnabled": false})
+	RoundManager.set_live()
+	actor.get_node("TacticalBotBrain").call("configure_objective", "support", Vector3(0, 1.86, -1.0))
+	for frame in range(240):
+		await get_tree().physics_frame
+	print("LOW_STEPS=" + str(actor.global_position))
+	_assert_true(actor.global_position.z < 1.7 and actor.global_position.y > 1.65, "AI must climb three real 30 cm steps using collision sweeps")
+	actor.get_node("TacticalBotBrain").set("enabled", false)
+	actor.velocity = Vector3.ZERO
+	_add_test_wall(fixture.world, actor.global_position + Vector3(0, 0, -0.7), Vector3(3, 2.0, 0.2))
+	await get_tree().physics_frame
+	_assert_true(actor.call("ai_motion_blocked", Vector3(0, 0, -0.8)), "tall cover must remain blocking rather than become a step")
+	await _cleanup_fixture(fixture)
+
+func _test_portal_arrival() -> void:
+	var fixture := await _make_fixture()
+	var actor: CharacterBody3D = fixture.actor
+	actor.call("configure_from_record", {
+		"team": "T", "aiEnabled": true, "aiCombatEnabled": false,
+		"navigationGraph": {"points": [[0, 1.1, 6], [0, 1.1, 5.6], [4, 1.1, 5.6]], "links": [
+			{"from": 0, "to": 1, "precise": true, "arrivalRadius": 0.22},
+			{"from": 1, "to": 2, "precise": true, "arrivalRadius": 0.22},
+		]},
+	})
+	var target: Vector3 = actor.get_node("TacticalBotBrain").call("_resolve_navigation_target", Vector3(4, 1.1, 5.6))
+	_assert_true(target.distance_to(Vector3(0, 1.1, 5.6)) < 0.01, "dense corner portal must not be skipped by the old 55 cm radius")
 	await _cleanup_fixture(fixture)
 
 func _test_pistol_bot_buys_rifle_before_utility_once() -> void:

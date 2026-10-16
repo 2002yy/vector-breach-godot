@@ -1381,14 +1381,15 @@ func _resolve_navigation_target(destination: Vector3) -> Vector3:
 		_repath_seconds = 0.65
 	while _navigation_path_index < _navigation_path.size():
 		var point := _navigation.points[_navigation_path[_navigation_path_index]]
-		var arrival_radius := 0.55 if bool(_active_navigation_link.get("precise", false)) else 1.05
-		if actor.global_position.distance_to(point) > arrival_radius:
-			if _navigation_path_index > 0:
-				_active_navigation_link = _navigation.find_link(
-					_navigation_path[_navigation_path_index - 1],
-					_navigation_path[_navigation_path_index],
-					_danger_events
-				)
+		if _navigation_path_index > 0:
+			_active_navigation_link = _navigation.find_link(
+				_navigation_path[_navigation_path_index - 1],
+				_navigation_path[_navigation_path_index],
+				_danger_events
+			)
+		var arrival_radius := float(_active_navigation_link.get("arrivalRadius", 0.55 if bool(_active_navigation_link.get("precise", false)) else 1.05))
+		var planar_distance := Vector2(actor.global_position.x, actor.global_position.z).distance_to(Vector2(point.x, point.z))
+		if planar_distance > arrival_radius or absf(actor.global_position.y - point.y) > 0.55:
 			return point
 		_navigation_path_index += 1
 	_active_navigation_link.clear()
