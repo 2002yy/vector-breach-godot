@@ -301,7 +301,7 @@ func get_match_snapshot() -> Dictionary:
 	}
 
 func is_competitive_level() -> bool:
-	return current_level_id == "gatehouse" or current_level_id.begins_with("dustline-depths")
+	return current_level_id == "gatehouse" or preload("res://scripts/level/LocalClassicMaps.gd").is_classic(current_level_id)
 
 func export_match_record(path: String = "") -> String:
 	var output_path := path

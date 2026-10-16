@@ -178,6 +178,7 @@ func _normalize_link(to_index: int, attributes: Dictionary) -> Dictionary:
 		"cover": clampf(float(attributes.get("cover", 0.0)), 0.0, 1.0),
 		"costMultiplier": clampf(float(attributes.get("costMultiplier", 1.0)), 0.25, 4.0),
 		"precise": bool(attributes.get("precise", false)),
+		"arrivalRadius": clampf(float(attributes.get("arrivalRadius", 0.55 if bool(attributes.get("precise", false)) else 1.05)), 0.15, 1.05),
 		"crouch": bool(attributes.get("crouch", false)),
 		"ladder": bool(attributes.get("ladder", false)),
 	}

@@ -49,6 +49,21 @@ static func build(
 			if cursor < neighbor_index:
 				links.append({"from": cursor, "to": neighbor_index, "precise": true})
 		cursor += 1
+	return _assemble(data, points, links, first, key)
+
+
+static func from_navigation(data: Dictionary, graph: Dictionary) -> Dictionary:
+	var points: Array[Vector3] = []
+	for point in graph.get("points", []):
+		points.append(Vector3(float(point[0]), float(point[1]), float(point[2])))
+	var start: Array = data.get("start", [0, 0])
+	if points.is_empty():
+		return {}
+	var seed := Vector3(float(start[0]), float(data.get("startHeight", 1)), float(start[1]))
+	return _assemble(data, points, graph.get("links", []), _nearest(points, seed), "")
+
+
+static func _assemble(data: Dictionary, points: Array[Vector3], links: Array, first: Vector3, key: String) -> Dictionary:
 	var landmarks: Array = (data.get("landmarks", []) as Array).filter(
 		func(record: Dictionary) -> bool:
 			return String(record.get("name", "")) in ["site-a", "site-b"]
@@ -100,6 +115,14 @@ static func build(
 			float(site_a["x"]), float(site_b["y"]), (float(site_a["z"]) + float(site_b["z"])) * 0.5
 		)
 	)
+	var spawn_hints: Dictionary = data.get("spawnHints", {})
+	if spawn_hints.has("CT"):
+		var hint: Array = spawn_hints.CT
+		var requested := Vector3(float(hint[0]), float(hint[1]), float(hint[2]))
+		ct_center = _nearest(points, requested)
+		if Vector2(ct_center.x, ct_center.z).distance_to(Vector2(requested.x, requested.z)) > 6.0:
+			push_error("Classic navigation cannot reach authored CT spawn")
+			return {}
 	var spawns := {"T": _spawn_cluster(points, first), "CT": _spawn_cluster(points, ct_center)}
 	var actors: Array = []
 	for team in ["T", "CT"]:
@@ -210,6 +233,13 @@ static func _spawn_cluster(points: Array[Vector3], center: Vector3) -> Array:
 	for point in candidates:
 		if point.distance_to(center) > 7.0:
 			break
+		var overlaps := false
+		for existing in selected:
+			if point.distance_to(Vector3(existing[0], existing[1], existing[2])) < 0.95:
+				overlaps = true
+				break
+		if overlaps:
+			continue
 		selected.append([point.x, point.y, point.z])
 		if selected.size() == 5:
 			break

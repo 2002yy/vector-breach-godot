@@ -51,6 +51,8 @@ func _apply_visual_scene(level_data: Dictionary, emit_errors: bool) -> void:
 	if visual_instance != null:
 		has_visible_scene = true
 		_hide_filtered_visual_meshes(visual_instance, level_data.get("hidden_visual_name_contains", []) as Array)
+		if bool(level_data.get("reconstructed_materials", false)):
+			preload("res://scripts/level/ClassicResearchMaterials.gd").apply(visual_instance)
 		if String(level_data.get("id", "")) == "dustline-depths-original-local":
 			_repair_reference_vertex_channels(visual_instance)
 		if bool(level_data.get("runtime_collision_from_visual", false)):

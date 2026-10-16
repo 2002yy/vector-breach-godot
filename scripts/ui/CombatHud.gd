@@ -214,7 +214,7 @@ func update_display(snapshot: Dictionary) -> void:
 	scoreboard_friendly.text = "\n".join(friendly_rows) if not friendly_rows.is_empty() else "你  %d/0  命中%d  $%d  %s  存活" % [int(snapshot.get("kill_count", 0)), int(snapshot.get("hit_count", 0)), int(snapshot.get("money", 800)), String(snapshot.get("weapon_name", "步枪"))]
 	var competitive := GameState.is_competitive_level()
 	_help_text.text = "操作指南（F1 关闭）\n\n" + PlayerGuide.CONTROLS + "\n\n" + (PlayerGuide.MATCH_RULES if competitive else PlayerGuide.PRACTICE_RULES)
-	if GameState.current_level_id.begins_with("dustline-depths"):
+	if preload("res://scripts/level/LocalClassicMaps.gd").is_classic(GameState.current_level_id):
 		_help_text.text = "操作指南（F1 关闭）\n\n" + PlayerGuide.CONTROLS + "\n\n" + PlayerGuide.RESEARCH_RULES
 	_controls_hint.text = "1 / 2 枪 · 3 刀 · 4 手雷 · 5 C4 · E 交互 · B 购买 · F1 帮助"
 	if competitive and RoundManager.can_buy():

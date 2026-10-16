@@ -143,6 +143,8 @@ func _run_all_tests() -> void:
 	await _run_test("knife_backstab_uses_contact_facing_and_real_occlusion", _test_knife_backstab)
 	await _run_test("initial_boot_shows_menu_and_default_map", _test_initial_boot_shows_menu_and_default_map)
 	await _run_test("classic_layout_is_frozen_and_rejects_changed_assets", _test_frozen_classic_layout)
+	await _run_test("new_classic_maps_keep_competitive_buy_and_frozen_layout_contract", _test_classic_catalog)
+	await _run_test("paused_match_can_return_to_map_selection", _test_return_to_maps)
 
 	await _run_test("squad_economy_includes_player_and_help_matches_loadout", _test_squad_economy_includes_player_and_help_matches_loadout)
 	await _run_test("map_selection_updates_game_state_and_menu_copy", _test_map_selection_updates_game_state_and_menu_copy)
@@ -1356,12 +1358,46 @@ func _test_frozen_classic_layout() -> void:
 	var LayoutLoader := preload("res://scripts/level/ClassicMatchLayout.gd")
 	var data := {"id": "gatehouse", "visual_scene": source_path}
 	_assert_equal(LayoutLoader.load_authored(data, manifest_path), JSON.parse_string(JSON.stringify(expected)), "runtime must consume authored positions unchanged")
+	data["match_manifest"] = manifest_path
+	_assert_equal(LayoutLoader.load_authored(data), JSON.parse_string(JSON.stringify(expected)), "per-map manifest must work without the Dust II default")
+	data["match_manifest"] = "user://missing-map-manifest.json"
+	_assert_true(LayoutLoader.load_authored(data, manifest_path).is_empty(), "missing selected map baseline must not fall back to another map")
+	data["match_manifest"] = manifest_path
 	file = FileAccess.open(source_path, FileAccess.WRITE)
 	file.store_string("modified collision")
 	file.close()
 	_assert_true(LayoutLoader.load_authored(data, manifest_path).is_empty(), "collision change must fail closed rather than regenerate routes")
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(source_path))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(manifest_path))
+
+func _test_classic_catalog() -> void:
+	var ClassicCatalog := preload("res://scripts/level/LocalClassicMaps.gd")
+	var previous_id := GameState.current_level_id
+	for id in ClassicCatalog.MAPS:
+		_assert_true(ClassicCatalog.is_classic(id), "new maps must be recognized as classic matches")
+		GameState.current_level_id = id
+		_assert_true(GameState.is_competitive_level(), "new maps must use competitive economy and buy phase")
+	_assert_true(not ClassicCatalog.is_classic("unknown-classic-local"), "unregistered map names must not silently enable classic handling")
+	for option in ClassicCatalog.installed_options():
+		_assert_true(ClassicCatalog.MAPS.has(option.id), "only registered installed maps may appear")
+		_assert_true(String(option.name).contains("重建材质"), "new map UI must disclose reconstructed materials")
+	GameState.current_level_id = previous_id
+
+func _test_return_to_maps() -> void:
+	var main := _instantiate_main()
+	await _await_main_ready()
+	await main.call("_on_start_pressed")
+	main.call("_open_menu", false)
+	var menu := main.get_node("StartMenu")
+	_assert_true((menu.get("map_select") as OptionButton).disabled, "paused match must not offer an ignored map selector")
+	_assert_true((menu.get("_return_to_maps_button") as Button).visible, "paused match needs an explicit return-to-maps action")
+	menu.emit_signal("return_to_maps_pressed")
+	_assert_true(not main.get("game_started") and not GameState.match_active, "returning to selection must end the previous match")
+	_assert_true(not (menu.get("map_select") as OptionButton).disabled, "map selector must work after leaving match")
+	var next := int(main.call("find_level_option_index", "foundry-reforged"))
+	main.call("_on_map_selected", next)
+	_assert_equal(GameState.current_level_id, "foundry-reforged", "new selection must reach the actual game state")
+	await _cleanup_main(main)
 
 func _test_equipment_models() -> void:
 	var main: Node3D = _instantiate_main()

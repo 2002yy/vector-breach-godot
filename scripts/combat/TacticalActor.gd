@@ -87,6 +87,11 @@ func _physics_process(delta: float) -> void:
 		if _current_ladder == null:
 			velocity.y = 0.0
 			_follow_walkable_slope(delta)
+	if _current_ladder == null and is_on_floor() and velocity.y <= 0.1:
+		var motion := Vector3(velocity.x, 0, velocity.z) * delta
+		var step := _step_destination(motion)
+		if step.is_finite():
+			move_and_collide(Vector3.UP * (step.y - global_position.y))
 	move_and_slide()
 	_update_ai_footsteps(position_before)
 	_update_presentation(delta)
@@ -238,8 +243,40 @@ func ai_motion_blocked(motion: Vector3) -> bool:
 		return false
 	for index in range(collision.get_collision_count()):
 		if collision.get_normal(index).y < cos(floor_max_angle):
-			return true
+			return not _step_destination(motion).is_finite()
 	return false
+
+func _step_destination(motion: Vector3) -> Vector3:
+	# Match the player's 42 cm step limit. Probe the landing, sweep up and forward;
+	# tall cover, low ceilings and other actors must remain blocking.
+	if not is_on_floor() or motion.length_squared() < 0.000001:
+		return Vector3.INF
+	var obstacle := KinematicCollision3D.new()
+	if not test_move(global_transform, motion, obstacle):
+		return Vector3.INF
+	for index in range(obstacle.get_collision_count()):
+		if obstacle.get_collider(index) is CharacterBody3D:
+			return Vector3.INF
+	var direction := Vector3(motion.x, 0, motion.z).normalized()
+	var origin := global_position + direction * 0.55 + Vector3.UP * 0.5
+	var end := Vector3(origin.x, global_position.y - 0.94, origin.z)
+	var query := PhysicsRayQueryParameters3D.create(origin, end, 1, [get_rid()])
+	var hit := get_world_3d().direct_space_state.intersect_ray(query)
+	if hit.is_empty() or (hit.normal as Vector3).y < cos(floor_max_angle):
+		return Vector3.INF
+	if hit.collider is CharacterBody3D:
+		return Vector3.INF
+	var rise := float(hit.position.y) - (global_position.y - 0.9)
+	if rise <= 0.025 or rise > 0.42:
+		return Vector3.INF
+	var lift := Vector3.UP * (rise + 0.01)
+	if test_move(global_transform, lift):
+		return Vector3.INF
+	var raised := global_transform
+	raised.origin += lift
+	if test_move(raised, motion):
+		return Vector3.INF
+	return raised.origin
 
 func apply_ai_navigation(direction: Vector3, speed: float, target_y: float, delta: float) -> void:
 	if _current_ladder != null:
