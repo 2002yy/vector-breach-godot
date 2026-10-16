@@ -44,6 +44,7 @@ func load_for_level(level_data: Dictionary) -> void:
 		return
 	var friendly_count := 0
 	var enemy_count := 0
+	var appearance_counts := {"CT": 0, "T": 0}
 	var navigation_graph := _build_navigation_graph(level_data)
 	for record_variant in _build_spawn_records(level_data):
 		if not record_variant is Dictionary:
@@ -73,6 +74,14 @@ func load_for_level(level_data: Dictionary) -> void:
 			var ai_routes: Dictionary = level_data.get("aiRoutes", {}) as Dictionary
 			record["routePoints"] = ai_routes.get(route_name, routes.get(route_name, []))
 			record["navigationGraph"] = navigation_graph
+			var appearance_team := String(record.get("team", "T"))
+			if appearance_team == "friendly":
+				appearance_team = GameState.player_team
+			elif appearance_team == "enemy":
+				appearance_team = "CT" if GameState.player_team == "T" else "T"
+			appearance_team = "CT" if appearance_team == "CT" else "T"
+			record["appearance_id"] = record.get("appearance_id", preload("res://scripts/characters/CharacterAppearance.gd").profile_for(appearance_team, appearance_counts[appearance_team]))
+			appearance_counts[appearance_team] += 1
 			target_node.call("configure_from_record", record)
 		if target_node.has_signal("ai_shot"):
 			target_node.connect("ai_shot", _on_actor_ai_shot)

@@ -1,5 +1,10 @@
 extends CharacterBody3D
 
+const Appearance = preload("res://scripts/characters/CharacterAppearance.gd")
+const NativeVisual = preload("res://scripts/characters/NativeActorVisual.gd")
+var _native_visual: Node3D
+var _appearance_id := "prototype"
+
 const DamageModel = preload("res://scripts/combat/DamageModel.gd")
 const WorldWeaponPickup = preload("res://scripts/combat/WorldWeaponPickup.gd")
 
@@ -116,6 +121,7 @@ func configure_from_record(record: Dictionary) -> void:
 	current_armor = max_armor
 	is_dead = false
 	bot_brain.call("configure", record)
+	_install_appearance(String(record.get("appearance_id", Appearance.profile_for(team, absi(display_name.hash())))))
 	_apply_team_visual()
 
 func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, armor_penetration: float = 1.0, penetrated: bool = false, source_team: String = "", source_position: Vector3 = Vector3.INF) -> Dictionary:
@@ -162,6 +168,8 @@ func get_combat_snapshot() -> Dictionary:
 		"health": current_health, "armor": current_armor, "helmet": has_helmet,
 		"weapon": equipped_weapon_id, "x": global_position.x, "y": global_position.y,
 		"z": global_position.z, "yaw": rotation.y, "crouching": ai_crouching,
+		"appearance": _appearance_id,
+		"native_appearance": _native_visual != null,
 		"defuse_kit": has_defuse_kit,
 	}
 	if bot_brain != null:
@@ -265,7 +273,7 @@ func set_ai_crouching(wants_crouch: bool) -> bool:
 	body_mesh.position.y = _body_mesh_y + _visual_drop
 	head_mesh.position.y = _head_mesh_y + _visual_drop
 	weapon_mesh.position.y = _weapon_mesh_y + _visual_drop
-	actor_visual.position.y = _actor_visual_y + _visual_drop
+	actor_visual.position.y = _actor_visual_y + (_visual_drop if _native_visual == null else 0.0)
 	return true
 
 func get_ai_environment_snapshot() -> Dictionary:
@@ -322,6 +330,9 @@ func _update_presentation(delta: float) -> void:
 		next_animation = &"crouch"
 	elif speed_ratio > 0.12:
 		next_animation = &"run"
+	if _native_visual != null:
+		var loadout: Dictionary = bot_brain.call("get_weapon_pickup_record")
+		_native_visual.set_weapon(String(loadout.get("weapon_id", equipped_weapon_id)))
 	_set_visual_animation(next_animation)
 	if _hit_flash_time > 0.0:
 		_material.albedo_color = Color(1.0, 0.72, 0.22)
@@ -383,11 +394,12 @@ func _make_visual_animation(length: float, loop: bool, tracks: Dictionary) -> An
 	return animation
 
 func _set_visual_animation(next_animation: StringName) -> void:
-	if _active_visual_animation == next_animation:
+	var clip: StringName = _native_visual.clip_for(next_animation) if _native_visual != null else _imported_animation_names.get(next_animation, &"")
+	if _active_visual_animation == next_animation and (_imported_animation_player == null or _imported_animation_player.current_animation == clip):
 		return
 	_active_visual_animation = next_animation
-	if _imported_animation_player != null and _imported_animation_names.has(next_animation):
-		_imported_animation_player.play(_imported_animation_names[next_animation])
+	if _imported_animation_player != null and _imported_animation_player.has_animation(clip):
+		_imported_animation_player.play(clip, 0.10 if _native_visual != null else -1.0)
 		animation_player.stop()
 	else:
 		animation_player.play(&"tactical/" + next_animation)
@@ -442,3 +454,27 @@ func _has_ai_standing_clearance() -> bool:
 	query.collision_mask = collision_mask
 	query.exclude = [get_rid()]
 	return get_world_3d().direct_space_state.intersect_shape(query, 1).is_empty()
+
+
+func _install_appearance(id: String) -> void:
+	if id == _appearance_id:
+		return
+	if _native_visual != null:
+		_native_visual.free()
+		_native_visual = null
+	var native := NativeVisual.new()
+	native.name = "NativeCharacter"
+	actor_visual.add_child(native)
+	if native.install(id):
+		_native_visual = native
+		native.set_weapon(equipped_weapon_id)
+	else:
+		native.free()
+	_appearance_id = id
+	var original := actor_visual.get_node("Model") as Node3D
+	original.visible = _native_visual == null
+	actor_visual.scale = Vector3.ONE if _native_visual != null else Vector3.ONE * 0.85
+	actor_visual.rotation = Vector3.ZERO
+	actor_visual.position = Vector3(0, _actor_visual_y, 0)
+	_active_visual_animation = &""
+	_discover_imported_animations()

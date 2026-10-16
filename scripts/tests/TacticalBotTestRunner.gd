@@ -35,6 +35,7 @@ func _ready() -> void:
 	await _run_test("bot_spray_plan_scales_with_distance", _test_bot_spray_plan_scales_with_distance)
 	await _run_test("bot_strafes_without_orbiting_target", _test_bot_strafes_without_orbiting_target)
 	await _run_test("bot_applies_recoil_compensation_during_spray", _test_bot_applies_recoil_compensation_during_spray)
+	await _run_test("local_character_rig_and_fallback", _test_character_rig)
 	await _run_test("visual_actor_keeps_collision_and_hit_model_independent", _test_visual_actor_keeps_collision_and_hit_model_independent)
 	if _failures.is_empty():
 		print("[TacticalBotTests] PASS (%d tests)" % _passes)
@@ -701,3 +702,36 @@ func _add_test_wall(parent: Node3D, position: Vector3, size: Vector3) -> void:
 	wall.add_child(collision)
 	wall.position = position
 	parent.add_child(wall)
+
+
+func _test_character_rig() -> void:
+	var Appearance = preload("res://scripts/characters/CharacterAppearance.gd")
+	var fixture := await _make_fixture()
+	var actor: CharacterBody3D = fixture.actor
+	for team in ["CT", "T"]:
+		for id in Appearance.PROFILES[team]:
+			actor.call("configure_from_record", {"team": team, "appearance_id": id, "aiEnabled": false})
+			var snapshot: Dictionary = actor.call("get_combat_snapshot")
+			_assert_equal(snapshot.appearance, id, "explicit roster skin remains stable")
+			_assert_equal(snapshot.native_appearance, Appearance.available(id), "native body uses installed assets with safe fallback")
+			var capsule: CapsuleShape3D = actor.get_node("CollisionShape3D").shape
+			_assert_true(is_equal_approx(capsule.height, 1.8), "detailed model must not change collision")
+			if not Appearance.available(id):
+				continue
+			var native: Node3D = actor.get("_native_visual")
+			_assert_true(not actor.get_node("ActorVisual/Model").visible, "prototype must not overlap the detailed model")
+			var skeleton: Skeleton3D = Appearance.find_skeleton(native)
+			_assert_true(skeleton.find_bone("hand_R") >= 0 and skeleton.find_bone("pelvis") >= 0, "all six rigs expose canonical bindings")
+			for kind in ["rifle", "pistol", "knife"]:
+				native.set_weapon(kind)
+				for clip in [&"idle", &"run", &"crouch", &"hit", &"death"]:
+					actor.call("_set_visual_animation", clip)
+					var animation: AnimationPlayer = actor.get("_imported_animation_player")
+					_assert_equal(animation.current_animation, native.clip_for(clip), "held weapon selects the matching imported motion")
+			actor.call("set_ai_crouching", true)
+			_assert_true(is_equal_approx(actor.get_node("ActorVisual").position.y, -0.9), "baked crouch must not receive a second root drop")
+			actor.call("set_ai_crouching", false)
+	actor.call("configure_from_record", {"team": "CT", "appearance_id": "prototype", "aiEnabled": false})
+	_assert_true(actor.get_node("ActorVisual/Model").visible, "absent/disabled local model restores the original actor")
+	_assert_true(actor.get("_native_visual") == null, "switching to fallback must release the native rig")
+	await _cleanup_fixture(fixture)

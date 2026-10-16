@@ -1,5 +1,11 @@
 extends Node3D
 
+const Appearance = preload("res://scripts/characters/CharacterAppearance.gd")
+const NativeHands = preload("res://scripts/player/NativeCharacterHands.gd")
+
+var _native_hands: Node3D
+var _appearance_id := ""
+
 const EquipmentVisuals = preload("res://scripts/player/EquipmentVisuals.gd")
 
 # Original articulated gloves: wrist, palm, thumb and three joints per finger.
@@ -53,6 +59,7 @@ func _process(delta: float) -> void:
 		var breathing := Vector3(0, sin(_idle_time * 1.8) * 0.002, 0)
 		right.position = _base_right + breathing
 		left.position = _base_left + breathing
+	_update_appearance()
 	for label in _forearms:
 		var wrist: Node3D = right if label == "Right" else left
 		var elbow := Vector3(0.36 if label == "Right" else -0.36, -0.36, 0.06)
@@ -62,6 +69,9 @@ func _process(delta: float) -> void:
 		forearm.scale = Vector3(1, length / 0.5, 1)
 		forearm.position = elbow
 		forearm.quaternion = Quaternion(Vector3.UP, (end - elbow).normalized())
+		if _native_hands != null:
+			var curl := grip * (0.32 if label == "Left" and _kind == "knife" and action == "idle" else 1.0)
+			_native_hands.update_pose("R" if label == "Right" else "L", wrist.transform, elbow, curl)
 
 
 func _hand(label: String, side: float) -> Node3D:
@@ -230,6 +240,8 @@ func play_action(kind: String, duration: float = 0.45) -> void:
 
 func snapshot() -> Dictionary:
 	return {
+		"appearance": _appearance_id,
+		"native": _native_hands.snapshot() if _native_hands != null else {},
 		"action": action,
 		"joints": _fingers.size() + 2,
 		"right": right.position,
@@ -238,3 +250,26 @@ func snapshot() -> Dictionary:
 		"playing": animator.is_playing(),
 		"time": animator.current_animation_position if animator.is_playing() else 0.0
 	}
+
+
+func _update_appearance() -> void:
+	var id := UserSettings.ct_appearance if GameState.player_team == "CT" else UserSettings.t_appearance
+	if id == _appearance_id:
+		return
+	_appearance_id = id
+	if _native_hands != null:
+		_native_hands.free()
+		_native_hands = null
+	var native := NativeHands.new()
+	add_child(native)
+	if native.install(id):
+		_native_hands = native
+	else:
+		native.free()
+	for wrist in [right, left]:
+		for child in wrist.get_children():
+			# Weapons and reload magazine remain owned by the animated wrist.
+			if child is Node3D and (child.name.begins_with("Digit") or child.name in ["GlovePalm", "GloveCuff"]):
+				child.visible = _native_hands == null
+	for sleeve in _forearms.values():
+		sleeve.visible = _native_hands == null

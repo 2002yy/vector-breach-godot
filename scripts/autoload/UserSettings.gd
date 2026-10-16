@@ -2,6 +2,10 @@ extends Node
 
 signal settings_changed(snapshot: Dictionary)
 
+const Appearance = preload("res://scripts/characters/CharacterAppearance.gd")
+var ct_appearance := "ct-st6"
+var t_appearance := "t-phoenix"
+
 const SETTINGS_PATH := "user://settings.cfg"
 
 var mouse_sensitivity_multiplier: float = 1.0
@@ -25,6 +29,8 @@ func get_snapshot() -> Dictionary:
 		"dynamic_crosshair": dynamic_crosshair,
 		"radar_range": radar_range,
 		"radar_rotates": radar_rotates,
+		"ct_appearance": ct_appearance,
+		"t_appearance": t_appearance,
 	}
 
 func apply_snapshot(snapshot: Dictionary, persist: bool = true) -> void:
@@ -35,6 +41,8 @@ func apply_snapshot(snapshot: Dictionary, persist: bool = true) -> void:
 	dynamic_crosshair = bool(snapshot.get("dynamic_crosshair", dynamic_crosshair))
 	radar_range = clampf(float(snapshot.get("radar_range", radar_range)), 16.0, 40.0)
 	radar_rotates = bool(snapshot.get("radar_rotates", radar_rotates))
+	ct_appearance = Appearance.sanitize(String(snapshot.get("ct_appearance", ct_appearance)), "CT")
+	t_appearance = Appearance.sanitize(String(snapshot.get("t_appearance", t_appearance)), "T")
 	apply_audio_volume()
 	if persist:
 		save_settings()
@@ -58,6 +66,8 @@ func load_settings() -> void:
 		"dynamic_crosshair": config.get_value("crosshair", "dynamic", dynamic_crosshair),
 		"radar_range": config.get_value("radar", "range", radar_range),
 		"radar_rotates": config.get_value("radar", "rotates", radar_rotates),
+		"ct_appearance": config.get_value("appearance", "CT", ct_appearance),
+		"t_appearance": config.get_value("appearance", "T", t_appearance),
 	}, false)
 
 func save_settings() -> void:
@@ -69,4 +79,6 @@ func save_settings() -> void:
 	config.set_value("crosshair", "dynamic", dynamic_crosshair)
 	config.set_value("radar", "range", radar_range)
 	config.set_value("radar", "rotates", radar_rotates)
+	config.set_value("appearance", "CT", ct_appearance)
+	config.set_value("appearance", "T", t_appearance)
 	config.save(SETTINGS_PATH)

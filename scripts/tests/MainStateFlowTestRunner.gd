@@ -172,6 +172,7 @@ func _run_all_tests() -> void:
 	await _run_test("knife_and_grenade_equipment_are_actionable", _test_knife_and_grenade_equipment_are_actionable)
 	await _run_test("heavy_stab_has_contact_damage_range_and_shared_cooldown", _test_heavy_stab)
 	await _run_test("pending_equipment_use_cancels_on_switch_and_pause", _test_pending_use_cancellation)
+	await _run_test("character_profiles_settings_and_native_hands", _test_character_profiles)
 	await _run_test("hands_animate_joints_and_cancel_objective_reload", _test_hands_actions)
 	await _run_test("sleeves_follow_wrist_without_duplicate_weapon_arms", _test_sleeve_contacts)
 	await _run_test("reload_animation_pauses_and_equipment_switch_cancels_ammo_load", _test_reload_pause_and_cancel)
@@ -1520,4 +1521,46 @@ func _test_c4_ai_hint() -> void:
 		_assert_true(String(main.call("_get_objective_hint")).contains("敌方"), "opposite team interaction prompts stopping enemy")
 		_assert_true(not String(main.call("_get_objective_hint")).contains("掩护"), "enemy action never instructs player to cover")
 	RoundManager.cancel_objective_interaction()
+	await _cleanup_main(main)
+
+
+func _test_character_profiles() -> void:
+	var Appearance = preload("res://scripts/characters/CharacterAppearance.gd")
+	var original_settings := UserSettings.get_snapshot()
+	UserSettings.apply_snapshot({"ct_appearance": "t-elite", "t_appearance": "../../bad"}, false)
+	_assert_equal(UserSettings.ct_appearance, "ct-st6", "cross-team character choice must be rejected")
+	_assert_equal(UserSettings.t_appearance, "t-phoenix", "unknown profile cannot become an asset path")
+	var main := _instantiate_main()
+	await _await_main_ready()
+	var view: Node3D = main.get_node("Player/CameraPivot/Camera3D/WeaponViewModel")
+	var hands: Node3D = view.get("hands")
+	var previous_team := GameState.player_team
+	for team in ["CT", "T"]:
+		GameState.player_team = team
+		for id in Appearance.PROFILES[team]:
+			UserSettings.apply_snapshot({"ct_appearance": id} if team == "CT" else {"t_appearance": id}, false)
+			hands.call("_process", 0.0)
+			_assert_equal(hands.call("snapshot").appearance, id, "team/profile switch must update the actual first-person mesh")
+			var native: Node3D = hands.get("_native_hands")
+			_assert_equal(native != null, Appearance.available(id), "local assets must load when installed and fall back when absent")
+			if native == null:
+				continue
+			for action_name in ["idle", "reload", "knife_heavy", "throw", "plant", "defuse"]:
+				hands.call("set_equipment", "knife", false)
+				if action_name != "idle":
+					hands.call("play_action", action_name, 0.95)
+					(hands.get("animator") as AnimationPlayer).seek(0.22, true)
+				hands.call("_process", 0.0)
+				for side in ["L", "R"]:
+					var rig: Dictionary = native.rigs[side]
+					var skeleton: Skeleton3D = rig.skeleton
+					skeleton.force_update_all_bone_transforms()
+					var wrist: Node3D = hands.get("right" if side == "R" else "left")
+					var actual_wrist := skeleton.global_transform * skeleton.get_bone_global_pose(rig.hand).origin
+					_assert_true(actual_wrist.distance_to(wrist.global_position) < 0.005, "native glove stays on weapon wrist through every action")
+					var elbow := hands.to_global(Vector3(0.36 if side == "R" else -0.36, -0.36, 0.06))
+					var actual_elbow := skeleton.global_transform * skeleton.get_bone_global_pose(rig.forearm).origin
+					_assert_true(actual_elbow.distance_to(elbow) < 0.005, "native cloth remains anchored to the elbow")
+	GameState.player_team = previous_team
+	UserSettings.apply_snapshot(original_settings, false)
 	await _cleanup_main(main)
