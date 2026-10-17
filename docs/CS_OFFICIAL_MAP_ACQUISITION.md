@@ -239,7 +239,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Map export failed; inspect missing dependencie
 2. Blender CLI 运行 `tools/blender/convert_official_classic_map.py --help`，使用 `--kind collision` 转换 `_physics.gltf`。保留原三角面与分组，生成 `COLLISION_ONLY_` 前缀，否则运行时不会建立形状。对齐由该工具的 Blender 坐标转换完成。
 3. `tools/restore_source_texture_alpha.py --source-gltf <原gltf> --target-gltf <适配gltf> --resources <game_loose/csgo> --decoder <CLI> --work <新审计目录>`：对 MASK/BLEND 材质找回原 VTEX alpha；仅当 RGB 逐像素完全相同、alpha 非恒定时替换原生解码 PNG。Mirage 最终 91 张、Inferno 22 张，修复原来 A/B 喷漆红矩形、污渍卡片等异常。全 0/127/255 等恒定通道均跳过；暂存、解码匹配和备份保留相对资源目录，避免同名覆盖。保留之前的 PNG 和收据，不绘制新纹理。
 4. 按 `tools/prepare_official_classic_level.py --help` 校验原包 SHA-1 和所有 glTF 依赖，归档旧 JSON/冻结清单，经显式 `--replace-frozen-baseline` 切换关卡，再用 `tools/author_classic_match.gd` 离线生成新路网。运行时继续拒绝哈希不符，不自动烘焙。
-5. `tools/configure_official_texture_imports.py --visual <适配gltf> --backup-dir <新备份目录>`：只配置新贴图的 BC7 高质量 VRAM 压缩和 mipmaps；工程开启 `textures/vram_compression/import_s3tc_bptc`，再 Godot import。1229 张原 PNG 字节保持不变。
+5. `tools/configure_official_texture_imports.py --visual <适配gltf> --backup-dir <新备份目录>`：只配置新贴图的 BC7 高质量 VRAM 压缩和 mipmaps；先校验全部源/备份目标，再修改导入配置，备份保留纹理相对目录以避免同名冲突。工程开启 `textures/vram_compression/import_s3tc_bptc`，再 Godot import。1229 张原 PNG 字节保持不变。
 6. 独立原生碰撞先建立 Shape3D，再释放仅碰撞源的 GPU mesh 引用，避免 Inferno 加载时 OOM；离线作者工具保留这些 mesh 用于烘焙。真实射线回归证明释放后仍阻挡，不移除碰撞。
 7. 性能：`tools/build_classic_occluder.py` 从大于等于 0.25 平方米的原始不透明视觉三角面生成二进制，`tools/authoring/save_classic_occluder.gd` 保存 `.res`。不填门洞、不用碰撞模型作遮挡、不采用透明植被。Inferno 得到 59305 面。关卡 `render_profile` 指定 `occluder_resource`、`sun_shadow_distance:60`、`sun_shadow_cascades:2`；备份现行冻结清单后显式重编，确认布局没有变化。换图和卸载时恢复原视口/太阳设置。
 

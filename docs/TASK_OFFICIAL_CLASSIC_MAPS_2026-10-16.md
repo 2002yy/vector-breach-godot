@@ -52,6 +52,8 @@
 
 自动审阅在 `9c30015` 发现 alpha 恢复工具两个边界：恒定非 255 通道误用、同名纹理暂存覆盖。现跳过所有恒定 alpha，暂存/解码/备份保留资源相对路径。新增 unittest 覆盖 0/127/255 恒定通道、变化通道和同 basename 的五目录资源；实际 VRF 20.1 两纹理解码通过。已安装素材审计发现 Mirage 一张花材 alpha 恒为 0，已从原 RGB 备份恢复，最终 Mirage 91 + Inferno 22；其余素材哈希验证不变。Inferno 性能结果不受此修正影响，Mirage 重新导入与导出包截图验证。此增量为离线工具、文档与一张私有视觉贴图，不改生产玩法/碰撞/脚本，复用已验证的 178 项原生结果；新增工具测试命令为 `python -m unittest discover -s tools/tests -p test_restore_source_texture_alpha.py`。
 
+`d6f2213` 复审进一步指出导入配置备份的同 basename 冲突；现保留相对目录并在第一处写入前验证全部输入及备份目标。新增同名备份和后续输入失败不产生部分修改的两项回归，`python -m unittest discover -s tools/tests` 合计三项通过。本机新图 URI basename 均唯一，此问题未影响既有 1229 张配置；运行代码/关卡/图像不再改变，导出最终包的两图 UI 验证通过。
+
 公开 Git 仅提交加载、转换、验证和文档，不提交 Valve 模型/贴图/坐标。完整来源与复现次序见 [取得手册](CS_OFFICIAL_MAP_ACQUISITION.md)。分支基线在本文件开头，精确提交/PR/CI run ID、event、head、最终工作区及包 SHA 记录于 `D:/AgentGamePipeline/evidence/official-classic-maps-20261017/delivery.json`。
 
 目标本机包：`D:/AgentGamePipeline/builds/VectorBreach-official-classic-maps-20261017/VectorBreach.exe`，必须保留整个目录、PCK 和原始碰撞字节旁件。导出后需重新验证两图实际 UI/5v5，不能只检查生成了 EXE。

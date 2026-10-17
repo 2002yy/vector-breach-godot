@@ -44,13 +44,16 @@ def main():
                 raise ValueError("Missing or ambiguous import setting: " + key)
         if updated == text:
             continue
-        backup = args.backup_dir / metadata.name
+        relative = source.relative_to(args.visual.parent.resolve())
+        backup = args.backup_dir / relative.with_name(relative.name + ".import")
         if backup.exists():
             raise FileExistsError("Existing import backup preserved")
-        args.backup_dir.mkdir(parents=True, exist_ok=True)
+        changed.append((uri, metadata, backup, updated))
+    # Validate every input and backup target before modifying the first import.
+    for _uri, metadata, backup, updated in changed:
+        backup.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(metadata, backup)
         metadata.write_text(updated, encoding="utf-8")
-        changed.append(uri)
     receipt["gpu_import"] = {
         "format": "desktop high-quality VRAM compression",
         "mipmaps": True,
