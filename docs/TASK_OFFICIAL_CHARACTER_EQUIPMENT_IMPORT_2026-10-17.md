@@ -28,7 +28,7 @@ Blender 命令：`--background --python-exit-code 1 --python tools/blender/conve
 
 候选 `df99c956` 焦点 2/2、完整原生 12 套件 180 项 `RUN_ALL_OK`、GdUnit 2/2、资产三类约束及 9 个公开 GLB 检查通过；Tests `39044688245`、Windows 导出与冒烟 `39044688244` 成功。审查补修腕部形态键后重新验证精确头 CI/审查；运行代码和本批私有产物未改变，复用完整运行回归和 Vulkan 画面，不重复同一完整运行套件。
 
-证据目录 `D:/AgentGamePipeline/evidence/official-character-equipment-20261017/` 保存日志、`visual-morph-fixed` 43 张截图和最终交付收据。新包目录目标 `C:/Users/Zhang/Games/VectorBreach-official-assets-20261017/`，需保留整个目录。PR #45 的最终提交、合并、包和实测以 `delivery.json` 为准；未完成项不作为已交付。下一片是完整原版作战动作图依赖和动作接入，不关闭最终人工美术、全图性能与长局平衡验收。
+证据目录 `D:/AgentGamePipeline/evidence/official-character-equipment-20261017/` 保存日志、`visual-morph-fixed` 43 张截图和最终交付收据。新包目录目标 `D:/AgentGamePipeline/builds/VectorBreach-official-assets-20261017/`，需保留整个目录。PR #45 的最终提交、合并、包和实测以 `delivery.json` 为准；未完成项不作为已交付。下一片是完整原版作战动作图依赖和动作接入，不关闭最终人工美术、全图性能与长局平衡验收。
 
 ## 2026-10-18 交接核查
 
