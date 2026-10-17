@@ -22,6 +22,7 @@ func _ready() -> void:
 	await _run_test("investigation_uses_connected_navigation_graph", _test_investigation_uses_connected_navigation_graph)
 	await _run_test("navigation_attributes_prefer_cover_and_apply_crouch", _test_navigation_attributes_prefer_cover_and_apply_crouch)
 	await _run_test("navigation_model_preserves_weighted_path_choice", _test_navigation_model_preserves_weighted_path_choice)
+	await _run_test("dense_native_navigation_preserves_danger_and_reconfigure", _test_dense_native_navigation)
 	await _run_test("blocked_bot_detects_stall_and_recovers", _test_blocked_bot_detects_stall_and_recovers)
 	await _run_test("visible_enemy_is_acquired_then_burst_fired", _test_visible_enemy_is_acquired_then_burst_fired)
 	await _run_test("visible_enemy_wins_over_nearer_occluded_enemy", _test_visible_enemy_wins_over_nearer_occluded_enemy)
@@ -47,6 +48,35 @@ func _ready() -> void:
 	for failure in _failures:
 		push_error("  - %s" % failure)
 	get_tree().quit(1)
+
+func _test_dense_native_navigation() -> void:
+	var model := BotNavigationModel.new()
+	var graph := {"points": [], "links": []}
+	for z in range(20):
+		for x in range(20):
+			var index := z * 20 + x
+			graph.points.append([float(x), 0.0, float(z)])
+			if x > 0:
+				graph.links.append([index - 1, index])
+			if z > 0:
+				graph.links.append([index - 20, index])
+	model.configure(graph)
+	_assert_true(model.get("_uniform_search") != null, "dense ordinary graph uses native search")
+	_assert_equal(model.nearest_index(Vector3(17.1, 0, 12.1)), 257, "native closest node agrees with geometry")
+	var empty_danger: Array[Dictionary] = []
+	var direct := model.find_path(0, 19, empty_danger)
+	_assert_equal(direct.size(), 20, "native path follows shortest straight corridor")
+	var danger: Array[Dictionary] = [{"position": Vector3(9, 0, 0), "radius": 5.0, "intensity": 100.0}]
+	var detour := model.find_path(0, 19, danger)
+	_assert_true(detour.size() > direct.size(), "live danger still selects the longer safer detour")
+	_assert_true(detour.any(func(index: int) -> bool: return model.points[index].z >= 4.0), "detour clears dangerous corridor")
+	_assert_equal(model.find_path(0, 19, empty_danger), direct, "expired danger returns to ordinary route")
+	_assert_true(model.find_path(0, 400, empty_danger).is_empty(), "invalid goal is rejected")
+	graph.links[0] = {"from": 0, "to": 1, "cover": 0.8}
+	model.configure(graph)
+	_assert_true(model.get("_uniform_search") == null, "weighted graph cannot use Euclidean shortcut")
+	model.configure({"points": [[0, 0, 0], [1, 0, 0]], "links": []})
+	_assert_true(model.find_path(0, 1, empty_danger).is_empty(), "reconfigure discards previous native topology")
 
 func _run_test(test_name: String, callable: Callable) -> void:
 	var before := _failures.size()

@@ -4,12 +4,14 @@ extends RefCounted
 var points: Array[Vector3] = []
 var links: Array = []
 var link_count: int = 0
+var _uniform_search: AStar3D
 
 
 func configure(graph_variant: Variant) -> void:
 	points.clear()
 	links.clear()
 	link_count = 0
+	_uniform_search = null
 	if not graph_variant is Dictionary:
 		return
 	var graph := graph_variant as Dictionary
@@ -35,19 +37,49 @@ func configure(graph_variant: Variant) -> void:
 		else:
 			continue
 		if (
-			from_index < 0 or from_index >= links.size()
-			or to_index < 0 or to_index >= links.size()
+			from_index < 0
+			or from_index >= links.size()
+			or to_index < 0
+			or to_index >= links.size()
 			or from_index == to_index
 		):
 			continue
 		links[from_index].append(_normalize_link(to_index, attributes))
 		links[to_index].append(_normalize_link(from_index, attributes))
 		link_count += 1
+	# Dense authored classic graphs have ordinary Euclidean edges. Use the
+	# engine's native search for this exact cost model; retain weighted tactical
+	# search whenever cover, traversal costs or live danger changes that model.
+	if points.size() >= 256 and _has_uniform_edges():
+		_uniform_search = AStar3D.new()
+		for index in range(points.size()):
+			_uniform_search.add_point(index, points[index])
+		for from_index in range(links.size()):
+			for link in links[from_index]:
+				var to_index := int(link.to)
+				if not _uniform_search.are_points_connected(from_index, to_index):
+					_uniform_search.connect_points(from_index, to_index)
+
+
+func _has_uniform_edges() -> bool:
+	for neighbors in links:
+		for link in neighbors:
+			if (
+				float(link.danger) != 0.0
+				or float(link.cover) != 0.0
+				or float(link.costMultiplier) != 1.0
+				or bool(link.crouch)
+				or bool(link.ladder)
+			):
+				return false
+	return true
 
 
 func nearest_index(world_position: Vector3) -> int:
 	if points.is_empty():
 		return -1
+	if _uniform_search != null:
+		return _uniform_search.get_closest_point(world_position)
 	var best_index := 0
 	var best_distance := INF
 	for index in range(points.size()):
@@ -60,16 +92,24 @@ func nearest_index(world_position: Vector3) -> int:
 
 func find_path(start_index: int, goal_index: int, danger_events: Array[Dictionary]) -> Array[int]:
 	var empty_path: Array[int] = []
-	if start_index < 0 or goal_index < 0:
+	if (
+		start_index < 0
+		or goal_index < 0
+		or start_index >= points.size()
+		or goal_index >= points.size()
+	):
 		return empty_path
 	if start_index == goal_index:
 		return [start_index]
+	if _uniform_search != null and danger_events.is_empty():
+		var native_path: Array[int] = []
+		for index in _uniform_search.get_id_path(start_index, goal_index):
+			native_path.append(int(index))
+		return native_path
 	var open: Array[int] = [start_index]
 	var came_from: Dictionary = {}
 	var g_score: Dictionary = {start_index: 0.0}
-	var f_score: Dictionary = {
-		start_index: points[start_index].distance_to(points[goal_index])
-	}
+	var f_score: Dictionary = {start_index: points[start_index].distance_to(points[goal_index])}
 	while not open.is_empty():
 		var current := open[0]
 		var current_score := float(f_score.get(current, INF))
@@ -90,8 +130,9 @@ func find_path(start_index: int, goal_index: int, danger_events: Array[Dictionar
 			var neighbor := int(neighbor_record.get("to", -1))
 			if neighbor < 0 or neighbor >= points.size():
 				continue
-			var tentative := float(g_score.get(current, INF)) + edge_cost(
-				current, neighbor, neighbor_record, danger_events
+			var tentative := (
+				float(g_score.get(current, INF))
+				+ edge_cost(current, neighbor, neighbor_record, danger_events)
 			)
 			if tentative >= float(g_score.get(neighbor, INF)):
 				continue
@@ -126,10 +167,7 @@ func links_at(index: int) -> Array:
 
 
 func edge_cost(
-	from_index: int,
-	to_index: int,
-	link: Dictionary,
-	danger_events: Array[Dictionary]
+	from_index: int, to_index: int, link: Dictionary, danger_events: Array[Dictionary]
 ) -> float:
 	var distance := points[from_index].distance_to(points[to_index])
 	var dynamic_danger := 0.0
@@ -145,7 +183,9 @@ func edge_cost(
 					dynamic_danger,
 					float(event.get("intensity", 0.0)) * (1.0 - event_distance / radius)
 				)
-	var danger_multiplier := 1.0 + clampf(float(link.get("danger", 0.0)), 0.0, 1.0) * 1.6 + dynamic_danger * 2.2
+	var danger_multiplier := (
+		1.0 + clampf(float(link.get("danger", 0.0)), 0.0, 1.0) * 1.6 + dynamic_danger * 2.2
+	)
 	var cover_multiplier := 1.0 - clampf(float(link.get("cover", 0.0)), 0.0, 1.0) * 0.24
 	var traversal_multiplier := clampf(float(link.get("costMultiplier", 1.0)), 0.25, 4.0)
 	if bool(link.get("crouch", false)):
@@ -178,7 +218,16 @@ func _normalize_link(to_index: int, attributes: Dictionary) -> Dictionary:
 		"cover": clampf(float(attributes.get("cover", 0.0)), 0.0, 1.0),
 		"costMultiplier": clampf(float(attributes.get("costMultiplier", 1.0)), 0.25, 4.0),
 		"precise": bool(attributes.get("precise", false)),
-		"arrivalRadius": clampf(float(attributes.get("arrivalRadius", 0.55 if bool(attributes.get("precise", false)) else 1.05)), 0.15, 1.05),
+		"arrivalRadius":
+		clampf(
+			float(
+				attributes.get(
+					"arrivalRadius", 0.55 if bool(attributes.get("precise", false)) else 1.05
+				)
+			),
+			0.15,
+			1.05
+		),
 		"crouch": bool(attributes.get("crouch", false)),
 		"ladder": bool(attributes.get("ladder", false)),
 	}
