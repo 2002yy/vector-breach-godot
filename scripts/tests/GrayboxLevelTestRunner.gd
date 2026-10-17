@@ -33,6 +33,8 @@ func _run_all_tests() -> void:
 	await _run_test("foundry_reforged_routes_clear_solids_and_interfaces", _test_foundry_reforged_routes_clear_solids_and_interfaces)
 	await _run_test("visual_name_filters_hide_helpers_only", _test_visual_name_filters_hide_helpers_only)
 	await _run_test("reference_vertex_repair_preserves_shared_materials", _test_reference_vertex_repair_preserves_shared_materials)
+	await _run_test("released_collision_mesh_keeps_physics_and_visuals", _test_released_collision_mesh_keeps_physics_and_visuals)
+	await _run_test("render_profile_restores_viewport_and_sun", _test_render_profile_restores_viewport_and_sun)
 	await _run_test("missing_level_does_not_clobber_current_state", _test_missing_level_does_not_clobber_current_state)
 
 func _run_test(test_name: String, callable: Callable) -> void:
@@ -41,6 +43,63 @@ func _run_test(test_name: String, callable: Callable) -> void:
 	if _failures.size() == failed_before:
 		_passes += 1
 		print("[GrayboxLevelTests] PASS %s" % test_name)
+
+func _test_render_profile_restores_viewport_and_sun() -> void:
+	var holder := Node3D.new()
+	var sun := DirectionalLight3D.new()
+	sun.name = "Sun"
+	sun.shadow_enabled = true
+	sun.directional_shadow_max_distance = 100.0
+	var original_mode := sun.directional_shadow_mode
+	holder.add_child(sun)
+	add_child(holder)
+	var builder: Node3D = GRAYBOX_LEVEL_SCENE.instantiate()
+	holder.add_child(builder)
+	var original_occlusion := get_viewport().use_occlusion_culling
+	var path := "user://render_profile_test.tres"
+	ResourceSaver.save(BoxOccluder3D.new(), path)
+	builder.call("_apply_render_profile", {"render_profile": {
+		"occluder_resource": path, "sun_shadow_distance": 60.0, "sun_shadow_cascades": 2,
+	}})
+	_assert_true(get_viewport().use_occlusion_culling, "installed occluder enables culling")
+	_assert_true(builder.get_node("VisualRoot").has_node("LevelOccluder"), "visual layer owns the occluder")
+	_assert_true(sun.shadow_enabled, "optimization retains sun shadows")
+	_assert_equal(sun.directional_shadow_max_distance, 60.0, "map profile controls shadow distance")
+	_assert_equal(sun.directional_shadow_mode, DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS, "two cascades requested")
+	builder.call("load_level", "depot")
+	_assert_equal(get_viewport().use_occlusion_culling, original_occlusion, "unprofiled map restores culling")
+	_assert_equal(sun.directional_shadow_max_distance, 100.0, "unprofiled map restores shadow distance")
+	_assert_equal(sun.directional_shadow_mode, original_mode, "unprofiled map restores cascade count")
+	_assert_true(not builder.get_node("VisualRoot").has_node("LevelOccluder"), "map change removes previous occluder")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	holder.queue_free()
+	await get_tree().process_frame
+
+func _test_released_collision_mesh_keeps_physics_and_visuals() -> void:
+	var builder: Node3D = GRAYBOX_LEVEL_SCENE.instantiate()
+	var source := Node3D.new()
+	add_child(source)
+	var collider := MeshInstance3D.new()
+	collider.name = "COLLISION_ONLY_Test"
+	collider.position = Vector3(500, 0, 0)
+	var box := BoxMesh.new()
+	box.size = Vector3(2, 0.5, 2)
+	collider.mesh = box
+	source.add_child(collider)
+	var visible := MeshInstance3D.new()
+	visible.mesh = BoxMesh.new()
+	source.add_child(visible)
+	_assert_equal(builder.call("_build_runtime_collision_recursive", source, true), 1, "one physical body must be built")
+	_assert_true(collider.mesh == null, "dedicated render mesh must be released after building its shape")
+	_assert_true(visible.mesh != null, "ordinary visible geometry must be retained")
+	for _frame in range(3):
+		await get_tree().physics_frame
+	var query := PhysicsRayQueryParameters3D.create(Vector3(500, 2, 0), Vector3(500, -2, 0))
+	var hit := get_viewport().get_world_3d().direct_space_state.intersect_ray(query)
+	_assert_true(not hit.is_empty(), "released mesh must still block a real physics ray")
+	source.queue_free()
+	builder.free()
+	await get_tree().physics_frame
 
 func _assert_true(condition: bool, message: String) -> void:
 	if condition:

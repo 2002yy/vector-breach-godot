@@ -1,8 +1,8 @@
 # 矢量突袭：启动、操作与地图档案
 
-更新：2026-10-16。项目状态以 [PROJECT_STATUS.md](PROJECT_STATUS.md) 为准。
+更新：2026-10-17。项目状态以 [PROJECT_STATUS.md](PROJECT_STATUS.md) 为准。
 
-本机新完整包位于 `D:/AgentGamePipeline/builds/VectorBreach-classic-maps-20261016/VectorBreach.exe`，需保留同目录 PCK 和 assets。新增炼狱小镇 Inferno、荒漠迷城 Mirage 两张 5v5 研究图，菜单明确标注重建材质。游戏设置分别选择两方外观，第一人称使用对应袖子与手套；暂停后点击“结束当前对局，返回选图”可换地图。
+本批新包目标位于 `D:/AgentGamePipeline/builds/VectorBreach-official-classic-maps-20261017/VectorBreach.exe`，最终验收见任务交付收据；需保留同目录 PCK 和 assets。炼狱小镇 Inferno、荒漠迷城 Mirage 两张 5v5 图已接入官方原始贴图，菜单按实际安装版本标注。Inferno 使用遮挡剔除与 60 米/两级太阳阴影，改善帧率；游戏设置分别选择两方外观，第一人称使用对应袖子与手套；暂停后点击“结束当前对局，返回选图”可换地图。旧包仍保留在 `VectorBreach-classic-maps-20261016`。
 
 ## 从哪里启动
 

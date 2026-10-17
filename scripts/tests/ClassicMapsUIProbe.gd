@@ -77,7 +77,7 @@ func _ready() -> void:
 				var seconds := 60
 				if "--observe-seconds" in args:
 					seconds = clampi(int(args[args.find("--observe-seconds") + 1]), 1, 130)
-				await _observe(main, id, seconds)
+				await _observe(main, id, seconds, not ("--real-time-observe" in args))
 	UserSettings.apply_snapshot(original, true)
 	main.queue_free()
 	await _frames(3)
@@ -96,7 +96,7 @@ func _check_hands(main: Node, expected: String) -> void:
 	_records.append(snapshot)
 
 
-func _observe(main: Node, id: String, seconds: int) -> void:
+func _observe(main: Node, id: String, seconds: int, accelerated: bool = true) -> void:
 	var origins := {}
 	var movements := {}
 	var samples: Array = []
@@ -105,8 +105,9 @@ func _observe(main: Node, id: String, seconds: int) -> void:
 			origins[actor.name] = actor.global_position
 	var original_scale := Engine.time_scale
 	var original_ticks := Engine.physics_ticks_per_second
-	Engine.time_scale = 4.0
-	Engine.physics_ticks_per_second = 240
+	if accelerated:
+		Engine.time_scale = 4.0
+		Engine.physics_ticks_per_second = 240
 	for second in range(seconds):
 		await get_tree().create_timer(1.0).timeout
 		var roster: Array = []
@@ -124,8 +125,22 @@ func _observe(main: Node, id: String, seconds: int) -> void:
 					actor.global_position.y > (origins[actor.name] as Vector3).y - 12.0,
 					"actor must not fall out of map"
 				)
-		samples.append(
-			{"second": second + 1, "actors": roster, "round_state": RoundManager.get_state_name()}
+		(
+			samples
+			. append(
+				{
+					"second": second + 1,
+					"actors": roster,
+					"round_state": RoundManager.get_state_name(),
+					"render_fps": Engine.get_frames_per_second(),
+					"process_ms": Performance.get_monitor(Performance.TIME_PROCESS) * 1000,
+					"physics_ms": Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000,
+					"draw_calls":
+					Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
+					"primitives":
+					Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME),
+				}
+			)
 		)
 		if RoundManager.state == RoundManager.RoundState.ROUND_END:
 			break
@@ -135,7 +150,14 @@ func _observe(main: Node, id: String, seconds: int) -> void:
 		movements.values().any(func(distance: float) -> bool: return distance > 5.0),
 		"natural AI leaves spawn on " + id
 	)
-	_records.append({"level": id, "natural_observation": samples, "max_displacements": movements})
+	_records.append(
+		{
+			"level": id,
+			"natural_observation": samples,
+			"max_displacements": movements,
+			"observation_mode": "accelerated" if accelerated else "real_time"
+		}
+	)
 	await _capture(id + "-observed")
 
 

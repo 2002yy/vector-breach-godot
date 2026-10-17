@@ -1380,7 +1380,13 @@ func _test_classic_catalog() -> void:
 	_assert_true(not ClassicCatalog.is_classic("unknown-classic-local"), "unregistered map names must not silently enable classic handling")
 	for option in ClassicCatalog.installed_options():
 		_assert_true(ClassicCatalog.MAPS.has(option.id), "only registered installed maps may appear")
-		_assert_true(String(option.name).contains("重建材质"), "new map UI must disclose reconstructed materials")
+	for id in ClassicCatalog.MAPS:
+		var rebuilt: Dictionary = ClassicCatalog.describe_option(id, {})
+		_assert_true(String(rebuilt.name).contains("重建材质"), "missing provenance cannot claim original textures")
+		var original: Dictionary = ClassicCatalog.describe_option(id, {"sourceTrace": {"originalTextures": true}})
+		_assert_true(String(original.name).contains("原始材质"), "installed original textures need accurate menu labels")
+		var overridden: Dictionary = ClassicCatalog.describe_option(id, {"sourceTrace": {"originalTextures": true}, "reconstructed_materials": true})
+		_assert_true(String(overridden.name).contains("重建材质"), "runtime material override must override source provenance label")
 	GameState.current_level_id = previous_id
 
 func _test_return_to_maps() -> void:

@@ -14,6 +14,7 @@ signal level_loaded(level_data: Dictionary)
 @onready var exit_marker: Marker3D = $ExitMarker
 
 var _current_level_data: Dictionary = {}
+var _render_profile_state: Dictionary = {}
 
 func _ready() -> void:
 	load_level(level_id)
@@ -31,10 +32,52 @@ func load_level(next_level_id: String, emit_errors: bool = true) -> void:
 		build_options.merge(level_build_options as Dictionary, true)
 	ShapeBuilder.build_into(geometry_root, level_data, build_options)
 	_apply_visual_scene(level_data, emit_errors)
+	_apply_render_profile(level_data)
 	_apply_lights(level_data)
 	_apply_markers(level_data)
 	GameState.set_level(level_id, String(level_data.get("name", level_id)))
 	level_loaded.emit(level_data)
+
+func _apply_render_profile(level_data: Dictionary) -> void:
+	_restore_render_profile()
+	var viewport := get_viewport()
+	var sun := get_parent().get_node_or_null("Sun") as DirectionalLight3D
+	var profile: Dictionary = level_data.get("render_profile", {})
+	if profile.is_empty():
+		return
+	_render_profile_state = {"occlusion": viewport.use_occlusion_culling}
+	if sun != null:
+		_render_profile_state.shadow_distance = sun.directional_shadow_max_distance
+		_render_profile_state.shadow_mode = sun.directional_shadow_mode
+		var distance := float(profile.get("sun_shadow_distance", sun.directional_shadow_max_distance))
+		if distance > 0.0:
+			sun.directional_shadow_max_distance = distance
+		if int(profile.get("sun_shadow_cascades", 4)) == 2:
+			sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
+	var path := String(profile.get("occluder_resource", ""))
+	if path.is_empty() or not ResourceLoader.exists(path, "Occluder3D"):
+		return
+	var resource := load(path) as Occluder3D
+	if resource == null:
+		return
+	var instance := OccluderInstance3D.new()
+	instance.name = "LevelOccluder"
+	instance.occluder = resource
+	visual_root.add_child(instance)
+	viewport.use_occlusion_culling = true
+
+func _exit_tree() -> void:
+	_restore_render_profile()
+
+func _restore_render_profile() -> void:
+	if _render_profile_state.is_empty():
+		return
+	get_viewport().use_occlusion_culling = bool(_render_profile_state.occlusion)
+	var sun := get_parent().get_node_or_null("Sun") as DirectionalLight3D
+	if sun != null and _render_profile_state.has("shadow_distance"):
+		sun.directional_shadow_max_distance = float(_render_profile_state.shadow_distance)
+		sun.directional_shadow_mode = int(_render_profile_state.shadow_mode)
+	_render_profile_state.clear()
 
 func get_current_level_data() -> Dictionary:
 	return _current_level_data
@@ -43,6 +86,17 @@ func _apply_visual_scene(level_data: Dictionary, emit_errors: bool) -> void:
 	_clear_visual_scene()
 	geometry_root.visible = true
 	var has_visible_scene := false
+	# Build independent physics before the original render scene raises memory
+	# pressure. Runtime keeps the shapes and transforms, not duplicate GPU meshes.
+	var collision_instance := _instantiate_visual_resource(
+		String(level_data.get("runtime_collision_scene", "")),
+		"LevelCollisionSource",
+		emit_errors
+	)
+	if collision_instance != null:
+		if collision_instance is Node3D:
+			(collision_instance as Node3D).visible = false
+		_build_runtime_collision(collision_instance, emit_errors, not bool(level_data.get("retain_collision_meshes", false)))
 	var visual_instance := _instantiate_visual_resource(
 		String(level_data.get("visual_scene", "")),
 		"LevelVisual",
@@ -53,20 +107,10 @@ func _apply_visual_scene(level_data: Dictionary, emit_errors: bool) -> void:
 		_hide_filtered_visual_meshes(visual_instance, level_data.get("hidden_visual_name_contains", []) as Array)
 		if bool(level_data.get("reconstructed_materials", false)):
 			preload("res://scripts/level/ClassicResearchMaterials.gd").apply(visual_instance)
-		if String(level_data.get("id", "")) == "dustline-depths-original-local":
+		if bool(level_data.get("original_reference_materials", false)) or String(level_data.get("id", "")) == "dustline-depths-original-local":
 			_repair_reference_vertex_channels(visual_instance)
 		if bool(level_data.get("runtime_collision_from_visual", false)):
 			_build_runtime_collision(visual_instance, emit_errors)
-
-	var collision_instance := _instantiate_visual_resource(
-		String(level_data.get("runtime_collision_scene", "")),
-		"LevelCollisionSource",
-		emit_errors
-	)
-	if collision_instance != null:
-		_build_runtime_collision(collision_instance, emit_errors)
-		if collision_instance is Node3D:
-			(collision_instance as Node3D).visible = false
 
 	var overlay_instance := _instantiate_visual_resource(
 		String(level_data.get("overlay_visual_scene", "")),
@@ -133,12 +177,12 @@ func _hide_filtered_visual_meshes_recursive(node: Node, name_filters: Array) -> 
 	for child in node.get_children():
 		_hide_filtered_visual_meshes_recursive(child, name_filters)
 
-func _build_runtime_collision(root: Node, emit_errors: bool) -> void:
-	var collision_mesh_count: int = _build_runtime_collision_recursive(root)
+func _build_runtime_collision(root: Node, emit_errors: bool, release_meshes: bool = false) -> void:
+	var collision_mesh_count: int = _build_runtime_collision_recursive(root, release_meshes)
 	if collision_mesh_count == 0 and emit_errors:
 		push_warning("Runtime collision requested, but no COLLISION_* meshes were found")
 
-func _build_runtime_collision_recursive(node: Node) -> int:
+func _build_runtime_collision_recursive(node: Node, release_meshes: bool = false) -> int:
 	var collision_mesh_count: int = 0
 	if node is MeshInstance3D:
 		var mesh_instance := node as MeshInstance3D
@@ -156,9 +200,11 @@ func _build_runtime_collision_recursive(node: Node) -> int:
 				collision_mesh_count += 1
 			if mesh_name.begins_with("COLLISION_ONLY_"):
 				mesh_instance.visible = false
+			if release_meshes and collision_shape != null:
+				mesh_instance.mesh = null
 
 	for child in node.get_children():
-		collision_mesh_count += _build_runtime_collision_recursive(child)
+		collision_mesh_count += _build_runtime_collision_recursive(child, release_meshes)
 	return collision_mesh_count
 
 func _clear_visual_scene() -> void:

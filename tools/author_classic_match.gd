@@ -22,6 +22,7 @@ func _run() -> void:
 		quit(1)
 		return
 	var level := load("res://scenes/level/GrayboxLevel.tscn").instantiate() as Node3D
+	level.set_script(load("res://tools/authoring/ClassicAuthoringLevel.gd"))
 	level.set("level_id", id)
 	root.add_child(level)
 	for _frame in range(3):
