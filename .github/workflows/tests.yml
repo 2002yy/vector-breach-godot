@@ -43,7 +43,7 @@ jobs:
           else
             while IFS= read -r path; do
               case "$path" in
-                .gitattributes|assets/*|assets-source/*|data/*|tools/blender/*|tools/check_asset_layers.py|tools/check_asset_metadata.py|tools/check_runtime_asset_contracts.py|tools/validate_runtime_assets.py|.github/workflows/tests.yml)
+                .gitattributes|assets/*|assets-source/*|data/*|tools/blender/*|tools/tests/test_official_cs_mesh_transform.py|tools/check_asset_layers.py|tools/check_asset_metadata.py|tools/check_runtime_asset_contracts.py|tools/validate_runtime_assets.py|.github/workflows/tests.yml)
                   blender=true
                   break
                   ;;
@@ -142,6 +142,12 @@ jobs:
           else
             python tools/blender/run_publish_rebuild_validation.py "./${BLENDER_DIR}/blender"
           fi
+
+      - name: Official model morph transform regression
+        if: steps.surface.outputs.blender == 'true'
+        shell: bash
+        run: |
+          "./${BLENDER_DIR}/blender" --background --python-exit-code 1 --python tools/tests/test_official_cs_mesh_transform.py
 
       - name: Asset runtime validation
         run: python tools/validate_runtime_assets.py

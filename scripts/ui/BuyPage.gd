@@ -4,6 +4,8 @@ signal purchase_requested(item_id: String)
 signal ready_requested
 signal closed
 
+const Official = preload("res://scripts/player/OfficialEquipment.gd")
+
 const PRODUCTS := {
 	"rifle": ["步枪", 2700, "30 发弹匣 · 90 发备弹\n中远距离压制，连射时注意控枪", "res://assets/ui/buy/rifle.png"],
 	"pistol": ["手枪", 500, "12 发弹匣 · 36 发备弹\n半自动副武器，手枪局默认持有", "res://assets/ui/buy/pistol.png"],
@@ -19,6 +21,9 @@ var _balance: Label
 var _countdown: Label
 var _result: Label
 var _ready_button: Button
+var _weapon_images: Dictionary = {}
+var _weapon_titles: Dictionary = {}
+var _preview_team := ""
 
 
 func build() -> void:
@@ -64,6 +69,7 @@ func build() -> void:
 		texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		texture.texture = load(String(PRODUCTS[item][3]))
+		_weapon_images[item] = texture
 		texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		card.add_child(texture)
 		card.add_child(_label(String(PRODUCTS[item][2]), 16))
@@ -126,6 +132,14 @@ func _product_button(item: String) -> Button:
 
 
 func update_page(snapshot: Dictionary) -> void:
+	var team := String(snapshot.get("team", "T"))
+	if team != _preview_team:
+		_preview_team = team
+		for item in _weapon_images:
+			var preview := Official.preview(item, team)
+			_weapon_images[item].texture = preview if preview != null else load(String(PRODUCTS[item][3]))
+			var model_name := ("M4A1-S" if team == "CT" else "AK-47") if item == "rifle" else "Glock"
+			_weapon_titles[item] = String(PRODUCTS[item][0]) + (" · %s 外观" % model_name if preview != null else "")
 	_balance.text = "可用资金  $%d" % int(snapshot.get("money", 0))
 	_countdown.text = (
 		"%s方 · 准备剩余 %d 秒 · 买好即可点击就绪，无需等到倒计时结束"
@@ -145,7 +159,7 @@ func update_page(snapshot: Dictionary) -> void:
 			"[%d] %s  $%d\n%s"
 			% [
 				PRODUCTS.keys().find(item) + 1,
-				PRODUCTS[item][0],
+				_weapon_titles.get(item, PRODUCTS[item][0]),
 				price,
 				"点击购买" if not button.disabled else String(offer.get("reason", "不可购买"))
 			]

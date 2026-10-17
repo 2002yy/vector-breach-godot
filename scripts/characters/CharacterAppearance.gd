@@ -2,6 +2,7 @@ extends RefCounted
 
 # Optional local Source assets. Gameplay never depends on their presence.
 const ROOT := "res://assets/local_reference/cs_agents/"
+const OFFICIAL_ROOT := "res://assets/local_reference/cs_official/"
 const PROFILES := {
 	"CT": ["ct-st6", "ct-sas-officer", "ct-fbi"],
 	"T": ["t-phoenix", "t-elite", "t-blackwolf"],
@@ -30,12 +31,27 @@ static func sanitize(id: String, team: String) -> String:
 static func record(id: String) -> Dictionary:
 	if not _loaded:
 		_loaded = true
-		if FileAccess.file_exists(ROOT + "manifest.json"):
+		for asset_root in [ROOT, OFFICIAL_ROOT]:
+			if not FileAccess.file_exists(asset_root + "manifest.json"):
+				continue
 			var parsed: Variant = JSON.parse_string(
-				FileAccess.get_file_as_string(ROOT + "manifest.json")
+				FileAccess.get_file_as_string(asset_root + "manifest.json")
 			)
-			if parsed is Dictionary and int(parsed.get("version", 0)) == 1:
-				_manifest = parsed.get("profiles", {})
+			if not parsed is Dictionary or int(parsed.get("version", 0)) != 1:
+				continue
+			var profiles: Variant = parsed.get("profiles", {})
+			if not profiles is Dictionary:
+				continue
+			for profile in NAMES:
+				var entry: Variant = profiles.get(profile, {})
+				if not entry is Dictionary or entry.is_empty():
+					continue
+				var complete := true
+				for suffix in [".glb", "-arm-L.glb", "-arm-R.glb"]:
+					complete = complete and ResourceLoader.exists(asset_root + profile + suffix)
+				if complete:
+					_manifest[profile] = entry.duplicate(true)
+					_manifest[profile]["asset_root"] = asset_root
 	return _manifest.get(id, {}) if NAMES.has(id) else {}
 
 
@@ -43,7 +59,7 @@ static func available(id: String) -> bool:
 	if record(id).is_empty():
 		return false
 	for suffix in [".glb", "-arm-L.glb", "-arm-R.glb"]:
-		if not ResourceLoader.exists(ROOT + id + suffix):
+		if not ResourceLoader.exists(String(record(id).get("asset_root", ROOT)) + id + suffix):
 			return false
 	return true
 
@@ -51,7 +67,9 @@ static func available(id: String) -> bool:
 static func instantiate(id: String, suffix: String = "") -> Node3D:
 	if not available(id):
 		return null
-	var scene := load(ROOT + id + suffix + ".glb") as PackedScene
+	var scene := (
+		load(String(record(id).get("asset_root", ROOT)) + id + suffix + ".glb") as PackedScene
+	)
 	return scene.instantiate() as Node3D if scene != null else null
 
 
