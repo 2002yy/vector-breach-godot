@@ -60,13 +60,15 @@ def main():
         scene.render.film_transparent = True
         scene.world = bpy.data.worlds.new("PreviewWorld")
         scene.world.color = (0.35, 0.35, 0.35)
-        scene.view_settings.view_transform = "Standard"
+        scene.view_settings.view_transform = "AgX"
         for offset, energy in [((1, -1, 2), 450), ((-1, 0.5, 1.2), 220)]:
             bpy.ops.object.light_add(
                 type="AREA", location=center + Vector(offset) * extent
             )
             light = bpy.context.object
-            light.data.energy = energy
+            # Camera and light distance scale with the model; power must scale
+            # with area too, or a small pistol is vastly brighter than a rifle.
+            light.data.energy = energy * extent * extent
             light.data.size = extent * 2
             light.rotation_euler = (
                 (center - light.location).to_track_quat("-Z", "Y").to_euler()
@@ -77,7 +79,12 @@ def main():
             (center - camera.location).to_track_quat("-Z", "Y").to_euler()
         )
         camera.data.type = "ORTHO"
-        camera.data.ortho_scale = extent * 1.25
+        rotation = camera.rotation_euler.to_matrix()
+        right, up = rotation.col[0], rotation.col[1]
+        width = 2 * max(abs((p - center).dot(right)) for p in points)
+        height = 2 * max(abs((p - center).dot(up)) for p in points)
+        aspect = scene.render.resolution_x / scene.render.resolution_y
+        camera.data.ortho_scale = max(width, height * aspect) * 1.12
         scene.camera = camera
         scene.render.image_settings.file_format = "PNG"
         scene.render.image_settings.color_mode = "RGBA"
