@@ -2,6 +2,7 @@
 .tools/
 *.log
 __pycache__/
+.ruff_cache/
 *.py[cod]
 *.blend[0-9]
 assets/local_reference/
