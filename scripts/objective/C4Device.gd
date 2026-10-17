@@ -4,6 +4,7 @@ signal beep_emitted(world_position: Vector3, urgency: float)
 
 const IDLE_LIGHT_ENERGY := 0.45
 const DEFAULT_BEEP_PITCH := 1.0
+const Official = preload("res://scripts/player/OfficialEquipment.gd")
 
 @export var explosion_radius: float = 22.0
 @export var lethal_radius: float = 5.5
@@ -20,6 +21,13 @@ var _beep_timer: float = 0.0
 var _world_label: Label3D
 
 func _ready() -> void:
+	var native := Official.build("c4-world")
+	if native != null:
+		var previous := mesh_root.get_node("Visual")
+		mesh_root.remove_child(previous)
+		previous.free()
+		native.name = "Visual"
+		mesh_root.add_child(native)
 	_world_label = Label3D.new()
 	_world_label.position = Vector3(0, 0.42, 0)
 	_world_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED

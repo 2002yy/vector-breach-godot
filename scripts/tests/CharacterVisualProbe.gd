@@ -122,7 +122,10 @@ func _gameplay() -> bool:
 					view.call("set_equipment", kind, false)
 				hands.call("reset_pose")
 				await _capture(id + "-" + kind)
-			_records.append(hands.call("snapshot"))
+			var sample: Dictionary = hands.call("snapshot")
+			sample["asset_root"] = Appearance.record(id).get("asset_root", "")
+			sample["equipment"] = view.call("get_debug_snapshot")
+			_records.append(sample)
 	for kind in ["pistol", "knife", "he_grenade", "c4"]:
 		if kind == "pistol":
 			view.call("set_weapon_slot", 1, false)
@@ -133,13 +136,29 @@ func _gameplay() -> bool:
 			animator.seek(0.22, true)
 			animator.pause()
 			await _capture("action-" + kind + "-" + action)
+	for gun in ["rifle", "pistol"]:
+		view.call("set_equipment", gun, false)
+		view.call("play_reload_started")
+		var weapon: Node3D = view.get("rifle_model" if gun == "rifle" else "pistol_model")
+		for player in weapon.find_children("*", "AnimationPlayer", true, false):
+			if player.has_animation("reload"):
+				player.seek(player.get_animation("reload").length * 0.45, true)
+		animator.seek(animator.current_animation_length * 0.45, true)
+		view.call("set_reload_paused", true)
+		await _capture("native-" + gun + "-reload-midpoint")
+		view.call("set_reload_paused", false)
+		view.call("play_reload_finished")
+		view.call("play_shot")
+		await _capture("native-" + gun + "-shot")
 	view.call("set_weapon_slot", 0, false)
 	UserSettings.apply_snapshot(original_settings, false)
 	main.call("_leave_training")
 	main.get_node("StartMenu").call("_toggle_settings", true)
 	await _capture("appearance-settings")
 	main.get_node("StartMenu").call("_toggle_settings", false)
-	main.call("_on_map_selected", main.call("find_level_option_index", "dustline-depths-original-local"))
+	main.call(
+		"_on_map_selected", main.call("find_level_option_index", "dustline-depths-original-local")
+	)
 	await main.call("_on_start_pressed")
 	var roster: Array = []
 	for actor in main.get_node("CombatSandbox").get_children():

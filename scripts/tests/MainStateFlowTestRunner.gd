@@ -127,7 +127,11 @@ func _test_knife_backstab() -> void:
 	await _cleanup_main(main)
 
 func _ready() -> void:
-	await _run_all_tests()
+	if "--official-assets-only" in OS.get_cmdline_user_args():
+		await _run_test("character_profiles_settings_and_native_hands", _test_character_profiles)
+		await _run_test("official_equipment_team_switch_reload_pause_and_c4_fallback", _test_official_equipment_contract)
+	else:
+		await _run_all_tests()
 	if _failures.is_empty():
 		print("[MainStateFlowTests] PASS (%d tests)" % _passes)
 		get_tree().quit(0)
@@ -175,6 +179,7 @@ func _run_all_tests() -> void:
 	await _run_test("heavy_stab_has_contact_damage_range_and_shared_cooldown", _test_heavy_stab)
 	await _run_test("pending_equipment_use_cancels_on_switch_and_pause", _test_pending_use_cancellation)
 	await _run_test("character_profiles_settings_and_native_hands", _test_character_profiles)
+	await _run_test("official_equipment_team_switch_reload_pause_and_c4_fallback", _test_official_equipment_contract)
 	await _run_test("hands_animate_joints_and_cancel_objective_reload", _test_hands_actions)
 	await _run_test("sleeves_follow_wrist_without_duplicate_weapon_arms", _test_sleeve_contacts)
 	await _run_test("reload_animation_pauses_and_equipment_switch_cancels_ammo_load", _test_reload_pause_and_cancel)
@@ -1612,4 +1617,68 @@ func _test_character_profiles() -> void:
 					_assert_true(actual_elbow.distance_to(elbow) < 0.005, "native cloth remains anchored to the elbow")
 	GameState.player_team = previous_team
 	UserSettings.apply_snapshot(original_settings, false)
+	await _cleanup_main(main)
+
+
+func _test_official_equipment_contract() -> void:
+	var Official = preload("res://scripts/player/OfficialEquipment.gd")
+	_assert_true(not Official.available("../../other"), "unknown equipment cannot become a local resource path")
+	var previous_team := GameState.player_team
+	var main := _instantiate_main()
+	await _await_main_ready()
+	var view: Node3D = main.get_node("Player/CameraPivot/Camera3D/WeaponViewModel")
+	for team in ["CT", "T", "CT"]:
+		GameState.player_team = team
+		view.call("set_weapon_slot", 0, false)
+		view.call("_process", 0.0)
+		var snapshot: Dictionary = view.call("get_debug_snapshot")
+		for kind in ["rifle", "pistol", "knife", "c4"]:
+			var key: String = Official.item_key(kind, team)
+			_assert_equal(snapshot["official_" + kind], key if Official.available(key) else "", "team changes select actual installed equipment with project fallback")
+		if Official.available(Official.item_key("rifle", team)):
+			var rifle: Node3D = view.get("rifle_model")
+			_assert_true(rifle.position.length() < 0.0001, "native attachment origin stays exactly on the animated wrist")
+			_assert_true(Official.play(rifle, "reload", 2.0), "original weapon reload track must be usable")
+			view.call("play_reload_started")
+			var skeleton := rifle.find_children("*", "Skeleton3D", true, false)[0] as Skeleton3D
+			var clip_bone := skeleton.find_bone("clip")
+			_assert_true(clip_bone >= 0, "original rifle must retain its actual magazine bone")
+			if clip_bone >= 0:
+				var largest_motion := 0.0
+				for player in rifle.find_children("*", "AnimationPlayer", true, false):
+					if not player.has_animation("reload"):
+						continue
+					player.advance(0.1)
+					player.seek(0.0, true)
+					player.advance(0.0)
+					var start := skeleton.get_bone_pose_position(clip_bone)
+					for fraction in [0.25, 0.5, 0.75]:
+						player.seek(player.get_animation("reload").length * fraction, true)
+						player.advance(0.0)
+						largest_motion = maxf(largest_motion, start.distance_to(skeleton.get_bone_pose_position(clip_bone)))
+				_assert_true(largest_motion > 0.02, "native reload must animate the real magazine instead of only moving the whole gun")
+			view.call("set_reload_paused", true)
+			for player in rifle.find_children("*", "AnimationPlayer", true, false):
+				_assert_equal(player.speed_scale, 0.0, "pause freezes native magazine/bolt animation with the hands")
+			view.call("set_reload_paused", false)
+			view.call("play_reload_finished")
+			view.call("set_equipment", "knife", false)
+			_assert_true(not rifle.visible, "switching to native knife hides previous firearm")
+		var world: Node3D = main.get_node("C4Device/MeshRoot/Visual")
+		_assert_equal(world.get_meta("official_cs", ""), "c4-world" if Official.available("c4-world") else "", "C4 world state uses installed original mesh with unchanged objective controller")
+	if Official.available("rifle-t") and Official.available("rifle-ct"):
+		GameState.player_team = "T"
+		view.call("set_weapon_slot", 0, false)
+		var installed: Dictionary = Official._items["rifle-ct"]
+		Official._items.erase("rifle-ct")
+		GameState.player_team = "CT"
+		view.call("set_weapon_slot", 0, false)
+		_assert_equal(view.call("get_debug_snapshot").official_rifle, "", "partial installation must restore project rifle instead of retaining the previous team's native gun")
+		Official._items["rifle-ct"] = installed
+		GameState.player_team = "T"
+		view.call("set_weapon_slot", 0, false)
+		GameState.player_team = "CT"
+		view.call("set_weapon_slot", 0, false)
+		_assert_equal(view.call("get_debug_snapshot").official_rifle, "rifle-ct", "restored native data must remain usable on the next team switch")
+	GameState.player_team = previous_team
 	await _cleanup_main(main)

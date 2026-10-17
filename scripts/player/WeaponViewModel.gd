@@ -14,8 +14,12 @@ extends Node3D
 
 const EquipmentVisuals = preload("res://scripts/player/EquipmentVisuals.gd")
 const Hands = preload("res://scripts/player/FirstPersonHands.gd")
+const Official = preload("res://scripts/player/OfficialEquipment.gd")
 var hands: Node3D
 var _magazine_parts: Array[Node] = []
+var _official_team := ""
+var _fallback_magazine_mesh: Mesh
+var _fallback_models: Dictionary = {}
 
 var equipment_models: Dictionary = {}
 var equipped_kind := "rifle"
@@ -38,6 +42,7 @@ func _ready() -> void:
 	hands = Hands.new()
 	hands.name = "Hands"
 	add_child(hands)
+	_fallback_magazine_mesh = hands.magazine.mesh
 	# Older weapon GLBs include rigid display arms. The articulated hands own this
 	# presentation now; leaving both visible creates floating cylinders and gloves.
 	for weapon in [rifle_model, pistol_model]:
@@ -66,9 +71,54 @@ func _ready() -> void:
 		model.reparent(hands.right, false)
 		model.position -= Vector3(0.24, -0.29, -0.38)
 		_magazine_parts.append_array(model.find_children("*magazine*", "MeshInstance3D", true, false))
+	for kind in ["rifle", "pistol", "knife", "c4"]:
+		var original: Node3D = rifle_model if kind == "rifle" else (pistol_model if kind == "pistol" else equipment_models[kind])
+		_fallback_models[kind] = original.duplicate()
 	set_weapon_slot(0, false)
+	_refresh_official_equipment()
+
+
+func _exit_tree() -> void:
+	for model in _fallback_models.values():
+		if is_instance_valid(model):
+			model.free()
+	_fallback_models.clear()
+
+
+func _refresh_official_equipment() -> void:
+	if hands == null or _official_team == GameState.player_team:
+		return
+	_official_team = GameState.player_team
+	for kind in ["rifle", "pistol", "knife", "c4"]:
+		var next := Official.build(kind, _official_team)
+		var previous: Node3D = rifle_model if kind == "rifle" else (pistol_model if kind == "pistol" else equipment_models[kind])
+		if next == null:
+			if not previous.has_meta("official_cs"):
+				continue
+			next = _fallback_models[kind].duplicate() as Node3D
+		if kind == "rifle" and next.has_meta("official_cs"):
+			# First-person projection adapter; AI/world geometry keeps native metres.
+			next.scale *= 0.86
+		next.name = previous.name
+		hands.right.remove_child(previous)
+		previous.free()
+		hands.right.add_child(next)
+		next.visible = equipped_kind == kind
+		if kind == "rifle":
+			rifle_model = next
+		elif kind == "pistol":
+			pistol_model = next
+		else:
+			equipment_models[kind] = next
+	_magazine_parts.clear()
+	for model in [rifle_model, pistol_model]:
+		if not model.has_meta("official_cs"):
+			_magazine_parts.append_array(model.find_children("*magazine*", "MeshInstance3D", true, false))
 
 func _process(delta: float) -> void:
+	_refresh_official_equipment()
+	var current: Node3D = rifle_model if equipped_kind == "rifle" else pistol_model
+	hands.magazine.mesh = null if current.has_meta("official_cs") else _fallback_magazine_mesh
 	for magazine in _magazine_parts:
 		magazine.visible = not hands.magazine.visible
 	if hands.action == "throw" and hands.animator.current_animation_position >= 0.30 and equipment_models.has(equipped_kind):
@@ -111,6 +161,9 @@ func set_equipment(kind: String, animate: bool = true) -> void:
 	if kind not in ["rifle", "pistol"] and not equipment_models.has(kind):
 		return
 	equipped_kind = kind
+	_refresh_official_equipment()
+	for model in [rifle_model, pistol_model] + equipment_models.values():
+		Official.reset(model)
 	_use_blend = 0.0
 	hands.set_equipment(kind, animate)
 	current_weapon_slot = 0 if kind == "rifle" else (1 if kind == "pistol" else (2 if kind == "knife" else (4 if kind == "c4" else 3)))
@@ -152,10 +205,16 @@ func cancel_actions(preserve_reload: bool = false) -> void:
 	if preserve_reload and _reload_active:
 		return
 	_reload_active = false
+	for model in [rifle_model, pistol_model]:
+		Official.reset(model)
 	hands.reset_pose()
 
 func set_reload_paused(paused: bool) -> void:
 	hands.animator.speed_scale = 0.0 if paused and _reload_active else 1.0
+	for model in [rifle_model, pistol_model]:
+		if model.has_meta("official_cs"):
+			for player in model.find_children("*", "AnimationPlayer", true, false):
+				player.speed_scale = 0.0 if paused and _reload_active else 1.0
 
 func set_weapon_slot(slot_index: int, animate: bool = true) -> void:
 	if slot_index < 0 or slot_index > 1:
@@ -163,6 +222,7 @@ func set_weapon_slot(slot_index: int, animate: bool = true) -> void:
 	set_equipment("rifle" if slot_index == 0 else "pistol", animate)
 
 func play_shot() -> void:
+	Official.play(rifle_model if equipped_kind == "rifle" else pistol_model, "shoot", 0.12)
 	hands.play_action("shot", 0.12)
 	_shot_sequence += 1
 	_shot_kick = 1.0
@@ -180,15 +240,22 @@ func play_reload_started() -> void:
 	_reload_active = true
 	var profile = preload("res://data/weapons/rifle.tres") if equipped_kind == "rifle" else preload("res://data/weapons/pistol.tres")
 	hands.play_action("reload", profile.reload_duration)
+	Official.play(rifle_model if equipped_kind == "rifle" else pistol_model, "reload", profile.reload_duration)
 
 func play_reload_finished() -> void:
 	_reload_active = false
+	for model in [rifle_model, pistol_model]:
+		Official.reset(model)
 	if hands.action == "reload":
 		hands.reset_pose()
 
 func get_debug_snapshot() -> Dictionary:
 	return {
 		"hands": hands.snapshot(),
+		"official_rifle": rifle_model.get_meta("official_cs", ""),
+		"official_pistol": pistol_model.get_meta("official_cs", ""),
+		"official_knife": equipment_models["knife"].get_meta("official_cs", ""),
+		"official_c4": equipment_models["c4"].get_meta("official_cs", ""),
 		"weapon_slot": current_weapon_slot,
 		"equipped_kind": equipped_kind,
 		"use_blend": _use_blend,
