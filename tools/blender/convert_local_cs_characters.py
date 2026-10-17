@@ -368,7 +368,7 @@ def arm_asset(arm, meshes, side, output):
         if not obj.data.polygons:
             bpy.data.objects.remove(obj, do_unlink=True)
             continue
-        obj.data.transform(inverse)
+        obj.data.transform(inverse, shape_keys=True)
         selected.append(obj)
     copy = arm.copy()
     copy.data = arm.data.copy()
