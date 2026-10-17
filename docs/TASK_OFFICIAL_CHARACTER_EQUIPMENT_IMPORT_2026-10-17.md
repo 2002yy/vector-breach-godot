@@ -29,3 +29,11 @@ Blender 命令：`--background --python-exit-code 1 --python tools/blender/conve
 候选 `df99c956` 焦点 2/2、完整原生 12 套件 180 项 `RUN_ALL_OK`、GdUnit 2/2、资产三类约束及 9 个公开 GLB 检查通过；Tests `39044688245`、Windows 导出与冒烟 `39044688244` 成功。审查补修腕部形态键后重新验证精确头 CI/审查；运行代码和本批私有产物未改变，复用完整运行回归和 Vulkan 画面，不重复同一完整运行套件。
 
 证据目录 `D:/AgentGamePipeline/evidence/official-character-equipment-20261017/` 保存日志、`visual-morph-fixed` 43 张截图和最终交付收据。新包目录目标 `C:/Users/Zhang/Games/VectorBreach-official-assets-20261017/`，需保留整个目录。PR #45 的最终提交、合并、包和实测以 `delivery.json` 为准；未完成项不作为已交付。下一片是完整原版作战动作图依赖和动作接入，不关闭最终人工美术、全图性能与长局平衡验收。
+
+## 2026-10-18 交接核查
+
+交接报告把 BLOCKED 推测为人工审批或刷新延迟；实际 Codex 精确头审查有一条未解决的腕部形态键意见，已在 `575df5e` 修复并取得无发现复审。完整运行回归通过与审查通过是不同门槛。实际购买页又发现 Glock 预览过曝，`1717164` 将灯光功率随模型尺寸平方缩放，并按相机投影边界取景，重新渲染三张图片后在导出包界面复查。
+
+223 张原角色/装备提取 PNG 默认 `compress/mode=0`，尚未启用显存压缩。用私有 `texture-import-inventory.json` 逐张记录 URI/SHA，复用 `tools/configure_official_texture_imports.py --visual <清单> --backup-dir <独立目录>` 配置高质量桌面显存压缩与 mipmaps；保留原文件、分辨率、导入参数备份和哈希。Godot 重新导入后必须再次验证画面、完整原生套件和新包。方法依据 [Godot glTF 图像导入说明](https://docs.godotengine.org/en/stable/classes/class_gltfstate.html)。
+
+异常性能样本保留：新包一次 40 秒采样平均 12.37 FPS，同条件旧包 52.26 FPS；随后新包带监控短采样约 54.94 FPS，不能据首轮断言新增资产固定导致退化，也不能把显存压缩收益冒充已证明的异常根因。最终包的采样、显存、实际入口和精确远端闭环另存 `delivery.json`，历史地图性能数字不直接套用于本包。
