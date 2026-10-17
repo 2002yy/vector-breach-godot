@@ -59,8 +59,15 @@ def main():
         if not source.is_relative_to(args.resources.resolve()) or not source.is_file():
             raise ValueError("Missing verified VTEX source")
         if uri not in candidates:
-            shutil.copy2(source, inputs / source.name)
-            candidates[uri] = {"source": source, "target": target}
+            relative = source.relative_to(args.resources.resolve())
+            staged = inputs / relative
+            staged.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, staged)
+            candidates[uri] = {
+                "source": source,
+                "target": target,
+                "decoded": decoded / relative.with_suffix(".png"),
+            }
     log = args.work / "decode.log"
     with log.open("wb") as stream:
         result = subprocess.run(
@@ -85,15 +92,14 @@ def main():
         raise RuntimeError("Texture decoder failed; inspect decode.log")
     changes = []
     for uri, record in candidates.items():
-        matches = list(decoded.rglob(Path(uri).name))
-        if len(matches) != 1:
-            raise ValueError("Missing or ambiguous decoded texture: " + uri)
-        original = matches[0]
+        original = record["decoded"]
+        if not original.is_file():
+            raise ValueError("Missing decoded texture at its resource path: " + uri)
         with Image.open(original) as full, Image.open(record["target"]) as old:
-            if (
-                "A" not in full.getbands()
-                or full.getchannel("A").getextrema()[0] == 255
-            ):
+            if "A" not in full.getbands():
+                continue
+            minimum, maximum = full.getchannel("A").getextrema()
+            if minimum == maximum:
                 continue
             if (
                 full.size != old.size
@@ -105,8 +111,8 @@ def main():
         changes.append((uri, record, original))
     restored = []
     for uri, record, original in changes:
-        backup = args.work / "before" / Path(uri).name
-        backup.parent.mkdir(exist_ok=True)
+        backup = args.work / "before" / unquote(uri)
+        backup.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(record["target"], backup)
         shutil.copy2(original, record["target"])
         restored.append(

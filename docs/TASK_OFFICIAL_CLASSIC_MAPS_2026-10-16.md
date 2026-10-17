@@ -25,7 +25,7 @@
 ## 2026-10-17 本机接入结果
 
 - 两张原 VPK 均与固定 Steam 清单 SHA-1 匹配。Source2Viewer 20.1 原始导出保留；运行视觉用根变换复制原网格、UV 和 PNG，未经过 Blender 减面/重绘。Mirage 379 材质/627 图像，Inferno 923 材质/602 图像。
-- 114 张透明贴图从原 VTEX 恢复 alpha，RGB 逐像素一致，修复 A/B 喷漆红块。1229 张贴图使用 BC7/mipmaps；源 PNG 原始字节不受 GPU 导入压缩影响。
+- 最终 113 张透明贴图从原 VTEX 恢复非恒定 alpha，RGB 逐像素一致，修复 A/B 喷漆红块。1229 张贴图使用 BC7/mipmaps；源 PNG 原始字节不受 GPU 导入压缩影响。
 - 原生物理独立适配，运行构建真实 Shape3D 后释放仅碰撞的渲染 mesh，解决 Inferno 原加载 OOM。完整视觉始终保留。Mirage 132107、Inferno 2707934 碰撞三角形；排除 sky/仅手雷 clip。
 - 同名经典关卡切换到原始材质，保留旧重建版和 JSON/冻结清单备份，没有增加混乱的重复菜单项。Mirage 路网 6082 点/6654 边，Inferno 7619 点/8392 边；每队五出生、双爆点，运行时仍验证关卡/碰撞哈希。
 - 实际点击选图、换肤、购买、就绪均通过，两图各有九 AI 加真人。Mirage 60 秒加速观察安装 C4/24 次射击，Inferno 107 秒加速观察回合结束/27 次射击；不把这两项当正常速度 FPS 或全图长局平衡验收。
@@ -49,6 +49,8 @@
 有意义的失败均留证：下载 CDN 超时/SSL → 固定 manifest 续传及工具分段；分卷过度分配 → 稀疏 chunk 原地验证；Inferno Blender 视觉导出 OOM → 根变换复制；原 PNG 缺 alpha → 原 VTEX 原生解码；运行原碰撞构建 OOM → 先构建物理并释放无用渲染 mesh；作者工具提前 preload 缺 autoload → deferred 动态加载。
 
 复查安装工具发现关卡与冻结清单同 basename 导致备份目标冲突，已改为 `levels/`、`match-local/` 两目录，并用临时仓库重现/回归。旧关卡 JSON 已从保留的 16 日可玩包恢复；两图 SHA-256 均与原冻结清单完全一致，`backup-recovery.log` 与 `check_install_backup.py` 留证。旧重建素材、完整旧包保持保留。
+
+自动审阅在 `9c30015` 发现 alpha 恢复工具两个边界：恒定非 255 通道误用、同名纹理暂存覆盖。现跳过所有恒定 alpha，暂存/解码/备份保留资源相对路径。新增 unittest 覆盖 0/127/255 恒定通道、变化通道和同 basename 的五目录资源；实际 VRF 20.1 两纹理解码通过。已安装素材审计发现 Mirage 一张花材 alpha 恒为 0，已从原 RGB 备份恢复，最终 Mirage 91 + Inferno 22；其余素材哈希验证不变。Inferno 性能结果不受此修正影响，Mirage 重新导入与导出包截图验证。此增量为离线工具、文档与一张私有视觉贴图，不改生产玩法/碰撞/脚本，复用已验证的 178 项原生结果；新增工具测试命令为 `python -m unittest discover -s tools/tests -p test_restore_source_texture_alpha.py`。
 
 公开 Git 仅提交加载、转换、验证和文档，不提交 Valve 模型/贴图/坐标。完整来源与复现次序见 [取得手册](CS_OFFICIAL_MAP_ACQUISITION.md)。分支基线在本文件开头，精确提交/PR/CI run ID、event、head、最终工作区及包 SHA 记录于 `D:/AgentGamePipeline/evidence/official-classic-maps-20261017/delivery.json`。
 

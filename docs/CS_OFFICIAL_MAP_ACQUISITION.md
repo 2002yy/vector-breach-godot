@@ -237,7 +237,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Map export failed; inspect missing dependencie
 
 1. `tools/align_official_classic_gltf.py --source <原视觉gltf> --metadata <旧对齐metadata> --output <新私有目录/map.gltf>`：逐依赖复制、校验 SHA，只加根变换、移除源太阳，不简化视觉或重建 UV。20.1 已将 Source 英寸转换为米，轴为 `(source_y, source_z, source_x)`；根 Y 旋转 +90°，偏移使用既有元数据的 `.0254/sourceToWebScale`。禁止重复缩放。Inferno 经 Blender 视觉导出曾 OOM，所以改用此方式；失败日志保留。
 2. Blender CLI 运行 `tools/blender/convert_official_classic_map.py --help`，使用 `--kind collision` 转换 `_physics.gltf`。保留原三角面与分组，生成 `COLLISION_ONLY_` 前缀，否则运行时不会建立形状。对齐由该工具的 Blender 坐标转换完成。
-3. `tools/restore_source_texture_alpha.py --source-gltf <原gltf> --target-gltf <适配gltf> --resources <game_loose> --decoder <CLI> --work <新审计目录>`：对 MASK/BLEND 材质找回原 VTEX alpha；仅当 RGB 逐像素完全相同时替换原生解码 PNG。Mirage 92 张、Inferno 22 张，修复原来 A/B 喷漆红矩形、污渍卡片等异常。保留之前的 PNG 和收据，不绘制新纹理。
+3. `tools/restore_source_texture_alpha.py --source-gltf <原gltf> --target-gltf <适配gltf> --resources <game_loose/csgo> --decoder <CLI> --work <新审计目录>`：对 MASK/BLEND 材质找回原 VTEX alpha；仅当 RGB 逐像素完全相同、alpha 非恒定时替换原生解码 PNG。Mirage 最终 91 张、Inferno 22 张，修复原来 A/B 喷漆红矩形、污渍卡片等异常。全 0/127/255 等恒定通道均跳过；暂存、解码匹配和备份保留相对资源目录，避免同名覆盖。保留之前的 PNG 和收据，不绘制新纹理。
 4. 按 `tools/prepare_official_classic_level.py --help` 校验原包 SHA-1 和所有 glTF 依赖，归档旧 JSON/冻结清单，经显式 `--replace-frozen-baseline` 切换关卡，再用 `tools/author_classic_match.gd` 离线生成新路网。运行时继续拒绝哈希不符，不自动烘焙。
 5. `tools/configure_official_texture_imports.py --visual <适配gltf> --backup-dir <新备份目录>`：只配置新贴图的 BC7 高质量 VRAM 压缩和 mipmaps；工程开启 `textures/vram_compression/import_s3tc_bptc`，再 Godot import。1229 张原 PNG 字节保持不变。
 6. 独立原生碰撞先建立 Shape3D，再释放仅碰撞源的 GPU mesh 引用，避免 Inferno 加载时 OOM；离线作者工具保留这些 mesh 用于烘焙。真实射线回归证明释放后仍阻挡，不移除碰撞。
