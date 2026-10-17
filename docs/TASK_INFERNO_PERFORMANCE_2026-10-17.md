@@ -27,3 +27,25 @@ Inferno 的原生冻结图为 7619 点、8392 边，全体边只有 precise/arri
 Bot 焦点 31 项已通过；完整生产候选再跑一次全套原生、GdUnit、GDScript lint、差异/资产策略检查，以及源码和导出包 Vulkan 复测。最终数字、精确 CI run/event/head、审阅、PR/main、包 SHA 与工作区状态写入 `D:/AgentGamePipeline/evidence/official-classic-maps-20261017/delivery.json`，避免将运行中状态误写为已交付。逐帧探针为证据根的 `frame_times.gd`，以 `--script <绝对路径> -- <输出json>` 运行，原命令无 `--disable-vsync`、无 `--max-fps` 覆盖；将截图移到观测期后可消除一次工具读回长帧。
 
 当前边界：实时危险权重仍走脚本搜索；秒级长帧需要与原生查询收益分开判断。下一片聚焦剩余长帧的逐帧根因及双方多回合人工比赛。
+
+## 已合并候选与三图统一采样
+
+PR #43 候选 `48e7a3418592a21db5ea5caf6019b3cd7bd90172` 已合入 main `8a11e49e389585f29f871f5bafcb9cad23feba99`，两者树完全一致。完整原生 179 项 `RUN_ALL_OK`、Bot 31 项、GdUnit 2/2、增量 lint 均通过；PR 精确头 Tests run `39019667696` 与 Windows Export run `39019667802`（含实际 export/smoke）成功，自动代码审阅在该候选上 completed / 无发现。合并后 push CI 结果写入交付收据。
+
+同一导出 PCK、RTX 5060 Laptop、Vulkan Forward+、1600×900、默认显示设置、CT 出生固定视角自然 5v5；每次采样 40 秒、剔除前 5 秒，截图在采样后保存，无超分/帧生成覆盖。以下均为实际逐帧耗时计算的平均 FPS，不能混用此前每秒 FPS 样本的中位数：
+
+| 地图 | 平均 FPS | P99 帧耗时 | 最长帧 |
+| --- | ---: | ---: | ---: |
+| Dust II 原始材质 | 191.31 | 13.968 ms | 36.826 ms |
+| Mirage 原始材质 | 107.72 | 17.398 ms | 44.980 ms |
+| Inferno 原始材质 | 76.68 | 17.662 ms | 36.545 ms |
+
+三次有效样本均全程前台，未见超过 50 ms 长帧。Dust II 第一次多数失焦的 236.56 FPS 样本保留，未用作表格成绩。Inferno 另一次同包平均 80.97 FPS / P99 20.009 ms，但焦点混合，也单独保留；不择优当统一成绩。证据 `three-map-performance.json` 与三个 `frames-*-comparable.json`，Dust II 使用 `frames-dust2-focused-repeat.json`。三次固定出生视角不代表全图移动、交火或长局最低帧。
+
+### 原版性能参考和下一步
+
+[PConline 自测](https://www.sohu.com/a/916461333_223764)在 RTX 5060 Laptop / R9 7845HX、1080p 最低画质的 CS2 创意工坊 fps Benchmark 得到平均 468.2、1% low 152.9 FPS；这是另一台 CPU/功耗、另一画质和场景，不是本机三张图的对照，且该段未逐项披露 FSR 状态，不能当作已确认的原生同条件目标。[HowManyFPS 的公开实机记录](https://howmanyfps.com/benchmarks/counter-strike-2/6a1a1ea4451a6fc4b8310a39)虽为 5060 Laptop、平均 180 FPS，却明确 FSR Quality，排除出原生比较。没有用 FPS 估算器数据代替实测。下一步应在本机原版 CS2 固定路线、相同分辨率、明确关闭 FSR 和帧生成后采样，才能计算可靠差距。
+
+参考 Valve 的 [VVIS / PVS](https://developer.valvesoftware.com/wiki/VVIS?uselang=en) 与 [静态道具优化](https://developer.valvesoftware.com/w/index.php?title=Prop_Types_Overview&uselang=en)：先按空间分区减少不可见提交，再在区域内部合并相同材质、复用实例和 LOD，控制阴影提交。当前 glTF 原网格导出没有继承 Source 的完整可见性结构，已有遮挡剔除仅是第一步；当前 Inferno 仍有数千次绘制提交，继续优化空间明确。不能直接把 Source 1 PVS 数据当作 Source 2 关卡的可用分区，下一片须检查本次原包实际可见性数据、保留碰撞/路网，并做逐区无漏面与帧耗时对照。
+
+仓库整理和原版人物/装备取得边界见 [资源与仓库整理记录](TASK_ORIGINAL_EQUIPMENT_CLEANUP_2026-10-17.md)。
