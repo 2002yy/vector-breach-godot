@@ -1,12 +1,12 @@
 # 官方 CS2 地图取得、转换与复用手册
 
-更新：2026-10-16。适用于当前 Godot 游戏；这是操作记录，不表示新地图原始材质版已经交付。
+更新：2026-10-17。适用于当前 Godot 游戏。两张新图已完成本机原始材质接入；最终远端与打包状态见本批任务记录和交付收据。
 
 ## 先看结论与执行断点
 
 第一张经典图是 **Dust II / de_dust2（CS2 版）**。本机原始材质入口使用官方资源转换成品；另一个沙线入口为重建外观。两者都叠加了本作的 B 点高架，碰撞、路网和爆破规则也由本作维护，不能把当前关卡称为完全未修改的官方关卡。
 
-Inferno、Mirage 当前已交付版本来自第三方整理的几何和重建材质。要升级为原始资源，应走“Steam 官方 depot → 地图 VPK 与依赖 → Source 2 Viewer 导出 → Godot 适配”的路线，不应继续把已有简化 GLB 当作完整原始素材。
+Inferno、Mirage 早期包来自第三方整理的几何和重建材质；本机现已升级为“Steam 官方 depot → 地图 VPK 与依赖 → Source 2 Viewer 导出 → Godot 适配”。旧重建素材与冻结清单保留备份。
 
 本次实际进度：
 
@@ -15,11 +15,12 @@ Inferno、Mirage 当前已交付版本来自第三方整理的几何和重建材
 | 回查 Dust II 来源 | 本机关卡 JSON、生成脚本和审计记录相互吻合；旧下载命令及原始导出日志未找回 |
 | Steam 匿名访问 | 成功登录，取得 app 730 / depot 2347770 的 depot key 和当前完整 manifest |
 | 固定当前版本 | `2520908610273941189`；Steam 清单显示 2026-10-15 17:23:21，不把其未标时区的时间另作转换 |
-| 定向原包下载 | 已尝试；持续 chunk connection timeout，并出现 SSL connection 错误，主动停止本任务下载，保留断点 |
-| 导出工具取得 | 固定 Source 2 Viewer 20.1 的官方 release 与校验值；下载不完整，未安装/运行成功 |
-| 新两图校验、原材质导出与导入 | **未通过 / 未执行**；下面导出命令依据工具文档，尚未在新两图本机验证 |
+| 定向原包下载 | 16 日超时后保留断点；17 日以相同 manifest、`-validate -max-downloads 32` 续传，两张 VPK 的大小与 SHA-1 均匹配 |
+| 导出工具取得 | 20.1 官方 ZIP 分段下载后大小、SHA-256、ZIP CRC 均通过，CLI 实际导出成功 |
+| 公共依赖 | Steam chunk 定向缓存，提取 3408 个资源；VPK CRC 校验通过，逐文件 SHA-256 已留档，缺失 0 |
+| 新两图原材质导出与导入 | 均已完成本机接入、独立原生物理与冻结路网、Vulkan 5v5 和购买/就绪验证 |
 
-下一片工作：先恢复本机原包及工具下载，通过文件哈希校验，再列出 VPK 内容、导出一张图并补齐依赖。当前游戏和冻结碰撞不替换。
+当前下一片为 Inferno 性能优化及最终包验收；原始着色器、Source 2 灯光和全部碰撞查询语义仍需单独适配。
 
 ## 1. Dust II 历史证据
 
@@ -125,7 +126,7 @@ foreach ($check in $mapChecks) {
 
 ## 5. 取得并校验导出工具
 
-本次 GitHub CLI 下载及 urllib 下载均未完成；不能解压当前不完整 ZIP 当作工具使用。下面是下一次恢复用的命令，非本次运行成功证明：
+最初 GitHub CLI/urllib 单连接下载未完成，残缺文件保留。最终使用私有 `tools/download_tool_ranges.py`：16 路、每段 2 MB，验证 Content-Range、段长，合并后校验完整 SHA-256 与 ZIP CRC。下面是网络正常时的普通下载示例；已验证成品为 `tools/cli-windows-x64-20.1-verified.zip`：
 
 ```powershell
 $toolRoot = Join-Path $refRoot 'tools'
@@ -170,7 +171,7 @@ if ($LASTEXITCODE -ne 0) { throw 'VPK integrity check failed' }
 $exportDir = Join-Path $refRoot ('analysis/' + $mapName + '/visual')
 if (Test-Path -LiteralPath $exportDir) { throw 'Use a fresh export directory' }
 New-Item -ItemType Directory -Path $exportDir -Force | Out-Null
-& $s2vExe -i $mapVpk --game $gameDir --vpk_filepath ('maps/' + $mapName + '.vmap_c') -o $exportDir --gltf_export_format gltf --gltf_export_materials --gltf_textures_adapt
+& $s2vExe -i $mapVpk --game (Join-Path $gameDir 'gameinfo.gi') -f ('maps/' + $mapName + '.vmap_c') -o $exportDir -d --gltf_export_format gltf --gltf_export_materials --gltf_textures_adapt
 if ($LASTEXITCODE -ne 0) { throw 'Map export failed; inspect missing dependencies' }
 ```
 
@@ -184,7 +185,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Map export failed; inspect missing dependencie
 
 地图包不保证包含全部外部资源。`pak01_dir.vpk` 是公共包索引，不包含各个分卷的全部数据；只拿索引不能宣布依赖齐全。
 
-1. 保持 `game/csgo/gameinfo.gi` 与 `game/core/` 结构，传 `--game $gameDir`，收集工具报告的缺失资源路径。
+1. 保持 `game/csgo/gameinfo.gi` 与 `game/core/` 结构，20.1 的 `--game` 必须指向 `gameinfo.gi` 文件，同时显式 `-d`；新版在线文档的默认值不能直接套用。收集缺失资源路径。
 2. 用 Source 2 Viewer 打开公共 `pak01_dir.vpk`，或用 CLI `--vpk_dir` 查资源所在 archive index。索引输出若不足，使用 GUI 文件属性或 VPK 索引解析取得分卷号，不猜分卷。
 3. 把实际所需 `game/csgo/pak01_NNN.vpk` / `game/core/pak01_NNN.vpk` 完整路径追加到 `files.txt`，仍从同一 depot、同一 manifest 下载并校验。
 4. 对新出现的纹理、模型、材质间接依赖继续补齐；每次记录新增文件与原因，避免一开始下载全体几十 GB 分卷。
@@ -207,6 +208,39 @@ if ($LASTEXITCODE -ne 0) { throw 'Map export failed; inspect missing dependencie
 
 依次通过：原包校验 → 工具校验 → VPK 结构/依赖 → 视觉贴图实际导出 → 未简化物理清点 → Godot 逐区视觉/接触验证 → 冻结路网与 5v5 回合 → 原生全套和相关 Vulkan 探针 → 导出包实际入口。不能用前一步替代后一步。
 
-材质/碰撞接入后按 `AGENTS.md` 跑全套原生测试和 Vulkan 截图检查；本次仅记录取得方法，无游戏行为修改，不重跑游戏全套。原始 Valve 资源继续放私有目录及已忽略的本机资源目录，不提交二进制和地图坐标到公开仓库。
+材质/碰撞接入后按 `AGENTS.md` 跑全套原生测试和 Vulkan 截图检查。17 日接入阶段全套已出现 `RUN_ALL_OK`，GdUnit 2/2；后续性能修改应重新验证。原始 Valve 资源继续放私有目录及已忽略的本机资源目录，不提交二进制和地图坐标到公开仓库。
 
 本次私有证据：`D:/AgentGamePipeline/reference-assets/cs2-official-maps-20261016/`，含 `manifest-probe.log`、`manifest_2347770_2520908610273941189.txt`、`files.txt`、`maps-download.log`、下载断点和 `receipt.json`。工具及地图下载的预分配/残缺文件只用于恢复，不是有效交付件。
+
+## 10. 2026-10-17 实际成功路线：定向公共资源
+
+完整下载所需公共分卷会达到十余 GB，随后还会增长。本次没有把局部分卷冒充完整原包，采用以下可重放流程：
+
+1. 完整校验两张地图、csgo/core 的 `pak01_dir.vpk` 和 `gameinfo.gi`。清单 SHA-256 为 `6ceff0bf74218fe69091641ffee87c57b8dad91caea13ac1b0a365567553e53f`。
+2. 私有 `dependency_inventory.py` 读取 VPK v1/v2 目录和资源引用；`prepare_resource_ranges.py` 递归规划模型、材质、纹理等所需分卷字节区间。
+3. 固定 DepotDownloader 上游提交 `c553ef4d60c00a4f5fd16c9fe017f569001589ff`，应用 `tools/depot-range.patch`。CLI-only 私有构建适配 .NET SDK 8.0.423，仅请求与资源区间相交的 Steam chunk，仍由 SteamKit 验证 chunk 内容。构建信息在 `tools/range-tool-build-info.json`。
+4. 缓存放 `PARTIAL-cache-NOT-full-depot`；Windows 使用 sparse 文件保存原偏移。设置本进程 `VB_STEAM_RANGE_PLAN` 为不可变 JSON，再执行 `dotnet tools/depot-range-v2/DepotDownloader.dll -app 730 -depot 2347770 -manifest 2520908610273941189 -filelist resource-range-files.txt -dir PARTIAL-cache-NOT-full-depot -validate -max-downloads 32`。不同轮次 chunk 审计先归档。
+5. 按 VPK 条目解压并校验 CRC，再写入 `game_loose/csgo` / `game_loose/core`。只把完整校验后的独立资源用于导出；不把局部缓存挂载成完整 pak。新引用产生下一轮计划，直至缺失为零。
+6. 三轮最终提取 3408 个独立资源；`loose-resource-receipt.json` 保存全部 SHA-256、缺失 0 和来源。`game_loose` 放原 `gameinfo.gi`、地图 VPK 硬链接与独立编译资源，不放共享 pak 索引，避免 CLI 再尝试挂载不完整分卷。
+
+私有源码与辅助脚本保留在上述根目录；方法包 `tools/acquisition-method-only.zip` 仅含脚本、补丁、构建信息和说明，不含 Valve 资源。换机器重放时仍须取得可访问的同一 manifest；不要仅复制缓存文件名就宣称通过。
+
+重要失败与修正：普通 Python truncate 曾实际分配整个分卷；后改为 Windows sparse API。常规 DepotDownloader 更新分支会重建分卷、丢失 sparse 属性；v2 改为只验证请求 chunk 的原地缓存。稀疏回收工具仅对已证明为零的未请求区间打洞，不触碰验证内容。NuGet CRL 不可达时使用进程级 `DOTNET_SYSTEM_NET_HTTP_SOCKETSHTTPHANDLER_HTTP2SUPPORT=false`、`NUGET_CERT_REVOCATION_MODE=offline` 完成工具恢复，没有修改全局网络配置。
+
+## 11. 已验证的转换与修复次序
+
+视觉实际命令：`Source2Viewer-CLI.exe -i game_loose/csgo/maps/de_inferno.vpk --game game_loose/csgo/gameinfo.gi -f maps/de_inferno.vmap_c -o analysis/de_inferno/visual-raw -d --gltf_export_format gltf --gltf_export_materials --gltf_textures_adapt`。Mirage 替换地图名。完整原导出保留，日志仍有缺失 Source 2 着色器的提示，但没有缺模型/材质/纹理文件异常。CLI 可能异常后退出 0，必须检查实际 glTF、bin、PNG 和日志。
+
+物理使用 `-f maps/de_inferno/world_physics.vmdl_c`，真正物理在额外生成的 `world_physics_physics.gltf`，主 glTF 可能为空。Mirage 41 组中运行 39 组、132107 三角形；Inferno 52 组中运行 49 组、2707934 三角形。排除 sky 和仅手雷 clip，保留原玩家实体/clip；当前统一物理层不等同 Source 2 的所有子弹/手雷查询层。
+
+公共工具顺序：
+
+1. `tools/align_official_classic_gltf.py --source <原视觉gltf> --metadata <旧对齐metadata> --output <新私有目录/map.gltf>`：逐依赖复制、校验 SHA，只加根变换、移除源太阳，不简化视觉或重建 UV。20.1 已将 Source 英寸转换为米，轴为 `(source_y, source_z, source_x)`；根 Y 旋转 +90°，偏移使用既有元数据的 `.0254/sourceToWebScale`。禁止重复缩放。Inferno 经 Blender 视觉导出曾 OOM，所以改用此方式；失败日志保留。
+2. Blender CLI 运行 `tools/blender/convert_official_classic_map.py --help`，使用 `--kind collision` 转换 `_physics.gltf`。保留原三角面与分组，生成 `COLLISION_ONLY_` 前缀，否则运行时不会建立形状。对齐由该工具的 Blender 坐标转换完成。
+3. `tools/restore_source_texture_alpha.py --source-gltf <原gltf> --target-gltf <适配gltf> --resources <game_loose/csgo> --decoder <CLI> --work <新审计目录>`：对 MASK/BLEND 材质找回原 VTEX alpha；仅当 RGB 逐像素完全相同、alpha 非恒定时替换原生解码 PNG。Mirage 最终 91 张、Inferno 22 张，修复原来 A/B 喷漆红矩形、污渍卡片等异常。全 0/127/255 等恒定通道均跳过；暂存、解码匹配和备份保留相对资源目录，避免同名覆盖。保留之前的 PNG 和收据，不绘制新纹理。
+4. 按 `tools/prepare_official_classic_level.py --help` 校验原包 SHA-1 和所有 glTF 依赖，归档旧 JSON/冻结清单，经显式 `--replace-frozen-baseline` 切换关卡，再用 `tools/author_classic_match.gd` 离线生成新路网。运行时继续拒绝哈希不符，不自动烘焙。
+5. `tools/configure_official_texture_imports.py --visual <适配gltf> --backup-dir <新备份目录>`：只配置新贴图的 BC7 高质量 VRAM 压缩和 mipmaps；先校验全部源/备份目标，再修改导入配置，备份保留纹理相对目录以避免同名冲突。工程开启 `textures/vram_compression/import_s3tc_bptc`，再 Godot import。1229 张原 PNG 字节保持不变。
+6. 独立原生碰撞先建立 Shape3D，再释放仅碰撞源的 GPU mesh 引用，避免 Inferno 加载时 OOM；离线作者工具保留这些 mesh 用于烘焙。真实射线回归证明释放后仍阻挡，不移除碰撞。
+7. 性能：`tools/build_classic_occluder.py` 从大于等于 0.25 平方米的原始不透明视觉三角面生成二进制，`tools/authoring/save_classic_occluder.gd` 保存 `.res`。不填门洞、不用碰撞模型作遮挡、不采用透明植被。Inferno 得到 59305 面。关卡 `render_profile` 指定 `occluder_resource`、`sun_shadow_distance:60`、`sun_shadow_cascades:2`；备份现行冻结清单后显式重编，确认布局没有变化。换图和卸载时恢复原视口/太阳设置。
+
+实际截图入口：`tools/authoring/capture_classic_materials.gd -- <level-id> <证据目录> --compare-occlusion`，A/B 两路十视角逐帧对比开关遮挡；它会测试瞬移，不能算自然行走通过。性能隔离用 `profile_classic_rendering.gd`，实战帧率用 `ClassicMapsUIProbe.tscn -- --map <id> --observe --observe-seconds 30 --real-time-observe --evidence-dir <目录>`。加速模拟模式的 FPS 不能与正常速度比较。
