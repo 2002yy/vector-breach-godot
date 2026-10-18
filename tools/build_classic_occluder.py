@@ -81,6 +81,14 @@ def main():
                 material = scene["materials"][primitive["material"]]
                 if material.get("alphaMode", "OPAQUE") != "OPAQUE":
                     continue
+                # Shader-unaware exports label translucent dust/steam as opaque.
+                # They are effects, never structural occluders, even before the
+                # optional runtime shader adaptation is installed.
+                if (
+                    material.get("extras", {}).get("vmat", {}).get("ShaderName")
+                    == "csgo_effects.vfx"
+                ):
+                    continue
                 positions = accessor(primitive["attributes"]["POSITION"])
                 indices = accessor(primitive["indices"]).reshape(-1, 3)
                 points = positions[indices] @ world[:3, :3].T + world[:3, 3]

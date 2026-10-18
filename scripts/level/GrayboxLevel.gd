@@ -109,6 +109,8 @@ func _apply_visual_scene(level_data: Dictionary, emit_errors: bool) -> void:
 			preload("res://scripts/level/ClassicResearchMaterials.gd").apply(visual_instance)
 		if bool(level_data.get("original_reference_materials", false)) or String(level_data.get("id", "")) == "dustline-depths-original-local":
 			_repair_reference_vertex_channels(visual_instance)
+			var effect_manifest := String(level_data.get("visual_scene", "")).get_base_dir().path_join("source-effects.json")
+			preload("res://scripts/level/SourceEffectMaterials.gd").apply(visual_instance, effect_manifest)
 		if bool(level_data.get("runtime_collision_from_visual", false)):
 			_build_runtime_collision(visual_instance, emit_errors)
 
