@@ -18,6 +18,8 @@ python -X utf8 tools/prepare_source_effect_materials.py --visual assets/local_re
 
 Mirage 解码四张、Inferno 两张去重原纹理，源 VTEX/新 PNG 哈希见各 `receipt.json`。原始 glTF、bin、已有 PNG、独立碰撞及路网应逐项保持哈希。Inferno 另用更新后的 `build_classic_occluder.py` 与 `save_classic_occluder.gd` 重建遮挡，安装前保留旧 `.res`。
 
-证据根目录：`D:/AgentGamePipeline/evidence/classic-effect-surfaces-20261018/`。初轮修复后同 54 视角为 `after-road-edges/`，实际 Vulkan 检查两处原灰面消失。聚焦回归 18 项通过，包括共享原材质不变、几何不删除、不同混合模式、缺私有资源回退。完整原生、最终遮挡对照、导出包与精确 CI/复审状态由该目录交付收据记录；未产出前不能宣称已交付。
+证据根目录：`D:/AgentGamePipeline/evidence/classic-effect-surfaces-20261018/`。完整原生 181 项、GdUnit 2/2、三项资产策略、GDScript lint、Python lint/format 均通过。最终 PCK `pck-final-visual/` 保存相同 54 视角及两张遮挡关闭对照，Vulkan 检查两处原灰面消失、相邻建筑仍完整；实际 EXE 普通入口正常启动并退出 0。新增回归覆盖共享原材质不变、几何不删除、不同混合模式、缺私有资源回退；遮挡三角面用例确认保留实墙、排除误标不透明的特效和透明植被。`preservation.json` 核对两图 1231 项原依赖、三份碰撞及 25 个人物/装备 GLB 保持原哈希。
+
+可玩包：`D:/AgentGamePipeline/builds/VectorBreach-classic-effect-fix-20261018/VectorBreach.exe`，须保留整个目录。源码行为候选 `e726b9195afceebfe22639bf335447a9701e5d0a`；[PR #47](https://github.com/2002yy/vector-breach-godot/pull/47) 该头 Tests `39103062283` 与 Windows Export / smoke `39103062311` 全成功、Codex 复审无发现。后续仅文档更新不重跑本机完整套件；最终精确 PR/main 检查、包哈希及截图审阅收据见证据目录 `delivery.json`，以实际状态为准。
 
 下一片：完成此修复的最终包与相邻区验收后，继续原生 2560×1600 三图性能基线。三图完整美术、AI 整场策略、武器/经济及观战仍按后续清单执行。
