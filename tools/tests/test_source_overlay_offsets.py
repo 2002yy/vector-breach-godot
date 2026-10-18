@@ -49,7 +49,9 @@ class OverlayInstallTests(unittest.TestCase):
                 "__file__",
                 str(self.repo / "tools/prepare_source_overlay_offsets.py"),
             ),
-            patch.object(sys, "argv", ["prepare", "--visual", str(self.visual), *extra_args]),
+            patch.object(
+                sys, "argv", ["prepare", "--visual", str(self.visual), *extra_args]
+            ),
         ):
             MODULE.main()
 

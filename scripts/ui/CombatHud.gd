@@ -12,6 +12,9 @@ const HEALTH_WARNING_COLOR := Color(1.0, 0.38, 0.3, 1.0)
 const AMMO_NORMAL_COLOR := Color(0.88, 0.82, 0.54, 1.0)
 const AMMO_WARNING_COLOR := Color(1.0, 0.38, 0.3, 1.0)
 
+var _frame_rate_since_usec := Time.get_ticks_usec()
+var _frame_rate_count := 0
+
 @onready var hud_root: Control = $HudRoot
 @onready var health_value: Label = $HudRoot/BottomLeft/Margin/Row/HealthText/Value
 @onready var armor_value: Label = $HudRoot/BottomLeft/Margin/Row/ArmorValue
@@ -23,6 +26,7 @@ const AMMO_WARNING_COLOR := Color(1.0, 0.38, 0.3, 1.0)
 @onready var level_name_label: Label = $HudRoot/TopCenter/Margin/Stack/LevelName
 @onready var objective_status: Label = $HudRoot/TopCenter/Margin/Stack/ObjectiveStatus
 @onready var stats_label: Label = $HudRoot/TopRight/Margin/Stats
+@onready var frame_rate_label: Label = $HudRoot/FrameRate
 @onready var kill_feed: VBoxContainer = $HudRoot/KillFeed
 @onready var scoreboard: PanelContainer = $HudRoot/Scoreboard
 @onready var scoreboard_friendly: Label = $HudRoot/Scoreboard/Margin/Stack/FriendlyRow
@@ -109,6 +113,16 @@ func _ready() -> void:
 		UserSettings.settings_changed.connect(apply_settings)
 
 func _process(_delta: float) -> void:
+	_frame_rate_count += 1
+	var now := Time.get_ticks_usec()
+	var elapsed := now - _frame_rate_since_usec
+	if elapsed >= 250000:
+		frame_rate_label.text = "%d FPS · %.1f ms" % [
+			roundi(_frame_rate_count * 1000000.0 / elapsed),
+			elapsed / (1000.0 * _frame_rate_count)
+		]
+		_frame_rate_since_usec = now
+		_frame_rate_count = 0
 	scoreboard.visible = _game_started and not _menu_open and Input.is_action_pressed("show_scoreboard")
 	telemetry_panel.visible = _telemetry_visible and _game_started and not _menu_open
 
@@ -159,7 +173,8 @@ func update_display(snapshot: Dictionary) -> void:
 	hud_root.visible = _game_started and not _menu_open
 
 	_objective_hint.text = String(snapshot.get("objective_hint", ""))
-	_objective_hint.visible = not _objective_hint.text.is_empty()
+	_objective_hint.visible = not _objective_hint.text.is_empty() and not buy_menu.visible
+	_controls_hint.visible = not buy_menu.visible
 	var health := int(snapshot.get("health", 100))
 	health_value.text = str(health)
 	health_value.add_theme_color_override(
@@ -300,6 +315,8 @@ func show_radio_report(caller: String, message: String) -> void:
 
 func set_buy_menu_visible(visible_state: bool) -> void:
 	buy_menu.visible = visible_state and _game_started and not _menu_open
+	_controls_hint.visible = not buy_menu.visible
+	_objective_hint.visible = not buy_menu.visible and not _objective_hint.text.is_empty()
 	if visible_state:
 		buy_result.text = ""
 

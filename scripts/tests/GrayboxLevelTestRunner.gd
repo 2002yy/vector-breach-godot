@@ -1,5 +1,7 @@
 extends Node
 
+const SourceMaterialFixtures = preload("res://scripts/tests/SourceMaterialFixtures.gd")
+
 const GRAYBOX_LEVEL_SCENE = preload("res://scenes/level/GrayboxLevel.tscn")
 const LevelDataLoader = preload("res://scripts/level/LevelDataLoader.gd")
 const SourceEffectMaterials = preload("res://scripts/level/SourceEffectMaterials.gd")
@@ -37,6 +39,14 @@ func _run_all_tests() -> void:
 	await _run_test("reference_vertex_repair_preserves_shared_materials", _test_reference_vertex_repair_preserves_shared_materials)
 	await _run_test("source_effect_override_keeps_geometry_and_shared_materials", _test_source_effect_override_keeps_geometry_and_shared_materials)
 	await _run_test("source_overlay_offset_is_local_and_preserves_originals", _test_source_overlay_offset_is_local_and_preserves_originals)
+	await _run_test(
+		"native_decal_alpha_keeps_offset_and_original_materials",
+		_test_native_decal_alpha_keeps_offset_and_original_materials
+	)
+	await _run_test(
+		"source_helper_faces_preserve_real_surfaces_and_children",
+		_test_source_helper_faces_preserve_real_surfaces_and_children
+	)
 	await _run_test("static_batches_preserve_attributes_and_exclude_special_surfaces", _test_static_batches_preserve_attributes_and_exclude_special_surfaces)
 	await _run_test("released_collision_mesh_keeps_physics_and_visuals", _test_released_collision_mesh_keeps_physics_and_visuals)
 	await _run_test("render_profile_restores_viewport_and_sun", _test_render_profile_restores_viewport_and_sun)
@@ -117,6 +127,12 @@ func _test_source_overlay_offset_is_local_and_preserves_originals() -> void:
 	ground.mesh = null
 	colored.mesh = null
 	holder.free()
+
+func _test_native_decal_alpha_keeps_offset_and_original_materials() -> void:
+	SourceMaterialFixtures._test_native_decal_alpha_keeps_offset_and_original_materials(self)
+
+func _test_source_helper_faces_preserve_real_surfaces_and_children() -> void:
+	SourceMaterialFixtures._test_source_helper_faces_preserve_real_surfaces_and_children(self)
 
 func _test_static_batches_preserve_attributes_and_exclude_special_surfaces() -> void:
 	var Batcher = preload("res://scripts/level/SourceStaticBatches.gd")

@@ -196,6 +196,24 @@ theme_override_font_sizes/font_size = 16
 text = "$800"
 horizontal_alignment = 2
 
+[node name="FrameRate" type="Label" parent="HudRoot"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -280.0
+offset_top = 53.0
+offset_right = -24.0
+offset_bottom = 75.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.72, 0.8, 0.73, 0.95)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
+theme_override_constants/outline_size = 3
+theme_override_fonts/font = ExtResource("2_regular")
+theme_override_font_sizes/font_size = 15
+text = "-- FPS"
+horizontal_alignment = 2
+
 [node name="BottomLeft" type="PanelContainer" parent="HudRoot"]
 layout_mode = 1
 anchors_preset = 2
@@ -365,9 +383,9 @@ anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -470.0
-offset_top = 60.0
+offset_top = 84.0
 offset_right = -24.0
-offset_bottom = 180.0
+offset_bottom = 204.0
 grow_horizontal = 0
 theme_override_constants/separation = 4
 mouse_filter = 2

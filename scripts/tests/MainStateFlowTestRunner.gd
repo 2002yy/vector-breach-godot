@@ -266,7 +266,17 @@ func _test_initial_boot_shows_menu_and_default_map() -> void:
 	_assert_equal(start_button.text, "开始 3 对 3 比赛", "primary map should clearly start a match")
 	_assert_float_close(menu_panel.anchor_bottom, 1.0, 0.001, "menu panel should remain a full-height left navigation surface")
 	_assert_equal(map_select.get_selected_id(), 2, "filtered menu must preserve the Gatehouse source index")
-	_assert_true(start_menu.get_node("PlayerHelp").visible, "boot should expose controls and pistol-round rules")
+	_assert_true(not start_menu.get_node("PlayerHelp").visible, "boot should keep help collapsed")
+	var help_key := InputEventKey.new()
+	help_key.keycode = KEY_F1
+	help_key.pressed = true
+	main.call("_unhandled_input", help_key)
+	_assert_true(
+		start_menu.get_node("PlayerHelp").visible,
+		"F1 should expose menu controls and pistol-round rules"
+	)
+	main.call("_unhandled_input", help_key)
+	_assert_true(not start_menu.get_node("PlayerHelp").visible, "F1 should collapse menu help")
 	start_menu.set("_show_archive", true)
 	start_menu.call("_refresh_map_options")
 	_assert_equal(map_select.item_count, 3, "developer menu should contain only regression maps")
@@ -277,6 +287,7 @@ func _test_initial_boot_shows_menu_and_default_map() -> void:
 	_assert_true(start_menu.get_node("SettingsPanel").visible, "settings should open separately")
 	_assert_true(not start_menu.get_node("PlayerHelp").visible, "settings must not overlap controls")
 	start_menu.call("_toggle_settings", false)
+	_assert_true(not start_menu.get_node("PlayerHelp").visible, "closing settings must keep help collapsed")
 	var local_options: Array = (main.get("level_options") as Array).duplicate(true)
 	local_options.append({"id": "dustline-depths", "name": "沙线深层"})
 	local_options.append({"id": "dustline-depths-original-local", "name": "沙线原始材质"})

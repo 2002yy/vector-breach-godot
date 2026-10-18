@@ -366,6 +366,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F1:
 		if game_started and not menu_open:
 			combat_hud.call("toggle_player_help")
+		else:
+			start_menu.call("toggle_player_help")
 		get_viewport().set_input_as_handled()
 		return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F4:

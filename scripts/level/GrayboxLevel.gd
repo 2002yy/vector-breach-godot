@@ -114,6 +114,15 @@ func _apply_visual_scene(level_data: Dictionary, emit_errors: bool) -> void:
 			var overlay_manifest := String(level_data.get("visual_scene", "")).get_base_dir().path_join("source-overlay-offset.json")
 			var overlays: int = preload("res://scripts/level/SourceOverlayMaterials.gd").apply(visual_instance, overlay_manifest)
 			visual_instance.set_meta("source_overlay_repair_surfaces", overlays)
+			var decal_manifest := (
+				String(level_data.get("visual_scene", ""))
+				.get_base_dir().path_join("source-decal-alpha.json")
+			)
+			var decals: int = preload("res://scripts/level/SourceDecalMaterials.gd").apply(
+				visual_instance, decal_manifest
+			)
+			visual_instance.set_meta("source_decal_alpha_surfaces", decals)
+			preload("res://scripts/level/SourceVisualHelpers.gd").apply(visual_instance)
 		if bool(level_data.get("runtime_collision_from_visual", false)):
 			_build_runtime_collision(visual_instance, emit_errors)
 		var batch_manifest := String(level_data.get("visual_scene", "")).get_base_dir().path_join("source-overlay-offset.json")

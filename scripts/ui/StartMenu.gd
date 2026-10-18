@@ -147,11 +147,17 @@ func _create_settings_panel() -> void:
 
 func _toggle_settings(enabled: bool) -> void:
 	_settings_panel.visible = enabled
-	$PlayerHelp.visible = not enabled
+	$PlayerHelp.hide()
+
+func toggle_player_help() -> void:
+	if _settings_panel.visible:
+		_toggle_settings(false)
+	$PlayerHelp.visible = not $PlayerHelp.visible
 
 func _create_help_panel() -> void:
 	var panel := PanelContainer.new()
 	panel.name = "PlayerHelp"
+	panel.visible = false
 	panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 	panel.offset_left = -610
 	panel.offset_right = -32
@@ -189,7 +195,7 @@ func set_map_details(option: Dictionary, can_resume: bool) -> void:
 	start_button.text = "重新开始比赛" if can_resume and is_match else ("重新开始练习" if can_resume else ("开始 3 对 3 比赛" if is_match else "开始练习"))
 	if is_research and not can_resume:
 		start_button.text = "开始 5 对 5 爆破"
-		description_label.text = "[font_size=24][b]%s[/b][/font_size]\n\n你 + 四名 AI 队友，对五名敌人。" % String(option["name"])
+		description_label.text = "[font_size=24][b]%s[/b][/font_size]\n\n你 + 四名 AI 队友，对五名敌人。\n手枪 + $800 开局；购买后点就绪即可开战。" % String(option["name"])
 	hint_label.text = "F1 操作帮助 · Esc 暂停菜单"
 	_help_label.text = "操作指南\n\n" + PlayerGuide.CONTROLS + "\n\n" + (PlayerGuide.MATCH_RULES if is_match else PlayerGuide.PRACTICE_RULES)
 	if is_research:
