@@ -3,6 +3,7 @@ extends Node
 const GRAYBOX_LEVEL_SCENE = preload("res://scenes/level/GrayboxLevel.tscn")
 const LevelDataLoader = preload("res://scripts/level/LevelDataLoader.gd")
 const SourceEffectMaterials = preload("res://scripts/level/SourceEffectMaterials.gd")
+const SourceOverlayMaterials = preload("res://scripts/level/SourceOverlayMaterials.gd")
 
 var _failures: PackedStringArray = []
 var _passes: int = 0
@@ -35,6 +36,7 @@ func _run_all_tests() -> void:
 	await _run_test("visual_name_filters_hide_helpers_only", _test_visual_name_filters_hide_helpers_only)
 	await _run_test("reference_vertex_repair_preserves_shared_materials", _test_reference_vertex_repair_preserves_shared_materials)
 	await _run_test("source_effect_override_keeps_geometry_and_shared_materials", _test_source_effect_override_keeps_geometry_and_shared_materials)
+	await _run_test("source_overlay_offset_is_local_and_preserves_originals", _test_source_overlay_offset_is_local_and_preserves_originals)
 	await _run_test("released_collision_mesh_keeps_physics_and_visuals", _test_released_collision_mesh_keeps_physics_and_visuals)
 	await _run_test("render_profile_restores_viewport_and_sun", _test_render_profile_restores_viewport_and_sun)
 	await _run_test("missing_level_does_not_clobber_current_state", _test_missing_level_does_not_clobber_current_state)
@@ -71,6 +73,49 @@ func _test_source_effect_override_keeps_geometry_and_shared_materials() -> void:
 	_assert_true(untouched.get_active_material(0) == source, "missing private manifest keeps original material")
 	target.free()
 	untouched.free()
+
+func _test_source_overlay_offset_is_local_and_preserves_originals() -> void:
+	var holder := Node3D.new()
+	add_child(holder)
+	var original := StandardMaterial3D.new()
+	original.resource_name = "verified_overlay"
+	original.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	original.albedo_texture = ImageTexture.create_from_image(Image.create(2, 2, false, Image.FORMAT_RGBA8))
+	var mesh := QuadMesh.new()
+	mesh.material = original
+	var wall := MeshInstance3D.new()
+	wall.mesh = mesh
+	holder.add_child(wall)
+	var ground := MeshInstance3D.new()
+	ground.mesh = mesh
+	ground.rotation.x = -PI / 2.0
+	ground.scale = Vector3(2, 1, 1)
+	holder.add_child(ground)
+	var variant_mesh := QuadMesh.new()
+	var variant := original.duplicate() as StandardMaterial3D
+	variant.albedo_color = Color.RED
+	variant_mesh.material = variant
+	var colored := MeshInstance3D.new()
+	colored.mesh = variant_mesh
+	holder.add_child(colored)
+	var cache := {"verified_overlay": null}
+	_assert_equal(SourceOverlayMaterials._apply_recursive(holder, cache), 3, "both orientations and material variants repaired")
+	var repaired := wall.get_active_material(0) as StandardMaterial3D
+	_assert_true(repaired != original and repaired.grow, "only instance visual material displaced")
+	_assert_true(not original.grow and wall.mesh == mesh and ground.mesh == mesh, "shared material and meshes immutable")
+	_assert_true(repaired.albedo_texture == original.albedo_texture and repaired.transparency == original.transparency, "original alpha and texture preserved")
+	_assert_true(ground.get_active_material(0) == repaired, "shared override cache avoids material duplication")
+	_assert_true(colored.get_active_material(0) != repaired and colored.get_active_material(0).albedo_color == Color.RED, "same-name material keeps its own source tint")
+	_assert_true(absf(SourceOverlayMaterials.EXPORTED_OFFSET + repaired.grow_amount - 0.001) < 0.000001, "centimeter-unit exporter error leaves only 1 mm")
+	_assert_true(ground.extra_cull_margin >= absf(repaired.grow_amount) * 2.0, "scaled displaced surfaces remain in culling bounds")
+	SourceOverlayMaterials._apply_recursive(holder, cache)
+	_assert_true(wall.get_active_material(0) == repaired, "repeated application is idempotent")
+	_assert_equal(SourceOverlayMaterials.apply(holder, "user://missing-overlay-manifest.json"), 0, "optional manifest absent is safe")
+	# Detach visual resources before freeing instances in the headless dummy renderer.
+	wall.mesh = null
+	ground.mesh = null
+	colored.mesh = null
+	holder.free()
 
 func _test_render_profile_restores_viewport_and_sun() -> void:
 	var holder := Node3D.new()

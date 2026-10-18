@@ -111,6 +111,9 @@ func _apply_visual_scene(level_data: Dictionary, emit_errors: bool) -> void:
 			_repair_reference_vertex_channels(visual_instance)
 			var effect_manifest := String(level_data.get("visual_scene", "")).get_base_dir().path_join("source-effects.json")
 			preload("res://scripts/level/SourceEffectMaterials.gd").apply(visual_instance, effect_manifest)
+			var overlay_manifest := String(level_data.get("visual_scene", "")).get_base_dir().path_join("source-overlay-offset.json")
+			var overlays: int = preload("res://scripts/level/SourceOverlayMaterials.gd").apply(visual_instance, overlay_manifest)
+			visual_instance.set_meta("source_overlay_repair_surfaces", overlays)
 		if bool(level_data.get("runtime_collision_from_visual", false)):
 			_build_runtime_collision(visual_instance, emit_errors)
 

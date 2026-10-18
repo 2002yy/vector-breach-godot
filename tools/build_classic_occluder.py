@@ -14,6 +14,8 @@ from urllib.parse import unquote
 
 import numpy as np
 
+from prepare_source_overlay_offsets import is_overlay
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -80,6 +82,8 @@ def main():
                     continue
                 material = scene["materials"][primitive["material"]]
                 if material.get("alphaMode", "OPAQUE") != "OPAQUE":
+                    continue
+                if is_overlay(material.get("extras", {}).get("vmat", {})):
                     continue
                 # Shader-unaware exports label translucent dust/steam as opaque.
                 # They are effects, never structural occluders, even before the
