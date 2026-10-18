@@ -116,6 +116,9 @@ func _apply_visual_scene(level_data: Dictionary, emit_errors: bool) -> void:
 			visual_instance.set_meta("source_overlay_repair_surfaces", overlays)
 		if bool(level_data.get("runtime_collision_from_visual", false)):
 			_build_runtime_collision(visual_instance, emit_errors)
+		var batch_manifest := String(level_data.get("visual_scene", "")).get_base_dir().path_join("source-overlay-offset.json")
+		if visual_instance is Node3D:
+			preload("res://scripts/level/SourceStaticBatches.gd").apply(visual_instance, batch_manifest)
 
 	var overlay_instance := _instantiate_visual_resource(
 		String(level_data.get("overlay_visual_scene", "")),

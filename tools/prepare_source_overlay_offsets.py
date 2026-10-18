@@ -20,6 +20,7 @@ def is_overlay(vmat):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--visual", type=Path, required=True)
+    parser.add_argument("--static-batch-cell", type=int, choices=[0, 8, 16], default=0)
     args = parser.parse_args()
     repo = Path(__file__).resolve().parents[1]
     visual = args.visual.resolve()
@@ -79,6 +80,7 @@ def main():
         "materials": names,
         "exported_offset_m": 0.01 / 0.0254,
         "surface_offset_m": 0.001,
+        "static_batch_cell_m": args.static_batch_cell,
         "source": "https://github.com/ValveResourceFormat/ValveResourceFormat/blob/20.1/ValveResourceFormat/IO/GltfModelExporter.Mesh.cs#L23",
     }
     output.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
