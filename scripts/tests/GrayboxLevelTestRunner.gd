@@ -111,6 +111,10 @@ func _test_source_overlay_offset_is_local_and_preserves_originals() -> void:
 	SourceOverlayMaterials._apply_recursive(holder, cache)
 	_assert_true(wall.get_active_material(0) == repaired, "repeated application is idempotent")
 	_assert_equal(SourceOverlayMaterials.apply(holder, "user://missing-overlay-manifest.json"), 0, "optional manifest absent is safe")
+	# Detach visual resources before freeing instances in the headless dummy renderer.
+	wall.mesh = null
+	ground.mesh = null
+	colored.mesh = null
 	holder.free()
 
 func _test_render_profile_restores_viewport_and_sun() -> void:
