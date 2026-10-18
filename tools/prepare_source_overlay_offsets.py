@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 
 def is_overlay(vmat):
@@ -33,6 +34,25 @@ def main():
     if digest != receipt["output_sha256"]:
         raise ValueError("Visual changed since its verified conversion")
     scene = json.loads(visual.read_text(encoding="utf-8"))
+    dependencies = receipt.get("copied_dependency_sha256", {})
+    for buffer in scene.get("buffers", []):
+        uri = buffer.get("uri", "")
+        if uri.startswith("data:"):
+            continue  # Embedded positions were covered by the JSON hash above.
+        location = urlsplit(uri)
+        path = (visual.parent / unquote(location.path)).resolve()
+        if (
+            not uri
+            or location.scheme
+            or location.netloc
+            or location.query
+            or location.fragment
+            or not path.is_relative_to(visual.parent)
+        ):
+            raise ValueError("Expected a local verified geometry buffer: " + uri)
+        expected = dependencies.get(uri)
+        if not expected or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+            raise ValueError("Geometry buffer changed or lacks a receipt: " + uri)
     predicates = {}
     for material in scene.get("materials", []):
         name = material["name"]

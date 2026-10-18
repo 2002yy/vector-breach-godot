@@ -25,8 +25,11 @@ class OverlayInstallTests(unittest.TestCase):
         self.visual = self.repo / "assets/local_reference/map/map.gltf"
         self.visual.parent.mkdir(parents=True)
 
-    def write_fixture(self, materials, exporter="Source2Viewer-CLI 20.1"):
-        self.visual.write_text(json.dumps({"materials": materials}), encoding="utf-8")
+    def write_fixture(self, materials, exporter="Source2Viewer-CLI 20.1", buffers=None):
+        scene = {"materials": materials}
+        if buffers is not None:
+            scene["buffers"] = buffers
+        self.visual.write_text(json.dumps(scene), encoding="utf-8")
         self.visual.with_suffix(".receipt.json").write_text(
             json.dumps(
                 {
@@ -88,6 +91,28 @@ class OverlayInstallTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Ambiguous"):
             self.install()
         self.assertFalse((self.visual.parent / "source-overlay-offset.json").exists())
+
+    def test_external_geometry_requires_matching_dependency_receipt(self):
+        buffer = self.visual.parent / "mesh.bin"
+        buffer.write_bytes(b"verified original positions")
+        self.write_fixture(
+            [{"name": "decal", "extras": {"vmat": {"IntParams": {"F_OVERLAY": 1}}}}],
+            buffers=[{"uri": "mesh.bin"}],
+        )
+        with self.assertRaisesRegex(ValueError, "lacks a receipt"):
+            self.install()
+        receipt_path = self.visual.with_suffix(".receipt.json")
+        receipt = json.loads(receipt_path.read_text())
+        receipt["copied_dependency_sha256"] = {
+            "mesh.bin": hashlib.sha256(buffer.read_bytes()).hexdigest()
+        }
+        receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+        buffer.write_bytes(b"changed positions")
+        with self.assertRaisesRegex(ValueError, "Geometry buffer changed"):
+            self.install()
+        self.assertFalse((self.visual.parent / "source-overlay-offset.json").exists())
+        buffer.write_bytes(b"verified original positions")
+        self.install()
 
 
 if __name__ == "__main__":
