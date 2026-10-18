@@ -198,6 +198,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Map export failed; inspect missing dependencie
 - Dust II 的旧源坐标记录为米系数 `0.0254`，映射 `x=source_y, y=source_z, z=source_x` 后乘系数；这是旧生成脚本约定。新导出 glTF 可能已经转换坐标和单位，必须用可测距离及轴向确认，禁止再盲乘一次。当前第三方 Inferno/Mirage 的 scale/offset 也不能直接套到官方原包导出。
 - 植物、布篷等 Source 2 资源会把动画权重放在 `COLOR_0`。已有修正位于 `scripts/level/GrayboxLevel.gd::_repair_reference_vertex_channels`，按已知材质处理；不要全图删除顶点色。保留 alpha-cutout、双面和贴图规则，并检查树干与枝叶。
 - 灰尘卡片、光束、blocklight 等源引擎辅助资源与普通可见墙体分开处理。优先记录隐藏规则与截图，不随意删模型。
+- 2026-10-18 实际修复：`csgo_effects.vfx` 的灰尘/蒸汽 glTF 可能没有 `alphaMode`，基础色还会丢原生 alpha，显示为悬空灰面。使用 `prepare_source_effect_materials.py` 解码原 VMAT 的颜色/三个遮罩，旁置私有清单，由 `SourceEffectMaterials.gd` 做透明/加色与遮罩滚动适配；不能只把整张白图设透明混合或直接删面。重建遮挡时也排除该源特效着色器。完整命令、限制及证据见 `TASK_CLASSIC_EFFECT_SURFACES_2026-10-18.md`。
 - 视觉和碰撞独立；地图原生 physics 应保留分组后适配，不能把所有装饰三角面一起当玩家碰撞。旧简化 AWMH 物理也不能冒充未经简化的原版碰撞。
 - 新资源不能静默覆盖现行关卡和 `data/levels/match-local/` 冻结清单。先使用新 staging/新关卡 ID 验证；确认出生、双爆点、台阶/门洞/斜坡/clip 后，显式重编路网并校验新的 level/collision 哈希。
 - Source 2 的灯光、复杂着色、烟雾、实体逻辑不会因为导出 glTF 自动移入 Godot。要完整保留 Source 2 运行效果，应在 CS2/Workshop Tools 中使用源资源；当前 Godot 版本需要单独适配这些功能。

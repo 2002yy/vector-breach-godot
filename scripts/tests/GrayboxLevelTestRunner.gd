@@ -2,6 +2,7 @@ extends Node
 
 const GRAYBOX_LEVEL_SCENE = preload("res://scenes/level/GrayboxLevel.tscn")
 const LevelDataLoader = preload("res://scripts/level/LevelDataLoader.gd")
+const SourceEffectMaterials = preload("res://scripts/level/SourceEffectMaterials.gd")
 
 var _failures: PackedStringArray = []
 var _passes: int = 0
@@ -33,6 +34,7 @@ func _run_all_tests() -> void:
 	await _run_test("foundry_reforged_routes_clear_solids_and_interfaces", _test_foundry_reforged_routes_clear_solids_and_interfaces)
 	await _run_test("visual_name_filters_hide_helpers_only", _test_visual_name_filters_hide_helpers_only)
 	await _run_test("reference_vertex_repair_preserves_shared_materials", _test_reference_vertex_repair_preserves_shared_materials)
+	await _run_test("source_effect_override_keeps_geometry_and_shared_materials", _test_source_effect_override_keeps_geometry_and_shared_materials)
 	await _run_test("released_collision_mesh_keeps_physics_and_visuals", _test_released_collision_mesh_keeps_physics_and_visuals)
 	await _run_test("render_profile_restores_viewport_and_sun", _test_render_profile_restores_viewport_and_sun)
 	await _run_test("missing_level_does_not_clobber_current_state", _test_missing_level_does_not_clobber_current_state)
@@ -43,6 +45,32 @@ func _run_test(test_name: String, callable: Callable) -> void:
 	if _failures.size() == failed_before:
 		_passes += 1
 		print("[GrayboxLevelTests] PASS %s" % test_name)
+
+func _test_source_effect_override_keeps_geometry_and_shared_materials() -> void:
+	var source := StandardMaterial3D.new()
+	source.resource_name = "dust_002"
+	var mesh := QuadMesh.new()
+	mesh.material = source
+	var target := MeshInstance3D.new()
+	target.mesh = mesh
+	var untouched := MeshInstance3D.new()
+	untouched.mesh = mesh
+	var texture := ImageTexture.create_from_image(Image.create(2, 2, false, Image.FORMAT_RGBA8))
+	var inputs := {"color_texture": texture, "mask1": texture, "mask2": texture, "mask3": texture}
+	var repaired: ShaderMaterial = SourceEffectMaterials._make_material({"name": "dust_002", "mask1_scale": [0.25, 1.0]}, inputs)
+	SourceEffectMaterials._apply_recursive(target, {"dust_002": repaired})
+	_assert_true(target.get_active_material(0) == repaired, "effect surface uses mask shader")
+	_assert_true(target.mesh == mesh and target.visible, "effect geometry is retained")
+	_assert_true(untouched.get_active_material(0) == source, "shared source material is not mutated")
+	_assert_true(source.transparency == BaseMaterial3D.TRANSPARENCY_DISABLED, "source remains unchanged")
+	_assert_true(repaired.get_shader_parameter("color_texture") == texture, "decoded original alpha texture is bound")
+	var steam: ShaderMaterial = SourceEffectMaterials._make_material({"name": "steam_001", "additive": true}, inputs)
+	_assert_true(steam.shader != repaired.shader and steam.shader.code.contains("blend_add"), "steam blend does not alter dust shader")
+	_assert_true(SourceEffectMaterials._make_material({"mask1_scale": []}, inputs) == null, "malformed optional manifest keeps fallback")
+	SourceEffectMaterials.apply(untouched, "user://absent-source-effects.json")
+	_assert_true(untouched.get_active_material(0) == source, "missing private manifest keeps original material")
+	target.free()
+	untouched.free()
 
 func _test_render_profile_restores_viewport_and_sun() -> void:
 	var holder := Node3D.new()
