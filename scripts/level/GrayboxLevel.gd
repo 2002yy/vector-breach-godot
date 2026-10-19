@@ -122,6 +122,11 @@ func _apply_visual_scene(level_data: Dictionary, emit_errors: bool) -> void:
 				visual_instance, decal_manifest
 			)
 			visual_instance.set_meta("source_decal_alpha_surfaces", decals)
+			var modulate_manifest := decal_manifest.get_base_dir().path_join("source-modulate.json")
+			var modulates: int = preload("res://scripts/level/SourceModulateMaterials.gd").apply(
+				visual_instance, modulate_manifest
+			)
+			visual_instance.set_meta("source_mod2x_surfaces", modulates)
 			preload("res://scripts/level/SourceVisualHelpers.gd").apply(visual_instance)
 		if bool(level_data.get("runtime_collision_from_visual", false)):
 			_build_runtime_collision(visual_instance, emit_errors)

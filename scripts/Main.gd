@@ -677,6 +677,9 @@ func _toggle_fullscreen() -> void:
 func _on_level_loaded(level_data: Dictionary) -> void:
 	_level_load_failed = false
 	_apply_level_environment(level_data)
+	preload("res://scripts/level/SourceModulateMaterials.gd").update_environment(
+		level, world_environment.environment
+	)
 	_level_load_serial += 1
 	var serial := _level_load_serial
 	if LocalClassicMaps.is_classic(String(level_data.get("id", ""))):

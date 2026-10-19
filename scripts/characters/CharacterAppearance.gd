@@ -67,10 +67,13 @@ static func available(id: String) -> bool:
 static func instantiate(id: String, suffix: String = "") -> Node3D:
 	if not available(id):
 		return null
-	var scene := (
-		load(String(record(id).get("asset_root", ROOT)) + id + suffix + ".glb") as PackedScene
-	)
-	return scene.instantiate() as Node3D if scene != null else null
+	var scene_path := String(record(id).get("asset_root", ROOT)) + id + suffix + ".glb"
+	var scene := load(scene_path) as PackedScene
+	if scene == null:
+		return null
+	var model := scene.instantiate() as Node3D
+	preload("res://scripts/level/SourceAssetMaterials.gd").apply(model, scene_path)
+	return model
 
 
 static func find_skeleton(root: Node) -> Skeleton3D:

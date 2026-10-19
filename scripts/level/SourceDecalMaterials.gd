@@ -68,7 +68,8 @@ static func _apply_recursive(node: Node, entries: Dictionary, cache: Dictionary)
 				node.material_override = repaired
 			else:
 				node.set_surface_override_material(surface, repaired)
-			if bool(entry.get("no_shadow", false)) and node.mesh.get_surface_count() == 1:
+			# csgo_static_overlay implies no cast shadows even without the VMAT flag.
+			if node.mesh.get_surface_count() == 1:
 				node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			count += 1
 	for child in node.get_children():

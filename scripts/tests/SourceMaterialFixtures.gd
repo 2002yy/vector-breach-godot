@@ -112,10 +112,126 @@ static func _test_native_decal_alpha_keeps_offset_and_original_materials(host: N
 	)
 	host.call(
 		"_assert_equal",
+		cutout.cast_shadow,
+		GeometryInstance3D.SHADOW_CASTING_SETTING_OFF,
+		"static-overlay shader implies no shadow without an explicit source flag"
+	)
+	host.call(
+		"_assert_equal",
 		Decals.apply(holder, "user://absent-native-decal.json"),
 		0,
 		"private alpha manifest optional"
 	)
+	var Modulate = preload("res://scripts/level/SourceModulateMaterials.gd")
+	var modulate_node := MeshInstance3D.new()
+	modulate_node.mesh = mesh
+	var modulate_source := material.duplicate() as StandardMaterial3D
+	modulate_source.resource_name = "native_mod2x"
+	modulate_source.uv1_scale = Vector3(2, 3, 1)
+	modulate_source.uv1_offset = Vector3(0.1, 0.2, 0)
+	modulate_source.albedo_color = Color(0.5, 0.6, 0.7).linear_to_srgb()
+	modulate_source.cull_mode = BaseMaterial3D.CULL_DISABLED
+	modulate_source.render_priority = 2
+	modulate_node.material_override = modulate_source
+	holder.add_child(modulate_node)
+	var modulate_entries := {
+		"native_mod2x":
+		{
+			"loaded_texture": decoded,
+			"opacity_multiplier": 0.7,
+			"native_material": {"IntParams": {"F_BLEND_MODE": 3}},
+			"render_contract": "source-static-overlay-mod2x-v1"
+		}
+	}
+	Modulate._apply_recursive(holder, modulate_entries, {})
+	var modulated := modulate_node.get_active_material(0) as ShaderMaterial
+	host.call(
+		"_assert_true",
+		modulated != null and modulated.shader.code.contains("blend_mul"),
+		"Mod2x is multiplicative, not ordinary alpha"
+	)
+	host.call(
+		"_assert_true",
+		(
+			modulated.get_shader_parameter("uv_scale") == modulate_source.uv1_scale
+			and modulated.get_shader_parameter("uv_offset") == modulate_source.uv1_offset
+			and is_equal_approx(
+				modulated.get_shader_parameter("surface_offset"), material.grow_amount
+			)
+			and modulated.render_priority == 2
+			and modulated.shader.code.contains("cull_disabled")
+		),
+		"Mod2x preserves UV, repaired offset, culling and order"
+	)
+	host.call(
+		"_assert_true",
+		(
+			modulated.get_shader_parameter("source_tint").is_equal_approx(Vector3(0.5, 0.6, 0.7))
+			and modulated.get_meta("source_material_parameters").IntParams.F_BLEND_MODE == 3
+			and modulate_source.transparency == BaseMaterial3D.TRANSPARENCY_DISABLED
+			and modulate_node.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		),
+		"source tint, full parameters and overlay shadow rule preserved without input mutation"
+	)
+	host.call(
+		"_assert_equal",
+		Modulate._apply_recursive(holder, modulate_entries, {}),
+		1,
+		"Mod2x repeat application is idempotent"
+	)
+	var fog := Environment.new()
+	fog.fog_enabled = true
+	fog.fog_density = 0.02
+	Modulate.update_environment(holder, fog)
+	host.call(
+		"_assert_true",
+		(
+			modulated.get_shader_parameter("fog_enabled")
+			and is_equal_approx(modulated.get_shader_parameter("fog_density"), 0.02)
+		),
+		"Mod2x follows the current map fog rather than baking one environment"
+	)
+	var Assets = preload("res://scripts/level/SourceAssetMaterials.gd")
+	var flame := MeshInstance3D.new()
+	flame.mesh = mesh
+	var flame_source := material.duplicate() as StandardMaterial3D
+	flame_source.resource_name = "native_flame"
+	flame_source.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_DEPTH_PRE_PASS
+	flame_source.roughness = 0.31
+	flame.material_override = flame_source
+	holder.add_child(flame)
+	var flame_entries := {
+		"native_flame":
+		{
+			"native_material": {"IntParams": {"F_ADDITIVE_BLEND": 1}},
+			"render_contract": "source-additive-v1",
+			"pending_features": ["F_CLOTH_SHADING"]
+		}
+	}
+	Assets._apply_recursive(holder, flame_entries, {})
+	var flame_result := flame.get_active_material(0) as StandardMaterial3D
+	(
+		host
+		. call(
+			"_assert_true",
+			(
+				flame_result.blend_mode == BaseMaterial3D.BLEND_MODE_ADD
+				and flame_result.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA
+				and is_equal_approx(flame_result.roughness, 0.31)
+				and flame_source.blend_mode == BaseMaterial3D.BLEND_MODE_MIX
+				and flame_result.get_meta("source_features_pending") == ["F_CLOTH_SHADING"]
+			),
+			"additive source rule removes depth prewrite, preserves PBR and declares unsupported features"
+		)
+	)
+	host.call(
+		"_assert_equal",
+		Assets._apply_recursive(holder, flame_entries, {}),
+		1,
+		"source parameter binding never reapplies a material conversion"
+	)
+	flame.mesh = null
+	modulate_node.mesh = null
 	cutout.mesh = null
 	for node in nodes:
 		node.mesh = null
