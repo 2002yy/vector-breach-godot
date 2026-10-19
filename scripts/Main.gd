@@ -695,6 +695,8 @@ func _on_level_loaded(level_data: Dictionary) -> void:
 			GameState.player_spawn_yaw_radians = deg_to_rad(float(spawn_yaws.get(GameState.player_team, 0.0)))
 	if combat_sandbox.has_method("load_for_level"):
 		combat_sandbox.call("load_for_level", level_data)
+	if not game_started and player.has_method("reset_to_spawn"):
+		player.call("reset_to_spawn")
 	_level_loading = false
 
 func _capture_default_environment() -> void:

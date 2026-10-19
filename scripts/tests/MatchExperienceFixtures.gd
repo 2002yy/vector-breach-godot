@@ -4,6 +4,18 @@ extends RefCounted
 static func purchases_and_help(host: Node) -> void:
 	var main: Node3D = host.call("_instantiate_main")
 	await host.call("_await_main_ready")
+	var preview_player: CharacterBody3D = main.get_node("Player")
+	preview_player.global_position = Vector3(999, 999, 999)
+	main.call("_on_map_selected", main.call("find_level_option_index", "training-range"))
+	await host.call("_await_main_ready")
+	host.call(
+		"_assert_true",
+		preview_player.global_position.distance_to(GameState.player_spawn) < 0.5,
+		"map selection resets preview camera to the new map spawn"
+	)
+	host.call("_assert_true", not bool(main.get("game_started")), "preview does not start match")
+	main.call("_on_map_selected", main.call("find_level_option_index", "gatehouse"))
+	await host.call("_await_main_ready")
 	main.call("_on_team_selected", "CT")
 	await main.call("_on_start_pressed")
 	for actor in main.get_node("CombatSandbox").get_children():
