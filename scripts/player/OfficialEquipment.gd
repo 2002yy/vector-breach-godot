@@ -2,7 +2,8 @@ extends RefCounted
 
 const ROOT := "res://assets/local_reference/cs_official/equipment/"
 const NativePanel = preload("res://scripts/objective/OfficialC4Panel.gd")
-const KEYS := ["rifle-ct", "rifle-t", "pistol", "knife-ct", "knife-t", "c4", "c4-world"]
+const KEYS := ["rifle-ct", "rifle-t", "pistol", "knife-ct", "knife-t", "c4", "c4-world",
+	"sniper", "smg", "shotgun", "fire_grenade"]
 static var _items: Dictionary = {}
 static var _loaded := false
 

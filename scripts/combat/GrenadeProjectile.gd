@@ -12,10 +12,23 @@ var _peak_height := -INF
 var _flight_time := 0.0
 var _smoke_age: float = 0.0
 var _smoke_layers: Array[MeshInstance3D] = []
+var _fire_attribution: Dictionary = {}
 
 func configure(kind: String, owner_player: CharacterBody3D, origin: Vector3, velocity: Vector3) -> void:
 	grenade_type = kind
 	thrower = owner_player
+	var player_source := (
+		is_instance_valid(owner_player) and owner_player.is_in_group("local_player")
+	)
+	_fire_attribution = {
+		"player": player_source, "name": "你" if player_source else "AI", "team": GameState.player_team
+	}
+	if is_instance_valid(owner_player) and not player_source:
+		_fire_attribution.team = String(owner_player.get("team"))
+		if owner_player.has_method("get_combat_snapshot"):
+			_fire_attribution.name = String(
+				owner_player.call("get_combat_snapshot").get("name", "AI")
+			)
 	global_position = origin
 	linear_velocity = velocity
 	_launch_position = origin
@@ -37,10 +50,18 @@ func _ready() -> void:
 	call_deferred("_build_visual")
 
 func _build_visual() -> void:
-	var visual := EquipmentVisuals.build(grenade_type)
+	var visual: Node3D
+	if grenade_type == "fire_grenade":
+		visual = preload("res://scripts/player/OfficialEquipment.gd").build(
+			grenade_type, GameState.player_team
+		)
+	if visual == null:
+		visual = EquipmentVisuals.build(grenade_type)
 	add_child(visual)
 	for part in ["SafetyRing", "SafetyLever"]:
-		(visual.get_node(part) as Node3D).visible = false
+		var component := visual.get_node_or_null(part) as Node3D
+		if component != null:
+			component.hide()
 
 func _physics_process(delta: float) -> void:
 	if _detonated:
@@ -64,6 +85,20 @@ func _detonate() -> void:
 		queue_free()
 	elif grenade_type == "flash_grenade":
 		_apply_flash()
+		queue_free()
+	elif grenade_type == "fire_grenade":
+		var query := PhysicsRayQueryParameters3D.create(global_position + Vector3.UP * 0.15,
+			global_position + Vector3.DOWN * 12.0, 1)
+		query.exclude = [get_rid()]
+		var hit := get_world_3d().direct_space_state.intersect_ray(query)
+		if not hit.is_empty() and (hit.normal as Vector3).y > 0.5:
+			var zone := preload("res://scripts/combat/FireArea.gd").new()
+			get_tree().current_scene.add_child(zone)
+			var source: CharacterBody3D = thrower if is_instance_valid(thrower) else null
+			zone.configure(
+				source, String(_fire_attribution.get("team", GameState.player_team)),
+				(hit.position as Vector3) + Vector3.UP * 0.04, _fire_attribution
+			)
 		queue_free()
 	else:
 		_activate_smoke()

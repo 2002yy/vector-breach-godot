@@ -2,6 +2,7 @@ extends Node
 
 const HitResolver = preload("res://scripts/combat/HitResolver.gd")
 const WeaponProfileScript = preload("res://scripts/combat/WeaponProfile.gd")
+const Catalog = preload("res://scripts/combat/WeaponCatalog.gd")
 
 signal shot_resolved(result: Dictionary)
 signal reload_started
@@ -14,6 +15,8 @@ signal weapon_switched(weapon_name: String, slot_index: int)
 var _weapon_states: Array[Dictionary] = []
 var _runtime_profiles: Array[Resource] = []
 var _current_weapon_index: int = 0
+var _scoped_camera: WeakRef
+var _unscoped_fov := 75.0
 
 func refill_training_reserve() -> void:
 	if GameState.current_level_id != "training-range":
@@ -22,6 +25,7 @@ func refill_training_reserve() -> void:
 		_weapon_states[index]["ammo_reserve"] = _runtime_profiles[index].reserve_ammo_on_spawn
 
 func configure_default_loadout(emit_warnings: bool = true, competitive_loadout: bool = false) -> void:
+	cancel_scope()
 	_weapon_states.clear()
 	_runtime_profiles.clear()
 	for profile_variant in weapon_profiles:
@@ -97,6 +101,7 @@ func request_reload() -> void:
 		return
 
 	current_state["is_reloading"] = true
+	cancel_scope()
 	current_state["reload_timer"] = current_profile.reload_duration
 	_store_current_state(current_state)
 	_sync_game_state("\u6362\u5f39\u4e2d")
@@ -143,10 +148,13 @@ func try_fire(player: CharacterBody3D) -> void:
 		exclude,
 		camera.get_world_3d().direct_space_state
 	)
+	if current_profile.pellets > 1:
+		hit_result = _resolve_pellets(camera, shot_direction, current_profile, exclude)
+	cancel_scope()
 	current_state = _apply_recoil(player, current_profile, current_state, shot_index)
 	current_state["pattern_index"] = shot_index + 1
 
-	if bool(hit_result.get("hit", false)):
+	if bool(hit_result.get("hit", false)) and current_profile.pellets == 1:
 		var damage_dict := _apply_damage_to_hit(hit_result, camera.global_position, current_profile, false)
 		if damage_dict.is_empty() and current_profile.max_penetrations > 0:
 			var penetration_result := _try_penetrating_hit(hit_result, shot_direction, current_profile, exclude, camera.get_world_3d().direct_space_state)
@@ -171,7 +179,15 @@ func try_fire(player: CharacterBody3D) -> void:
 	else:
 		_sync_game_state("")
 
-func _apply_damage_to_hit(hit_result: Dictionary, shot_origin: Vector3, profile, penetrated: bool, depth_scale: float = 1.0) -> Dictionary:
+
+func _apply_damage_to_hit(
+	hit_result: Dictionary,
+	shot_origin: Vector3,
+	profile,
+	penetrated: bool,
+	depth_scale: float = 1.0,
+	record_hit: bool = true
+) -> Dictionary:
 	var collider: Variant = hit_result.get("collider", null)
 	if collider == null or not collider.has_method("apply_hitscan_damage"):
 		return {}
@@ -191,7 +207,7 @@ func _apply_damage_to_hit(hit_result: Dictionary, shot_origin: Vector3, profile,
 	if typeof(damage_result) != TYPE_DICTIONARY:
 		return {}
 	var damage_dict := damage_result as Dictionary
-	if bool(damage_dict.get("hit", false)):
+	if bool(damage_dict.get("hit", false)) and record_hit:
 		GameState.register_hit(bool(damage_dict.get("killed", false)), profile.weapon_id, String(damage_dict.get("target_team", "")))
 	return damage_dict
 
@@ -268,6 +284,7 @@ func _get_penetration_resistance(surface_type: String) -> float:
 			return 1.35
 
 func cancel_reload() -> void:
+	cancel_scope()
 	var current_state: Dictionary = _current_state()
 	current_state["is_reloading"] = false
 	current_state["reload_timer"] = 0.0
@@ -278,6 +295,7 @@ func switch_to_slot(slot_index: int) -> void:
 		return
 	if slot_index == _current_weapon_index:
 		return
+	cancel_scope()
 	if not bool((_weapon_states[slot_index] as Dictionary).get("owned", true)):
 		return
 
@@ -305,6 +323,9 @@ func get_runtime_snapshot() -> Dictionary:
 
 	return {
 		"weapon_name": current_profile.display_name,
+		"weapon_id": current_profile.weapon_id,
+		"magazine_capacity": current_profile.magazine_size,
+		"scoped": _scoped_camera != null,
 		"ammo_in_mag": int(current_state.get("ammo_in_mag", 0)),
 		"ammo_reserve": int(current_state.get("ammo_reserve", 0)),
 		"is_reloading": bool(current_state.get("is_reloading", false)),
@@ -331,6 +352,88 @@ func purchase_slot(slot_index: int) -> bool:
 	else:
 		_sync_game_state("")
 	return true
+
+func purchase_weapon(weapon_id: String) -> bool:
+	var profile = Catalog.profile(weapon_id)
+	if profile == null or profile.slot_index >= _runtime_profiles.size():
+		return false
+	cancel_scope()
+	_runtime_profiles[profile.slot_index] = profile
+	return purchase_slot(int(profile.slot_index))
+
+func get_slot_record(slot_index: int) -> Dictionary:
+	if not is_slot_owned(slot_index):
+		return {}
+	var state: Dictionary = _weapon_states[slot_index]
+	return {"weapon_id": _runtime_profiles[slot_index].weapon_id, "slot_index": slot_index,
+		"ammo_in_mag": state.ammo_in_mag, "ammo_reserve": state.ammo_reserve}
+
+func toggle_scope(player: CharacterBody3D) -> void:
+	var profile = _current_profile()
+	if profile == null or profile.weapon_id != "sniper":
+		return
+	if _scoped_camera != null:
+		cancel_scope()
+	else:
+		var camera: Camera3D = player.call("get_camera_node")
+		_unscoped_fov = camera.fov
+		_scoped_camera = weakref(camera)
+		camera.fov = 28.0
+		var state := _current_state()
+		state.current_spread_degrees = _movement_spread_floor(player, profile)
+		_store_current_state(state)
+	_sync_game_state("")
+
+func cancel_scope() -> void:
+	if _scoped_camera != null:
+		var camera: Camera3D = _scoped_camera.get_ref()
+		if is_instance_valid(camera):
+			camera.fov = _unscoped_fov
+	_scoped_camera = null
+
+func _resolve_pellets(camera: Camera3D, direction: Vector3, profile, exclude: Array) -> Dictionary:
+	var events := {}
+	var result := {"hit": false, "position": camera.global_position + direction * profile.max_range}
+	var impacts: Array[Dictionary] = []
+	for pellet in range(profile.pellets):
+		var ray := Catalog.pellet_direction(
+			direction, pellet, profile.pellets, profile.pellet_spread_degrees
+		)
+		var hit: Dictionary = HitResolver.resolve_direction(
+			camera.global_position,
+			ray,
+			profile.max_range,
+			profile.hit_collision_mask,
+			exclude,
+			camera.get_world_3d().direct_space_state
+		)
+		if not bool(hit.get("hit", false)):
+			continue
+		if not bool(result.hit):
+			result = hit.duplicate()
+		impacts.append(hit)
+		var damage := _apply_damage_to_hit(hit, camera.global_position, profile, false, 1.0, false)
+		if not bool(damage.get("hit", false)):
+			continue
+		var key: int = hit.collider.get_instance_id()
+		if events.has(key):
+			events[key].damage += int(damage.get("damage", 0))
+			events[key].killed = bool(events[key].killed) or bool(damage.killed)
+			events[key].remaining_health = damage.get("remaining_health", 0)
+		else:
+			events[key] = damage.duplicate()
+	var counted := false
+	for damage in events.values():
+		GameState.register_hit(bool(damage.killed), profile.weapon_id,
+			String(damage.get("target_team", "")), not counted)
+		counted = true
+	result["damage_events"] = events.values()
+	result["damage_result"] = events.values()[0] if not events.is_empty() else {}
+	result["pellet_impacts"] = impacts
+	return result
+
+func _exit_tree() -> void:
+	cancel_scope()
 
 func is_slot_owned(slot_index: int) -> bool:
 	return slot_index >= 0 and slot_index < _weapon_states.size() and bool((_weapon_states[slot_index] as Dictionary).get("owned", false))
@@ -364,15 +467,27 @@ func pickup_weapon(record: Dictionary) -> bool:
 	var slot_index := int(record.get("slot_index", -1))
 	if slot_index < 0 or slot_index >= _weapon_states.size():
 		return false
+	var incoming := String(record.get("weapon_id", ""))
+	if not incoming.is_empty():
+		var profile = Catalog.profile(incoming)
+		if profile == null or int(profile.slot_index) != slot_index:
+			return false
+		_runtime_profiles[slot_index] = profile
+	cancel_reload()
 	var state: Dictionary = _weapon_states[slot_index]
 	state["owned"] = true
-	state["ammo_in_mag"] = int(record.get("ammo_in_mag", state.get("ammo_in_mag", 0)))
-	state["ammo_reserve"] = int(record.get("ammo_reserve", state.get("ammo_reserve", 0)))
+	state["ammo_in_mag"] = clampi(
+		int(record.get("ammo_in_mag", 0)), 0, _runtime_profiles[slot_index].magazine_size
+	)
+	state["ammo_reserve"] = clampi(
+		int(record.get("ammo_reserve", 0)), 0, _runtime_profiles[slot_index].reserve_ammo_on_spawn
+	)
 	_weapon_states[slot_index] = state
 	if slot_index != _current_weapon_index:
 		switch_to_slot(slot_index)
 	else:
 		_sync_game_state("")
+		weapon_switched.emit(_runtime_profiles[slot_index].display_name, slot_index)
 	return true
 
 func _tick_weapon_states(delta: float, player: CharacterBody3D) -> void:
@@ -444,6 +559,8 @@ func _movement_spread_floor(player: CharacterBody3D, profile) -> float:
 	var airborne := bool(accuracy_state.get("airborne", not player.is_on_floor()))
 	var landing_penalty := float(accuracy_state.get("landing_penalty", 0.0))
 	var spread_floor: float = profile.spread_min_degrees * (profile.crouch_spread_multiplier if crouching else 1.0)
+	if profile.weapon_id == "sniper" and _scoped_camera == null:
+		spread_floor += 4.0
 	if horizontal_speed > 0.18:
 		var speed_ratio := clampf((horizontal_speed - 0.18) / 6.02, 0.0, 1.0)
 		var speed_multiplier: float = profile.walk_spread_multiplier if horizontal_speed <= 3.35 else lerpf(profile.walk_spread_multiplier, 1.0, speed_ratio)

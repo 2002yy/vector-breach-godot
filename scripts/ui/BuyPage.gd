@@ -15,6 +15,10 @@ const PRODUCTS := {
 	"he_grenade": ["高爆手雷", 300],
 	"flash_grenade": ["闪光弹", 200],
 	"smoke_grenade": ["烟雾弹", 300],
+	"sniper": ["狙击枪", 4750, "5 发弹匣 · 20 发备弹\n右键开镜；高伤害，开火间隔较长"],
+	"smg": ["冲锋枪", 1500, "30 发弹匣 · 120 发备弹\n近距离连续射击，远距离衰减明显"],
+	"shotgun": ["霰弹枪", 1850, "8 发弹匣 · 32 发备弹\n每发 7 枚弹丸，适合近距离守点"],
+	"fire_grenade": ["燃烧弹", 500],
 }
 var _buttons: Dictionary = {}
 var _balance: Label
@@ -24,6 +28,8 @@ var _ready_button: Button
 var _weapon_images: Dictionary = {}
 var _weapon_titles: Dictionary = {}
 var _preview_team := ""
+var _help_copy: Label
+var _content_scroll: ScrollContainer
 
 
 func build() -> void:
@@ -51,13 +57,35 @@ func build() -> void:
 	var title := _label("回合准备 · 武器与装备", 27)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(title)
+	var help := Button.new()
+	help.name = "BuyHelpButton"
+	help.text = "购买说明 [F1]"
+	help.pressed.connect(toggle_help)
+	header.add_child(help)
 	_balance = _label("", 25)
 	header.add_child(_balance)
 	_countdown = _label("", 18)
 	stack.add_child(_countdown)
+	_content_scroll = ScrollContainer.new()
+	_content_scroll.name = "ProductsScroll"
+	_content_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_content_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	stack.add_child(_content_scroll)
+	var content := VBoxContainer.new()
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content.add_theme_constant_override("separation", 14)
+	_content_scroll.add_child(content)
+	_help_copy = _label("首局和换边后为手枪 + $800。后续回合积累资金，可保留存活时的装备。\n"
+		+ "主武器只能持有一把，换购会将旧枪留在脚边；不退款。拾取保留剩余弹量。\n"
+		+ "投掷物最多四枚，闪光弹最多两枚。防守方可购买拆弹钳。\n"
+		+ "买好后点击下方就绪立即开战。说明展开时，就绪按钮仍可使用。", 18)
+	_help_copy.name = "BuyHelpCopy"
+	_help_copy.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_help_copy.hide()
+	content.add_child(_help_copy)
 	var weapons := HBoxContainer.new()
 	weapons.add_theme_constant_override("separation", 20)
-	stack.add_child(weapons)
+	content.add_child(weapons)
 	for item in ["rifle", "pistol"]:
 		var card := VBoxContainer.new()
 		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -74,14 +102,37 @@ func build() -> void:
 		card.add_child(texture)
 		card.add_child(_label(String(PRODUCTS[item][2]), 16))
 		card.add_child(_product_button(item))
-	stack.add_child(_label("护甲与战术装备", 20))
+	content.add_child(_label("其他主武器（替换当前主武器）", 20))
+	var primary := GridContainer.new()
+	primary.columns = 3
+	primary.add_theme_constant_override("h_separation", 12)
+	content.add_child(primary)
+	for item in ["sniper", "smg", "shotgun"]:
+		var card := VBoxContainer.new()
+		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var image := TextureRect.new()
+		image.custom_minimum_size = Vector2(0, 105)
+		image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		image.texture = Official.preview(item, GameState.player_team)
+		card.add_child(image)
+		card.add_child(_label(String(PRODUCTS[item][2]), 15))
+		card.add_child(_product_button(item))
+		primary.add_child(card)
+	content.add_child(_label("护甲与战术装备", 20))
 	var equipment := GridContainer.new()
 	equipment.columns = 3
 	equipment.add_theme_constant_override("h_separation", 12)
 	equipment.add_theme_constant_override("v_separation", 10)
-	stack.add_child(equipment)
+	content.add_child(equipment)
 	for item in [
-		"armor", "armor_helmet", "defuse_kit", "he_grenade", "flash_grenade", "smoke_grenade"
+		"armor",
+		"armor_helmet",
+		"defuse_kit",
+		"he_grenade",
+		"flash_grenade",
+		"smoke_grenade",
+		"fire_grenade"
 	]:
 		equipment.add_child(_product_button(item))
 	_result = _label("首局 $800 + 手枪；步枪 $2700，需要后续回合积累资金。", 17)
@@ -117,6 +168,11 @@ func _label(text: String, font_size: int) -> Label:
 	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", Color("ede8d5"))
 	return label
+
+func toggle_help() -> void:
+	_help_copy.visible = not _help_copy.visible
+	if _help_copy.visible:
+		_content_scroll.scroll_vertical = 0
 
 
 func _product_button(item: String) -> Button:
@@ -156,14 +212,18 @@ func update_page(snapshot: Dictionary) -> void:
 		button.disabled = not bool(offer.get("success", false))
 		var price := int(offer.get("price", PRODUCTS[item][1]))
 		button.text = (
-			"[%d] %s  $%d\n%s"
+			"%s%s  $%d\n%s"
 			% [
-				PRODUCTS.keys().find(item) + 1,
+				_shortcut(item),
 				_weapon_titles.get(item, PRODUCTS[item][0]),
 				price,
 				"点击购买" if not button.disabled else String(offer.get("reason", "不可购买"))
 			]
 		)
+
+func _shortcut(item: String) -> String:
+	var index := PRODUCTS.keys().find(item) + 1
+	return ("[%d] " % index) if index <= 9 else ("[0] " if index == 10 else "")
 
 
 func show_result(message: String) -> void:

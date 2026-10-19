@@ -1,5 +1,7 @@
 extends Node
 
+const RouteFixtures = preload("res://scripts/tests/BotRouteProgressFixtures.gd")
+
 const ACTOR_SCENE = preload("res://scenes/combat/TacticalActor.tscn")
 const PLAYER_SCENE = preload("res://scenes/player/Player.tscn")
 const ShapeBuilder = preload("res://scripts/level/ShapeBuilder.gd")
@@ -9,6 +11,7 @@ var _failures: PackedStringArray = []
 var _passes: int = 0
 
 func _ready() -> void:
+	await _run_test("oscillation_detection_and_bounded_waypoint_reselection", _test_route_progress)
 	await _run_test("bot_configuration_uses_route_and_classic_timing", _test_bot_configuration_uses_route_and_classic_timing)
 	await _run_test("freeze_holds_then_live_patrols", _test_freeze_holds_then_live_patrols)
 	await _run_test("long_navigation_edge_preserves_forward_progress", _test_long_navigation_edge)
@@ -77,6 +80,9 @@ func _test_dense_native_navigation() -> void:
 	_assert_true(model.get("_uniform_search") == null, "weighted graph cannot use Euclidean shortcut")
 	model.configure({"points": [[0, 0, 0], [1, 0, 0]], "links": []})
 	_assert_true(model.find_path(0, 1, empty_danger).is_empty(), "reconfigure discards previous native topology")
+
+func _test_route_progress() -> void:
+	RouteFixtures.oscillation_and_blocked_nodes(self)
 
 func _run_test(test_name: String, callable: Callable) -> void:
 	var before := _failures.size()

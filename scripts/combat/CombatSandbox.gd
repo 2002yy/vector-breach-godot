@@ -54,6 +54,7 @@ func load_for_level(level_data: Dictionary) -> void:
 			_apply_competitive_reset(record)
 		var saved_loadout: Dictionary = _saved_round_loadouts.get(String(record.get("name", "")), {})
 		if not saved_loadout.is_empty():
+			record["weaponInventory"] = saved_loadout.get("inventory", {})
 			record["weapon"] = saved_loadout.get("weapon", record.get("weapon", "rifle"))
 			record["weaponAmmoMag"] = saved_loadout.get("ammo_in_mag", 30)
 			record["weaponAmmoReserve"] = saved_loadout.get("ammo_reserve", 0)
@@ -123,6 +124,7 @@ func clear_saved_round_state(reset_roster: bool = false) -> void:
 		_stable_match_roster.clear()
 
 func _apply_competitive_reset(record: Dictionary) -> void:
+	record["weaponInventory"] = {}
 	record["weapon"] = "pistol"
 	record["weaponAmmoMag"] = 12
 	record["weaponAmmoReserve"] = 24
@@ -130,7 +132,7 @@ func _apply_competitive_reset(record: Dictionary) -> void:
 	record["helmet"] = false
 	record["defuseKit"] = false
 	record["aiMoney"] = 800
-	record["aiGrenades"] = {"he_grenade": 0, "flash_grenade": 0, "smoke_grenade": 0}
+	record["aiGrenades"] = {"he_grenade": 0, "flash_grenade": 0, "smoke_grenade": 0, "fire_grenade": 0}
 
 func set_c4_device(device: Node3D) -> void:
 	c4_device = device
@@ -164,11 +166,18 @@ func _assign_bomb_roles(level_data: Dictionary) -> void:
 	var t_carrier_enabled := GameState.player_team != "T" and not t_actors.is_empty()
 	for index in range(t_actors.size()):
 		var actor := t_actors[index]
+		actor.set_meta("squad_role_index", index)
 		var role := "plant" if index == 0 else ("support" if index == 1 else "diversion")
 		var objective := primary_objective if index < 2 else secondary_objective
 		var site_target := Vector3(float(objective.get("x", 0.0)), float(objective.get("y", 1.15)), float(objective.get("z", 0.0)))
 		var site_label := "A" if String(objective.get("id", "")).to_lower().contains("a") else "B"
 		if actor.has_node("TacticalBotBrain"):
+			actor.get_node("TacticalBotBrain").set(
+				"alternate_site_target", secondary_target if index < 2 else primary_target
+			)
+			actor.get_node("TacticalBotBrain").set(
+				"alternate_site_label", secondary_site if index < 2 else primary_site
+			)
 			actor.get_node("TacticalBotBrain").call(
 				"configure_objective",
 				role,
@@ -182,6 +191,7 @@ func _assign_bomb_roles(level_data: Dictionary) -> void:
 		c4_device.call("set_carried", "T", _bomb_carrier_actor.get_instance_id() if is_instance_valid(_bomb_carrier_actor) else 0)
 	for index in range(ct_actors.size()):
 		var actor := ct_actors[index]
+		actor.set_meta("squad_role_index", index)
 		var objective_index := index % maxi(1, objectives.size())
 		var objective := objectives[objective_index] as Dictionary if not objectives.is_empty() else primary_objective
 		var site_target := Vector3(float(objective.get("x", 0.0)), float(objective.get("y", 1.15)), float(objective.get("z", 0.0)))
@@ -245,12 +255,14 @@ func _remember_round_loadout(actor: CharacterBody3D) -> void:
 	var snapshot := actor.call("get_combat_snapshot") as Dictionary
 	var ai: Dictionary = snapshot.get("ai", {})
 	var dead := bool(actor.get("is_dead"))
+	var primary: Dictionary = actor.get_node("TacticalBotBrain").call("get_weapon_pickup_record", true)
 	_round_economy[String(snapshot.get("name", ""))] = {
 		"team": String(snapshot.get("team", "")),
 		"loadout": {
-			"weapon": "pistol" if dead else String(snapshot.get("weapon", "rifle")),
-			"ammo_in_mag": 12 if dead else int(ai.get("ammo", 30)),
-			"ammo_reserve": 24 if dead else int(ai.get("ammo_reserve", 0)),
+			"weapon": "pistol" if dead else String(primary.get("weapon_id", "pistol")),
+			"ammo_in_mag": 12 if dead else int(primary.get("ammo_in_mag", 12)),
+			"ammo_reserve": 24 if dead else int(primary.get("ammo_reserve", 24)),
+			"inventory": {} if dead else ai.get("inventory", {}).duplicate(true),
 			"armor": 0 if dead else int(snapshot.get("armor", 0)),
 			"helmet": not dead and bool(snapshot.get("helmet", false)),
 			"defuse_kit": not dead and bool(snapshot.get("defuse_kit", false)),
@@ -282,16 +294,25 @@ func _on_actor_ai_damaged(world_position: Vector3, source_team: String, damaged_
 func _broadcast_teammate_report(world_position: Vector3, enemy_team: String, friendly_team: String, exclude_actor: CharacterBody3D) -> void:
 	if enemy_team.is_empty() or friendly_team.is_empty():
 		return
-	var nearest_bot: Node = null
-	var nearest_distance := INF
+	var candidates: Array[Node3D] = []
 	for child in get_children():
-		if child is CharacterBody3D and (child as CharacterBody3D) != exclude_actor and String((child as CharacterBody3D).get("team")) == friendly_team:
-			var distance := (child as CharacterBody3D).global_position.distance_squared_to(world_position)
-			if distance < nearest_distance:
-				nearest_distance = distance
-				nearest_bot = child as Node
-	if nearest_bot != null and nearest_bot.has_method("notify_ai_teammate_report"):
-		nearest_bot.call("notify_ai_teammate_report", world_position, enemy_team)
+		if (
+			child is CharacterBody3D
+			and child != exclude_actor
+			and String(child.get("team")) == friendly_team
+			and not bool(child.get("is_dead"))
+		):
+			candidates.append(child)
+	candidates.sort_custom(
+		func(a: Node3D, b: Node3D) -> bool:
+			return (
+				a.global_position.distance_squared_to(world_position)
+				< b.global_position.distance_squared_to(world_position)
+			)
+	)
+	for index in range(mini(2, candidates.size())):
+		if candidates[index].has_method("notify_ai_teammate_report"):
+			candidates[index].call("notify_ai_teammate_report", world_position, enemy_team)
 
 func notify_ai_sound(world_position: Vector3, audible_radius: float, source_team: String) -> int:
 	var notified := 0
@@ -301,7 +322,12 @@ func notify_ai_sound(world_position: Vector3, audible_radius: float, source_team
 	return notified
 
 func _on_actor_ai_shot(result: Dictionary, world_position: Vector3) -> void:
-	GameState.record_scoreboard_damage(String(result.get("shooter_name", "Bot")), String(result.get("shooter_team", "")), result.get("damage_result", {}) as Dictionary)
+	for damage in result.get("damage_events", [result.get("damage_result", {})]):
+		GameState.record_scoreboard_damage(
+			String(result.get("shooter_name", "Bot")),
+			String(result.get("shooter_team", "")),
+			damage
+		)
 	ai_shot.emit(result, world_position)
 	notify_ai_sound(world_position, 52.0, String((result.get("shooter_team", ""))))
 

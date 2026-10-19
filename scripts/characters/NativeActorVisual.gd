@@ -5,6 +5,7 @@ const EquipmentVisuals = preload("res://scripts/player/EquipmentVisuals.gd")
 const RIFLE = preload("res://assets/models/weapons/vb_rifle.glb")
 const PISTOL = preload("res://assets/models/weapons/vb_pistol.glb")
 const Official = preload("res://scripts/player/OfficialEquipment.gd")
+const WeaponVisuals = preload("res://scripts/player/WeaponVisuals.gd")
 var model: Node3D
 var weapon_socket: Node3D
 var weapon: Node3D
@@ -52,7 +53,9 @@ func set_weapon(kind: String) -> void:
 	if weapon != null:
 		weapon_socket.add_child(weapon)
 		return
-	if kind == "knife":
+	if kind in ["sniper", "smg", "shotgun"]:
+		weapon = WeaponVisuals.build(kind, "CT" if profile_id.begins_with("ct-") else "T")
+	elif kind == "knife":
 		weapon = EquipmentVisuals.build("knife")
 		weapon.position = Vector3(0, 0.07, -0.05)
 		weapon.rotation = Vector3(-0.15, -0.3, -0.35)

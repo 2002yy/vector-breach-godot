@@ -3,6 +3,8 @@ extends Node3D
 const Appearance = preload("res://scripts/characters/CharacterAppearance.gd")
 const NativeHands = preload("res://scripts/player/NativeCharacterHands.gd")
 
+var _appearance_override := ""
+
 var _native_hands: Node3D
 var _appearance_id := ""
 
@@ -246,8 +248,15 @@ func snapshot() -> Dictionary:
 	}
 
 
+func set_appearance_profile(id: String) -> void:
+	_appearance_override = id
+	_update_appearance()
+
+
 func _update_appearance() -> void:
 	var id := UserSettings.ct_appearance if GameState.player_team == "CT" else UserSettings.t_appearance
+	if not _appearance_override.is_empty():
+		id = _appearance_override
 	if id == _appearance_id:
 		return
 	_appearance_id = id

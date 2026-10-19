@@ -2,9 +2,16 @@ extends Node
 
 const MAIN_SCENE = preload("res://scenes/Main.tscn")
 const ACTOR_SCENE = preload("res://scenes/combat/TacticalActor.tscn")
+const MatchExperience = preload("res://scripts/tests/MatchExperienceFixtures.gd")
 
 var _failures: PackedStringArray = []
 var _passes: int = 0
+
+func _test_spectator_lifecycle() -> void:
+	await MatchExperience.spectator_lifecycle(self)
+
+func _test_purchases_and_help() -> void:
+	await MatchExperience.purchases_and_help(self)
 
 func _test_training_mode() -> void:
 	var main := _instantiate_main()
@@ -143,6 +150,12 @@ func _ready() -> void:
 	get_tree().quit(1)
 
 func _run_all_tests() -> void:
+	await _run_test(
+		"teammate_spectator_lifecycle_and_information_boundary", _test_spectator_lifecycle
+	)
+	await _run_test(
+		"primary_purchase_replacement_grenade_capacity_and_expanded_help", _test_purchases_and_help
+	)
 	await _run_test("independent_training_resupply_reset_and_match_isolation", _test_training_mode)
 	await _run_test("knife_backstab_uses_contact_facing_and_real_occlusion", _test_knife_backstab)
 	await _run_test("initial_boot_shows_menu_and_default_map", _test_initial_boot_shows_menu_and_default_map)
@@ -354,9 +367,16 @@ func _test_squad_economy_includes_player_and_help_matches_loadout() -> void:
 		help_key.keycode = KEY_F1
 		help_key.pressed = true
 		main.call("_unhandled_input", help_key)
-		_assert_true((hud.get("_player_help") as PanelContainer).visible, "F1 should open actual runtime help")
+		var buy := hud.get_node("HudRoot/BuyMenu")
+		_assert_true(
+			(buy.get("_help_copy") as Control).visible, "F1 opens inline buying explanation"
+		)
+		_assert_true(
+			not (hud.get("_player_help") as PanelContainer).visible,
+			"buying explanation does not stack full help"
+		)
 		main.call("_unhandled_input", help_key)
-		_assert_true(not (hud.get("_player_help") as PanelContainer).visible, "F1 should close runtime help")
+		_assert_true(not (buy.get("_help_copy") as Control).visible, "F1 closes buying explanation")
 		await _cleanup_main(main)
 
 func _test_planted_bomb_outlives_attackers() -> void:

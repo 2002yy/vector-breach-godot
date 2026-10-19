@@ -2,6 +2,7 @@ extends CanvasLayer
 
 const Appearance = preload("res://scripts/characters/CharacterAppearance.gd")
 const LocalClassicMaps = preload("res://scripts/level/LocalClassicMaps.gd")
+const HelpPanel = preload("res://scripts/ui/PlayerHelpPanel.gd")
 var _appearance_choices: Dictionary = {}
 
 const PlayerGuide = preload("res://scripts/ui/PlayerGuide.gd")
@@ -36,7 +37,7 @@ signal team_selected(team: String)
 var _map_options: Array = []
 var _selected_map_index: int = 2
 var _show_archive: bool = false
-var _help_label: Label
+var _help_label: RichTextLabel
 var _settings_panel: PanelContainer
 var _return_to_maps_button: Button
 
@@ -155,21 +156,32 @@ func toggle_player_help() -> void:
 	$PlayerHelp.visible = not $PlayerHelp.visible
 
 func _create_help_panel() -> void:
-	var panel := PanelContainer.new()
-	panel.name = "PlayerHelp"
-	panel.visible = false
+	var panel := HelpPanel.new()
 	panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	panel.offset_left = -610
+	panel.anchor_bottom = 1.0
+	panel.offset_left = -660
 	panel.offset_right = -32
-	panel.offset_top = 70
-	var margin := MarginContainer.new()
-	for side in ["left", "top", "right", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 24)
-	panel.add_child(margin)
-	_help_label = Label.new()
-	_help_label.add_theme_font_size_override("font_size", 20)
-	margin.add_child(_help_label)
+	panel.offset_top = 42
+	panel.offset_bottom = -32
+	_help_label = panel.body
 	add_child(panel)
+	var help_button := Button.new()
+	help_button.name = "HelpButton"
+	help_button.text = "操作与回合说明 [F1]"
+	help_button.custom_minimum_size.y = 42
+	$MenuPanel/Margin/VBox.add_child(help_button)
+	$MenuPanel/Margin/VBox.move_child(help_button, $MenuPanel/Margin/VBox/Buttons.get_index())
+	help_button.pressed.connect(toggle_player_help)
+	panel.closed.connect(func() -> void: help_button.grab_focus())
+
+func dismiss_overlay() -> bool:
+	if $PlayerHelp.visible:
+		$PlayerHelp.hide()
+		return true
+	if _settings_panel.visible:
+		_toggle_settings(false)
+		return true
+	return false
 
 func update_g2_hint() -> void:
 	var next_match := GameState.match_serial + 1

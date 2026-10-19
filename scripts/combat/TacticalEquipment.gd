@@ -8,8 +8,8 @@ const GrenadeProjectile = preload("res://scripts/combat/GrenadeProjectile.gd")
 const MeleeRules = preload("res://scripts/combat/MeleeRules.gd")
 
 var equipped: String = "firearm"
-var grenade_order := ["he_grenade", "flash_grenade", "smoke_grenade"]
-var grenade_counts := {"he_grenade": 0, "flash_grenade": 0, "smoke_grenade": 0}
+var grenade_order := ["he_grenade", "flash_grenade", "smoke_grenade", "fire_grenade"]
+var grenade_counts := {"he_grenade": 0, "flash_grenade": 0, "smoke_grenade": 0, "fire_grenade": 0}
 var grenade_index: int = 0
 var use_cooldown: float = 0.0
 var _pending_kind := ""
@@ -20,7 +20,7 @@ var _switch_seconds := 0.0
 func reset_loadout() -> void:
 	cancel_use()
 	equipped = "firearm"
-	grenade_counts = {"he_grenade": 0, "flash_grenade": 0, "smoke_grenade": 0}
+	grenade_counts = {"he_grenade": 0, "flash_grenade": 0, "smoke_grenade": 0, "fire_grenade": 0}
 	grenade_index = 0
 	use_cooldown = 0.0
 	equipment_changed.emit(equipped)
@@ -63,6 +63,11 @@ func select_c4() -> void:
 
 func purchase_grenade(kind: String) -> bool:
 	if not kind in grenade_order:
+		return false
+	var total := 0
+	for count in grenade_counts.values():
+		total += int(count)
+	if total >= 4:
 		return false
 	var limit := 2 if kind == "flash_grenade" else 1
 	if int(grenade_counts.get(kind, 0)) >= limit:
@@ -146,5 +151,15 @@ func _throw_grenade(player: CharacterBody3D) -> Dictionary:
 	return {"thrown": true, "type": thrown_type}
 
 func _sync_hud() -> void:
-	var names := {"he_grenade": "高爆手雷", "flash_grenade": "闪光弹", "smoke_grenade": "烟雾弹"}
-	GameState.sync_weapon_state(String(names.get(equipped, equipped)), int(grenade_counts.get(equipped, 0)), 0, "", 0.0, 0.0, 3)
+	var names := {
+		"he_grenade": "高爆手雷", "flash_grenade": "闪光弹", "smoke_grenade": "烟雾弹", "fire_grenade": "燃烧弹"
+	}
+	GameState.sync_weapon_state(
+		String(names.get(equipped, equipped)),
+		int(grenade_counts.get(equipped, 0)),
+		0,
+		"",
+		0.0,
+		0.0,
+		3
+	)

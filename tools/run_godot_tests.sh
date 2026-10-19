@@ -32,17 +32,23 @@ scenes=(
 
 run_scene() {
   local scene="$1"
-  local status
+  local status=0
+  local suite_log
+  suite_log="$(mktemp)"
 
   echo
   echo "==> Running ${scene}"
   echo "[native-test] START ${scene}"
 
-  if "${godot_bin}" --headless --path "${project_root}" --scene "${scene}"; then
+  "${godot_bin}" --headless --path "${project_root}" --scene "${scene}" >"${suite_log}" 2>&1 || status=$?
+  cat "${suite_log}"
+  if [[ "${status}" -eq 0 ]] && ! grep -Eq 'SCRIPT ERROR:|^ERROR:' "${suite_log}"; then
+    rm -f "${suite_log}"
     echo "[native-test] PASS ${scene}"
     return 0
   else
-    status=$?
+    rm -f "${suite_log}"
+    if [[ "${status}" -eq 0 ]]; then status=1; fi
     echo "[native-test] FAIL ${scene} (exit ${status})" >&2
     echo "::error title=Native test suite failed::${scene} exited with status ${status}"
     return "${status}"
