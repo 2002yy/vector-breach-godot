@@ -3,6 +3,8 @@ extends CanvasLayer
 const Appearance = preload("res://scripts/characters/CharacterAppearance.gd")
 const LocalClassicMaps = preload("res://scripts/level/LocalClassicMaps.gd")
 const HelpPanel = preload("res://scripts/ui/PlayerHelpPanel.gd")
+const LobbyView = preload("res://scripts/ui/LobbyMenuView.gd")
+const MenuStyle = preload("res://scripts/ui/TacticalMenuStyle.gd")
 var _appearance_choices: Dictionary = {}
 
 const PlayerGuide = preload("res://scripts/ui/PlayerGuide.gd")
@@ -13,6 +15,9 @@ signal return_to_maps_pressed
 signal map_selected(index: int)
 signal settings_changed(snapshot: Dictionary)
 signal team_selected(team: String)
+
+var _lobby := LobbyView.new()
+var _preview_camera: Camera3D
 
 @onready var title_label: Label = $MenuPanel/Margin/VBox/Title
 @onready var preview_rect: TextureRect = $MenuPanel/Margin/VBox/Preview
@@ -51,6 +56,7 @@ func _ready() -> void:
 	var archive_toggle := CheckButton.new()
 	archive_toggle.name = "ArchiveToggle"
 	archive_toggle.text = "开发测试地图"
+	archive_toggle.hide()
 	$MenuPanel/Margin/VBox/Controls.add_child(archive_toggle)
 	archive_toggle.toggled.connect(func(enabled: bool) -> void:
 		_show_archive = enabled
@@ -78,6 +84,12 @@ func _ready() -> void:
 		slider.value_changed.connect(_on_setting_control_changed)
 	dynamic_crosshair_toggle.toggled.connect(func(_enabled: bool) -> void: _emit_settings())
 	radar_rotates_toggle.toggled.connect(func(_enabled: bool) -> void: _emit_settings())
+	_lobby.build(self)
+	_preview_camera = preload("res://scripts/ui/LobbyMapCamera.gd").new()
+	_preview_camera.name = "LobbyMapCamera"
+	add_child(_preview_camera)
+	get_viewport().size_changed.connect(_fit_overlay_layout)
+	_fit_overlay_layout()
 
 func set_map_options(options: Array, selected_index: int) -> void:
 	_map_options = options
@@ -104,6 +116,7 @@ func _is_test_map(level_id: String) -> bool:
 func _create_settings_panel() -> void:
 	_settings_panel = PanelContainer.new()
 	_settings_panel.name = "SettingsPanel"
+	_settings_panel.add_theme_stylebox_override("panel", MenuStyle.box(Color("131a1e")))
 	_settings_panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 	_settings_panel.offset_left = -610
 	_settings_panel.offset_right = -32
@@ -136,6 +149,16 @@ func _create_settings_panel() -> void:
 	close_button.text = "完成设置"
 	margin.get_child(0).add_child(close_button)
 	close_button.pressed.connect(func() -> void: _toggle_settings(false))
+	var developer_button := Button.new()
+	developer_button.name = "DeveloperMaps"
+	developer_button.text = "高级：开发与回归地图"
+	margin.get_child(0).add_child(developer_button)
+	developer_button.pressed.connect(func() -> void:
+		_toggle_settings(false)
+		_show_archive = not _show_archive
+		_refresh_map_options()
+		_lobby.show_picker(true)
+	)
 	add_child(_settings_panel)
 	_settings_panel.hide()
 	var settings_button := Button.new()
@@ -149,11 +172,18 @@ func _create_settings_panel() -> void:
 func _toggle_settings(enabled: bool) -> void:
 	_settings_panel.visible = enabled
 	$PlayerHelp.hide()
+	if _lobby.hero != null:
+		_lobby.picker.hide()
+		_lobby.hero.visible = not enabled
 
 func toggle_player_help() -> void:
 	if _settings_panel.visible:
 		_toggle_settings(false)
 	$PlayerHelp.visible = not $PlayerHelp.visible
+	_lobby.picker.hide()
+	_lobby.hero.visible = not $PlayerHelp.visible
+	if $PlayerHelp.visible:
+		$PlayerHelp.call("select_tab", 0)
 
 func _create_help_panel() -> void:
 	var panel := HelpPanel.new()
@@ -172,14 +202,21 @@ func _create_help_panel() -> void:
 	$MenuPanel/Margin/VBox.add_child(help_button)
 	$MenuPanel/Margin/VBox.move_child(help_button, $MenuPanel/Margin/VBox/Buttons.get_index())
 	help_button.pressed.connect(toggle_player_help)
-	panel.closed.connect(func() -> void: help_button.grab_focus())
+	panel.closed.connect(func() -> void:
+		help_button.grab_focus()
+		_lobby.hero.show()
+	)
 
 func dismiss_overlay() -> bool:
 	if $PlayerHelp.visible:
 		$PlayerHelp.hide()
+		_lobby.hero.show()
 		return true
 	if _settings_panel.visible:
 		_toggle_settings(false)
+		return true
+	if _lobby.picker != null and _lobby.picker.visible:
+		_lobby.show_picker(false)
 		return true
 	return false
 
@@ -188,6 +225,12 @@ func update_g2_hint() -> void:
 	var recommended_side := "T" if next_match % 2 == 1 else "CT"
 	g2_hint.text = "第 %d 场 · 建议选择%s" % [next_match, "进攻方" if recommended_side == "T" else "防守方"]
 	team_select.select(0 if recommended_side == "T" else 1)
+	if _lobby.hero != null:
+		_lobby.select_team(recommended_side)
+
+func select_team(team: String) -> void:
+	team_select.select(0 if team == "T" else 1)
+	_lobby.select_team(team)
 
 func set_map_details(option: Dictionary, can_resume: bool) -> void:
 	_show_archive = _is_test_map(String(option["id"]))
@@ -208,10 +251,8 @@ func set_map_details(option: Dictionary, can_resume: bool) -> void:
 	if is_research and not can_resume:
 		start_button.text = "开始 5 对 5 爆破"
 		description_label.text = "[font_size=24][b]%s[/b][/font_size]\n\n你 + 四名 AI 队友，对五名敌人。\n手枪 + $800 开局；购买后点就绪即可开战。" % String(option["name"])
-	hint_label.text = "F1 操作帮助 · Esc 暂停菜单"
-	_help_label.text = "操作指南\n\n" + PlayerGuide.CONTROLS + "\n\n" + (PlayerGuide.MATCH_RULES if is_match else PlayerGuide.PRACTICE_RULES)
-	if is_research:
-		_help_label.text = "操作指南\n\n" + PlayerGuide.CONTROLS + "\n\n" + PlayerGuide.RESEARCH_RULES
+	hint_label.text = "试玩 2026.10   ·   F1 操作帮助"
+	$PlayerHelp.call("set_context", String(option.id))
 	var preview_path: String = String(option["preview"])
 	# These legacy maps shared an unrelated courtyard thumbnail. Show the
 	# actual loaded world behind the menu instead of a misleading reference.
@@ -225,8 +266,14 @@ func set_map_details(option: Dictionary, can_resume: bool) -> void:
 	map_select.disabled = can_resume
 	$MenuPanel/Margin/VBox/Controls/ArchiveToggle.disabled = can_resume
 	map_select.tooltip_text = "先结束当前对局，再选择新地图" if can_resume else ""
+	description_label.visible = false
+	_lobby.update(option, can_resume)
+	MenuStyle.button(start_button, not can_resume)
+	MenuStyle.button(resume_button, can_resume)
 
 func set_match_summary(snapshot: Dictionary, record_path: String) -> void:
+	description_label.show()
+	_lobby.hero.hide()
 	title_label.text = "比赛结算"
 	var result_labels := {"player_win": "玩家小队获胜", "opponent_win": "对手小队获胜", "draw": "平局"}
 	description_label.text = (
@@ -249,6 +296,26 @@ func set_match_summary(snapshot: Dictionary, record_path: String) -> void:
 
 func set_menu_visible(visible_state: bool) -> void:
 	visible = visible_state
+	if not visible_state:
+		if _preview_camera != null and _preview_camera.current:
+			_preview_camera.clear_current(false)
+			get_parent().get_node("Player").call("get_camera_node").make_current()
+		$PlayerHelp.hide()
+		_settings_panel.hide()
+		_lobby.picker.hide()
+		_lobby.hero.show()
+
+func frame_map_preview(data: Dictionary) -> void:
+	_preview_camera.call("frame_level", data, GameState.player_spawn)
+
+func _fit_overlay_layout() -> void:
+	var width := get_viewport().get_visible_rect().size.x
+	var height := get_viewport().get_visible_rect().size.y
+	$PlayerHelp.offset_left = -minf(700.0, width - 432.0)
+	$PlayerHelp.offset_top = maxf(24.0, (height - 660.0) * 0.5)
+	$PlayerHelp.offset_bottom = -maxf(24.0, (height - 660.0) * 0.5)
+	_lobby.picker.offset_left = -minf(920.0, width - 432.0)
+	_lobby.picker_grid.columns = 3 if width >= 1450.0 else 2
 
 func _load_settings_controls(snapshot: Dictionary) -> void:
 	sensitivity_slider.set_value_no_signal(float(snapshot.get("mouse_sensitivity_multiplier", 1.0)))

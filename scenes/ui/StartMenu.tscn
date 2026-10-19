@@ -75,9 +75,9 @@ theme_override_styles/panel = SubResource("MenuPanelStyle")
 
 [node name="Margin" type="MarginContainer" parent="MenuPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 34
+theme_override_constants/margin_left = 28
 theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 34
+theme_override_constants/margin_right = 28
 theme_override_constants/margin_bottom = 20
 
 [node name="VBox" type="VBoxContainer" parent="MenuPanel/Margin"]

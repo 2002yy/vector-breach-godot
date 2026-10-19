@@ -8,6 +8,7 @@ signal help_visibility_changed(opened: bool)
 const PlayerGuide = preload("res://scripts/ui/PlayerGuide.gd")
 const BuyPage = preload("res://scripts/ui/BuyPage.gd")
 const HelpPanel = preload("res://scripts/ui/PlayerHelpPanel.gd")
+const MenuStyle = preload("res://scripts/ui/TacticalMenuStyle.gd")
 
 const HEALTH_NORMAL_COLOR := Color(0.88, 0.82, 0.54, 1.0)
 const HEALTH_WARNING_COLOR := Color(1.0, 0.38, 0.3, 1.0)
@@ -127,6 +128,7 @@ func _ready() -> void:
 	_player_help.connect("closed", func() -> void: help_visibility_changed.emit(false))
 	hud_root.add_child(_player_help)
 	_player_help.visible = false
+	scoreboard.add_theme_stylebox_override("panel", MenuStyle.box(Color("131a1e")))
 	apply_settings(UserSettings.get_snapshot())
 	if not UserSettings.settings_changed.is_connected(apply_settings):
 		UserSettings.settings_changed.connect(apply_settings)
@@ -292,10 +294,8 @@ func update_display(snapshot: Dictionary) -> void:
 	var enemy_rows: Array = scoreboard_rows.get("enemy", []) as Array
 	scoreboard_friendly.text = "\n".join(friendly_rows) if not friendly_rows.is_empty() else "你  %d/0  命中%d  $%d  %s  存活" % [int(snapshot.get("kill_count", 0)), int(snapshot.get("hit_count", 0)), int(snapshot.get("money", 800)), String(snapshot.get("weapon_name", "步枪"))]
 	var competitive := GameState.is_competitive_level()
-	_help_text.text = "操作指南（F1 关闭）\n\n" + PlayerGuide.CONTROLS + "\n\n" + (PlayerGuide.MATCH_RULES if competitive else PlayerGuide.PRACTICE_RULES)
-	if preload("res://scripts/level/LocalClassicMaps.gd").is_classic(GameState.current_level_id):
-		_help_text.text = "操作指南（F1 关闭）\n\n" + PlayerGuide.CONTROLS + "\n\n" + PlayerGuide.RESEARCH_RULES
-	_controls_hint.text = "1 / 2 枪 · 3 刀 · 4 手雷 · 5 C4 · E 交互 · B 购买 · F1 帮助"
+	_player_help.call("set_context", GameState.current_level_id)
+	_controls_hint.text = "F1 操作帮助"
 	if competitive and RoundManager.can_buy():
 		_controls_hint.text += "\n手枪开局；步枪 $2700。出生区按 B 购买，当前 $%d" % int(snapshot.get("money", 800))
 	scoreboard_enemy.text = "\n".join(enemy_rows) if not enemy_rows.is_empty() else "暂无敌方单位"

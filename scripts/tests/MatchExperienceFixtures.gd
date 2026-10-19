@@ -1,6 +1,57 @@
 extends RefCounted
 
 
+static func lobby_controls(host: Node) -> void:
+	var main: Node3D = host.call("_instantiate_main")
+	await host.call("_await_main_ready")
+	var menu := main.get_node("StartMenu")
+	menu.find_child("CTCard", true, false).pressed.emit()
+	host.call("_assert_equal", GameState.player_team, "CT", "visible CT card changes actual side")
+	menu.find_child("MapCard", true, false).pressed.emit()
+	host.call("_assert_true", menu.get_node("MapPicker").visible, "map card opens visual selection")
+	host.call(
+		"_assert_true",
+		menu.find_child("Map_depot", true, false) == null,
+		"developer maps are absent from the normal map picker"
+	)
+	menu.find_child("Map_training_range", true, false).pressed.emit()
+	await host.call("_await_main_ready")
+	host.call(
+		"_assert_equal",
+		GameState.current_level_id,
+		"training-range",
+		"thumbnail selection loads its actual map, not a display-only state"
+	)
+	menu.call("toggle_player_help")
+	var help := menu.get_node("PlayerHelp")
+	host.call(
+		"_assert_equal",
+		help.find_child("GuideRows", true, false).get_child_count(),
+		6,
+		"basic guide shows six primary operations"
+	)
+	help.find_child("BombTab", true, false).pressed.emit()
+	host.call(
+		"_assert_true",
+		(help.get("body") as RichTextLabel).text.contains("自由练习"),
+		"rules reflect the selected practice mode"
+	)
+	menu.call("_toggle_settings", true)
+	host.call(
+		"_assert_true",
+		not help.visible and not menu.get_node("MapPicker").visible,
+		"settings do not stack over help or map selection"
+	)
+	menu.call("_toggle_settings", false)
+	await main.call("_on_start_pressed")
+	host.call(
+		"_assert_true",
+		(main.get_node("Player").call("get_camera_node") as Camera3D).current,
+		"starting play restores the player camera from the lobby camera"
+	)
+	await host.call("_cleanup_main", main)
+
+
 static func purchases_and_help(host: Node) -> void:
 	var main: Node3D = host.call("_instantiate_main")
 	await host.call("_await_main_ready")
@@ -77,6 +128,13 @@ static func purchases_and_help(host: Node) -> void:
 		RoundManager.state,
 		RoundManager.RoundState.FREEZE,
 		"closing help never pauses match"
+	)
+	main.call("_on_player_ready")
+	host.call(
+		"_assert_equal",
+		(hud.get("_controls_hint") as Label).text,
+		"F1 操作帮助",
+		"live combat replaces the buying tutorial with a compact help entry"
 	)
 	await host.call("_cleanup_main", main)
 

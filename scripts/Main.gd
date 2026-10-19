@@ -219,6 +219,10 @@ func _ready() -> void:
 	if _has_local_level(LOCAL_REFERENCE_LEVEL_PATH, LOCAL_REFERENCE_VISUAL_PATH):
 		level_options.append(LOCAL_REFERENCE_OPTION.duplicate(true))
 	level_options.append_array(LocalClassicMaps.installed_options())
+	for index in range(level_options.size()):
+		if String(level_options[index].get("id", "")) == "inferno-classic-local":
+			selected_level_index = index
+			break
 	if level.has_signal("level_loaded"):
 		level.connect("level_loaded", _on_level_loaded)
 	if weapon_system.has_signal("shot_resolved"):
@@ -284,7 +288,7 @@ func _on_team_selected(team: String) -> void:
 	if game_started:
 		return
 	selected_start_team = team if team in ["T", "CT"] else "T"
-	(start_menu.get("team_select") as OptionButton).select(0 if selected_start_team == "T" else 1)
+	start_menu.call("select_team", selected_start_team)
 	GameState.player_team = selected_start_team
 	if is_instance_valid(c4_device):
 		c4_device.call("set_carried", "T", player.get_instance_id() if GameState.player_team == "T" else int(c4_device.get("carrier_id")))
@@ -310,6 +314,8 @@ func _process(delta: float) -> void:
 			not bool(player.get("is_dead"))
 			and not bool(weapon_system.call("get_runtime_snapshot").get("scoped", false))
 		)
+	else:
+		weapon_view_model.hide()
 	if is_instance_valid(spectator) and bool(spectator.get("active")) and not menu_open:
 		spectator.call("tick")
 	if _training_active() and not menu_open:
@@ -697,6 +703,7 @@ func _on_level_loaded(level_data: Dictionary) -> void:
 		combat_sandbox.call("load_for_level", level_data)
 	if not game_started and player.has_method("reset_to_spawn"):
 		player.call("reset_to_spawn")
+		start_menu.call("frame_map_preview", level_data)
 	_level_loading = false
 
 func _capture_default_environment() -> void:

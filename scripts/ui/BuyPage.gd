@@ -5,6 +5,7 @@ signal ready_requested
 signal closed
 
 const Official = preload("res://scripts/player/OfficialEquipment.gd")
+const Style = preload("res://scripts/ui/TacticalMenuStyle.gd")
 
 const PRODUCTS := {
 	"rifle": ["步枪", 2700, "30 发弹匣 · 90 发备弹\n中远距离压制，连射时注意控枪", "res://assets/ui/buy/rifle.png"],
@@ -40,10 +41,10 @@ func build() -> void:
 	offset_top = -345
 	offset_bottom = 345
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color("111713")
-	style.border_color = Color("8b8053")
+	style.bg_color = Style.INK
+	style.border_color = Style.BRASS.darkened(0.3)
 	style.set_border_width_all(1)
-	style.set_corner_radius_all(12)
+	style.set_corner_radius_all(2)
 	add_theme_stylebox_override("panel", style)
 	var margin := MarginContainer.new()
 	for side in ["left", "right", "top", "bottom"]:
@@ -60,6 +61,7 @@ func build() -> void:
 	var help := Button.new()
 	help.name = "BuyHelpButton"
 	help.text = "购买说明 [F1]"
+	Style.button(help)
 	help.pressed.connect(toggle_help)
 	header.add_child(help)
 	_balance = _label("", 25)
@@ -143,6 +145,7 @@ func build() -> void:
 	stack.add_child(footer)
 	var close_button := Button.new()
 	close_button.text = "收起购买页 [B]"
+	Style.button(close_button)
 	close_button.custom_minimum_size = Vector2(260, 54)
 	close_button.pressed.connect(func() -> void: closed.emit())
 	footer.add_child(close_button)
@@ -150,13 +153,8 @@ func build() -> void:
 	_ready_button.name = "ReadyButton"
 	_ready_button.text = "就绪开战 →"
 	_ready_button.add_theme_font_size_override("font_size", 24)
-	var ready_style := StyleBoxFlat.new()
-	ready_style.bg_color = Color("b2a367")
-	ready_style.set_corner_radius_all(6)
-	_ready_button.add_theme_stylebox_override("normal", ready_style)
-	_ready_button.add_theme_stylebox_override("hover", ready_style)
-	_ready_button.add_theme_stylebox_override("pressed", ready_style)
-	_ready_button.add_theme_color_override("font_color", Color("111713"))
+	Style.button(_ready_button, true)
+	_ready_button.add_theme_font_size_override("font_size", 24)
 	_ready_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_ready_button.pressed.connect(func() -> void: ready_requested.emit())
 	footer.add_child(_ready_button)

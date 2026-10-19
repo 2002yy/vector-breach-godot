@@ -13,6 +13,9 @@ func _test_spectator_lifecycle() -> void:
 func _test_purchases_and_help() -> void:
 	await MatchExperience.purchases_and_help(self)
 
+func _test_lobby_controls() -> void:
+	await MatchExperience.lobby_controls(self)
+
 func _test_training_mode() -> void:
 	var main := _instantiate_main()
 	await _await_main_ready()
@@ -150,6 +153,7 @@ func _ready() -> void:
 	get_tree().quit(1)
 
 func _run_all_tests() -> void:
+	await _run_test("lobby_card_selection_guide_tabs_and_camera_restore", _test_lobby_controls)
 	await _run_test(
 		"teammate_spectator_lifecycle_and_information_boundary", _test_spectator_lifecycle
 	)
