@@ -193,6 +193,8 @@ jobs:
           BUILD_DIR="${RUNNER_TEMP}/windows-build/VectorBreach"
           test -s "${BUILD_DIR}/VectorBreach.exe"
           test -s "${BUILD_DIR}/VectorBreach.pck"
+          python -m unittest discover -s tools/tests -p test_stage_frozen_match_sources.py
+          python tools/stage_frozen_match_sources.py "${BUILD_DIR}"
           find "${BUILD_DIR}" -maxdepth 1 -type f -printf '%f %s bytes\n' | sort
 
       - name: Archive Windows build and generate SHA256
@@ -270,12 +272,17 @@ jobs:
           $engineLog = Join-Path $logDir 'godot-runtime.log'
           $consoleLog = Join-Path $logDir 'console.log'
 
+          Set-Location -LiteralPath $exe.DirectoryName
+
           & $exe.FullName --headless --quit-after 300 --verbose --log-file $engineLog *>&1 | Tee-Object -FilePath $consoleLog
           $exitCode = $LASTEXITCODE
           "EXIT_CODE=$exitCode" | Set-Content -Path (Join-Path $logDir 'exit-code.txt') -Encoding ascii
 
           if ($exitCode -ne 0) {
             throw "Exported game exited with code $exitCode"
+          }
+          if (Select-String -LiteralPath $engineLog -Pattern 'SCRIPT ERROR:|^ERROR:') {
+            throw 'Exported game logged a runtime error despite a zero exit code.'
           }
 
       - name: Upload Windows smoke logs
