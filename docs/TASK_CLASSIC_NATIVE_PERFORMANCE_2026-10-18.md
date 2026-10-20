@@ -1,3 +1,5 @@
+> 2026-10-20 整合更新：PR #49–#55 已全部合并 main（4bd98c1）。以下保留各片交付时证据；旧包已清理，当前唯一包、PR 状态和待修项以 [项目状态](PROJECT_STATUS.md) 与 [当前待修项](CURRENT_PENDING.md) 为准。
+
 # 三图实际原生分辨率与完整比赛后续
 
 当前性能片基线 main `92f6780d9d2e4228a793e428bf4aff9a91bf3462`（PR #48）；分支 `perf/classic-native-draw-batching-20261018`。运行包的游戏代码为 `fedaf0e`，后续提交仅测试清理、安装工具校验和文档，运行时相同。证据目录 `D:/AgentGamePipeline/evidence/classic-performance-20261018/`。

@@ -1,3 +1,5 @@
+> 2026-10-20 整合更新：PR #49–#55 已全部合并 main（4bd98c1）。以下保留各片交付时证据；旧包已清理，当前唯一包、PR 状态和待修项以 [项目状态](PROJECT_STATUS.md) 与 [当前待修项](CURRENT_PENDING.md) 为准。
+
 # 真实击杀、独立队伍消息和友伤开关
 
 用户授权开始实现后续方案，第一片完成前三项 P0。分支 `feat/combat-events-friendly-fire-20261020`，基线 `16db93ea930fab5ee275031cf37a7f141dcaf20c`，承接未合并 PR #53 及前序候选。当前提交/PR、精确 CI、包哈希、桌面入口和未完成门槛以私有 `D:/AgentGamePipeline/evidence/combat-events-20261020/delivery.json` 为准。原有四份 `.import` 的用户脏状态保留，参考模型/地图/碰撞/路网没有修改。
