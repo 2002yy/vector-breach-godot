@@ -23,4 +23,6 @@
 2. 真实六角色/动作/武器与不同材质的远近画面对照、雾/烟雾/多角色遮挡、原引擎同灯光金标准仍待验证。
 3. `next_pass` 增加几何绘制和屏幕拷贝成本。需与可提供材质 ID/光照输入的合成阶段方案比较，量化 CPU/GPU、显存与三图 70% 帧率，再确定正式接入方式。
 
+继续取证已解出原动态参数表达式：`g_vAvgAlbedo = TextureAverageColor(g_tColor).xyz`；`g_bDistanceContrastAdjustment = F_DISTANCE_CONTRAST_ADJUSTMENT && !F_TRANSLUCENT`；有效曝光为透明材质的原值、不透明材质的 `1 - 原值`。因此数值核心接收的是原 shader 的**有效 uniform**，后续不能把 VMAT 原 exposure 不加处理直接接入。六张原颜色 VTEX 的 Reflectivity/尺寸/哈希已单列私有 `average-input-candidates.json`，均为 1024²；其与 TextureAverageColor 的最终绑定语义、逐片元方向光照及雾修改仍须核实，没有在本片默认套用。
+
 本片完成数值核心和渲染阶段原型，**远距对比度尚未在实际对局启用**。下一执行片为原始平均反照率/方向光照数据合同与真实角色对照；发丝环境瓣、眼球远距过滤和其他 [待修项](CURRENT_PENDING.md) 继续保留。
