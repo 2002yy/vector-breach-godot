@@ -2,7 +2,8 @@ extends RefCounted
 
 const ROOT := "res://assets/local_reference/cs_official/equipment/"
 const NativePanel = preload("res://scripts/objective/OfficialC4Panel.gd")
-const KEYS := ["rifle-ct", "rifle-t", "pistol", "knife-ct", "knife-t", "c4", "c4-world"]
+const KEYS := ["rifle-ct", "rifle-t", "pistol", "knife-ct", "knife-t", "c4", "c4-world",
+	"sniper", "smg", "shotgun", "fire_grenade"]
 static var _items: Dictionary = {}
 static var _loaded := false
 
@@ -51,6 +52,7 @@ static func build(kind: String, team: String = "T") -> Node3D:
 	if packed == null:
 		return null
 	var model := packed.instantiate() as Node3D
+	preload("res://scripts/level/SourceAssetMaterials.gd").apply(model, ROOT + key + ".glb")
 	model.set_meta("official_cs", key)
 	var mount: Array = _items[key].get("mount_transform", [])
 	if mount.size() == 4:

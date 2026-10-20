@@ -2,9 +2,19 @@ extends Node
 
 const MAIN_SCENE = preload("res://scenes/Main.tscn")
 const ACTOR_SCENE = preload("res://scenes/combat/TacticalActor.tscn")
+const MatchExperience = preload("res://scripts/tests/MatchExperienceFixtures.gd")
 
 var _failures: PackedStringArray = []
 var _passes: int = 0
+
+func _test_spectator_lifecycle() -> void:
+	await MatchExperience.spectator_lifecycle(self)
+
+func _test_purchases_and_help() -> void:
+	await MatchExperience.purchases_and_help(self)
+
+func _test_lobby_controls() -> void:
+	await MatchExperience.lobby_controls(self)
 
 func _test_training_mode() -> void:
 	var main := _instantiate_main()
@@ -143,6 +153,13 @@ func _ready() -> void:
 	get_tree().quit(1)
 
 func _run_all_tests() -> void:
+	await _run_test("lobby_card_selection_guide_tabs_and_camera_restore", _test_lobby_controls)
+	await _run_test(
+		"teammate_spectator_lifecycle_and_information_boundary", _test_spectator_lifecycle
+	)
+	await _run_test(
+		"primary_purchase_replacement_grenade_capacity_and_expanded_help", _test_purchases_and_help
+	)
 	await _run_test("independent_training_resupply_reset_and_match_isolation", _test_training_mode)
 	await _run_test("knife_backstab_uses_contact_facing_and_real_occlusion", _test_knife_backstab)
 	await _run_test("initial_boot_shows_menu_and_default_map", _test_initial_boot_shows_menu_and_default_map)
@@ -266,7 +283,17 @@ func _test_initial_boot_shows_menu_and_default_map() -> void:
 	_assert_equal(start_button.text, "开始 3 对 3 比赛", "primary map should clearly start a match")
 	_assert_float_close(menu_panel.anchor_bottom, 1.0, 0.001, "menu panel should remain a full-height left navigation surface")
 	_assert_equal(map_select.get_selected_id(), 2, "filtered menu must preserve the Gatehouse source index")
-	_assert_true(start_menu.get_node("PlayerHelp").visible, "boot should expose controls and pistol-round rules")
+	_assert_true(not start_menu.get_node("PlayerHelp").visible, "boot should keep help collapsed")
+	var help_key := InputEventKey.new()
+	help_key.keycode = KEY_F1
+	help_key.pressed = true
+	main.call("_unhandled_input", help_key)
+	_assert_true(
+		start_menu.get_node("PlayerHelp").visible,
+		"F1 should expose menu controls and pistol-round rules"
+	)
+	main.call("_unhandled_input", help_key)
+	_assert_true(not start_menu.get_node("PlayerHelp").visible, "F1 should collapse menu help")
 	start_menu.set("_show_archive", true)
 	start_menu.call("_refresh_map_options")
 	_assert_equal(map_select.item_count, 3, "developer menu should contain only regression maps")
@@ -277,6 +304,7 @@ func _test_initial_boot_shows_menu_and_default_map() -> void:
 	_assert_true(start_menu.get_node("SettingsPanel").visible, "settings should open separately")
 	_assert_true(not start_menu.get_node("PlayerHelp").visible, "settings must not overlap controls")
 	start_menu.call("_toggle_settings", false)
+	_assert_true(not start_menu.get_node("PlayerHelp").visible, "closing settings must keep help collapsed")
 	var local_options: Array = (main.get("level_options") as Array).duplicate(true)
 	local_options.append({"id": "dustline-depths", "name": "沙线深层"})
 	local_options.append({"id": "dustline-depths-original-local", "name": "沙线原始材质"})
@@ -343,9 +371,16 @@ func _test_squad_economy_includes_player_and_help_matches_loadout() -> void:
 		help_key.keycode = KEY_F1
 		help_key.pressed = true
 		main.call("_unhandled_input", help_key)
-		_assert_true((hud.get("_player_help") as PanelContainer).visible, "F1 should open actual runtime help")
+		var buy := hud.get_node("HudRoot/BuyMenu")
+		_assert_true(
+			(buy.get("_help_copy") as Control).visible, "F1 opens inline buying explanation"
+		)
+		_assert_true(
+			not (hud.get("_player_help") as PanelContainer).visible,
+			"buying explanation does not stack full help"
+		)
 		main.call("_unhandled_input", help_key)
-		_assert_true(not (hud.get("_player_help") as PanelContainer).visible, "F1 should close runtime help")
+		_assert_true(not (buy.get("_help_copy") as Control).visible, "F1 closes buying explanation")
 		await _cleanup_main(main)
 
 func _test_planted_bomb_outlives_attackers() -> void:

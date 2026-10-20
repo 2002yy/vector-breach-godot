@@ -1,5 +1,7 @@
 extends Node
 
+const SourceMaterialFixtures = preload("res://scripts/tests/SourceMaterialFixtures.gd")
+
 const GRAYBOX_LEVEL_SCENE = preload("res://scenes/level/GrayboxLevel.tscn")
 const LevelDataLoader = preload("res://scripts/level/LevelDataLoader.gd")
 const SourceEffectMaterials = preload("res://scripts/level/SourceEffectMaterials.gd")
@@ -37,6 +39,19 @@ func _run_all_tests() -> void:
 	await _run_test("reference_vertex_repair_preserves_shared_materials", _test_reference_vertex_repair_preserves_shared_materials)
 	await _run_test("source_effect_override_keeps_geometry_and_shared_materials", _test_source_effect_override_keeps_geometry_and_shared_materials)
 	await _run_test("source_overlay_offset_is_local_and_preserves_originals", _test_source_overlay_offset_is_local_and_preserves_originals)
+	await _run_test(
+		"native_decal_alpha_keeps_offset_and_original_materials",
+		_test_native_decal_alpha_keeps_offset_and_original_materials
+	)
+	await _run_test(
+		"native_character_channels_preserve_pbr_and_geometry",
+		_test_native_character_channels_preserve_pbr_and_geometry
+	)
+	await _run_test(
+		"source_helper_faces_preserve_real_surfaces_and_children",
+		_test_source_helper_faces_preserve_real_surfaces_and_children
+	)
+	await _run_test("static_batches_preserve_attributes_and_exclude_special_surfaces", _test_static_batches_preserve_attributes_and_exclude_special_surfaces)
 	await _run_test("released_collision_mesh_keeps_physics_and_visuals", _test_released_collision_mesh_keeps_physics_and_visuals)
 	await _run_test("render_profile_restores_viewport_and_sun", _test_render_profile_restores_viewport_and_sun)
 	await _run_test("missing_level_does_not_clobber_current_state", _test_missing_level_does_not_clobber_current_state)
@@ -115,6 +130,98 @@ func _test_source_overlay_offset_is_local_and_preserves_originals() -> void:
 	wall.mesh = null
 	ground.mesh = null
 	colored.mesh = null
+	holder.free()
+
+func _test_native_decal_alpha_keeps_offset_and_original_materials() -> void:
+	SourceMaterialFixtures._test_native_decal_alpha_keeps_offset_and_original_materials(self)
+
+func _test_native_character_channels_preserve_pbr_and_geometry() -> void:
+	var CharacterMaterials = preload("res://scripts/tests/CharacterMaterialFixtures.gd")
+	CharacterMaterials.test_native_character_channels_preserve_pbr_and_geometry(self)
+
+func _test_source_helper_faces_preserve_real_surfaces_and_children() -> void:
+	SourceMaterialFixtures._test_source_helper_faces_preserve_real_surfaces_and_children(self)
+
+func _test_static_batches_preserve_attributes_and_exclude_special_surfaces() -> void:
+	var Batcher = preload("res://scripts/level/SourceStaticBatches.gd")
+	var holder := Node3D.new()
+	add_child(holder)
+	holder.position = Vector3(5, 0, 10)
+	var material := StandardMaterial3D.new()
+	material.resource_name = "same_name"
+	var tool := SurfaceTool.new()
+	tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+	tool.set_material(material)
+	tool.set_custom_format(0, SurfaceTool.CUSTOM_RGB_FLOAT)
+	for vertex in [Vector3.ZERO, Vector3.RIGHT, Vector3.UP]:
+		tool.set_normal(Vector3.FORWARD)
+		tool.set_uv(Vector2(vertex.x, vertex.y))
+		tool.set_custom(0, Color(vertex.x, vertex.y, 0.5, 1))
+		tool.add_vertex(vertex)
+	var original := tool.commit()
+	var nodes: Array[MeshInstance3D] = []
+	for x in [1, 2, 100, 3, 4, 5, 6, 7, 8, 9]:
+		var node := MeshInstance3D.new()
+		node.mesh = original
+		node.position = Vector3(x, 0, 1)
+		holder.add_child(node)
+		nodes.append(node)
+	nodes[1].rotation.y = PI / 2.0
+	nodes[3].scale.x = -1
+	var transparent := material.duplicate() as StandardMaterial3D
+	transparent.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	nodes[4].material_override = transparent
+	var variant := material.duplicate() as StandardMaterial3D
+	variant.albedo_color = Color.RED
+	nodes[5].material_override = variant
+	var decal := material.duplicate() as StandardMaterial3D
+	decal.grow = true
+	nodes[6].material_override = decal
+	nodes[7].scale = Vector3(2, 1, 1)
+	nodes[8].add_child(Node3D.new())
+	var byte_arrays := original.surface_get_arrays(0)
+	var bytes := PackedByteArray()
+	bytes.resize(12)
+	byte_arrays[Mesh.ARRAY_CUSTOM0] = bytes
+	var byte_mesh := ArrayMesh.new()
+	byte_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, byte_arrays)
+	byte_mesh.surface_set_material(0, material)
+	nodes[9].mesh = byte_mesh
+	var body := StaticBody3D.new()
+	var shape := CollisionShape3D.new()
+	shape.shape = BoxShape3D.new()
+	body.add_child(shape)
+	holder.add_child(body)
+	_assert_true(Batcher.apply(holder, "user://absent-static-batch.json").is_empty(), "batching requires explicit private opt-in")
+	var manifest_path := "user://test-static-batch.json"
+	var manifest := FileAccess.open(manifest_path, FileAccess.WRITE)
+	manifest.store_string(JSON.stringify({"schema": 1, "exporter": "Source2Viewer-CLI 20.1", "static_batch_cell_m": []}))
+	manifest.close()
+	_assert_true(Batcher.apply(holder, manifest_path).is_empty(), "malformed optional batching settings leave fallback intact")
+	manifest = FileAccess.open(manifest_path, FileAccess.WRITE)
+	manifest.store_string(JSON.stringify({"schema": 1, "exporter": "Source2Viewer-CLI 20.1", "static_batch_cell_m": 16}))
+	manifest.close()
+	var result: Dictionary = Batcher.apply(holder, manifest_path)
+	_assert_equal(result.source_instances, 2, "only nearby compatible opaque surfaces combined")
+	_assert_equal(result.groups, 1, "one material and spatial batch")
+	var batch := holder.get_node("StaticBatch0") as MeshInstance3D
+	var arrays := batch.mesh.surface_get_arrays(0)
+	_assert_equal(arrays[Mesh.ARRAY_VERTEX].size(), 6, "both original triangles retained")
+	_assert_true(arrays[Mesh.ARRAY_VERTEX][0].is_equal_approx(Vector3(1, 0, 1)), "root transform is not applied twice")
+	# ArrayMesh stores normals with octahedral quantization, including the source.
+	var normal: Vector3 = arrays[Mesh.ARRAY_NORMAL][3]
+	_assert_true(normal.distance_to(Vector3.LEFT) < 0.0001, "rotated source normal preserved: " + str(normal))
+	_assert_true(arrays[Mesh.ARRAY_TEX_UV][4].is_equal_approx(Vector2.RIGHT), "original UV preserved")
+	_assert_true(arrays[Mesh.ARRAY_CUSTOM0].size() == 18 and arrays[Mesh.ARRAY_CUSTOM0][5] == 0.5, "float custom attributes preserved without reinterpretation")
+	_assert_true(batch.get_active_material(0) == material and nodes[0].mesh == original, "original resources remain immutable")
+	_assert_true(not nodes[0].visible and not nodes[1].visible, "source instances hidden after successful merge")
+	_assert_true(nodes[2].visible and nodes[3].visible and nodes[4].visible and nodes[5].visible and nodes[6].visible and nodes[7].visible and nodes[8].visible and nodes[9].visible, "distant mirrored transparent variant decal nonuniform parent and byte-channel objects preserved")
+	_assert_true(shape.get_parent() == body and shape.shape is BoxShape3D, "independent physics untouched")
+	_assert_equal(Batcher.apply(holder, manifest_path).groups, 1, "repeat apply does not rebatch its output")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(manifest_path))
+	for node in nodes:
+		node.mesh = null
+	batch.mesh = null
 	holder.free()
 
 func _test_render_profile_restores_viewport_and_sun() -> void:

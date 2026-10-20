@@ -54,6 +54,7 @@ $scenes = @(
     "res://scenes/tests/TacticalBotTestRunner.tscn",
     "res://scenes/tests/TacticalBombTestRunner.tscn",
     "res://scenes/tests/MatchLifecycleTestRunner.tscn",
+    "res://scenes/tests/CombatEventsTestRunner.tscn",
     "res://scenes/tests/GatehouseMatchIntegrationTestRunner.tscn",
     "res://scenes/tests/MainStateFlowTestRunner.tscn",
     "res://scenes/tests/AudioAssetTestRunner.tscn",
@@ -74,8 +75,17 @@ if ($LASTEXITCODE -ne 0) {
 foreach ($scene in $scenes) {
     Write-Host ""
     Write-Host "==> Running $scene"
-    & $godot --headless --path $projectRoot --scene $scene
-    if ($LASTEXITCODE -ne 0) {
+    try {
+        # Windows PowerShell converts native stderr into ErrorRecords. Collect
+        # the complete failure before applying our explicit strict error gate.
+        $ErrorActionPreference = 'Continue'
+        $suiteOutput = & $godot --headless --path $projectRoot --scene $scene 2>&1
+        $suiteExit = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = 'Stop'
+    }
+    $suiteOutput | Write-Output
+    if ($suiteExit -ne 0 -or ($suiteOutput -match 'SCRIPT ERROR:|^ERROR:')) {
         throw "Test suite failed: $scene"
     }
 }

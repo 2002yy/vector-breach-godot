@@ -3,6 +3,8 @@ extends Node
 const GrenadeProjectile = preload("res://scripts/combat/GrenadeProjectile.gd")
 const BotNavigationModel = preload("res://scripts/ai/BotNavigationModel.gd")
 const MeleeRules = preload("res://scripts/combat/MeleeRules.gd")
+const Catalog = preload("res://scripts/combat/WeaponCatalog.gd")
+const RouteProgress = preload("res://scripts/ai/BotRouteProgress.gd")
 
 enum State {
 	HOLD,
@@ -17,6 +19,17 @@ enum State {
 }
 
 const WEAPON_PROFILES := {
+	"sniper": {"label": "狙击枪", "slot": 0, "damage": 110, "magazine": 5, "reserve": 20,
+		"fire_interval": 1.3, "reload": 3.4, "burst": 1, "max_spray": 1,
+		"max_range": 250.0, "melee_range": 0.0, "equip": 0.6, "armor_penetration": 0.85},
+	"smg": {"label": "冲锋枪", "slot": 0, "damage": 24, "magazine": 30, "reserve": 120,
+		"fire_interval": 0.075, "reload": 2.0, "burst": 5, "max_spray": 10,
+		"max_range": 90.0, "melee_range": 0.0, "equip": 0.3, "range_modifier": 0.90,
+		"armor_penetration": 0.55},
+	"shotgun": {"label": "霰弹枪", "slot": 0, "damage": 9, "magazine": 8, "reserve": 32,
+		"fire_interval": 0.85, "reload": 3.0, "burst": 1, "max_spray": 1,
+		"max_range": 35.0, "melee_range": 0.0, "equip": 0.45, "range_modifier": 0.75,
+		"armor_penetration": 0.55, "pellets": 7, "pellet_spread": 3.0},
 	"rifle": {
 		"label": "步枪",
 		"slot": 0,
@@ -96,12 +109,20 @@ var damage_memory_seconds: float = 3.2
 var danger_memory_seconds: float = 5.0
 var ai_money: int = 800
 var recoil_compensation: float = 0.006
-var grenade_counts: Dictionary = {"he_grenade": 0, "flash_grenade": 0, "smoke_grenade": 0}
+var grenade_counts: Dictionary = {
+	"he_grenade": 0, "flash_grenade": 0, "smoke_grenade": 0, "fire_grenade": 0
+}
+var purchase_reason := "等待队伍预算"
+var tactical_reason := "执行出生分工"
+var alternate_site_target := Vector3.INF
+var alternate_site_label := ""
+var purchase_receipt: Array[Dictionary] = []
 var economy_mode: String = "force"
 var save_gun_enabled: bool = true
 var team_money: int = -1
 var _economy_team_size: int = 3
 var team_loss_streak: int = 0
+var _rotated_site := false
 
 var _route_points: Array[Vector3] = []
 var _route_index: int = 0
@@ -118,6 +139,11 @@ var _recovery_seconds: float = 0.0
 var _recovery_direction: Vector3 = Vector3.ZERO
 var _recovery_flip: bool = false
 var _stuck_recoveries: int = 0
+var _route_progress := RouteProgress.new()
+var _blocked_navigation_points: Dictionary = {}
+var _route_blocked_seconds := 0.0
+var _route_replans := 0
+var _navigation_unreachable := false
 var _target: CharacterBody3D
 var _acquired_target_id := 0
 var _watch_yaw := 0.0
@@ -221,6 +247,15 @@ func configure(record: Dictionary) -> void:
 			ammo_in_mag = int(_weapon_ammo[primary_weapon_id])
 	if saved_reserve >= 0 and _weapon_reserve.has(primary_weapon_id):
 		_weapon_reserve[primary_weapon_id] = maxi(0, saved_reserve)
+	var saved_inventory: Dictionary = record.get("weaponInventory", {})
+	for key in (saved_inventory.get("owned", {}) as Dictionary):
+		if not WEAPON_PROFILES.has(key):
+			continue
+		_weapon_owned[key] = bool(saved_inventory.owned[key])
+		_weapon_ammo[key] = clampi(int(saved_inventory.get("ammo", {}).get(key, 0)),
+			-1 if key == "knife" else 0, int(WEAPON_PROFILES[key].magazine))
+		_weapon_reserve[key] = maxi(0, int(saved_inventory.get("reserve", {}).get(key, 0)))
+	ammo_in_mag = int(_weapon_ammo.get(_current_weapon_id, 0))
 
 func tick(delta: float) -> void:
 	if actor == null or not enabled or bool(actor.get("is_dead")):
@@ -233,6 +268,7 @@ func tick(delta: float) -> void:
 	_damage_seconds += delta
 	_lost_sight_seconds += delta
 	_tick_danger_memory(delta)
+	_tick_blocked_navigation(delta)
 	_tick_teammate_reports(delta)
 	_refresh_c4_knowledge()
 	if not RoundManager.can_player_move():
@@ -287,6 +323,8 @@ func tick(delta: float) -> void:
 
 	if _should_run_bomb_objective():
 		state = State.OBJECTIVE
+		if _tick_team_support(delta):
+			return
 		_tick_bomb_objective(delta)
 		return
 
@@ -381,6 +419,8 @@ func set_ai_combat_enabled(enabled_combat: bool) -> void:
 func notify_teammate_report(world_position: Vector3, enemy_team: String) -> void:
 	if actor == null or not enabled:
 		return
+	if enemy_team.is_empty() or enemy_team == String(actor.get("team")):
+		return
 	_teammate_reports.append({"position": world_position, "remaining": 4.5})
 	if _teammate_reports.size() > 6:
 		_teammate_reports.pop_front()
@@ -397,13 +437,24 @@ func get_objective_snapshot() -> Dictionary:
 		"teammate_reports": _teammate_reports.size(),
 	}
 
-func get_weapon_pickup_record() -> Dictionary:
+func get_weapon_pickup_record(prefer_primary: bool = false) -> Dictionary:
+	var selected := _current_weapon_id
+	if prefer_primary:
+		selected = primary_weapon_id if _weapon_is_owned(primary_weapon_id) else secondary_weapon_id
+		if selected == "knife" or not _weapon_is_owned(selected):
+			return {}
 	return {
-		"weapon_id": _current_weapon_id,
-		"slot_index": int(WEAPON_PROFILES.get(_current_weapon_id, {}).get("slot", 0)),
-		"ammo_in_mag": ammo_in_mag,
-		"ammo_reserve": int(_weapon_reserve.get(_current_weapon_id, 0)),
+		"weapon_id": selected,
+		"slot_index": int(WEAPON_PROFILES.get(selected, {}).get("slot", 0)),
+		"ammo_in_mag":
+		ammo_in_mag if selected == _current_weapon_id else int(_weapon_ammo.get(selected, 0)),
+		"ammo_reserve": int(_weapon_reserve.get(selected, 0)),
 	}
+
+func export_weapon_inventory() -> Dictionary:
+	var ammo := _weapon_ammo.duplicate()
+	ammo[_current_weapon_id] = ammo_in_mag
+	return {"owned": _weapon_owned.duplicate(), "ammo": ammo, "reserve": _weapon_reserve.duplicate()}
 
 func get_snapshot() -> Dictionary:
 	return {
@@ -413,6 +464,7 @@ func get_snapshot() -> Dictionary:
 		"ammo_reserve": int(_weapon_reserve.get(_current_weapon_id, 0)),
 		"shots": _shot_count,
 		"weapon_id": _current_weapon_id,
+		"inventory": export_weapon_inventory(),
 		"weapon_slot": int(WEAPON_PROFILES.get(_current_weapon_id, {}).get("slot", 0)),
 		"burst_size": _burst_size,
 		"spray_decision": _spray_decision,
@@ -423,6 +475,11 @@ func get_snapshot() -> Dictionary:
 		"active_navigation_link": _active_navigation_link.duplicate(true),
 		"stuck_seconds": _no_progress_seconds,
 		"stuck_recoveries": _stuck_recoveries,
+		"route_replans": _route_replans,
+		"route_attempts": _route_progress.attempts,
+		"route_stalled_seconds": _route_progress.stalled_seconds,
+		"route_blocked": _route_blocked_seconds > 0.0,
+		"navigation_destination": _navigation_destination,
 		"recovering": _recovery_seconds > 0.0,
 		"last_known_position": _last_known_position,
 		"heard_seconds": _heard_seconds,
@@ -448,6 +505,9 @@ func get_snapshot() -> Dictionary:
 		"recoil_compensated_shots": _recoil_compensated_shots,
 		"grenade_cooldown": _grenade_cooldown,
 		"economy_mode": economy_mode,
+		"purchase_reason": purchase_reason,
+		"tactical_reason": tactical_reason,
+		"purchases": purchase_receipt.duplicate(true),
 		"saving_gun": save_gun_active,
 		"team_money": team_money,
 		"team_loss_streak": team_loss_streak,
@@ -458,6 +518,8 @@ func reset_runtime() -> void:
 	_reset_runtime()
 
 func _reset_runtime() -> void:
+	purchase_receipt.clear()
+	purchase_reason = "等待队伍预算"
 	state = State.HOLD
 	_target = null
 	_acquired_target_id = 0
@@ -481,6 +543,15 @@ func _reset_runtime() -> void:
 	_recovery_direction = Vector3.ZERO
 	_recovery_flip = false
 	_stuck_recoveries = 0
+	_route_progress.reset()
+	for index in _blocked_navigation_points:
+		_navigation.set_point_blocked(int(index), false)
+	_blocked_navigation_points.clear()
+	_route_blocked_seconds = 0.0
+	_route_replans = 0
+	_navigation_unreachable = false
+	_rotated_site = false
+	tactical_reason = "执行出生分工"
 	_reset_weapon_ammo()
 	_equip_seconds = 0.0
 	_burst_size = 3
@@ -511,7 +582,7 @@ func _reset_runtime() -> void:
 	_bomb_interaction_type = ""
 	_teammate_reports.clear()
 	_spot_emitted_target = 0
-	grenade_counts = {"he_grenade": 0, "flash_grenade": 0, "smoke_grenade": 0}
+	grenade_counts = {"he_grenade": 0, "flash_grenade": 0, "smoke_grenade": 0, "fire_grenade": 0}
 	_grenade_cooldown = 0.0
 	_purchased_this_round = false
 	_smoke_thrown_for_objective = false
@@ -615,6 +686,13 @@ func _tick_engage(delta: float) -> void:
 		if _weapon_has_ammo(secondary_weapon_id) and secondary_weapon_id != _current_weapon_id:
 			_switch_to_weapon(secondary_weapon_id)
 			return
+		if int(_weapon_reserve.get(_current_weapon_id, 0)) <= 0:
+			tactical_reason = "弹药耗尽，使用战术刀或寻找可用掉落武器"
+			if has_knife:
+				_switch_to_weapon("knife")
+			else:
+				_begin_save_gun(delta)
+			return
 		state = State.RELOAD
 		_reload_seconds = float(_current_profile().get("reload", reload_duration))
 		return
@@ -652,38 +730,10 @@ func _fire_shot(target_point: Vector3) -> void:
 		_recoil_compensated_shots += 1
 	var error_scale := 0.0045 + float(_shots_in_burst - 1) * 0.0025
 	direction = (direction + right * _rng.randf_range(-error_scale, error_scale) + up * _rng.randf_range(-error_scale, error_scale)).normalized()
-	var query := PhysicsRayQueryParameters3D.create(origin, origin + direction * max_range, 1)
-	query.exclude = [actor.get_rid()]
-	var hit := actor.get_world_3d().direct_space_state.intersect_ray(query)
-	var damage_result: Dictionary = {}
-	if not hit.is_empty():
-		var collider: Variant = hit.get("collider", null)
-		if collider != null and collider.has_method("apply_hitscan_damage"):
-			var collider_team := ""
-			if collider is Node and (collider as Node).is_in_group("combat_actors"):
-				collider_team = String((collider as Node).get("team"))
-			elif collider is Node and (collider as Node).is_in_group("local_player"):
-				collider_team = GameState.player_team
-			var same_team := not collider_team.is_empty() and collider_team == String(actor.get("team"))
-			if not same_team:
-				damage_result = collider.call(
-					"apply_hitscan_damage",
-					int(profile.get("damage", rifle_damage)),
-					hit.get("position", Vector3.ZERO),
-					0.77,
-					false,
-					String(actor.get("team")),
-					origin
-				) as Dictionary
-	actor.call("emit_ai_shot", {
-		"hit": bool(damage_result.get("hit", false)),
-		"position": hit.get("position", origin + direction * max_range),
-		"damage_result": damage_result,
-		"weapon_slot": weapon_slot,
-		"weapon_name": weapon_name,
-		"shooter_name": String(actor.get("display_name")),
-		"shooter_team": String(actor.get("team")),
-	}, origin)
+	var shot := _resolve_weapon_rays(origin, direction, max_range, profile)
+	shot.merge({"weapon_slot": weapon_slot, "weapon_name": weapon_name,
+		"shooter_name": String(actor.get("display_name")), "shooter_team": String(actor.get("team"))})
+	actor.call("emit_ai_shot", shot, origin)
 	record_dynamic_danger(origin, 0.4)
 	if _shots_in_burst >= _burst_size:
 		_shots_in_burst = 0
@@ -760,7 +810,13 @@ func _should_run_bomb_objective() -> bool:
 		return false
 	var team_name := String(actor.get("team"))
 	if team_name == "T":
-		return RoundManager.state in [RoundManager.RoundState.LIVE] and objective_role in ["plant", "support", "diversion"]
+		return (
+			(
+				RoundManager.state
+				in [RoundManager.RoundState.LIVE, RoundManager.RoundState.BOMB_PLANTED]
+			)
+			and objective_role in ["plant", "support", "diversion"]
+		)
 	if team_name == "CT":
 		return RoundManager.state in [RoundManager.RoundState.LIVE, RoundManager.RoundState.BOMB_PLANTED] and objective_role in ["defend_site", "retake", "defuse"]
 	return false
@@ -773,6 +829,12 @@ func _tick_bomb_objective(delta: float) -> void:
 		_tick_ct_side_objective(delta)
 
 func _tick_t_side_objective(delta: float) -> void:
+	if RoundManager.state == RoundManager.RoundState.BOMB_PLANTED:
+		tactical_reason = "炸弹已安装，守住爆点"
+		_move_to_or_hold(
+			delta, _c4_known_position if _c4_known_position.is_finite() else objective_target, true
+		)
+		return
 	if not bomb_carrier and RoundManager.bomb_carried == false and _try_pick_up_c4():
 		bomb_carrier = true
 		RoundManager.bomb_carried = true
@@ -786,6 +848,17 @@ func _tick_t_side_objective(delta: float) -> void:
 	if not objective_target.is_finite():
 		_stop(delta)
 		return
+	if not _rotated_site and alternate_site_target.is_finite() and RoundManager.time_remaining > 40.0:
+		for report in _teammate_reports:
+			if (
+				(report.position as Vector3).distance_to(objective_target) < 10.0
+				and actor.global_position.distance_to(objective_target) > 12.0
+			):
+				objective_target = alternate_site_target
+				plant_site_label = alternate_site_label
+				_rotated_site = true
+				tactical_reason = "目标爆点收到敌情，携弹转点"
+				break
 	_move_to_or_hold(delta, objective_target)
 	if (
 		actor.global_position.distance_to(objective_target) <= plant_radius_meters
@@ -797,6 +870,10 @@ func _tick_t_side_objective(delta: float) -> void:
 func _tick_ct_side_objective(delta: float) -> void:
 	var bomb_planted := RoundManager.state == RoundManager.RoundState.BOMB_PLANTED
 	if bomb_planted:
+		if RoundManager.time_remaining < (5.0 if has_defuse_kit else 10.0):
+			tactical_reason = "剩余时间不足完整拆弹，保枪撤离"
+			_begin_save_gun(delta)
+			return
 		var destination := _c4_known_position if _c4_known_position.is_finite() else objective_target
 		_move_to_or_hold(delta, destination)
 		if (
@@ -808,6 +885,34 @@ func _tick_ct_side_objective(delta: float) -> void:
 			_begin_defuse()
 	else:
 		_move_to_or_hold(delta, objective_target, true)
+
+func _tick_team_support(delta: float) -> bool:
+	# Teammate positions and actual radio reports only; never query hidden enemies.
+	if RoundManager.state != RoundManager.RoundState.LIVE:
+		return false
+	if String(actor.get("team")) == "T":
+		if bomb_carrier or (not RoundManager.bomb_carried and _c4_known_state == "dropped"):
+			return false
+		for teammate in actor.get_tree().get_nodes_in_group("combat_actors"):
+			if teammate == actor or teammate.get("team") != "T" or bool(teammate.get("is_dead")):
+				continue
+			var brain := teammate.get_node_or_null("TacticalBotBrain")
+			if brain == null or not bool(brain.get("bomb_carrier")):
+				continue
+			if objective_role == "support" or RoundManager.time_remaining < 80.0:
+				objective_target = brain.get("objective_target")
+				plant_site_label = String(brain.get("plant_site_label"))
+				tactical_reason = "跟随携弹队友协同进点"
+				var destination: Vector3 = teammate.global_position
+				if actor.global_position.distance_to(destination) < 4.0:
+					destination = objective_target
+				_move_to_or_hold(delta, destination, true)
+				return true
+	elif not _teammate_reports.is_empty():
+		tactical_reason = "根据队友报点转点补枪"
+		_move_to_or_hold(delta, _nearest_teammate_report(), true)
+		return true
+	return false
 
 func _move_to_or_hold(delta: float, destination: Vector3, formation_hold: bool = false) -> void:
 	if not destination.is_finite():
@@ -941,12 +1046,19 @@ func _is_c4_recoverer() -> bool:
 		recoverer = reference.get_ref() as CharacterBody3D
 		if is_instance_valid(recoverer) and bool(recoverer.get("is_dead")):
 			recoverer = null
+		elif (
+			is_instance_valid(recoverer)
+			and float(recoverer.get_node("TacticalBotBrain").get("_route_blocked_seconds")) > 0.0
+		):
+			recoverer = null
 	if not is_instance_valid(recoverer):
 		var best_distance := INF
 		for candidate in actor.get_tree().get_nodes_in_group("combat_actors"):
 			if not candidate is CharacterBody3D or bool(candidate.get("is_dead")) or String(candidate.get("team")) != "T":
 				continue
 			var brain := candidate.get_node("TacticalBotBrain")
+			if float(brain.get("_route_blocked_seconds")) > 0.0:
+				continue
 			if not bool(brain.get("enabled")) or String(brain.get("objective_role")) not in ["plant", "support", "diversion"]:
 				continue
 			var distance := (candidate as CharacterBody3D).global_position.distance_squared_to(_c4_known_position)
@@ -971,40 +1083,73 @@ func _tick_freeze_purchase() -> void:
 	else:
 		economy_mode = "eco"
 	if economy_mode == "eco":
+		purchase_reason = "队伍经济不足，保存资金"
 		return
-	# The pistol-round reset changes primary_weapon_id to pistol. Buy the
-	# primary before armor/utility and update the real inventory and ammo.
-	if not _weapon_is_owned("rifle") and ai_money >= 2700:
-		ai_money -= 2700
-		_weapon_owned["rifle"] = true
-		_weapon_ammo["rifle"] = int(WEAPON_PROFILES["rifle"]["magazine"])
-		_weapon_reserve["rifle"] = int(WEAPON_PROFILES["rifle"]["reserve"])
-		primary_weapon_id = "rifle"
-		actor.set("equipped_weapon_id", "rifle")
-		_switch_to_weapon("rifle")
-	var team_name := String(actor.get("team"))
-	if economy_mode == "force" and int(actor.get("current_armor")) < 100 and ai_money >= 650:
-		ai_money -= 650
-		actor.set("current_armor", 100)
-	var grenade_kinds: Array[String] = []
-	if economy_mode == "force":
-		grenade_kinds.append("smoke_grenade")
-		if team_name == "CT":
-			grenade_kinds.append("flash_grenade")
-	elif team_name == "CT" and ai_money >= 300:
-		grenade_kinds.append("smoke_grenade")
-	for kind in grenade_kinds:
-		if int(grenade_counts.get(kind, 0)) > 0:
-			continue
-		var price := 300 if kind == "smoke_grenade" else 200
+	var role_index := int(actor.get_meta("squad_role_index", -1))
+	var chosen := "rifle"
+	if role_index >= 0:
+		if economy_mode == "half" or ai_money < 2700:
+			chosen = (
+				"shotgun"
+				if role_index == 0 and actor.get("team") == "CT" and team_loss_streak >= 2
+				else "smg"
+			)
+		elif role_index == 2 and ai_money >= 5750 and economy_money >= 5500 * _economy_team_size:
+			chosen = "sniper"
+		elif role_index == 0 and actor.get("team") == "CT" and _route_points.size() > 1:
+			if _route_points[0].distance_to(_route_points[-1]) < 20.0:
+				chosen = "shotgun"
+	if primary_weapon_id not in Catalog.PRIMARY or not _weapon_has_supply(primary_weapon_id):
+		var price: int = Catalog.PRICES[chosen]
 		if ai_money >= price:
-			ai_money -= price
-			grenade_counts[kind] = 1
-	if team_name == "CT" and not has_defuse_kit and ai_money >= 400:
-		ai_money -= 400
+			_spend(chosen, price)
+			for primary in Catalog.PRIMARY:
+				_weapon_owned[primary] = false
+			_weapon_owned[chosen] = true
+			_weapon_ammo[chosen] = int(WEAPON_PROFILES[chosen].magazine)
+			_weapon_reserve[chosen] = int(WEAPON_PROFILES[chosen].reserve)
+			primary_weapon_id = chosen
+			actor.set("equipped_weapon_id", chosen)
+			if chosen == _current_weapon_id:
+				ammo_in_mag = int(_weapon_ammo[chosen])
+				_equip_seconds = float(WEAPON_PROFILES[chosen].equip)
+			else:
+				_switch_to_weapon(chosen)
+			purchase_reason = "按队伍预算与分工购买" if role_index >= 0 else "优先补齐主武器"
+		else:
+			purchase_reason = "个人资金不足，保留现有武器"
+	var armor_cost := ceili(float(100 - int(actor.get("current_armor"))) * 6.5)
+	if economy_mode == "force" and armor_cost > 0 and ai_money >= armor_cost:
+		_spend("armor", armor_cost)
+		actor.set("current_armor", 100)
+	if economy_mode == "force" and not bool(actor.get("has_helmet")) and ai_money >= 350:
+		_spend("helmet", 350)
+		actor.set("has_helmet", true)
+	var team_name := String(actor.get("team"))
+	if (
+		team_name == "CT"
+		and not has_defuse_kit
+		and ai_money >= 400
+		and (role_index < 0 or role_index % 2 == 0)
+	):
+		_spend("defuse_kit", 400)
 		has_defuse_kit = true
-		if actor.has_method("set_ai_defuse_kit"):
-			actor.call("set_ai_defuse_kit", true)
+		actor.call("set_ai_defuse_kit", true)
+	var grenades: Array[String] = []
+	if economy_mode == "force":
+		grenades.append("smoke_grenade")
+		grenades.append("fire_grenade" if role_index == 0 else "flash_grenade")
+	elif team_name == "CT" and ai_money >= 300:
+		grenades.append("smoke_grenade")
+	for kind in grenades:
+		var price: int = Catalog.PRICES[kind]
+		if int(grenade_counts.get(kind, 0)) == 0 and ai_money >= price:
+			_spend(kind, price)
+			grenade_counts[kind] = 1
+
+func _spend(kind: String, price: int) -> void:
+	ai_money -= price
+	purchase_receipt.append({"item": kind, "price": price, "remaining": ai_money})
 
 func _apply_configured_grenades(record: Dictionary) -> void:
 	var grenade_variant: Variant = record.get("aiGrenades", {})
@@ -1019,28 +1164,46 @@ func _try_pickup_weapon_nearby() -> bool:
 	var tree := actor.get_tree()
 	if tree == null:
 		return false
-	for pickup_variant in tree.get_nodes_in_group("weapon_pickups"):
-		if not pickup_variant is Node3D:
-			continue
-		var pickup := pickup_variant as Node3D
+	for pickup in tree.get_nodes_in_group("weapon_pickups"):
 		if not pickup.has_method("can_pick_up") or not bool(pickup.call("can_pick_up", actor.global_position)):
 			continue
-		var weapon_record: Variant = pickup.get("weapon_record")
-		if not weapon_record is Dictionary:
-			continue
-		var record := weapon_record as Dictionary
+		var record: Dictionary = pickup.get("weapon_record")
 		var weapon_id := String(record.get("weapon_id", ""))
-		if not WEAPON_PROFILES.has(weapon_id):
+		if weapon_id not in Catalog.PRIMARY:
 			continue
-		var picked_mag := int(record.get("ammo_in_mag", 0))
-		var picked_reserve := int(record.get("ammo_reserve", 0))
+		if int(record.get("ammo_in_mag", 0)) + int(record.get("ammo_reserve", 0)) <= 0:
+			continue
+		if _weapon_is_owned(primary_weapon_id) and primary_weapon_id in Catalog.PRIMARY:
+			var loaded := (
+				ammo_in_mag
+				if _current_weapon_id == primary_weapon_id
+				else int(_weapon_ammo.get(primary_weapon_id, 0))
+			)
+			var usable_ammo := loaded + int(_weapon_reserve.get(primary_weapon_id, 0))
+			if usable_ammo > 0 and int(Catalog.PRICES[primary_weapon_id]) >= int(Catalog.PRICES[weapon_id]):
+				continue
+		var old := get_weapon_pickup_record(true)
+		for primary in Catalog.PRIMARY:
+			_weapon_owned[primary] = false
+		primary_weapon_id = weapon_id
 		_weapon_owned[weapon_id] = true
-		_weapon_ammo[weapon_id] = maxi(int(_weapon_ammo.get(weapon_id, 0)), picked_mag)
-		_weapon_reserve[weapon_id] = maxi(int(_weapon_reserve.get(weapon_id, 0)), picked_reserve)
+		_weapon_ammo[weapon_id] = clampi(
+			int(record.get("ammo_in_mag", 0)), 0, int(WEAPON_PROFILES[weapon_id].magazine)
+		)
+		_weapon_reserve[weapon_id] = maxi(0, int(record.get("ammo_reserve", 0)))
 		if _current_weapon_id == weapon_id:
-			ammo_in_mag = int(_weapon_ammo.get(weapon_id, 0))
-		elif weapon_id == primary_weapon_id and not _weapon_is_owned(primary_weapon_id):
-			_switch_to_weapon(primary_weapon_id)
+			ammo_in_mag = int(_weapon_ammo[weapon_id])
+			_equip_seconds = float(WEAPON_PROFILES[weapon_id].equip)
+		else:
+			_switch_to_weapon(weapon_id)
+		actor.set("equipped_weapon_id", weapon_id)
+		if not old.is_empty() and old.get("weapon_id") in Catalog.PRIMARY:
+			var dropped := preload("res://scripts/combat/WorldWeaponPickup.gd").new()
+			var pickup_parent: Node = (
+				tree.current_scene if tree.current_scene != null else actor.get_parent()
+			)
+			pickup_parent.add_child(dropped)
+			dropped.configure(old, actor.global_position - Vector3.UP * 0.75)
 		pickup.queue_free()
 		return true
 	return false
@@ -1069,6 +1232,19 @@ func _throw_ai_grenade(kind: String, target_position: Vector3) -> bool:
 func _maybe_throw_combat_grenade(target: CharacterBody3D) -> void:
 	var distance := actor.global_position.distance_to(target.global_position)
 	var target_id := target.get_instance_id()
+	if int(grenade_counts.get("fire_grenade", 0)) > 0 and distance >= 7.0 and distance <= 15.0:
+		var safe := true
+		for teammate in actor.get_tree().get_nodes_in_group("combat_actors"):
+			if teammate.get("team") == actor.get("team") and not bool(teammate.get("is_dead")):
+				if teammate.global_position.distance_to(target.global_position) < 4.5:
+					safe = false
+		for teammate in actor.get_tree().get_nodes_in_group("local_player"):
+			if GameState.player_team == String(actor.get("team")) and not bool(teammate.get("is_dead")):
+				if teammate.global_position.distance_to(target.global_position) < 4.5:
+					safe = false
+		if safe and _throw_ai_grenade("fire_grenade", target.global_position):
+			_burst_pause = maxf(_burst_pause, 0.65)
+			return
 	if int(grenade_counts.get("flash_grenade", 0)) > 0 and distance <= 14.0 and _flash_thrown_for_target != target_id:
 		_flash_thrown_for_target = target_id
 		if _throw_ai_grenade("flash_grenade", target.global_position + Vector3.UP * 0.5):
@@ -1167,9 +1343,14 @@ func _update_weapon_selection(distance: float) -> void:
 	if (
 		desired == primary_weapon_id
 		and not _weapon_has_ammo(primary_weapon_id)
-		and _weapon_has_ammo(secondary_weapon_id)
 	):
-		desired = secondary_weapon_id
+		if _weapon_has_ammo(secondary_weapon_id):
+			desired = secondary_weapon_id
+		elif not _weapon_has_supply(primary_weapon_id):
+			if _weapon_has_supply(secondary_weapon_id):
+				desired = secondary_weapon_id
+			elif has_knife:
+				desired = "knife"
 	if desired != _current_weapon_id and _weapon_is_owned(desired):
 		_switch_to_weapon(desired)
 
@@ -1193,7 +1374,18 @@ func _weapon_has_ammo(weapon_id: String) -> bool:
 		return false
 	return int(_weapon_ammo.get(weapon_id, 0)) > 0 or weapon_id == "knife"
 
+func _weapon_has_supply(weapon_id: String) -> bool:
+	return _weapon_has_ammo(weapon_id) or (
+		_weapon_is_owned(weapon_id) and int(_weapon_reserve.get(weapon_id, 0)) > 0
+	)
+
 func _resolve_combat_plan(distance: float) -> Dictionary:
+	if _current_weapon_id in ["sniper", "shotgun"]:
+		_spray_decision = "single"
+		return {"size": 1, "pause": 0.12}
+	if _current_weapon_id == "smg" and distance < 20.0:
+		_spray_decision = "burst"
+		return {"size": 5, "pause": 0.24}
 	if distance >= tap_range_meters:
 		_spray_decision = "tap"
 		return {"size": 1, "pause": 0.55}
@@ -1233,13 +1425,17 @@ func _pick_retreat_target(enemy_position: Vector3) -> Vector3:
 			best_position = point
 	return best_position
 
-func _fire_melee(target_point: Vector3, profile: Dictionary, weapon_name: String, weapon_slot: int) -> void:
+func _fire_melee(
+	target_point: Vector3, profile: Dictionary, weapon_name: String, weapon_slot: int
+) -> void:
 	_shot_count += 1
 	_shots_in_burst += 1
 	_shot_cooldown = float(profile.get("fire_interval", 0.42))
 	var origin := actor.call("get_eye_position") as Vector3
 	var direction := (target_point - origin).normalized()
-	var query := PhysicsRayQueryParameters3D.create(origin, origin + direction * float(profile.get("max_range", 2.4)), 1)
+	var query := PhysicsRayQueryParameters3D.create(
+		origin, origin + direction * float(profile.get("max_range", 2.4)), 1
+	)
 	query.exclude = [actor.get_rid()]
 	var hit := actor.get_world_3d().direct_space_state.intersect_ray(query)
 	var damage_result: Dictionary = {}
@@ -1251,28 +1447,44 @@ func _fire_melee(target_point: Vector3, profile: Dictionary, weapon_name: String
 				collider_team = String((collider as Node).get("team"))
 			elif collider is Node and (collider as Node).is_in_group("local_player"):
 				collider_team = GameState.player_team
-			if collider_team.is_empty() or collider_team != String(actor.get("team")):
-				damage_result = collider.call(
+			if (
+				collider_team.is_empty()
+				or collider_team != String(actor.get("team"))
+				or CombatEvents.friendly_fire
+			):
+				damage_result = CombatEvents.apply_damage(
+					collider,
 					"apply_hitscan_damage",
-					MeleeRules.damage(int(profile.get("damage", 55)), actor, collider),
-					hit.get("position", Vector3.ZERO),
-					1.0,
-					false,
-					String(actor.get("team")),
-					origin
-				) as Dictionary
-	actor.call("emit_ai_shot", {
-		"hit": bool(damage_result.get("hit", false)),
-		"position": hit.get("position", origin + direction * 2.4),
-		"damage_result": damage_result,
-		"weapon_slot": weapon_slot,
-		"weapon_name": weapon_name,
-		"shooter_name": String(actor.get("display_name")),
-		"shooter_team": String(actor.get("team")),
-	}, origin)
+					[
+						MeleeRules.damage(int(profile.get("damage", 55)), actor, collider),
+						hit.get("position", Vector3.ZERO),
+						1.0,
+						false,
+						String(actor.get("team")),
+						origin
+					],
+					CombatEvents.actor_source(actor, "knife", "melee")
+				)
+	(
+		actor
+		. call(
+			"emit_ai_shot",
+			{
+				"hit": bool(damage_result.get("hit", false)),
+				"position": hit.get("position", origin + direction * 2.4),
+				"damage_result": damage_result,
+				"weapon_slot": weapon_slot,
+				"weapon_name": weapon_name,
+				"shooter_name": String(actor.get("display_name")),
+				"shooter_team": String(actor.get("team")),
+			},
+			origin
+		)
+	)
 	if _shots_in_burst >= _burst_size:
 		_shots_in_burst = 0
 		_burst_pause = _next_burst_pause
+
 
 func _reset_weapon_ammo() -> void:
 	_weapon_ammo.clear()
@@ -1310,7 +1522,20 @@ func _tick_patrol(delta: float) -> void:
 	_move_toward(destination, delta)
 
 func _move_toward(destination: Vector3, delta: float) -> void:
+	if _route_blocked_seconds > 0.0:
+		state = State.HOLD
+		if not _yield_to_passing_teammate(delta, actor.global_position):
+			_stop(delta)
+		return
 	var steering_target := _resolve_navigation_target(destination)
+	if _route_progress.observe(actor.global_position, destination, delta):
+		_reselect_blocked_route(steering_target)
+		if _route_blocked_seconds > 0.0:
+			_stop(delta)
+			return
+	if _navigation_unreachable:
+		_stop(delta)
+		return
 	var planar := steering_target - actor.global_position
 	planar.y = 0.0
 	if planar.length_squared() <= 0.01:
@@ -1355,6 +1580,7 @@ func _aim_at(target_position: Vector3, delta: float, duration: float) -> void:
 	actor.rotation.y = lerp_angle(actor.rotation.y, desired_yaw, clampf(delta / maxf(duration, 0.01), 0.0, 1.0))
 
 func _resolve_navigation_target(destination: Vector3) -> Vector3:
+	_navigation_unreachable = false
 	if _navigation.points.is_empty() or actor.global_position.distance_to(destination) <= 2.2:
 		_active_navigation_link.clear()
 		return destination
@@ -1362,7 +1588,7 @@ func _resolve_navigation_target(destination: Vector3) -> Vector3:
 		not _navigation_destination.is_finite()
 		or _navigation_destination.distance_to(destination) > 1.8
 	)
-	if destination_changed or _repath_seconds <= 0.0 or _navigation_path.is_empty():
+	if destination_changed or _repath_seconds <= 0.0:
 		var previous_start := -1
 		var previous_next := -1
 		if not destination_changed and _navigation_path_index > 0 and _navigation_path_index < _navigation_path.size():
@@ -1379,6 +1605,10 @@ func _resolve_navigation_target(destination: Vector3) -> Vector3:
 		if _navigation_path.size() > 1 and _navigation_path[0] == previous_start and _navigation_path[1] == previous_next:
 			_navigation_path_index = 1
 		_repath_seconds = 0.65
+	if _navigation_path.is_empty():
+		_navigation_unreachable = true
+		tactical_reason = "当前无可达路线，等待重新评估"
+		return destination
 	while _navigation_path_index < _navigation_path.size():
 		var point := _navigation.points[_navigation_path[_navigation_path_index]]
 		if _navigation_path_index > 0:
@@ -1413,6 +1643,9 @@ func _update_navigation_progress(delta: float, desired_direction: Vector3) -> vo
 	_recovery_direction = (-desired_direction + lateral * 0.65).normalized()
 	_recovery_seconds = 0.68
 	_stuck_recoveries += 1
+	if _stuck_recoveries % 3 == 0:
+		record_dynamic_danger(actor.global_position + desired_direction * 2.0, 1.5)
+		tactical_reason = "连续受阻，避开阻塞连接重新寻路"
 	_no_progress_seconds = 0.0
 	_last_progress_position = actor.global_position
 	_navigation_path.clear()
@@ -1455,3 +1688,105 @@ func _segment_blocked_by_smoke(from: Vector3, to: Vector3) -> bool:
 			if (from + segment * t).distance_to((smoke as Node3D).global_position) <= 3.1:
 				return true
 	return false
+
+
+func _tick_blocked_navigation(delta: float) -> void:
+	var was_blocked := _route_blocked_seconds > 0.0
+	_route_blocked_seconds = maxf(0.0, _route_blocked_seconds - delta)
+	if was_blocked and _route_blocked_seconds == 0.0:
+		_route_progress.reset()
+		_repath_seconds = 0.0
+	for index in _blocked_navigation_points.keys():
+		_blocked_navigation_points[index] = float(_blocked_navigation_points[index]) - delta
+		if float(_blocked_navigation_points[index]) <= 0.0:
+			_navigation.set_point_blocked(int(index), false)
+			_blocked_navigation_points.erase(index)
+			_repath_seconds = 0.0
+
+
+func _reselect_blocked_route(steering_target: Vector3) -> void:
+	_route_replans += 1
+	# Temporarily reject the actual stalled waypoint, including its tiny adjacent
+	# grid cells. A finite cost penalty alone still reselected the same bad step.
+	for index in range(_navigation.points.size()):
+		if _navigation.points[index].distance_to(steering_target) <= 0.8:
+			_navigation.set_point_blocked(index, true)
+			_blocked_navigation_points[index] = 12.0
+	_navigation_path.clear()
+	_navigation_path_index = 0
+	_repath_seconds = 0.0
+	tactical_reason = "局部往返未推进，临时避开受阻节点重新选路"
+	if _route_progress.attempts < 3:
+		return
+	_route_blocked_seconds = 3.0
+	tactical_reason = "三次改路失败，报告路线受阻并让出通道"
+	if (
+		bomb_carrier
+		and alternate_site_target.is_finite()
+		and not _rotated_site
+		and RoundManager.time_remaining > 20.0
+	):
+		objective_target = alternate_site_target
+		plant_site_label = alternate_site_label
+		_rotated_site = true
+		tactical_reason = "当前进点路线受阻，携弹改走另一爆点"
+	# A dropped C4's recoverer is leased through _is_c4_recoverer; this blocked
+	# result allows a different living teammate to take over without duplication.
+
+
+func _resolve_weapon_rays(
+	origin: Vector3, direction: Vector3, max_range: float, profile: Dictionary
+) -> Dictionary:
+	var count := int(profile.get("pellets", 1))
+	var events := {}
+	var point := origin + direction * max_range
+	for pellet in range(count):
+		var ray := Catalog.pellet_direction(
+			direction, pellet, count, float(profile.get("pellet_spread", 0.0))
+		)
+		var query := PhysicsRayQueryParameters3D.create(origin, origin + ray * max_range, 1)
+		query.exclude = [actor.get_rid()]
+		var hit := actor.get_world_3d().direct_space_state.intersect_ray(query)
+		if hit.is_empty():
+			continue
+		point = hit.position
+		var collider: Node = hit.get("collider") as Node
+		if collider == null or not collider.has_method("apply_hitscan_damage"):
+			continue
+		var team := (
+			GameState.player_team
+			if collider.is_in_group("local_player")
+			else String(collider.get("team"))
+		)
+		if team == String(actor.get("team")) and not CombatEvents.friendly_fire:
+			continue
+		var falloff := pow(
+			float(profile.get("range_modifier", 1.0)), origin.distance_to(point) / 10.0
+		)
+		var damage: Dictionary = CombatEvents.apply_damage(
+			collider,
+			"apply_hitscan_damage",
+			[
+				maxi(1, roundi(float(profile.get("damage", rifle_damage)) * falloff)),
+				point,
+				float(profile.get("armor_penetration", 0.77)),
+				false,
+				String(actor.get("team")),
+				origin
+			],
+			CombatEvents.actor_source(actor, _current_weapon_id)
+		)
+		if not bool(damage.get("hit", false)):
+			continue
+		var key := collider.get_instance_id()
+		if events.has(key):
+			events[key].damage += int(damage.get("damage", 0))
+			events[key].killed = bool(events[key].killed) or bool(damage.killed)
+		else:
+			events[key] = damage
+	return {
+		"hit": not events.is_empty(),
+		"position": point,
+		"damage_events": events.values(),
+		"damage_result": events.values()[0] if not events.is_empty() else {}
+	}

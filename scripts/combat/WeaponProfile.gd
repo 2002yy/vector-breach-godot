@@ -5,6 +5,8 @@ class_name WeaponProfile
 @export var display_name: String = "\u6b65\u67aa"
 @export var slot_index: int = 0
 @export var damage: int = 34
+@export var pellets: int = 1
+@export var pellet_spread_degrees: float = 0.0
 @export var magazine_size: int = 30
 @export var reserve_ammo_on_spawn: int = 90
 @export var fire_interval: float = 0.11
@@ -64,6 +66,8 @@ func get_spread_direction_for_shot(shot_index: int) -> Vector2:
 
 func get_configuration_errors() -> PackedStringArray:
 	var errors := PackedStringArray()
+	if pellets < 1 or pellets > 16 or pellet_spread_degrees < 0.0:
+		errors.append("pellet count/spread is invalid")
 	if weapon_id.strip_edges().is_empty():
 		errors.append("weapon_id must not be empty")
 	if display_name.strip_edges().is_empty():

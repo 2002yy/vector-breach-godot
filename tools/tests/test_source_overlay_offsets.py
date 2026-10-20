@@ -42,14 +42,16 @@ class OverlayInstallTests(unittest.TestCase):
             encoding="utf-8",
         )
 
-    def install(self):
+    def install(self, extra_args=()):
         with (
             patch.object(
                 MODULE,
                 "__file__",
                 str(self.repo / "tools/prepare_source_overlay_offsets.py"),
             ),
-            patch.object(sys, "argv", ["prepare", "--visual", str(self.visual)]),
+            patch.object(
+                sys, "argv", ["prepare", "--visual", str(self.visual), *extra_args]
+            ),
         ):
             MODULE.main()
 
@@ -74,6 +76,7 @@ class OverlayInstallTests(unittest.TestCase):
             (self.visual.parent / "source-overlay-offset.json").read_text()
         )
         self.assertEqual(result["materials"], ["biased", "decal", "static"])
+        self.assertEqual(result["static_batch_cell_m"], 0)
         self.assertEqual(self.visual.read_bytes(), before)
         with self.assertRaises(FileExistsError):
             self.install()
@@ -112,7 +115,11 @@ class OverlayInstallTests(unittest.TestCase):
             self.install()
         self.assertFalse((self.visual.parent / "source-overlay-offset.json").exists())
         buffer.write_bytes(b"verified original positions")
-        self.install()
+        self.install(["--static-batch-cell", "16"])
+        result = json.loads(
+            (self.visual.parent / "source-overlay-offset.json").read_text()
+        )
+        self.assertEqual(result["static_batch_cell_m"], 16)
 
 
 if __name__ == "__main__":

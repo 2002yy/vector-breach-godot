@@ -182,6 +182,7 @@ func set_mouse_capture_enabled(enabled: bool) -> void:
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 
 func reset_to_spawn() -> void:
+	CombatEvents.forget_actor(self)
 	_apply_spawn()
 
 func get_camera_node() -> Camera3D:
@@ -282,6 +283,8 @@ func get_accuracy_state() -> Dictionary:
 func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, armor_penetration: float = 1.0, penetrated: bool = false, source_team: String = "", source_position: Vector3 = Vector3.INF) -> Dictionary:
 	if is_dead:
 		return {"hit": false, "killed": false}
+	if not CombatEvents.allows_damage(self, source_team):
+		return {"hit": false, "killed": false, "friendly_blocked": true}
 	var resolved_position := global_position if hit_position == Vector3.ZERO else hit_position
 	var hit_group := DamageModel.resolve_hit_group(to_local(resolved_position))
 	var resolved := DamageModel.resolve_damage(amount, hit_group, GameState.player_armor, GameState.player_helmet, armor_penetration)
@@ -298,7 +301,7 @@ func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, arm
 		GameState.friendly_alive = maxi(0, GameState.friendly_alive - 1)
 		player_died.emit()
 	GameState.notify_player_vitals_changed()
-	return {
+	return CombatEvents.finish_damage(self, {
 		"hit": true,
 		"target_name": "你",
 		"target_team": GameState.player_team,
@@ -311,7 +314,7 @@ func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, arm
 		"penetrated": penetrated,
 		"remaining_health": GameState.player_health,
 		"remaining_armor": GameState.player_armor,
-	}
+	})
 
 func calculate_fall_damage(impact_speed: float) -> int:
 	if impact_speed <= fall_damage_threshold:
@@ -320,12 +323,16 @@ func calculate_fall_damage(impact_speed: float) -> int:
 
 func apply_explosive_damage(amount: int, armor_ratio: float = 0.5) -> Dictionary:
 	if is_dead or amount <= 0:
-		return {"hit": false, "killed": is_dead}
+		return {"hit": false, "killed": false}
+	if not CombatEvents.allows_damage(self):
+		return {"hit": false, "killed": false, "friendly_blocked": true}
 	var health_damage := amount
 	var armor_damage := 0
 	if GameState.player_armor > 0:
 		health_damage = maxi(1, int(round(float(amount) * clampf(armor_ratio, 0.0, 1.0))))
-		armor_damage = mini(GameState.player_armor, maxi(1, int(round(float(amount - health_damage) * 0.5))))
+		armor_damage = mini(
+			GameState.player_armor, maxi(1, int(round(float(amount - health_damage) * 0.5)))
+		)
 		GameState.player_armor -= armor_damage
 	GameState.player_health = maxi(0, GameState.player_health - health_damage)
 	var killed := GameState.player_health == 0
@@ -336,7 +343,17 @@ func apply_explosive_damage(amount: int, armor_ratio: float = 0.5) -> Dictionary
 		GameState.friendly_alive = maxi(0, GameState.friendly_alive - 1)
 		player_died.emit()
 	GameState.notify_player_vitals_changed()
-	return {"hit": true, "damage": health_damage, "armor_damage": armor_damage, "killed": killed, "remaining_health": GameState.player_health}
+	return CombatEvents.finish_damage(
+		self,
+		{
+			"hit": true,
+			"damage": health_damage,
+			"armor_damage": armor_damage,
+			"killed": killed,
+			"remaining_health": GameState.player_health
+		}
+	)
+
 
 func apply_flash_effect(intensity: float, duration: float) -> void:
 	_flash_intensity = maxf(_flash_intensity, clampf(intensity, 0.0, 1.0))
@@ -357,6 +374,7 @@ func _apply_fall_damage(impact_speed: float) -> void:
 		GameState.friendly_alive = maxi(0, GameState.friendly_alive - 1)
 		player_died.emit()
 	GameState.notify_player_vitals_changed()
+	CombatEvents.finish_damage(self, {"hit": true, "killed": is_dead, "damage": damage})
 
 func apply_recoil_kick(pitch_radians: float, yaw_radians: float) -> void:
 	camera_pivot.rotation.x = clamp(

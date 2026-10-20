@@ -12,10 +12,12 @@ var _peak_height := -INF
 var _flight_time := 0.0
 var _smoke_age: float = 0.0
 var _smoke_layers: Array[MeshInstance3D] = []
+var _fire_attribution: Dictionary = {}
 
 func configure(kind: String, owner_player: CharacterBody3D, origin: Vector3, velocity: Vector3) -> void:
 	grenade_type = kind
 	thrower = owner_player
+	_fire_attribution = CombatEvents.actor_source(owner_player, kind, "explosion")
 	global_position = origin
 	linear_velocity = velocity
 	_launch_position = origin
@@ -37,10 +39,18 @@ func _ready() -> void:
 	call_deferred("_build_visual")
 
 func _build_visual() -> void:
-	var visual := EquipmentVisuals.build(grenade_type)
+	var visual: Node3D
+	if grenade_type == "fire_grenade":
+		visual = preload("res://scripts/player/OfficialEquipment.gd").build(
+			grenade_type, GameState.player_team
+		)
+	if visual == null:
+		visual = EquipmentVisuals.build(grenade_type)
 	add_child(visual)
 	for part in ["SafetyRing", "SafetyLever"]:
-		(visual.get_node(part) as Node3D).visible = false
+		var component := visual.get_node_or_null(part) as Node3D
+		if component != null:
+			component.hide()
 
 func _physics_process(delta: float) -> void:
 	if _detonated:
@@ -65,6 +75,20 @@ func _detonate() -> void:
 	elif grenade_type == "flash_grenade":
 		_apply_flash()
 		queue_free()
+	elif grenade_type == "fire_grenade":
+		var query := PhysicsRayQueryParameters3D.create(global_position + Vector3.UP * 0.15,
+			global_position + Vector3.DOWN * 12.0, 1)
+		query.exclude = [get_rid()]
+		var hit := get_world_3d().direct_space_state.intersect_ray(query)
+		if not hit.is_empty() and (hit.normal as Vector3).y > 0.5:
+			var zone := preload("res://scripts/combat/FireArea.gd").new()
+			get_tree().current_scene.add_child(zone)
+			var source: CharacterBody3D = thrower if is_instance_valid(thrower) else null
+			zone.configure(
+				source, String(_fire_attribution.get("team", GameState.player_team)),
+				(hit.position as Vector3) + Vector3.UP * 0.04, _fire_attribution
+			)
+		queue_free()
 	else:
 		_activate_smoke()
 
@@ -81,28 +105,71 @@ func _publish_telemetry() -> void:
 			telemetry.call("record_grenade", summary)
 
 func _apply_he_damage() -> void:
-	var source_team := GameState.player_team
-	if is_instance_valid(thrower):
-		if (thrower as Node).is_in_group("local_player"):
-			source_team = GameState.player_team
-		elif (thrower as Node).get("team") != null:
-			source_team = String((thrower as Node).get("team"))
-	for target in get_tree().get_nodes_in_group("target_dummies"):
-		if target is Node3D:
-			var distance := global_position.distance_to((target as Node3D).global_position)
-			if distance <= 7.0 and target.has_method("apply_hitscan_damage"):
-				var damage := maxi(1, int(round(98.0 * pow(1.0 - distance / 7.0, 1.35) * _blast_cover_scale((target as Node3D).global_position, target))))
-				var result := target.call("apply_hitscan_damage", damage, (target as Node3D).global_position, 0.5, false, source_team, global_position) as Dictionary
-				if bool(result.get("hit", false)):
-					GameState.register_hit(bool(result.get("killed", false)), "he_grenade", String(result.get("target_team", "")))
-	if is_instance_valid(thrower):
-		var player_distance := global_position.distance_to(thrower.global_position)
-		if player_distance <= 7.0:
-			var self_damage := maxi(1, int(round(70.0 * pow(1.0 - player_distance / 7.0, 1.35) * _blast_cover_scale(thrower.global_position, thrower))))
-			if thrower.has_method("apply_explosive_damage"):
-				thrower.call("apply_explosive_damage", self_damage)
-			elif thrower.has_method("apply_hitscan_damage"):
-				thrower.call("apply_hitscan_damage", self_damage, thrower.global_position, 0.5, false)
+	var source_team := String(_fire_attribution.get("team", ""))
+	var targets: Array[Node] = get_tree().get_nodes_in_group("target_dummies")
+	for viewer in get_tree().get_nodes_in_group("local_player"):
+		if viewer not in targets:
+			targets.append(viewer)
+	for target in targets:
+		if not target is Node3D:
+			continue
+		var distance := global_position.distance_to((target as Node3D).global_position)
+		if distance > 7.0:
+			continue
+		var self_hit := target.get_instance_id() == int(_fire_attribution.get("actor_id", 0))
+		var base_damage := 70.0 if self_hit else 98.0
+		var damage := maxi(
+			1,
+			roundi(
+				(
+					base_damage
+					* pow(1.0 - distance / 7.0, 1.35)
+					* _blast_cover_scale((target as Node3D).global_position, target)
+				)
+			)
+		)
+		var result: Dictionary
+		if target.is_in_group("local_player"):
+			result = CombatEvents.apply_damage(
+				target, "apply_explosive_damage", [damage], _fire_attribution
+			)
+		elif target.has_method("apply_hitscan_damage"):
+			result = CombatEvents.apply_damage(
+				target,
+				"apply_hitscan_damage",
+				[
+					damage,
+					(target as Node3D).global_position,
+					0.5,
+					false,
+					source_team,
+					global_position
+				],
+				_fire_attribution
+			)
+		else:
+			continue
+		if not bool(result.get("hit", false)):
+			continue
+		if bool(_fire_attribution.get("player", false)) and not self_hit:
+			GameState.register_hit(
+				bool(result.get("killed", false)),
+				"he_grenade",
+				String(result.get("target_team", ""))
+			)
+		elif (
+			is_instance_valid(thrower)
+			and not self_hit
+			and bool(result.get("killed", false))
+			and String(result.get("target_team", "")) != source_team
+		):
+			var brain := thrower.get_node_or_null("TacticalBotBrain")
+			if brain != null:
+				brain.set("ai_money", mini(16000, int(brain.get("ai_money")) + 300))
+		GameState.area_damage_resolved.emit(
+			result, String(_fire_attribution.get("name", "环境")), source_team
+		)
+
 
 func _blast_cover_scale(target_position: Vector3, target_collider: Variant) -> float:
 	var query := PhysicsRayQueryParameters3D.create(global_position, target_position + Vector3.UP * 0.25)

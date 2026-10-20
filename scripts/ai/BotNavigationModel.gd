@@ -5,6 +5,7 @@ var points: Array[Vector3] = []
 var links: Array = []
 var link_count: int = 0
 var _uniform_search: AStar3D
+var _blocked_points: Dictionary = {}
 
 
 func configure(graph_variant: Variant) -> void:
@@ -12,6 +13,7 @@ func configure(graph_variant: Variant) -> void:
 	links.clear()
 	link_count = 0
 	_uniform_search = null
+	_blocked_points.clear()
 	if not graph_variant is Dictionary:
 		return
 	var graph := graph_variant as Dictionary
@@ -80,9 +82,11 @@ func nearest_index(world_position: Vector3) -> int:
 		return -1
 	if _uniform_search != null:
 		return _uniform_search.get_closest_point(world_position)
-	var best_index := 0
+	var best_index := -1
 	var best_distance := INF
 	for index in range(points.size()):
+		if _blocked_points.has(index):
+			continue
 		var distance := world_position.distance_squared_to(points[index])
 		if distance < best_distance:
 			best_distance = distance
@@ -97,6 +101,8 @@ func find_path(start_index: int, goal_index: int, danger_events: Array[Dictionar
 		or goal_index < 0
 		or start_index >= points.size()
 		or goal_index >= points.size()
+		or _blocked_points.has(start_index)
+		or _blocked_points.has(goal_index)
 	):
 		return empty_path
 	if start_index == goal_index:
@@ -128,6 +134,8 @@ func find_path(start_index: int, goal_index: int, danger_events: Array[Dictionar
 		for neighbor_variant in links[current]:
 			var neighbor_record: Dictionary = neighbor_variant as Dictionary
 			var neighbor := int(neighbor_record.get("to", -1))
+			if _blocked_points.has(neighbor):
+				continue
 			if neighbor < 0 or neighbor >= points.size():
 				continue
 			var tentative := (
@@ -142,6 +150,17 @@ func find_path(start_index: int, goal_index: int, danger_events: Array[Dictionar
 			if not open.has(neighbor):
 				open.append(neighbor)
 	return empty_path
+
+
+func set_point_blocked(index: int, blocked: bool) -> void:
+	if index < 0 or index >= points.size():
+		return
+	if blocked:
+		_blocked_points[index] = true
+	else:
+		_blocked_points.erase(index)
+	if _uniform_search != null:
+		_uniform_search.set_point_disabled(index, blocked)
 
 
 func find_link(from_index: int, to_index: int, danger_events: Array[Dictionary]) -> Dictionary:

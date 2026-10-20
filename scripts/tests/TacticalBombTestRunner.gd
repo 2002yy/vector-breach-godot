@@ -1,5 +1,7 @@
 extends Node
 
+const MatchTactics = preload("res://scripts/tests/MatchTacticsFixtures.gd")
+
 const ACTOR_SCENE = preload("res://scenes/combat/TacticalActor.tscn")
 const C4_SCENE = preload("res://scenes/objective/C4Device.tscn")
 const SANDBOX_SCENE = preload("res://scenes/combat/CombatSandbox.tscn")
@@ -9,6 +11,8 @@ var _failures: PackedStringArray = []
 var _passes: int = 0
 
 func _ready() -> void:
+	await _run_test("role_budget_receipts_and_preserved_primary", _test_role_purchases)
+	await _run_test("reported_support_rotation_and_impossible_defuse", _test_squad_decisions)
 	await _run_test("bot_carries_plants_c4_at_objective", _test_bot_carries_plants_c4_at_objective)
 	await _run_test("ct_bot_defuses_planted_bomb", _test_ct_bot_defuses_planted_bomb)
 	await _run_test("bot_targets_enemy_bot_not_only_player", _test_bot_targets_enemy_bot_not_only_player)
@@ -38,6 +42,12 @@ func _ready() -> void:
 	for failure in _failures:
 		push_error("  - %s" % failure)
 	get_tree().quit(1)
+
+func _test_role_purchases() -> void:
+	await MatchTactics.role_purchases(self)
+
+func _test_squad_decisions() -> void:
+	await MatchTactics.support_and_rotation(self)
 
 func _run_test(test_name: String, callable: Callable) -> void:
 	var before := _failures.size()
@@ -334,15 +344,25 @@ func _test_bot_uses_flash_in_combat() -> void:
 func _test_bot_picks_up_dropped_weapon() -> void:
 	var fixture := await _make_fixture()
 	var actor := _make_actor(fixture.world as Node3D, "T拾枪兵", "T", Vector3(0.0, 1.15, 0.0))
+	var brain := actor.get_node("TacticalBotBrain")
+	brain.set("ammo_in_mag", 0)
+	(brain.get("_weapon_reserve") as Dictionary)["rifle"] = 0
 	var pickup := WEAPON_PICKUP_SCRIPT.new()
 	(fixture.world as Node3D).add_child(pickup)
-	pickup.configure({"weapon_id": "rifle", "slot_index": 0, "ammo_in_mag": 45, "ammo_reserve": 30}, actor.global_position)
+	pickup.configure(
+		{"weapon_id": "rifle", "slot_index": 0, "ammo_in_mag": 13, "ammo_reserve": 30},
+		actor.global_position
+	)
 	RoundManager.set_live()
 	for _frame in range(20):
 		await get_tree().physics_frame
 	var ai := (actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
-	_assert_true(not is_instance_valid(pickup), "nearby bot should consume the dropped weapon pickup")
-	_assert_true(int(ai.get("ammo", 0)) >= 45, "pickup should refill the bot primary weapon ammo")
+	_assert_true(
+		not is_instance_valid(pickup), "nearby bot should consume the dropped weapon pickup"
+	)
+	_assert_equal(
+		int(ai.get("ammo", 0)), 13, "pickup must preserve the dropped magazine without merging"
+	)
 	await _cleanup_fixture(fixture)
 
 func _test_combat_sandbox_splits_t_roles_between_sites() -> void:

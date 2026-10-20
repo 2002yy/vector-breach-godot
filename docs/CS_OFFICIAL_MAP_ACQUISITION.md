@@ -246,3 +246,8 @@ if ($LASTEXITCODE -ne 0) { throw 'Map export failed; inspect missing dependencie
 7. 性能：`tools/build_classic_occluder.py` 从大于等于 0.25 平方米的原始不透明视觉三角面生成二进制，`tools/authoring/save_classic_occluder.gd` 保存 `.res`。不填门洞、不用碰撞模型作遮挡、不采用透明植被。Inferno 得到 59305 面。关卡 `render_profile` 指定 `occluder_resource`、`sun_shadow_distance:60`、`sun_shadow_cascades:2`；备份现行冻结清单后显式重编，确认布局没有变化。换图和卸载时恢复原视口/太阳设置。
 
 实际截图入口：`tools/authoring/capture_classic_materials.gd -- <level-id> <证据目录> --compare-occlusion`，A/B 两路十视角逐帧对比开关遮挡；它会测试瞬移，不能算自然行走通过。性能隔离用 `profile_classic_rendering.gd`，实战帧率用 `ClassicMapsUIProbe.tscn -- --map <id> --observe --observe-seconds 30 --real-time-observe --evidence-dir <目录>`。加速模拟模式的 FPS 不能与正常速度比较。
+# 可选的原版静态绘制分组（2026-10-18 候选）
+
+确认 glTF 与外部 BIN 的既有收据哈希后，可在生成 overlay 清单时显式追加 `--static-batch-cell 16`；缺失清单或默认 `0` 不启用。现有清单先保存同目录带时间的备份，再生成，失败时恢复；不覆盖原 glTF/BIN/PNG。运行时在独立碰撞构建完成后，仅把同材质资源及渲染设置的附近不透明静态叶网格合并；特殊材质、镜像/非均匀变换与 byte/half 属性保持原对象。实现依据 [本机版本 SurfaceTool 源码](https://github.com/godotengine/godot/blob/a13da4feb/scene/resources/surface_tool.cpp)，float 自定义通道须逐值回归，不能一概删除。
+
+分组保留原 LOD0 三角形/UV/法线/材质，原资源不可变，但没有沿用每个源网格的 Godot 自动 LOD，会增加部分图元和显存并降低遮挡剔除粒度。因此必须记录实际渲染纹理尺寸、CPU/GPU/图元/显存和同视角 Vulkan 对照，再跑三图路线及完整回归；不可仅凭平均 FPS 接入。阶段数据和失败见 `TASK_CLASSIC_NATIVE_PERFORMANCE_2026-10-18.md`。

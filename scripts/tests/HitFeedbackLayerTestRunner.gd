@@ -18,6 +18,7 @@ func _ready() -> void:
 	get_tree().quit(1)
 
 func _run_all_tests() -> void:
+	await _run_test("friendly_damage_feedback_is_not_enemy_success", _test_friendly_damage_feedback)
 	await _run_test("initial_state_and_miss_stay_hidden", _test_initial_state_and_miss_stay_hidden)
 	await _run_test("terrain_hit_shows_neutral_message_then_hides", _test_terrain_hit_shows_neutral_message_then_hides)
 	await _run_test("nonlethal_hit_shows_marker_and_remaining_hp", _test_nonlethal_hit_shows_marker_and_remaining_hp)
@@ -53,6 +54,25 @@ func _instantiate_layer() -> CanvasLayer:
 	var layer: CanvasLayer = HIT_FEEDBACK_LAYER_SCENE.instantiate()
 	add_child(layer)
 	return layer
+
+func _test_friendly_damage_feedback() -> void:
+	var layer := _instantiate_layer()
+	layer.call("show_shot_feedback", {"hit": true, "damage_result": {"friendly_blocked": true}})
+	_assert_true(
+		String(layer.get_node("BottomMessage").text).contains("友伤已关闭"),
+		"blocked teammate collision has explicit feedback"
+	)
+	layer.call(
+		"show_shot_feedback",
+		{"hit": true, "damage_result": {"hit": true, "friendly_fire": true, "killed": true}}
+	)
+	_assert_true(
+		String(layer.get_node("BottomMessage").text).contains("友军阵亡"),
+		"team kill is warning instead of enemy success"
+	)
+	layer.queue_free()
+	await get_tree().process_frame
+
 
 func _cleanup_layer(layer: CanvasLayer) -> void:
 	layer.queue_free()

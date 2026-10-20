@@ -81,6 +81,12 @@ def main():
                 if primitive.get("mode", 4) != 4:
                     continue
                 material = scene["materials"][primitive["material"]]
+                if material.get("name", "").lower() in [
+                    "wrongway_timer",
+                    "toolssolidblocklight",
+                    "toolsblocklight",
+                ]:
+                    continue
                 if material.get("alphaMode", "OPAQUE") != "OPAQUE":
                     continue
                 if is_overlay(material.get("extras", {}).get("vmat", {})):

@@ -647,6 +647,10 @@ func _dirty_competitive_state(main: Node3D, actors: Array[CharacterBody3D], pref
 		actor.set("has_defuse_kit", true)
 		var brain := actor.get_node("TacticalBotBrain")
 		brain.set("ai_money", 9000)
+		brain.set("primary_weapon_id", "rifle")
+		(brain.get("_weapon_owned") as Dictionary)["rifle"] = true
+		(brain.get("_weapon_ammo") as Dictionary)["rifle"] = 17
+		brain.call("_switch_to_weapon", "rifle")
 		brain.set("has_defuse_kit", true)
 		var snapshot := actor.call("get_combat_snapshot") as Dictionary
 		_assert_equal(String(snapshot.get("weapon", "")), "rifle", "%s: fixture bot should carry a rifle before reset" % prefix)

@@ -12,6 +12,20 @@ static func build(kind: String, _held: bool = false) -> Node3D:
 
 
 static func part(kind: String) -> Node3D:
+	if kind == "fire_grenade":
+		var bottle := Node3D.new()
+		var body := MeshInstance3D.new()
+		var mesh := CylinderMesh.new()
+		mesh.top_radius = 0.035
+		mesh.bottom_radius = 0.052
+		mesh.height = 0.25
+		body.mesh = mesh
+		var material := StandardMaterial3D.new()
+		material.albedo_color = Color(0.18, 0.28, 0.08)
+		material.roughness = 0.35
+		body.material_override = material
+		bottle.add_child(body)
+		return bottle
 	var source := ASSETS.instantiate()
 	var model := source.find_child(kind, true, false) as Node3D
 	assert(model != null, "Missing canonical equipment part: " + kind)

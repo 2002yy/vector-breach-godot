@@ -8,8 +8,8 @@ const GrenadeProjectile = preload("res://scripts/combat/GrenadeProjectile.gd")
 const MeleeRules = preload("res://scripts/combat/MeleeRules.gd")
 
 var equipped: String = "firearm"
-var grenade_order := ["he_grenade", "flash_grenade", "smoke_grenade"]
-var grenade_counts := {"he_grenade": 0, "flash_grenade": 0, "smoke_grenade": 0}
+var grenade_order := ["he_grenade", "flash_grenade", "smoke_grenade", "fire_grenade"]
+var grenade_counts := {"he_grenade": 0, "flash_grenade": 0, "smoke_grenade": 0, "fire_grenade": 0}
 var grenade_index: int = 0
 var use_cooldown: float = 0.0
 var _pending_kind := ""
@@ -20,7 +20,7 @@ var _switch_seconds := 0.0
 func reset_loadout() -> void:
 	cancel_use()
 	equipped = "firearm"
-	grenade_counts = {"he_grenade": 0, "flash_grenade": 0, "smoke_grenade": 0}
+	grenade_counts = {"he_grenade": 0, "flash_grenade": 0, "smoke_grenade": 0, "fire_grenade": 0}
 	grenade_index = 0
 	use_cooldown = 0.0
 	equipment_changed.emit(equipped)
@@ -63,6 +63,11 @@ func select_c4() -> void:
 
 func purchase_grenade(kind: String) -> bool:
 	if not kind in grenade_order:
+		return false
+	var total := 0
+	for count in grenade_counts.values():
+		total += int(count)
+	if total >= 4:
 		return false
 	var limit := 2 if kind == "flash_grenade" else 1
 	if int(grenade_counts.get(kind, 0)) >= limit:
@@ -115,21 +120,36 @@ func _queue_use(player: CharacterBody3D, kind: String, contact: float, cooldown:
 func _knife_attack(player: CharacterBody3D, heavy: bool = false) -> Dictionary:
 	var camera := player.call("get_camera_node") as Camera3D
 	var reach := 1.85 if heavy else 2.15
-	var query := PhysicsRayQueryParameters3D.create(camera.global_position, camera.global_position - camera.global_transform.basis.z * reach)
+	var query := PhysicsRayQueryParameters3D.create(
+		camera.global_position, camera.global_position - camera.global_transform.basis.z * reach
+	)
 	query.exclude = [player.get_rid()]
 	var hit := camera.get_world_3d().direct_space_state.intersect_ray(query)
 	var collider: Variant = hit.get("collider", null)
 	if not hit.is_empty() and collider != null and collider.has_method("apply_hitscan_damage"):
-		if collider.is_in_group("combat_actors") and String(collider.get("team")) == GameState.player_team:
-			return {"hit": false}
 		var backstab := MeleeRules.is_backstab(player, collider)
-		var result := collider.call("apply_hitscan_damage", MeleeRules.damage(65 if heavy else 40, player, collider), hit.get("position", Vector3.ZERO), 1.0, false, GameState.player_team, camera.global_position) as Dictionary
+		var result := CombatEvents.apply_damage(
+			collider,
+			"apply_hitscan_damage",
+			[
+				MeleeRules.damage(65 if heavy else 40, player, collider),
+				hit.get("position", Vector3.ZERO),
+				1.0,
+				false,
+				GameState.player_team,
+				camera.global_position
+			],
+			CombatEvents.actor_source(player, "knife", "melee")
+		)
 		result["backstab"] = backstab and bool(result.get("hit", false))
 		if bool(result.get("hit", false)):
-			GameState.register_hit(bool(result.get("killed", false)), "knife", String(result.get("target_team", "")))
+			GameState.register_hit(
+				bool(result.get("killed", false)), "knife", String(result.get("target_team", ""))
+			)
 			melee_resolved.emit(result)
 		return result
 	return {"hit": false}
+
 
 func _throw_grenade(player: CharacterBody3D) -> Dictionary:
 	var count := int(grenade_counts.get(equipped, 0))
@@ -146,5 +166,15 @@ func _throw_grenade(player: CharacterBody3D) -> Dictionary:
 	return {"thrown": true, "type": thrown_type}
 
 func _sync_hud() -> void:
-	var names := {"he_grenade": "高爆手雷", "flash_grenade": "闪光弹", "smoke_grenade": "烟雾弹"}
-	GameState.sync_weapon_state(String(names.get(equipped, equipped)), int(grenade_counts.get(equipped, 0)), 0, "", 0.0, 0.0, 3)
+	var names := {
+		"he_grenade": "高爆手雷", "flash_grenade": "闪光弹", "smoke_grenade": "烟雾弹", "fire_grenade": "燃烧弹"
+	}
+	GameState.sync_weapon_state(
+		String(names.get(equipped, equipped)),
+		int(grenade_counts.get(equipped, 0)),
+		0,
+		"",
+		0.0,
+		0.0,
+		3
+	)

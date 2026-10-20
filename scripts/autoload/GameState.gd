@@ -1,6 +1,9 @@
 extends Node
 
 signal hud_state_changed(snapshot: Dictionary)
+signal area_damage_resolved(result: Dictionary, shooter_name: String, shooter_team: String)
+
+const WeaponCatalog = preload("res://scripts/combat/WeaponCatalog.gd")
 
 var current_level_id: String = "depot"
 var current_level_name: String = "\u4ed3\u5e93\u7ad9"
@@ -62,6 +65,7 @@ func set_level(level_id: String, level_name: String = "") -> void:
 		_emit_hud_state_changed()
 
 func reset_runtime_state() -> void:
+	CombatEvents.begin_round()
 	match_team_size = 3
 	match_active = false
 	match_phase = "inactive"
@@ -134,7 +138,7 @@ func prepare_next_round() -> void:
 func get_purchase_offer(item_id: String) -> Dictionary:
 	if not RoundManager.can_buy():
 		return {"success": false, "reason": "只能在冻结期购买"}
-	var prices := {"rifle": 2700, "pistol": 500, "armor": 650, "helmet": 350, "armor_helmet": 1000, "defuse_kit": 400, "he_grenade": 300, "flash_grenade": 200, "smoke_grenade": 300}
+	var prices: Dictionary = WeaponCatalog.PRICES
 	if not prices.has(item_id):
 		return {"success": false, "reason": "未知商品"}
 	if item_id == "defuse_kit" and player_team != "CT":
@@ -430,19 +434,61 @@ func set_scoreboard_combatants(records: Array) -> void:
 			var existing: Dictionary = unit_scoreboard.get(unit_name, {}) as Dictionary
 			unit_scoreboard[unit_name] = {"name": unit_name, "team": String(record.get("team", "")), "weapon": String(record.get("weapon", "rifle")), "alive": bool(record.get("alive", true)), "money": int(ai.get("money", 800)), "kills": int(existing.get("kills", 0)), "deaths": int(existing.get("deaths", 0)), "hits": int(existing.get("hits", 0))}
 
-func record_scoreboard_damage(shooter_name: String, shooter_team: String, damage: Dictionary) -> void:
-	if damage.is_empty() or not bool(damage.get("hit", false)):
+func record_scoreboard_damage(
+	shooter_name: String, shooter_team: String, damage: Dictionary
+) -> void:
+	if (
+		damage.is_empty()
+		or not bool(damage.get("hit", false))
+		or bool(damage.get("score_recorded", false))
+	):
 		return
-	var shooter: Dictionary = unit_scoreboard.get(shooter_name, {"name": shooter_name, "team": shooter_team, "weapon": "rifle", "alive": true, "money": 800, "kills": 0, "deaths": 0, "hits": 0}) as Dictionary
+	var shooter: Dictionary = (
+		unit_scoreboard.get(
+			shooter_name,
+			{
+				"name": shooter_name,
+				"team": shooter_team,
+				"weapon": "rifle",
+				"alive": true,
+				"money": 800,
+				"kills": 0,
+				"deaths": 0,
+				"hits": 0
+			}
+		)
+		as Dictionary
+	)
 	shooter["hits"] = int(shooter.get("hits", 0)) + 1
 	if bool(damage.get("killed", false)):
-		shooter["kills"] = int(shooter.get("kills", 0)) + 1
+		if not shooter_team.is_empty() and shooter_team != String(damage.get("target_team", "")):
+			shooter["kills"] = int(shooter.get("kills", 0)) + 1
 		var target_name := String(damage.get("target_name", "战术单位"))
-		var target: Dictionary = unit_scoreboard.get(target_name, {"name": target_name, "team": String(damage.get("target_team", "")), "weapon": "rifle", "alive": true, "money": 800, "kills": 0, "deaths": 0, "hits": 0}) as Dictionary
+		var target: Dictionary = (
+			unit_scoreboard.get(
+				target_name,
+				{
+					"name": target_name,
+					"team": String(damage.get("target_team", "")),
+					"weapon": "rifle",
+					"alive": true,
+					"money": 800,
+					"kills": 0,
+					"deaths": 0,
+					"hits": 0
+				}
+			)
+			as Dictionary
+		)
 		target["deaths"] = int(target.get("deaths", 0)) + 1
 		target["alive"] = false
 		unit_scoreboard[target_name] = target
-	unit_scoreboard[shooter_name] = shooter
+	if shooter_name == String(damage.get("target_name", "")) and bool(damage.get("killed", false)):
+		shooter["deaths"] = int((unit_scoreboard[shooter_name] as Dictionary).get("deaths", 0))
+		shooter["alive"] = false
+	if shooter_name != "环境":
+		unit_scoreboard[shooter_name] = shooter
+
 
 func get_scoreboard_rows() -> Dictionary:
 	var friendly: Array[String] = []
@@ -480,16 +526,21 @@ func sync_weapon_state(weapon_name: String, next_ammo_in_mag: int, next_ammo_res
 	if changed:
 		_emit_hud_state_changed()
 
-func register_hit(killed: bool, weapon_id: String = "rifle", target_team: String = "") -> void:
-	hit_count += 1
+
+func register_hit(
+	killed: bool, weapon_id: String = "rifle", target_team: String = "", count_hit: bool = true
+) -> void:
+	if count_hit:
+		hit_count += 1
 	if killed:
 		if not target_team.is_empty() and target_team == player_team:
 			friendly_alive = maxi(0, friendly_alive - 1)
 		else:
 			kill_count += 1
-			var rewards := {"rifle": 300, "pistol": 300, "knife": 1500, "he_grenade": 300}
 			if current_level_id != "training-range":
-				player_money = mini(MAX_MONEY, player_money + int(rewards.get(weapon_id, 300)))
+				player_money = mini(
+					MAX_MONEY, player_money + int(WeaponCatalog.KILL_REWARDS.get(weapon_id, 300))
+				)
 			enemy_alive = maxi(0, enemy_alive - 1)
 	_emit_hud_state_changed()
 

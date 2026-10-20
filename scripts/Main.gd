@@ -4,6 +4,8 @@ const WorldWeaponPickup = preload("res://scripts/combat/WorldWeaponPickup.gd")
 const TrainingTelemetry = preload("res://scripts/training/TrainingTelemetry.gd")
 const ClassicMatchLayout = preload("res://scripts/level/ClassicMatchLayout.gd")
 const LocalClassicMaps = preload("res://scripts/level/LocalClassicMaps.gd")
+const MatchSpectator = preload("res://scripts/player/MatchSpectator.gd")
+const WeaponCatalog = preload("res://scripts/combat/WeaponCatalog.gd")
 
 const SHIPPED_LEVEL_OPTIONS := [
 	{
@@ -77,6 +79,8 @@ const LOCAL_REFERENCE_OPTION := {
 	"test_focus": "视觉/碰撞对齐、材质导入、空中走廊差异层"
 }
 
+var spectator: Node3D
+
 @onready var level: Node3D = $Level
 @onready var player: CharacterBody3D = $Player
 @onready var world_environment: WorldEnvironment = $WorldEnvironment
@@ -121,7 +125,7 @@ func _training_supply(clear_projectiles: bool = false) -> void:
 	if not _training_active():
 		return
 	weapon_system.call("refill_training_reserve")
-	for kind in ["he_grenade", "flash_grenade", "smoke_grenade"]:
+	for kind in ["he_grenade", "flash_grenade", "smoke_grenade", "fire_grenade"]:
 		(tactical_equipment.get("grenade_counts") as Dictionary)[kind] = 2 if kind == "flash_grenade" else 1
 	if clear_projectiles:
 		_clear_round_drops()
@@ -186,6 +190,10 @@ func _leave_training() -> void:
 	_open_menu(true)
 
 func _ready() -> void:
+	GameState.area_damage_resolved.connect(_on_area_damage)
+	spectator = MatchSpectator.new()
+	spectator.name = "MatchSpectator"
+	add_child(spectator)
 	training_telemetry = TrainingTelemetry.new()
 	add_child(training_telemetry)
 	_isolate_environment_resource()
@@ -211,6 +219,10 @@ func _ready() -> void:
 	if _has_local_level(LOCAL_REFERENCE_LEVEL_PATH, LOCAL_REFERENCE_VISUAL_PATH):
 		level_options.append(LOCAL_REFERENCE_OPTION.duplicate(true))
 	level_options.append_array(LocalClassicMaps.installed_options())
+	for index in range(level_options.size()):
+		if String(level_options[index].get("id", "")) == "inferno-classic-local":
+			selected_level_index = index
+			break
 	if level.has_signal("level_loaded"):
 		level.connect("level_loaded", _on_level_loaded)
 	if weapon_system.has_signal("shot_resolved"):
@@ -261,6 +273,7 @@ func _ready() -> void:
 	start_menu.connect("settings_changed", _on_settings_changed)
 	combat_hud.connect("purchase_requested", _purchase_item)
 	combat_hud.connect("ready_requested", _on_player_ready)
+	combat_hud.connect("help_visibility_changed", _on_help_visibility_changed)
 	combat_hud.connect("buy_closed", func() -> void: _set_buy_menu(false))
 	_apply_selected_map()
 	_open_menu(true)
@@ -275,7 +288,7 @@ func _on_team_selected(team: String) -> void:
 	if game_started:
 		return
 	selected_start_team = team if team in ["T", "CT"] else "T"
-	(start_menu.get("team_select") as OptionButton).select(0 if selected_start_team == "T" else 1)
+	start_menu.call("select_team", selected_start_team)
 	GameState.player_team = selected_start_team
 	if is_instance_valid(c4_device):
 		c4_device.call("set_carried", "T", player.get_instance_id() if GameState.player_team == "T" else int(c4_device.get("carrier_id")))
@@ -288,6 +301,7 @@ func _isolate_environment_resource() -> void:
 func _sync_equipment_view(kind: String) -> void:
 	if kind == "firearm":
 		var state: Dictionary = weapon_system.call("get_runtime_snapshot")
+		weapon_view_model.call("set_weapon_identity", String(state.get("weapon_id", "rifle")))
 		weapon_view_model.call("set_weapon_slot", int(state.get("weapon_slot", 1)))
 		weapon_system.call("refresh_equipped_hud")
 	else:
@@ -295,6 +309,15 @@ func _sync_equipment_view(kind: String) -> void:
 		weapon_view_model.call("set_equipment", kind)
 
 func _process(delta: float) -> void:
+	if game_started and not menu_open:
+		weapon_view_model.visible = (
+			not bool(player.get("is_dead"))
+			and not bool(weapon_system.call("get_runtime_snapshot").get("scoped", false))
+		)
+	else:
+		weapon_view_model.hide()
+	if is_instance_valid(spectator) and bool(spectator.get("active")) and not menu_open:
+		spectator.call("tick")
 	if _training_active() and not menu_open:
 		_tick_training(delta)
 	_update_objective_interaction(delta)
@@ -318,13 +341,15 @@ func _process(delta: float) -> void:
 	weapon_view_model.call("set_reload_paused", not combat_enabled)
 	tactical_equipment.call("tick", delta)
 	if game_started and not menu_open and player.has_method("set_controls_enabled"):
-		player.call("set_controls_enabled", not bool(player.get("is_dead")))
+		player.call("set_controls_enabled", not bool(player.get("is_dead")) and not _help_is_open())
 		if player.has_method("set_movement_enabled"):
 			player.call("set_movement_enabled", combat_enabled)
 	if combat_enabled:
 		var fire_pressed: bool = Input.is_action_just_pressed("fire_primary")
 		var fire_held: bool = Input.is_action_pressed("fire_primary")
 		if String(tactical_equipment.get("equipped")) == "firearm" and weapon_system.has_method("tick"):
+			if Input.is_action_just_pressed("fire_secondary"):
+				weapon_system.call("toggle_scope", player)
 			weapon_system.call("tick", delta, fire_pressed, fire_held, player)
 		elif Input.is_action_just_pressed("fire_secondary"):
 			tactical_equipment.call("use_secondary", player)
@@ -348,6 +373,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if event.is_action_pressed("pause"):
+		if (not menu_open and bool(combat_hud.call("dismiss_help"))) or (
+			menu_open and bool(start_menu.call("dismiss_overlay"))
+		):
+			get_viewport().set_input_as_handled()
+			return
 		if game_started:
 			if _buy_menu_open:
 				_set_buy_menu(false)
@@ -366,11 +396,29 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F1:
 		if game_started and not menu_open:
 			combat_hud.call("toggle_player_help")
+		else:
+			start_menu.call("toggle_player_help")
 		get_viewport().set_input_as_handled()
 		return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_F4:
 		if combat_hud.has_method("toggle_training_telemetry"):
 			combat_hud.call("toggle_training_telemetry")
+		get_viewport().set_input_as_handled()
+		return
+	if game_started and not menu_open and bool(player.get("is_dead")):
+		var direction := 0
+		if event is InputEventMouseButton and event.pressed:
+			if event.button_index in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_WHEEL_DOWN]:
+				direction = 1
+			elif event.button_index in [MOUSE_BUTTON_RIGHT, MOUSE_BUTTON_WHEEL_UP]:
+				direction = -1
+		if event is InputEventKey and event.pressed and not event.echo:
+			if event.keycode == KEY_SPACE:
+				spectator.call("toggle_mode")
+			elif event.keycode in [KEY_BRACKETLEFT, KEY_BRACKETRIGHT]:
+				direction = -1 if event.keycode == KEY_BRACKETLEFT else 1
+		if direction != 0:
+			spectator.call("cycle", direction)
 		get_viewport().set_input_as_handled()
 		return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode in [KEY_F5, KEY_F6, KEY_F7] and _training_active() and not menu_open:
@@ -383,6 +431,25 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 
+	if (
+		event is InputEventKey
+		and event.pressed
+		and not event.echo
+		and event.keycode == KEY_F2
+		and _training_active()
+		and _can_accept_weapon_management()
+	):
+		var snapshot: Dictionary = weapon_system.call("get_runtime_snapshot")
+		var next := (
+			(WeaponCatalog.PRIMARY.find(String(snapshot.get("weapon_id", "rifle"))) + 1)
+			% WeaponCatalog.PRIMARY.size()
+		)
+		weapon_system.call("purchase_weapon", WeaponCatalog.PRIMARY[next])
+		tactical_equipment.call("select_firearm")
+		_sync_equipment_view("firearm")
+		get_viewport().set_input_as_handled()
+		return
+
 	if event.is_action_pressed("buy_menu"):
 		if game_started and not menu_open and RoundManager.can_buy():
 			_set_buy_menu(not _buy_menu_open)
@@ -390,8 +457,19 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if _buy_menu_open and event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode in [KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8]:
-			var buy_items := {KEY_1: "rifle", KEY_2: "pistol", KEY_3: "armor", KEY_4: "armor_helmet", KEY_5: "defuse_kit", KEY_6: "he_grenade", KEY_7: "flash_grenade", KEY_8: "smoke_grenade"}
+		if event.keycode in [KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9, KEY_0]:
+			var buy_items := {
+				KEY_1: "rifle",
+				KEY_2: "pistol",
+				KEY_3: "armor",
+				KEY_4: "armor_helmet",
+				KEY_5: "defuse_kit",
+				KEY_6: "he_grenade",
+				KEY_7: "flash_grenade",
+				KEY_8: "smoke_grenade",
+				KEY_9: "sniper",
+				KEY_0: "smg"
+			}
 			_purchase_item(String(buy_items[event.keycode]))
 			get_viewport().set_input_as_handled()
 			return
@@ -479,6 +557,7 @@ func _on_map_selected(index: int) -> void:
 func _return_to_map_selection() -> void:
 	if not menu_open or not game_started:
 		return
+	spectator.call("stop")
 	_clear_round_drops()
 	game_started = false
 	GameState.reset_runtime_state()
@@ -486,6 +565,7 @@ func _return_to_map_selection() -> void:
 	_open_menu(true)
 
 func _on_start_pressed() -> void:
+	spectator.call("stop")
 	var option: Dictionary = level_options[selected_level_index]
 	combat_hud.call("show_training_panel", false)
 	selected_start_team = "T" if (start_menu.get("team_select") as OptionButton).selected == 0 else "CT"
@@ -533,6 +613,8 @@ func _on_start_pressed() -> void:
 
 func _set_buy_menu(opened: bool) -> void:
 	_buy_menu_open = opened and game_started and not menu_open and RoundManager.can_buy()
+	if _buy_menu_open:
+		combat_hud.call("dismiss_help")
 	combat_hud.call("set_buy_menu_visible", _buy_menu_open)
 	player.call("set_mouse_capture_enabled", not _buy_menu_open and not menu_open)
 	_update_buy_page()
@@ -560,10 +642,13 @@ func _resume_game() -> void:
 		player.call("set_movement_enabled", _can_accept_combat_input())
 	if player.has_method("set_mouse_capture_enabled"):
 		player.call("set_mouse_capture_enabled", true)
-	weapon_view_model.visible = game_started
+	weapon_view_model.visible = game_started and not bool(player.get("is_dead"))
+	if bool(spectator.get("active")):
+		spectator.call("tick")
 	_update_ui(true)
 
 func _open_menu(initial_open: bool) -> void:
+	weapon_system.call("cancel_scope")
 	_set_buy_menu(false)
 	menu_open = true
 	GameState.set_menu_state(true)
@@ -592,6 +677,9 @@ func _toggle_fullscreen() -> void:
 func _on_level_loaded(level_data: Dictionary) -> void:
 	_level_load_failed = false
 	_apply_level_environment(level_data)
+	preload("res://scripts/level/SourceModulateMaterials.gd").update_environment(
+		level, world_environment.environment
+	)
 	_level_load_serial += 1
 	var serial := _level_load_serial
 	if LocalClassicMaps.is_classic(String(level_data.get("id", ""))):
@@ -616,6 +704,9 @@ func _on_level_loaded(level_data: Dictionary) -> void:
 			GameState.player_spawn_yaw_radians = deg_to_rad(float(spawn_yaws.get(GameState.player_team, 0.0)))
 	if combat_sandbox.has_method("load_for_level"):
 		combat_sandbox.call("load_for_level", level_data)
+	if not game_started and player.has_method("reset_to_spawn"):
+		player.call("reset_to_spawn")
+		start_menu.call("frame_map_preview", level_data)
 	_level_loading = false
 
 func _capture_default_environment() -> void:
@@ -815,7 +906,8 @@ func _vector3_from_array(value: Variant, fallback: Vector3) -> Vector3:
 func _on_shot_resolved(result: Dictionary) -> void:
 	if is_instance_valid(training_telemetry):
 		training_telemetry.call("record_shot", result)
-	GameState.record_scoreboard_damage("你", GameState.player_team, result.get("damage_result", {}) as Dictionary)
+	for damage in result.get("damage_events", [result.get("damage_result", {})]):
+		GameState.record_scoreboard_damage("你", GameState.player_team, damage)
 	if weapon_view_model.has_method("play_shot"):
 		weapon_view_model.call("play_shot")
 	if hit_feedback_layer.has_method("show_shot_feedback"):
@@ -825,24 +917,43 @@ func _on_shot_resolved(result: Dictionary) -> void:
 	if combat_audio_feedback.has_method("play_shot"):
 		combat_audio_feedback.call("play_shot", result, player.global_position)
 	combat_sandbox.call("notify_ai_sound", player.global_position, 52.0, GameState.player_team)
-	var damage_result: Dictionary = result.get("damage_result", {}) as Dictionary
-	if bool(damage_result.get("killed", false)) and combat_hud.has_method("add_kill_feed"):
-		var death_position: Vector3 = result.get("position", Vector3.ZERO) as Vector3
-		_radar_death_markers.append({
-			"team": String(damage_result.get("target_team", "CT" if GameState.player_team == "T" else "T")), "alive": false, "spotted": true,
-			"x": death_position.x, "y": death_position.y, "z": death_position.z,
-			"expires": Time.get_ticks_msec() + 5000,
-		})
-		combat_hud.call("add_kill_feed", "你", String(damage_result.get("target_name", "训练目标")), String(result.get("weapon_name", "步枪")))
-		_check_team_elimination()
-		if not _training_active() and not GameState.is_competitive_level() and GameState.enemy_alive == 0:
-			RoundManager.end_round(GameState.player_team, "ELIMINATION")
+	for damage_result in result.get("damage_events", [result.get("damage_result", {})]):
+		if bool(damage_result.get("killed", false)) and combat_hud.has_method("add_kill_feed"):
+			var death_position: Vector3 = damage_result.get(
+				"position", result.get("position", Vector3.ZERO)
+			)
+			(
+				_radar_death_markers
+				. append(
+					{
+						"team":
+						String(
+							damage_result.get(
+								"target_team", "CT" if GameState.player_team == "T" else "T"
+							)
+						),
+						"alive": false,
+						"spotted": true,
+						"x": death_position.x,
+						"y": death_position.y,
+						"z": death_position.z,
+						"expires": Time.get_ticks_msec() + 5000,
+					}
+				)
+			)
+
+			_check_team_elimination()
+			if (
+				not _training_active()
+				and not GameState.is_competitive_level()
+				and GameState.enemy_alive == 0
+			):
+				RoundManager.end_round(GameState.player_team, "ELIMINATION")
 
 func _on_melee_resolved(result: Dictionary) -> void:
 	GameState.record_scoreboard_damage("你", GameState.player_team, result)
 	hit_feedback_layer.call("show_shot_feedback", {"hit": true, "damage_result": result})
-	if bool(result.get("killed", false)):
-		combat_hud.call("add_kill_feed", "你", String(result.get("target_name", "目标")), "背刺" if bool(result.get("backstab", false)) else "战术刀")
+
 	_check_team_elimination()
 
 func _on_targets_spawned(count: int) -> void:
@@ -861,6 +972,12 @@ func _on_player_died() -> void:
 	if _player_has_c4():
 		c4_device.call("drop_at", player.global_position - Vector3.UP * 0.82)
 		RoundManager.bomb_carried = false
+		combat_hud.call("show_radio_report", "队伍", "携弹队员阵亡，C4 已掉落")
+	weapon_system.call("cancel_reload")
+	tactical_equipment.call("cancel_use")
+	weapon_view_model.hide()
+	_set_buy_menu(false)
+	spectator.call("begin", player, GameState.player_team)
 	_check_team_elimination()
 
 func _check_team_elimination() -> void:
@@ -886,11 +1003,18 @@ func _on_round_phase_changed(state_name: String) -> void:
 	if not RoundManager.can_buy():
 		_set_buy_menu(false)
 	if combat_hud.has_method("show_radio_report"):
-		if state_name == "Bomb Planted":
+		if state_name == "Freeze":
+			combat_hud.call(
+				"show_radio_report",
+				"对局规则",
+				"本回合友伤已开启" if CombatEvents.friendly_fire else "本回合友伤已关闭"
+			)
+		elif state_name == "Bomb Planted":
 			combat_hud.call("show_radio_report", "指挥", "C4 已安装，立即回防或守包")
 		elif state_name == "Round End":
 			combat_hud.call("show_radio_report", "指挥", "回合结束，准备下一局")
 	_update_ui(true)
+
 
 func _on_round_ended(winner: String, reason: String) -> void:
 	var transition := GameState.complete_round(winner, reason, RoundManager.round_serial)
@@ -906,6 +1030,7 @@ func _on_round_restart_requested() -> void:
 	var transition := GameState.consume_match_transition()
 	if transition.is_empty():
 		return
+	spectator.call("stop")
 	if bool(transition.get("match_complete", false)):
 		var record_path := _completed_match_record_path
 		if record_path.is_empty():
@@ -944,6 +1069,7 @@ func _on_round_restart_requested() -> void:
 		_open_menu(true)
 		return
 	player.call("reset_to_spawn")
+	weapon_view_model.show()
 	if hard_reset or not player_survived:
 		if not player_survived and not hard_reset:
 			GameState.clear_eliminated_player_equipment()
@@ -960,25 +1086,49 @@ func _on_round_restart_requested() -> void:
 
 func _purchase_item(item_id: String) -> void:
 	var offer := _purchase_offer(item_id)
-	var result: Dictionary = GameState.purchase(item_id) if bool(offer.get("success", false)) else offer
-	if bool(result.get("success", false)) and item_id in ["rifle", "pistol"]:
-		weapon_system.call("purchase_slot", 0 if item_id == "rifle" else 1)
+	var result: Dictionary = (
+		GameState.purchase(item_id) if bool(offer.get("success", false)) else offer
+	)
+	if (
+		bool(result.get("success", false))
+		and (item_id in WeaponCatalog.PRIMARY or item_id == "pistol")
+	):
+		var slot := 1 if item_id == "pistol" else 0
+		var replaced: Dictionary = weapon_system.call("get_slot_record", slot)
+		weapon_system.call("purchase_weapon", item_id)
+		if not replaced.is_empty():
+			_spawn_replaced_weapon(replaced)
 		tactical_equipment.call("select_firearm")
-	if bool(result.get("success", false)) and item_id in ["he_grenade", "flash_grenade", "smoke_grenade"]:
+	if (
+		bool(result.get("success", false))
+		and item_id in ["he_grenade", "flash_grenade", "smoke_grenade", "fire_grenade"]
+	):
 		tactical_equipment.call("purchase_grenade", item_id)
 	combat_hud.call("show_purchase_result", "购买成功" if bool(result.get("success", false)) else String(result.get("reason", "购买失败")))
 	_update_buy_page()
 
 func _purchase_offer(item_id: String) -> Dictionary:
+	var denied := ""
 	if menu_open or not game_started:
-		return {"success": false, "reason": "比赛尚未开始"}
-	if player.global_position.distance_to(GameState.player_spawn) > 8.0:
-		return {"success": false, "reason": "请返回出生点购买区"}
-	var slot_index := 0 if item_id == "rifle" else (1 if item_id == "pistol" else -1)
+		denied = "比赛尚未开始"
+	elif bool(player.get("is_dead")):
+		denied = "阵亡后不能购买"
+	elif player.global_position.distance_to(GameState.player_spawn) > 8.0:
+		denied = "请返回出生点购买区"
+	if not denied.is_empty():
+		return {"success": false, "reason": denied}
+	var slot_index := 0 if item_id in WeaponCatalog.PRIMARY else (1 if item_id == "pistol" else -1)
 	if slot_index >= 0 and bool(weapon_system.call("is_slot_owned", slot_index)):
-		return {"success": false, "reason": "已持有"}
-	if item_id in ["he_grenade", "flash_grenade", "smoke_grenade"]:
+		var held: Dictionary = weapon_system.call("get_slot_record", slot_index)
+		if held.get("weapon_id") == item_id:
+			return {"success": false, "reason": "已持有"}
+	if item_id in ["he_grenade", "flash_grenade", "smoke_grenade", "fire_grenade"]:
 		var inventory: Dictionary = tactical_equipment.get("grenade_counts")
+		var total := 0
+		for count in inventory.values():
+			total += int(count)
+		if total >= 4:
+			return {"success": false, "reason": "最多携带四枚投掷物"}
 		if int(inventory.get(item_id, 0)) >= (2 if item_id == "flash_grenade" else 1):
 			return {"success": false, "reason": "已达携带上限"}
 	return GameState.get_purchase_offer(item_id)
@@ -987,7 +1137,7 @@ func _update_buy_page() -> void:
 	if not is_instance_valid(combat_hud):
 		return
 	var offers := {}
-	for item in ["rifle", "pistol", "armor", "armor_helmet", "defuse_kit", "he_grenade", "flash_grenade", "smoke_grenade"]:
+	for item in WeaponCatalog.PRICES:
 		offers[item] = _purchase_offer(item)
 	combat_hud.call("update_buy_page", {"money": GameState.player_money, "seconds": RoundManager.time_remaining, "offers": offers, "team": GameState.player_team, "ready_allowed": RoundManager.allow_player_ready and RoundManager.can_buy()})
 
@@ -997,11 +1147,22 @@ func _try_plant_c4() -> bool:
 func _try_pickup_weapon() -> bool:
 	for pickup in get_tree().get_nodes_in_group("weapon_pickups"):
 		if pickup is Node3D and pickup.has_method("can_pick_up") and bool(pickup.call("can_pick_up", player.global_position)):
+			var record: Dictionary = pickup.get("weapon_record")
+			var replaced: Dictionary = weapon_system.call(
+				"get_slot_record", int(record.get("slot_index", -1))
+			)
 			if bool(weapon_system.call("pickup_weapon", pickup.get("weapon_record"))):
+				if not replaced.is_empty():
+					_spawn_replaced_weapon(replaced)
 				tactical_equipment.call("select_firearm")
 				pickup.queue_free()
 				return true
 	return false
+
+func _spawn_replaced_weapon(record: Dictionary) -> void:
+	var pickup := WorldWeaponPickup.new()
+	add_child(pickup)
+	pickup.configure(record, player.global_position - Vector3.UP * 0.75)
 
 func _clear_round_drops() -> void:
 	for group_name in ["weapon_pickups", "grenade_projectiles", "smoke_volumes"]:
@@ -1071,14 +1232,22 @@ func _update_objective_interaction(delta: float) -> void:
 		c4_device.call("set_carried", "CT")
 
 func _on_bomb_exploded(_site_label: String) -> void:
-	var damage := int(c4_device.call(
-		"calculate_explosion_damage",
-		player.global_position,
-		get_world_3d().direct_space_state,
-		[player.get_rid()]
-	))
+	var damage := int(
+		c4_device.call(
+			"calculate_explosion_damage",
+			player.global_position,
+			get_world_3d().direct_space_state,
+			[player.get_rid()]
+		)
+	)
 	if damage > 0 and not bool(player.get("is_dead")):
-		player.call("apply_hitscan_damage", damage, player.global_position, 0.65, false)
+		CombatEvents.apply_damage(
+			player,
+			"apply_hitscan_damage",
+			[damage, player.global_position, 0.65, false],
+			CombatEvents.actor_source(null, "c4", "objective")
+		)
+
 
 func _on_player_footstep(world_position: Vector3, surface: String, quiet: bool) -> void:
 	if combat_audio_feedback.has_method("play_footstep"):
@@ -1095,9 +1264,11 @@ func _on_player_landed(world_position: Vector3, surface: String, strength: float
 func _on_ai_shot(result: Dictionary, world_position: Vector3) -> void:
 	if combat_audio_feedback.has_method("play_shot"):
 		combat_audio_feedback.call("play_shot", result, world_position)
-	var damage_result := result.get("damage_result", {}) as Dictionary
-	if bool(damage_result.get("killed", false)) and combat_hud.has_method("add_kill_feed"):
-		combat_hud.call("add_kill_feed", String(result.get("shooter_name", "AI")), String(damage_result.get("target_name", "你")), String(result.get("weapon_name", "步枪")))
+
+
+func _on_area_damage(result: Dictionary, _shooter_name: String, _shooter_team: String) -> void:
+	if bool(result.get("killed", false)):
+		_check_team_elimination()
 
 func _on_ai_footstep(world_position: Vector3, surface: String, quiet: bool) -> void:
 	if combat_audio_feedback.has_method("play_footstep"):
@@ -1108,6 +1279,8 @@ func _on_radio_report(caller: String, message: String) -> void:
 		combat_hud.call("show_radio_report", caller, message)
 
 func _on_weapon_switched(_weapon_name: String, slot_index: int) -> void:
+	var identity: Dictionary = weapon_system.call("get_runtime_snapshot")
+	weapon_view_model.call("set_weapon_identity", String(identity.get("weapon_id", "rifle")))
 	tactical_equipment.call("select_firearm")
 	if weapon_view_model.has_method("set_weapon_slot"):
 		weapon_view_model.call("set_weapon_slot", slot_index)
@@ -1130,11 +1303,30 @@ func _on_hud_state_changed(snapshot: Dictionary) -> void:
 	combat_hud.call("update_display", _build_hud_snapshot(snapshot))
 
 func _can_accept_combat_input() -> bool:
-	return game_started and not menu_open and not _buy_menu_open and RoundManager.can_player_move() and not bool(player.get("is_dead"))
+	return (
+		game_started
+		and not menu_open
+		and not _buy_menu_open
+		and not _help_is_open()
+		and RoundManager.can_player_move()
+		and not bool(player.get("is_dead"))
+	)
+
+
+func _help_is_open() -> bool:
+	return is_instance_valid(combat_hud) and bool(combat_hud.call("is_help_open"))
+
+func _on_help_visibility_changed(opened: bool) -> void:
+	player.call(
+		"set_mouse_capture_enabled",
+		not opened and game_started and not menu_open and not _buy_menu_open
+	)
+	player.call("set_controls_enabled", not opened and not bool(player.get("is_dead")))
 
 func _can_accept_weapon_management() -> bool:
 	return game_started \
 		and not menu_open \
+		and not _help_is_open() \
 		and RoundManager.state in [RoundManager.RoundState.FREEZE, RoundManager.RoundState.LIVE, RoundManager.RoundState.BOMB_PLANTED] \
 		and not RoundManager.is_objective_interacting() \
 		and not bool(player.get("is_dead"))
@@ -1165,6 +1357,13 @@ func _update_ui(force: bool) -> void:
 
 func _build_hud_snapshot(snapshot: Dictionary) -> Dictionary:
 	var enriched := snapshot.duplicate(true)
+	enriched["scoped"] = (
+		bool(weapon_system.call("get_runtime_snapshot").get("scoped", false))
+		and not bool(player.get("is_dead"))
+	)
+	enriched["magazine_capacity"] = weapon_system.call("get_runtime_snapshot").get(
+		"magazine_capacity", 30
+	)
 	if is_instance_valid(training_telemetry):
 		enriched["training_debrief"] = training_telemetry.call("get_snapshot")
 	var bomb: Dictionary = enriched.get("bomb", {})
@@ -1173,6 +1372,9 @@ func _build_hud_snapshot(snapshot: Dictionary) -> Dictionary:
 	enriched["objective_hint"] = _get_objective_hint()
 	enriched["radar"] = _build_radar_snapshot()
 	enriched["flash_intensity"] = float(player.call("get_flash_intensity"))
+	enriched["spectator"] = spectator.call("get_snapshot")
+	if bool((enriched["spectator"] as Dictionary).get("active", false)):
+		enriched["flash_intensity"] = 0.0
 	return enriched
 
 func _player_has_c4() -> bool:
@@ -1288,6 +1490,8 @@ func _build_radar_players() -> Array[Dictionary]:
 			var target_node := target as Node3D
 			var actor_snapshot: Dictionary = target_node.call("get_combat_snapshot") if target_node.has_method("get_combat_snapshot") else {}
 			var actor_team := String(actor_snapshot.get("team", "CT" if GameState.player_team == "T" else "T"))
+			if bool(player.get("is_dead")) and actor_team != GameState.player_team:
+				continue
 			var target_id := target_node.get_instance_id()
 			if actor_team != GameState.player_team and _is_target_legally_spotted(target_node):
 				_radar_spotted_until[target_id] = Time.get_ticks_msec() + 2500

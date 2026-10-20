@@ -1,5 +1,7 @@
 extends Node3D
 
+const WeaponVisuals = preload("res://scripts/player/WeaponVisuals.gd")
+
 @export var equip_drop: float = 0.11
 @export var recoil_distance: float = 0.026
 @export var recoil_degrees: float = 2.2
@@ -8,6 +10,8 @@ extends Node3D
 @export var movement_sway_degrees: float = 0.75
 @export var landing_drop: float = 0.035
 @export var reload_drop: float = 0.105
+
+var _primary_weapon_id := "rifle"
 
 @onready var rifle_model: Node3D = $RifleModel
 @onready var pistol_model: Node3D = $PistolModel
@@ -49,7 +53,7 @@ func _ready() -> void:
 		for part in weapon.find_children("GEO-*", "MeshInstance3D", true, false):
 			if "-sleeve-" in part.name or "-glove-" in part.name:
 				part.hide()
-	for kind in ["knife", "he_grenade", "flash_grenade", "smoke_grenade"]:
+	for kind in ["knife", "he_grenade", "flash_grenade", "smoke_grenade", "fire_grenade"]:
 		var model := EquipmentVisuals.build(kind, false)
 		model.position = Vector3(0.24, -0.22, -0.43)
 		model.rotation = Vector3(-0.15, -0.3, -0.35)
@@ -71,7 +75,7 @@ func _ready() -> void:
 		model.reparent(hands.right, false)
 		model.position -= Vector3(0.24, -0.29, -0.38)
 		_magazine_parts.append_array(model.find_children("*magazine*", "MeshInstance3D", true, false))
-	for kind in ["rifle", "pistol", "knife", "c4"]:
+	for kind in ["rifle", "pistol", "knife", "c4", "fire_grenade"]:
 		var original: Node3D = rifle_model if kind == "rifle" else (pistol_model if kind == "pistol" else equipment_models[kind])
 		_fallback_models[kind] = original.duplicate()
 	set_weapon_slot(0, false)
@@ -89,11 +93,14 @@ func _refresh_official_equipment() -> void:
 	if hands == null or _official_team == GameState.player_team:
 		return
 	_official_team = GameState.player_team
-	for kind in ["rifle", "pistol", "knife", "c4"]:
-		var next := Official.build(kind, _official_team)
+	for kind in ["rifle", "pistol", "knife", "c4", "fire_grenade"]:
+		var requested: String = _primary_weapon_id if kind == "rifle" else String(kind)
+		var next := Official.build(requested, _official_team)
+		if kind == "rifle" and _primary_weapon_id != "rifle" and next == null:
+			next = WeaponVisuals.build(_primary_weapon_id, _official_team)
 		var previous: Node3D = rifle_model if kind == "rifle" else (pistol_model if kind == "pistol" else equipment_models[kind])
 		if next == null:
-			if not previous.has_meta("official_cs"):
+			if not previous.has_meta("official_cs") and not previous.has_meta("prototype_weapon"):
 				continue
 			next = _fallback_models[kind].duplicate() as Node3D
 		if kind == "rifle" and next.has_meta("official_cs"):
@@ -114,6 +121,14 @@ func _refresh_official_equipment() -> void:
 	for model in [rifle_model, pistol_model]:
 		if not model.has_meta("official_cs"):
 			_magazine_parts.append_array(model.find_children("*magazine*", "MeshInstance3D", true, false))
+
+func set_weapon_identity(weapon_id: String) -> void:
+	if weapon_id == "pistol":
+		return
+	if weapon_id in ["rifle", "sniper", "smg", "shotgun"] and weapon_id != _primary_weapon_id:
+		_primary_weapon_id = weapon_id
+		_official_team = ""
+		_refresh_official_equipment()
 
 func _process(delta: float) -> void:
 	_refresh_official_equipment()

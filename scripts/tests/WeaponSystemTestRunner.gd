@@ -7,6 +7,7 @@ const TEST_PLAYER_SCENE = preload("res://scenes/tests/support/TestPlayerStub.tsc
 const TARGET_DUMMY_SCENE = preload("res://scenes/combat/TargetDummy.tscn")
 const COMBAT_HUD_SCENE = preload("res://scenes/ui/CombatHud.tscn")
 const TRAINING_TELEMETRY = preload("res://scripts/training/TrainingTelemetry.gd")
+const ExpandedWeapons = preload("res://scripts/tests/ExpandedWeaponFixtures.gd")
 
 var _failures: PackedStringArray = []
 var _passes: int = 0
@@ -25,6 +26,8 @@ func _ready() -> void:
 	get_tree().quit(1)
 
 func _run_all_tests() -> void:
+	await _run_test("new_primary_scope_pellets_and_pickup", _test_expanded_weapons)
+	await _run_test("fire_wall_damage_and_pause", _test_fire)
 	await _run_test("configure_default_loadout_syncs_snapshot", _test_configure_default_loadout_syncs_snapshot)
 	await _run_test("pistol_hold_without_press_does_not_fire", _test_pistol_hold_without_press_does_not_fire)
 	await _run_test("pistol_press_fires_once_then_requires_release", _test_pistol_press_fires_once_then_requires_release)
@@ -45,6 +48,12 @@ func _run_all_tests() -> void:
 	await _run_test("weapon_drop_and_pickup_preserve_ammo", _test_weapon_drop_and_pickup_preserve_ammo)
 	await _run_test("invalid_profile_does_not_shift_runtime_slots", _test_invalid_profile_does_not_shift_runtime_slots)
 	await _run_test("training_telemetry_tracks_shots_and_grenades", _test_training_telemetry_tracks_shots_and_grenades)
+
+func _test_expanded_weapons(fixture: Dictionary) -> void:
+	await ExpandedWeapons.weapons(self, fixture)
+
+func _test_fire(fixture: Dictionary) -> void:
+	await ExpandedWeapons.fire_barrier(self, fixture)
 
 func _run_test(test_name: String, callable: Callable) -> void:
 	var failed_before: int = _failures.size()

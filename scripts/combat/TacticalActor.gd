@@ -132,6 +132,8 @@ func configure_from_record(record: Dictionary) -> void:
 func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, armor_penetration: float = 1.0, penetrated: bool = false, source_team: String = "", source_position: Vector3 = Vector3.INF) -> Dictionary:
 	if is_dead:
 		return {"hit": false, "killed": false, "target_team": team}
+	if not CombatEvents.allows_damage(self, source_team):
+		return {"hit": false, "killed": false, "friendly_blocked": true, "target_team": team}
 	var resolved_position := global_position if hit_position == Vector3.ZERO else hit_position
 	var local_hit := to_local(resolved_position)
 	if ai_crouching:
@@ -159,13 +161,13 @@ func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, arm
 	else:
 		_hit_flash_time = 0.10
 		_material.albedo_color = Color(1.0, 0.72, 0.22)
-	return {
+	return CombatEvents.finish_damage(self, {
 		"hit": true, "killed": killed, "target_name": display_name, "target_team": team,
 		"hit_group": hit_group, "headshot": bool(resolved.headshot), "armored": bool(resolved.armored),
 		"helmet": has_helmet, "penetrated": penetrated, "damage": health_damage,
 		"armor_damage": armor_damage, "remaining_armor": current_armor,
 		"remaining_health": current_health, "position": resolved_position,
-	}
+	})
 
 func get_combat_snapshot() -> Dictionary:
 	var snapshot := {
@@ -179,10 +181,12 @@ func get_combat_snapshot() -> Dictionary:
 	}
 	if bot_brain != null:
 		snapshot["ai"] = bot_brain.call("get_snapshot")
+		snapshot["weapon"] = snapshot.ai.get("weapon_id", equipped_weapon_id)
 		snapshot["objective"] = bot_brain.call("get_objective_snapshot")
 	return snapshot
 
 func reset_actor() -> void:
+	CombatEvents.forget_actor(self)
 	global_position = spawn_position
 	rotation.y = spawn_yaw
 	velocity = Vector3.ZERO
@@ -203,7 +207,7 @@ func reset_actor() -> void:
 func _drop_ai_weapon() -> void:
 	if bot_brain == null or get_tree() == null or get_tree().current_scene == null:
 		return
-	var record := bot_brain.call("get_weapon_pickup_record") as Dictionary
+	var record := bot_brain.call("get_weapon_pickup_record", true) as Dictionary
 	if record.is_empty():
 		return
 	var pickup := WorldWeaponPickup.new()
@@ -235,6 +239,11 @@ func emit_ai_spot(world_position: Vector3, enemy_team: String) -> void:
 	ai_spot.emit(world_position, enemy_team)
 
 func emit_ai_shot(result: Dictionary, world_position: Vector3) -> void:
+	for damage in result.get("damage_events", [result.get("damage_result", {})]):
+		if bool(damage.get("killed", false)) and String(damage.get("target_team", "")) != team:
+			var id := String(result.get("weapon_id", bot_brain.get("_current_weapon_id")))
+			var reward := int(preload("res://scripts/combat/WeaponCatalog.gd").KILL_REWARDS.get(id, 300))
+			bot_brain.set("ai_money", mini(16000, int(bot_brain.get("ai_money")) + reward))
 	ai_shot.emit(result, world_position)
 
 func ai_motion_blocked(motion: Vector3) -> bool:
