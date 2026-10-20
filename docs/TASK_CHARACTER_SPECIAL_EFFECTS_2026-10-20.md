@@ -1,3 +1,5 @@
+> 2026-10-20 整合更新：PR #49–#55 已全部合并 main（4bd98c1）。以下保留各片交付时证据；旧包已清理，当前唯一包、PR 状态和待修项以 [项目状态](PROJECT_STATUS.md) 与 [当前待修项](CURRENT_PENDING.md) 为准。
+
 # 角色专用效果续修进展
 
 分支 `fix/character-special-effects-20261020`，基线 `74f353f1c489e3ee8ca9f316e2693bd6f438f870`。提交、独立包、哈希及验证收据见私有证据目录 `delivery.json`；未取得当前头 CI、独立复审或合并，不声明全部角色修复完成。保留原有四个 `.import` 改动，不纳入本片。
