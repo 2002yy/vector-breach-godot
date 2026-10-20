@@ -1,5 +1,7 @@
 # 远距对比度：数值规则与后照明原型
 
+本文件为 #56 原型记录；后续输入接入与六角色诊断见 [续片记录](TASK_CHARACTER_CONTRAST_INPUTS_2026-10-20.md)，当前能力以 [项目状态](PROJECT_STATUS.md) 为准。
+
 基线 main `4bd98c12ec11ff177352d0aad6b98842ebc2c5ba`，分支 `feat/character-distance-contrast-20261020`。本片继续角色优先级，不把远距提亮写入 ALBEDO，也未将原型默认接入游戏或覆盖唯一已验试玩包。
 
 ## 已开发

@@ -163,6 +163,39 @@ func _stage_checks() -> void:
 	pass_material.set_shader_parameter("inputs_ready", true)
 	var far := await _capture("stage-far-enabled")
 	_check(baseline, far, "far correction reads already lit color", true)
+	pass_material.set_shader_parameter("irradiance_away", Vector3.ONE * 0.25)
+	var flat_irradiance := await _capture("stage-direction-flat")
+	pass_material.set_shader_parameter("use_directional_sh1", true)
+	for channel in ["irradiance_sh_r", "irradiance_sh_g", "irradiance_sh_b"]:
+		# Camera looks along -Z: away=.25, toward=0 across this distant quad.
+		pass_material.set_shader_parameter(channel, Vector4(0, 0, -0.125, 0.125))
+	_check(
+		flat_irradiance,
+		await _capture("stage-direction-sh1"),
+		"SH1 matches independently supplied two-direction irradiance",
+		false
+	)
+	pass_material.set_shader_parameter("use_directional_sh1", false)
+	pass_material.set_shader_parameter("irradiance_away", Vector3.ZERO)
+	var texture_image := Image.create(2, 2, false, Image.FORMAT_RGBA8)
+	texture_image.fill(Color.BLACK)
+	pass_material.set_shader_parameter(
+		"surface_texture", ImageTexture.create_from_image(texture_image)
+	)
+	pass_material.set_shader_parameter("use_surface_texture", true)
+	var textured_black := await _capture("stage-textured-black")
+	pass_material.set_shader_parameter("use_surface_texture", false)
+	pass_material.set_shader_parameter("surface_albedo", Vector3.ZERO)
+	_check(
+		textured_black,
+		await _capture("stage-flat-black"),
+		"source-color texture participates in surface albedo",
+		false
+	)
+	_check(
+		far, textured_black, "texture changes response rather than using a constant albedo", true
+	)
+	pass_material.set_shader_parameter("surface_albedo", Vector3.ONE * 0.5)
 	light.light_energy = 0.0
 	base.next_pass = null
 	var unlit := await _capture("stage-no-light-baseline")
