@@ -17,6 +17,9 @@ FEATURES = {
     "F_CLOTH_SHADING": ["g_tMetalness"],
     "F_SUBSURFACE_SCATTERING": ["g_tSssMask", "g_tDiffuseFalloff"],
     "F_ANISOTROPIC_GLOSS": ["g_tAnisoGloss"],
+    "F_RETRO_REFLECTIVE": ["g_tMetalness"],
+    "F_ANISOTROPIC_HAIR": ["g_tSssMask", "g_tAnisoGloss"],
+    "F_EYEBALLS": ["g_tEyeAlbedo1", "g_tEyeMask1"],
 }
 
 
@@ -56,12 +59,19 @@ def collect(data):
     return materials
 
 
-def install(asset_root, project, resources, decoder, work):
+def install(asset_root, project, resources, decoder, work, profile="base"):
     asset_root, project = asset_root.resolve(), project.resolve()
     if not asset_root.is_relative_to(project / "assets/local_reference"):
         raise ValueError("Expected private installed asset directory")
-    output = asset_root / "source-character-shading.json"
-    destination = asset_root / "source-character-shading"
+    stem = (
+        "source-character-special"
+        if profile in ["special", "eyes"]
+        else "source-character-shading"
+    )
+    if profile == "eyes":
+        stem = "source-character-eyes"
+    output = asset_root / (stem + ".json")
+    destination = asset_root / stem
     if work.exists() or output.exists() or destination.exists():
         raise FileExistsError("Preserve previous source contracts and decoded channels")
     data = json.loads(
@@ -140,7 +150,7 @@ def install(asset_root, project, resources, decoder, work):
         entries.append(
             {
                 "name": material["name"],
-                "render_contract": "source-character-direct-v1",
+                "render_contract": "source-character-direct-v2",
                 "native_material": native,
                 "textures": bindings,
                 "pending_features": remaining,
@@ -159,7 +169,8 @@ def install(asset_root, project, resources, decoder, work):
             "Godot environment BRDF differs from Source 2",
             "skin diffuse soft normal uses geometric normal",
             "spherical tangents use the converted model frame; native bone-space equivalence requires further reference validation",
-            "eyes/hair-specific lobes and distance contrast remain pending",
+            "hair environment lobe and distance contrast remain pending",
+            "eyes require independently calibrated model bone bindings",
         ],
     }
     output.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
@@ -172,6 +183,9 @@ def main():
     parser.add_argument("--resources", type=Path, required=True)
     parser.add_argument("--decoder", type=Path, required=True)
     parser.add_argument("--work", type=Path, required=True)
+    parser.add_argument(
+        "--profile", choices=["base", "special", "eyes"], default="base"
+    )
     args = parser.parse_args()
     result = install(
         args.asset_root,
@@ -179,6 +193,7 @@ def main():
         args.resources,
         args.decoder,
         args.work,
+        args.profile,
     )
     print(
         "SOURCE_CHARACTER_CHANNELS_OK",

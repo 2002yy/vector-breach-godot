@@ -6,14 +6,34 @@ static var _manifests: Dictionary = {}
 
 static func apply(root: Node, scene_path: String) -> int:
 	var path := scene_path.get_base_dir().path_join("source-character-shading.json")
+	var special_path := scene_path.get_base_dir().path_join("source-character-special.json")
+	var eyes_path := scene_path.get_base_dir().path_join("source-character-eyes.json")
+	if FileAccess.file_exists(special_path):
+		path = special_path
+	if FileAccess.file_exists(eyes_path):
+		path = eyes_path
 	if not _manifests.has(path):
 		_manifests[path] = _load_manifest(path)
 	var entries: Dictionary = _manifests[path]
 	root.set_meta("source_character_shading_surfaces", 0)
 	if entries.is_empty() or DisplayServer.get_name() == "headless":
 		return 0
-	root.set_meta("source_character_shading_contract", "source-character-direct-v1")
+	root.set_meta(
+		"source_character_shading_contract",
+		(
+			"source-character-direct-v2"
+			if path in [special_path, eyes_path]
+			else "source-character-direct-v1"
+		)
+	)
 	var count := _apply_recursive(root, entries, {})
+	if path == eyes_path and not root.has_meta("source_eye_controller"):
+		var controller := preload("res://scripts/characters/SourceCharacterEyes.gd").new()
+		if controller.configure(root, scene_path):
+			root.add_child(controller)
+			root.set_meta("source_eye_controller", true)
+		else:
+			controller.free()
 	root.set_meta("source_character_shading_surfaces", count)
 	return count
 
@@ -26,7 +46,13 @@ static func _load_manifest(path: String) -> Dictionary:
 		return {}
 	var entries := {}
 	for entry in data.get("materials", []):
-		if not entry is Dictionary or entry.get("render_contract") != "source-character-direct-v1":
+		if (
+			not entry is Dictionary
+			or (
+				entry.get("render_contract")
+				not in ["source-character-direct-v1", "source-character-direct-v2"]
+			)
+		):
 			continue
 		var native: Dictionary = entry.get("native_material", {})
 		if native.get("ShaderName") != "csgo_character.vfx":
@@ -37,9 +63,14 @@ static func _load_manifest(path: String) -> Dictionary:
 		var required := {
 			"F_CLOTH_SHADING": ["g_tMetalness"],
 			"F_SUBSURFACE_SCATTERING": ["g_tSssMask", "g_tDiffuseFalloff"],
-			"F_ANISOTROPIC_GLOSS": ["g_tAnisoGloss"]
+			"F_ANISOTROPIC_GLOSS": ["g_tAnisoGloss"],
+			"F_RETRO_REFLECTIVE": ["g_tMetalness"],
+			"F_ANISOTROPIC_HAIR": ["g_tSssMask", "g_tAnisoGloss"],
+			"F_EYEBALLS": ["g_tEyeAlbedo1", "g_tEyeMask1"]
 		}
 		for flag in required:
+			if flag == "F_EYEBALLS" and not path.ends_with("source-character-eyes.json"):
+				continue
 			if native.get("IntParams", {}).get(flag, 0) == 1:
 				for binding in required[flag]:
 					complete = complete and entry.get("textures", {}).has(binding)
@@ -141,6 +172,35 @@ static func _material(original: StandardMaterial3D, entry: Dictionary) -> Shader
 				"g_tDiffuseFalloff": "skin_falloff"
 			}[binding]
 			result.set_shader_parameter(uniform_name, textures[binding])
+	if textures.has("g_tMetalness"):
+		result.set_shader_parameter("retro_texture", textures["g_tMetalness"])
+	# Eye shading stays disabled until validated per-model bone calibration is bound.
+	for binding in {"g_tEyeAlbedo1": "eye_albedo", "g_tEyeMask1": "eye_mask_texture"}:
+		if textures.has(binding):
+			result.set_shader_parameter(
+				"eye_albedo" if binding == "g_tEyeAlbedo1" else "eye_mask_texture",
+				textures[binding]
+			)
+	var eye_parameters := {
+		"hue": "HueShift", "iris": "IrisSize", "pupil": "PupilSize", "saturation": "Saturation"
+	}
+	for parameter in eye_parameters:
+		result.set_shader_parameter(
+			"eye_" + parameter,
+			float(
+				floats.get(
+					"g_flEye" + eye_parameters[parameter] + "1",
+					1.0 if parameter in ["iris", "saturation"] else 0.0
+				)
+			)
+		)
+	result.set_shader_parameter("enable_retro", flags.get("F_RETRO_REFLECTIVE", 0) == 1)
+	result.set_shader_parameter("enable_hair", flags.get("F_ANISOTROPIC_HAIR", 0) == 1)
+	result.set_shader_parameter(
+		"hair_roughness_scale", float(floats.get("g_flHairGlossRoughnessScale", 1.25))
+	)
+	result.set_shader_parameter("hair_shift", float(floats.get("g_flHairGlossShift", 0.3)))
+	result.set_shader_parameter("hair_transmission", float(floats.get("g_flHairTransmission", 0.3)))
 	result.set_shader_parameter("enable_cloth", flags.get("F_CLOTH_SHADING", 0) == 1)
 	result.set_shader_parameter("enable_skin", flags.get("F_SUBSURFACE_SCATTERING", 0) == 1)
 	result.set_shader_parameter("enable_aniso", flags.get("F_ANISOTROPIC_GLOSS", 0) == 1)
@@ -155,9 +215,10 @@ static func _material(original: StandardMaterial3D, entry: Dictionary) -> Shader
 	result.set_shader_parameter(
 		"spherical_aniso", flags.get("F_SPHERICAL_PROJECTED_ANISOTROPIC_TANGENTS", 0) == 1
 	)
-	# Official Source Z-up -> normalized, turned body -> exported Godot Y-up.
+	# Verified against 86 native/converted bind-pose bones (max residual 4 um).
+	# Source +X -> game -Z, Source +Y -> game -X, Source +Z -> game +Y.
 	var pole := _vector(vectors.get("g_vSphericalAnisotropyPole", [0, 0, 1]))
-	result.set_shader_parameter("aniso_pole", Vector3(-pole.x, pole.z, pole.y))
+	result.set_shader_parameter("aniso_pole", Vector3(-pole.y, pole.z, -pole.x))
 	result.set_shader_parameter(
 		"aniso_angle", float(floats.get("g_vSphericalAnisotropyAngle", 0.0))
 	)

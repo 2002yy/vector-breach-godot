@@ -23,10 +23,19 @@ static func test_native_character_channels_preserve_pbr_and_geometry(host: Node)
 			"F_CLOTH_SHADING": 1,
 			"F_SUBSURFACE_SCATTERING": 1,
 			"F_ANISOTROPIC_GLOSS": 1,
+			"F_RETRO_REFLECTIVE": 1,
+			"F_ANISOTROPIC_HAIR": 1,
 			"F_SPHERICAL_PROJECTED_ANISOTROPIC_TANGENTS": 1
 		},
 		"FloatParams":
-		{"g_flSheenScale": 0.8, "g_flCurvatureScale": 2.0, "g_vSphericalAnisotropyAngle": 90.0},
+		{
+			"g_flSheenScale": 0.8,
+			"g_flCurvatureScale": 2.0,
+			"g_vSphericalAnisotropyAngle": 90.0,
+			"g_flHairGlossRoughnessScale": 1.1,
+			"g_flHairGlossShift": 0.201,
+			"g_flHairTransmission": 0.355
+		},
 		"VectorParams": {"g_vSphericalAnisotropyPole": [1, 0, 1, 0]}
 	}
 	var entry := {
@@ -61,6 +70,8 @@ static func test_native_character_channels_preserve_pbr_and_geometry(host: Node)
 			and repaired.get_shader_parameter("enable_cloth")
 			and repaired.get_shader_parameter("enable_skin")
 			and repaired.get_shader_parameter("enable_aniso")
+			and repaired.get_shader_parameter("enable_retro")
+			and repaired.get_shader_parameter("enable_hair")
 		),
 		"all source feature flags are consumed"
 	)
@@ -70,6 +81,7 @@ static func test_native_character_channels_preserve_pbr_and_geometry(host: Node)
 			repaired.get_shader_parameter("cloth_texture") == texture
 			and repaired.get_shader_parameter("skin_texture") == texture
 			and repaired.get_shader_parameter("aniso_texture") == texture
+			and repaired.get_shader_parameter("retro_texture") == texture
 		),
 		"native packed masks are actually bound, rather than inferred from albedo"
 	)
@@ -89,7 +101,10 @@ static func test_native_character_channels_preserve_pbr_and_geometry(host: Node)
 		(
 			is_equal_approx(repaired.get_shader_parameter("sheen_scale"), 0.8)
 			and is_equal_approx(repaired.get_shader_parameter("curvature_scale"), 2.0)
-			and repaired.get_shader_parameter("aniso_pole") == Vector3(-1, 1, 0)
+			and is_equal_approx(repaired.get_shader_parameter("hair_roughness_scale"), 1.1)
+			and is_equal_approx(repaired.get_shader_parameter("hair_shift"), 0.201)
+			and is_equal_approx(repaired.get_shader_parameter("hair_transmission"), 0.355)
+			and repaired.get_shader_parameter("aniso_pole") == Vector3(0, 1, -1)
 		),
 		"native scale and Source Z-up pole are mapped into the exported body frame"
 	)

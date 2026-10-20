@@ -81,15 +81,154 @@ func _ready() -> void:
 	_material.set_shader_parameter("feature_weight", 0.0)
 	var disabled := await _capture("features-disabled")
 	_check_difference(baseline, disabled, "zero feature weight restores baseline", false)
+	_material.set_shader_parameter("enable_aniso", false)
+	_material.set_shader_parameter("feature_weight", 1.0)
+	_material.set_shader_parameter("enable_retro", true)
+	_material.set_shader_parameter("retro_texture", _texture(Color(1, 0, 0, 1)))
+	var retro := await _capture("retro-red")
+	_check_difference(baseline, retro, "native red mask changes retroreflection", true)
+	_material.set_shader_parameter("retro_texture", _texture(Color(0, 1, 1, 1)))
+	var no_retro := await _capture("retro-green-blue")
+	_check_difference(baseline, no_retro, "green and blue cannot enable retroreflection", false)
+	_material.set_shader_parameter("retro_texture", _texture(Color(1, 0, 0, 1)))
+	_material.set_shader_parameter("feature_weight", 0.0)
+	_check_difference(
+		baseline, await _capture("retro-disabled"), "zero weight disables retroreflection", false
+	)
+	_material.set_shader_parameter("feature_weight", 1.0)
+	light.light_energy = 0.0
+	var dark_retro := await _capture("retro-without-light")
+	_material.set_shader_parameter("enable_retro", false)
+	_check_difference(
+		dark_retro,
+		await _capture("baseline-without-light"),
+		"retroreflection does not emit light",
+		false
+	)
+	light.light_energy = 1.0
+	_material.set_shader_parameter("enable_hair", true)
+	_material.set_shader_parameter("skin_texture", _texture(Color(1, 0, 0, 1)))
+	_material.set_shader_parameter("hair_transmission", 1.0)
+	_material.set_shader_parameter("hair_roughness_scale", 1.6)
+	_material.set_shader_parameter("hair_shift", 0.35)
+	var hair := await _capture("hair-red")
+	_check_difference(baseline, hair, "red SSS mask enables the native hair lobe", true)
+	_material.set_shader_parameter("skin_texture", _texture(Color(0, 1, 1, 1)))
+	_check_difference(
+		baseline, await _capture("hair-green-blue"), "skin green and blue cannot enable hair", false
+	)
+	_material.set_shader_parameter("skin_texture", _texture(Color(1, 0, 0, 1)))
+	_material.set_shader_parameter("hair_shift", 0.0)
+	var unshifted := await _capture("hair-unshifted")
+	_check_difference(hair, unshifted, "hair shift moves the secondary highlight", true)
+	_material.set_shader_parameter("hair_roughness_scale", 1.0)
+	_check_difference(
+		unshifted,
+		await _capture("hair-scale-one"),
+		"hair roughness scale changes the secondary lobe",
+		true
+	)
+	var hair_full := await _capture("hair-transmission-one")
+	_material.set_shader_parameter("hair_transmission", 0.0)
+	_check_difference(
+		hair_full,
+		await _capture("hair-transmission-zero"),
+		"hair transmission weights the secondary lobe",
+		true
+	)
+	_material.set_shader_parameter("feature_weight", 0.0)
+	_check_difference(
+		baseline, await _capture("hair-disabled"), "zero weight disables hair shading", false
+	)
+	_material.set_shader_parameter("enable_hair", false)
+	_material.set_shader_parameter("feature_weight", 1.0)
+	camera.projection = Camera3D.PROJECTION_PERSPECTIVE
+	camera.fov = 44
+	var eye_baseline := await _capture("eye-baseline")
+	_material.set_shader_parameter("eye_left_center", Vector3.ZERO)
+	_material.set_shader_parameter("eye_right_center", Vector3(100, 0, 0))
+	_material.set_shader_parameter("eye_left_forward", Vector3.BACK)
+	_material.set_shader_parameter("eye_radius", 0.8)
+	_material.set_shader_parameter("eye_mask_texture", _texture(Color(1, 0, 0, 1)))
+	_material.set_shader_parameter("eye_albedo", _eye_texture())
+	_material.set_shader_parameter("enable_eyes", true)
+	var eyes := await _capture("eye-red")
+	_check_difference(eye_baseline, eyes, "native eye sphere projects iris through red mask", true)
+	_material.set_shader_parameter("eye_mask_texture", _texture(Color(0, 1, 1, 1)))
+	_check_difference(
+		eye_baseline,
+		await _capture("eye-green-blue"),
+		"eye mask green/blue do not replace skin",
+		false
+	)
+	_material.set_shader_parameter("eye_mask_texture", _texture(Color(1, 0, 0, 1)))
+	_material.set_shader_parameter("eye_radius", 0.0)
+	_check_difference(
+		eye_baseline, await _capture("eye-zero-radius"), "zero eye radius fails safely", false
+	)
+	_material.set_shader_parameter("eye_radius", 0.8)
+	_material.set_shader_parameter("eye_pupil", 0.5)
+	_check_difference(
+		eyes, await _capture("eye-large-pupil"), "native pupil size changes pupil extent", true
+	)
+	_material.set_shader_parameter("eye_pupil", 0.15)
+	_material.set_shader_parameter("eye_iris", 1.7)
+	_check_difference(
+		eyes, await _capture("eye-large-iris"), "native iris size changes radial sampling", true
+	)
+	_material.set_shader_parameter("eye_iris", 1.0)
+	_material.set_shader_parameter("eye_hue", 1.8)
+	_check_difference(eyes, await _capture("eye-hue"), "iris alpha gates native hue rotation", true)
+	_material.set_shader_parameter("eye_hue", 0.0)
+	_material.set_shader_parameter("eye_saturation", 0.0)
+	_check_difference(
+		eyes, await _capture("eye-desaturated"), "native saturation affects iris", true
+	)
+	_material.set_shader_parameter("eye_saturation", 1.0)
+	_material.set_shader_parameter("feature_weight", 0.0)
+	_check_difference(
+		eye_baseline,
+		await _capture("eye-disabled"),
+		"zero weight restores original eye surface",
+		false
+	)
+	_material.set_shader_parameter("feature_weight", 1.0)
+	_material.set_shader_parameter("eye_albedo", _texture(Color(0.8, 0.2, 0.05, 0)))
+	var no_iris_alpha := await _capture("eye-no-iris-alpha")
+	_material.set_shader_parameter("eye_hue", 1.8)
+	_material.set_shader_parameter("eye_saturation", 0.0)
+	_check_difference(
+		no_iris_alpha,
+		await _capture("eye-sclera-unchanged"),
+		"zero iris alpha protects sclera from hue and saturation",
+		false
+	)
+	_material.set_shader_parameter("eye_left_center", Vector3(100, 0, 0))
+	_check_difference(
+		eye_baseline,
+		await _capture("eye-ray-miss"),
+		"ray missing both eye spheres preserves base surface",
+		false
+	)
 	var file := FileAccess.open(_out.path_join("pixel-checks.json"), FileAccess.WRITE)
 	file.store_string(JSON.stringify(_records, "\t"))
-	print("CHARACTER_SHADING_GPU_OK checks=7")
+	print("CHARACTER_SHADING_GPU_OK checks=", _records.size())
 	get_tree().quit()
 
 
 func _texture(color: Color) -> Texture2D:
 	var image := Image.create(4, 4, false, Image.FORMAT_RGBA8)
 	image.fill(color)
+	return ImageTexture.create_from_image(image)
+
+
+func _eye_texture() -> Texture2D:
+	var image := Image.create(128, 128, true, Image.FORMAT_RGBA8)
+	for y in range(128):
+		for x in range(128):
+			var radial := Vector2(x - 63.5, y - 63.5).length() / 64.0
+			image.set_pixel(x, y, Color(0.8 * radial, 0.2, 0.05, 1.0))
+	image.generate_mipmaps()
 	return ImageTexture.create_from_image(image)
 
 
