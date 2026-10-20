@@ -1,5 +1,7 @@
 # 矢量突袭：启动、操作与地图档案
 
+当前追加候选（2026-10-20）：`D:/AgentGamePipeline/builds/VectorBreach-combat-events-20261020/VectorBreach.exe`，需保留整个构建目录。桌面入口以本片交付收据为准。右上真实击杀条目与左下队伍消息已分开；设置可开启“允许队友伤害”，默认关闭，局内修改下回合生效。关闭时队友仍挡枪，自伤与闪光另按原规则处理；开启后子弹、刀、爆炸、燃烧均可伤及队友。友杀有警告且不发正常击杀奖励。验证与边界见 [本片记录](TASK_COMBAT_EVENTS_FRIENDLY_FIRE_2026-10-20.md)。以下旧包地址属于历史记录。
+
 更新：2026-10-19。项目状态以 [PROJECT_STATUS.md](PROJECT_STATUS.md) 为准。本批四项能力与验收边界见 [本批记录](TASK_MATCH_AI_ECONOMY_SPECTATOR_UI_2026-10-19.md)。
 
 本批试玩包位于 `C:/Users/Zhang/Documents/VectorBreach-builds/VectorBreach-match-systems-20261019/VectorBreach.exe`，桌面“启动当前游戏.cmd”已指向此包；验证与剩余限制见任务交付收据；需保留同目录 PCK 和 assets。炼狱小镇 Inferno、荒漠迷城 Mirage 两张 5v5 图已接入官方原始贴图，菜单按实际安装版本标注。Inferno 使用遮挡剔除与 60 米/两级太阳阴影，改善帧率；游戏设置分别选择两方外观，第一人称使用对应袖子与手套；暂停后点击“结束当前对局，返回选图”可换地图。旧包仍保留在 `VectorBreach-classic-maps-20261016`。

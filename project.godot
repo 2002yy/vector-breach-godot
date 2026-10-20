@@ -20,6 +20,7 @@ config/features=PackedStringArray("4.7")
 GameState="*res://scripts/autoload/GameState.gd"
 RoundManager="*res://scripts/round/RoundManager.gd"
 UserSettings="*res://scripts/autoload/UserSettings.gd"
+CombatEvents="*res://scripts/autoload/CombatEvents.gd"
 
 [editor_plugins]
 

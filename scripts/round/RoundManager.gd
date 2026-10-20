@@ -74,6 +74,7 @@ func player_ready() -> bool:
 
 func start_round(duration: float = 115.0) -> void:
 	round_serial += 1
+	CombatEvents.begin_round()
 	_restart_emitted = false
 	round_duration = maxf(1.0, duration)
 	time_remaining = freeze_duration

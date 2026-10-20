@@ -8,6 +8,7 @@ var _team := ""
 var _source_name := ""
 var _player_source := false
 var _flames: Array[MeshInstance3D] = []
+var _attribution: Dictionary = {}
 
 
 func configure(
@@ -26,6 +27,10 @@ func configure(
 	if not attribution.is_empty():
 		_player_source = bool(attribution.get("player", false))
 		_source_name = String(attribution.get("name", "AI"))
+	_attribution = CombatEvents.actor_source(source, "fire_grenade", "fire")
+	_attribution.merge(attribution, true)
+	_attribution["weapon_id"] = "fire_grenade"
+	_attribution["kind"] = "fire"
 	global_position = at
 	add_to_group("grenade_projectiles")
 	add_to_group("fire_areas")
@@ -95,21 +100,22 @@ func apply_damage_tick() -> void:
 			continue
 		var result: Dictionary
 		if candidate.is_in_group("local_player"):
-			result = candidate.call("apply_explosive_damage", 5, 1.0)
+			result = CombatEvents.apply_damage(candidate, "apply_explosive_damage", [5, 1.0], _attribution)
 			result["target_name"] = "你"
 			result["target_team"] = GameState.player_team
 		else:
-			result = candidate.call(
-				"apply_hitscan_damage",
+			result = CombatEvents.apply_damage(candidate, "apply_hitscan_damage", [
 				5,
 				candidate.global_position,
 				1.0,
 				false,
 				_team,
 				global_position
-			)
+			], _attribution)
 		var source: CharacterBody3D = _source.get_ref() if _source != null else null
-		if _player_source:
+		if not bool(result.get("hit", false)):
+			continue
+		if _player_source and not bool(result.get("self_damage", false)):
 			GameState.register_hit(
 				bool(result.get("killed", false)),
 				"fire_grenade",

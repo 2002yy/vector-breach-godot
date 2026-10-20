@@ -132,6 +132,8 @@ func configure_from_record(record: Dictionary) -> void:
 func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, armor_penetration: float = 1.0, penetrated: bool = false, source_team: String = "", source_position: Vector3 = Vector3.INF) -> Dictionary:
 	if is_dead:
 		return {"hit": false, "killed": false, "target_team": team}
+	if not CombatEvents.allows_damage(self, source_team):
+		return {"hit": false, "killed": false, "friendly_blocked": true, "target_team": team}
 	var resolved_position := global_position if hit_position == Vector3.ZERO else hit_position
 	var local_hit := to_local(resolved_position)
 	if ai_crouching:
@@ -159,13 +161,13 @@ func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, arm
 	else:
 		_hit_flash_time = 0.10
 		_material.albedo_color = Color(1.0, 0.72, 0.22)
-	return {
+	return CombatEvents.finish_damage(self, {
 		"hit": true, "killed": killed, "target_name": display_name, "target_team": team,
 		"hit_group": hit_group, "headshot": bool(resolved.headshot), "armored": bool(resolved.armored),
 		"helmet": has_helmet, "penetrated": penetrated, "damage": health_damage,
 		"armor_damage": armor_damage, "remaining_armor": current_armor,
 		"remaining_health": current_health, "position": resolved_position,
-	}
+	})
 
 func get_combat_snapshot() -> Dictionary:
 	var snapshot := {
@@ -184,6 +186,7 @@ func get_combat_snapshot() -> Dictionary:
 	return snapshot
 
 func reset_actor() -> void:
+	CombatEvents.forget_actor(self)
 	global_position = spawn_position
 	rotation.y = spawn_yaw
 	velocity = Vector3.ZERO

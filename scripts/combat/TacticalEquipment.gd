@@ -120,21 +120,36 @@ func _queue_use(player: CharacterBody3D, kind: String, contact: float, cooldown:
 func _knife_attack(player: CharacterBody3D, heavy: bool = false) -> Dictionary:
 	var camera := player.call("get_camera_node") as Camera3D
 	var reach := 1.85 if heavy else 2.15
-	var query := PhysicsRayQueryParameters3D.create(camera.global_position, camera.global_position - camera.global_transform.basis.z * reach)
+	var query := PhysicsRayQueryParameters3D.create(
+		camera.global_position, camera.global_position - camera.global_transform.basis.z * reach
+	)
 	query.exclude = [player.get_rid()]
 	var hit := camera.get_world_3d().direct_space_state.intersect_ray(query)
 	var collider: Variant = hit.get("collider", null)
 	if not hit.is_empty() and collider != null and collider.has_method("apply_hitscan_damage"):
-		if collider.is_in_group("combat_actors") and String(collider.get("team")) == GameState.player_team:
-			return {"hit": false}
 		var backstab := MeleeRules.is_backstab(player, collider)
-		var result := collider.call("apply_hitscan_damage", MeleeRules.damage(65 if heavy else 40, player, collider), hit.get("position", Vector3.ZERO), 1.0, false, GameState.player_team, camera.global_position) as Dictionary
+		var result := CombatEvents.apply_damage(
+			collider,
+			"apply_hitscan_damage",
+			[
+				MeleeRules.damage(65 if heavy else 40, player, collider),
+				hit.get("position", Vector3.ZERO),
+				1.0,
+				false,
+				GameState.player_team,
+				camera.global_position
+			],
+			CombatEvents.actor_source(player, "knife", "melee")
+		)
 		result["backstab"] = backstab and bool(result.get("hit", false))
 		if bool(result.get("hit", false)):
-			GameState.register_hit(bool(result.get("killed", false)), "knife", String(result.get("target_team", "")))
+			GameState.register_hit(
+				bool(result.get("killed", false)), "knife", String(result.get("target_team", ""))
+			)
 			melee_resolved.emit(result)
 		return result
 	return {"hit": false}
+
 
 func _throw_grenade(player: CharacterBody3D) -> Dictionary:
 	var count := int(grenade_counts.get(equipped, 0))

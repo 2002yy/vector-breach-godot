@@ -64,7 +64,7 @@ func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, arm
 	else:
 		_material.albedo_color = damaged_color
 
-	return {
+	return CombatEvents.finish_damage(self, {
 		"hit": true,
 		"killed": killed,
 		"target_name": display_name,
@@ -78,4 +78,4 @@ func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, arm
 		"remaining_armor": _current_armor,
 		"remaining_health": _current_health,
 		"position": hit_position
-	}
+	})

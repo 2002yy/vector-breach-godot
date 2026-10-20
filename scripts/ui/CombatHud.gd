@@ -20,6 +20,7 @@ var _frame_rate_count := 0
 var _spectator_panel: PanelContainer
 var _spectator_text: Label
 var _scope: Control
+var _messages: Node
 
 @onready var hud_root: Control = $HudRoot
 @onready var health_value: Label = $HudRoot/BottomLeft/Margin/Row/HealthText/Value
@@ -71,6 +72,10 @@ var _controls_hint: Label
 var _objective_hint: Label
 
 func _ready() -> void:
+	_messages = preload("res://scripts/ui/CombatMessageFeed.gd").new()
+	_messages.name = "CombatMessages"
+	add_child(_messages)
+	_messages.build(hud_root, kill_feed)
 	_scope = preload("res://scripts/ui/ScopeOverlay.gd").new()
 	_scope.name = "ScopeOverlay"
 	hud_root.add_child(_scope)
@@ -190,6 +195,7 @@ func show_training_panel(enabled: bool) -> void:
 	telemetry_label.visible = enabled
 
 func reset_transients() -> void:
+	_messages.clear()
 	for child in kill_feed.get_children():
 		kill_feed.remove_child(child)
 		child.queue_free()
@@ -343,39 +349,10 @@ func apply_settings(snapshot: Dictionary) -> void:
 	_dynamic_crosshair = bool(snapshot.get("dynamic_crosshair", true))
 
 func add_kill_feed(killer: String, victim: String, weapon: String) -> void:
-	var entry := Label.new()
-	entry.text = "%s   [%s]   %s" % [killer, weapon, victim]
-	entry.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	entry.add_theme_color_override("font_color", Color(0.94, 0.86, 0.62, 1.0))
-	entry.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.95))
-	entry.add_theme_constant_override("outline_size", 4)
-	entry.add_theme_font_size_override("font_size", 17)
-	kill_feed.add_child(entry)
-	var entry_id := entry.get_instance_id()
-	get_tree().create_timer(4.5).timeout.connect(func() -> void:
-		var live_entry := instance_from_id(entry_id) as Label
-		if is_instance_valid(live_entry):
-			live_entry.queue_free()
-	)
+	_messages.show_death({"killer": killer, "victim": victim, "weapon_id": weapon})
 
 func show_radio_report(caller: String, message: String) -> void:
-	for child in kill_feed.get_children():
-		if child is Label and String((child as Label).text).contains("[无线电] %s" % caller):
-			child.queue_free()
-	var entry := Label.new()
-	entry.text = "[无线电] %s：%s" % [caller, message]
-	entry.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	entry.add_theme_color_override("font_color", Color(0.48, 0.75, 0.95, 1.0))
-	entry.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.95))
-	entry.add_theme_constant_override("outline_size", 4)
-	entry.add_theme_font_size_override("font_size", 16)
-	kill_feed.add_child(entry)
-	var entry_id := entry.get_instance_id()
-	get_tree().create_timer(3.2).timeout.connect(func() -> void:
-		var live_entry := instance_from_id(entry_id) as Label
-		if is_instance_valid(live_entry):
-			live_entry.queue_free()
-	)
+	_messages.show_radio(caller, message)
 
 func set_buy_menu_visible(visible_state: bool) -> void:
 	buy_menu.visible = visible_state and _game_started and not _menu_open

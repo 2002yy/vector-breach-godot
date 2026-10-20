@@ -32,6 +32,9 @@ func show_shot_feedback(result: Dictionary) -> void:
 		return
 
 	var damage_result: Dictionary = result.get("damage_result", {}) as Dictionary
+	if bool(damage_result.get("friendly_blocked", false)):
+		_show_message("队友挡枪 · 友伤已关闭", neutral_color)
+		return
 	if damage_result.is_empty() or not bool(damage_result.get("hit", false)):
 		_show_message("\u547d\u4e2d\u5730\u5f62", neutral_color)
 		return
@@ -43,7 +46,9 @@ func show_shot_feedback(result: Dictionary) -> void:
 	marker_label.visible = true
 	_marker_timer = marker_duration
 
-	if bool(damage_result.get("backstab", false)):
+	if bool(damage_result.get("friendly_fire", false)):
+		_show_message("友军阵亡 · 注意射界" if killed else "友军受伤 · 注意射界", Color(1.0, 0.48, 0.25))
+	elif bool(damage_result.get("backstab", false)):
 		_show_message("背刺 · %d 伤害%s" % [int(damage_result.get("damage", 0)), " · 击倒" if killed else ""], kill_color)
 	elif killed:
 		_show_message("\u51fb\u5012\u76ee\u6807", kill_color)

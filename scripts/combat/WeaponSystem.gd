@@ -195,15 +195,14 @@ func _apply_damage_to_hit(
 	var falloff := pow(profile.range_modifier, distance / 10.0)
 	var penetration_scale: float = profile.penetration_damage_multiplier * depth_scale if penetrated else 1.0
 	var resolved_damage := maxi(1, int(round(float(profile.damage) * falloff * penetration_scale)))
-	var damage_result: Variant = collider.call(
-		"apply_hitscan_damage",
+	var damage_result: Variant = CombatEvents.apply_damage(collider, "apply_hitscan_damage", [
 		resolved_damage,
 		hit_result.get("position", Vector3.ZERO),
 		profile.armor_penetration,
 		penetrated,
 		GameState.player_team,
 		shot_origin
-	)
+	], CombatEvents.player_source(profile.weapon_id))
 	if typeof(damage_result) != TYPE_DICTIONARY:
 		return {}
 	var damage_dict := damage_result as Dictionary

@@ -278,18 +278,56 @@ func _on_actor_killed(_actor_name: String, _team: String, actor: CharacterBody3D
 		return
 	if c4_device != null and is_instance_valid(c4_device) and String(c4_device.get("device_state")) == "carried":
 		c4_device.call("drop_at", actor.global_position)
+		if _team == GameState.player_team:
+			radio_report.emit(_actor_name, "携弹队员阵亡，C4 已掉落")
 	RoundManager.bomb_carried = false
 	_bomb_carrier_actor = null
 
-func _on_actor_ai_spot(world_position: Vector3, enemy_team: String, spotter: CharacterBody3D) -> void:
+func _on_actor_ai_spot(
+	world_position: Vector3, enemy_team: String, spotter: CharacterBody3D
+) -> void:
 	_broadcast_teammate_report(world_position, enemy_team, String(spotter.get("team")), spotter)
 	if String(spotter.get("team")) == GameState.player_team:
-		radio_report.emit(String(spotter.get("display_name")), "发现敌方，注意交火")
+		radio_report.emit(
+			String(spotter.get("display_name")), _report_area(spotter.global_position) + "发现敌方，注意交火"
+		)
 
-func _on_actor_ai_damaged(world_position: Vector3, source_team: String, damaged_actor: CharacterBody3D) -> void:
-	_broadcast_teammate_report(world_position, source_team, String(damaged_actor.get("team")), damaged_actor)
+
+func _on_actor_ai_damaged(
+	world_position: Vector3, source_team: String, damaged_actor: CharacterBody3D
+) -> void:
+	if source_team == String(damaged_actor.get("team")):
+		if source_team == GameState.player_team:
+			radio_report.emit(
+				String(damaged_actor.get("display_name")),
+				_report_area(damaged_actor.global_position) + "受到友军伤害，请注意射界"
+			)
+		return
+	_broadcast_teammate_report(
+		world_position, source_team, String(damaged_actor.get("team")), damaged_actor
+	)
 	if String(damaged_actor.get("team")) == GameState.player_team and not source_team.is_empty():
-		radio_report.emit(String(damaged_actor.get("display_name")), "受到攻击，请求支援")
+		radio_report.emit(
+			String(damaged_actor.get("display_name")),
+			_report_area(damaged_actor.global_position) + "受到攻击，请求支援"
+		)
+
+
+func _report_area(at: Vector3) -> String:
+	var closest := 12.0
+	var label := ""
+	for objective in _current_level_data.get("objectives", []):
+		var position := Vector3(float(objective.get("x", 0)), at.y, float(objective.get("z", 0)))
+		var distance := at.distance_to(position)
+		if distance < closest:
+			closest = distance
+			label = (
+				"A 点附近 · "
+				if String(objective.get("id", "")) == "site-a"
+				else "B 点附近 · " if String(objective.get("id", "")) == "site-b" else ""
+			)
+	return label
+
 
 func _broadcast_teammate_report(world_position: Vector3, enemy_team: String, friendly_team: String, exclude_actor: CharacterBody3D) -> void:
 	if enemy_team.is_empty() or friendly_team.is_empty():

@@ -15,6 +15,7 @@ var crosshair_size: float = 6.0
 var dynamic_crosshair: bool = true
 var radar_range: float = 24.0
 var radar_rotates: bool = true
+var friendly_fire: bool = false
 
 func _ready() -> void:
 	load_settings()
@@ -29,6 +30,7 @@ func get_snapshot() -> Dictionary:
 		"dynamic_crosshair": dynamic_crosshair,
 		"radar_range": radar_range,
 		"radar_rotates": radar_rotates,
+		"friendly_fire": friendly_fire,
 		"ct_appearance": ct_appearance,
 		"t_appearance": t_appearance,
 	}
@@ -41,6 +43,7 @@ func apply_snapshot(snapshot: Dictionary, persist: bool = true) -> void:
 	dynamic_crosshair = bool(snapshot.get("dynamic_crosshair", dynamic_crosshair))
 	radar_range = clampf(float(snapshot.get("radar_range", radar_range)), 16.0, 40.0)
 	radar_rotates = bool(snapshot.get("radar_rotates", radar_rotates))
+	friendly_fire = bool(snapshot.get("friendly_fire", friendly_fire))
 	ct_appearance = Appearance.sanitize(String(snapshot.get("ct_appearance", ct_appearance)), "CT")
 	t_appearance = Appearance.sanitize(String(snapshot.get("t_appearance", t_appearance)), "T")
 	apply_audio_volume()
@@ -54,9 +57,9 @@ func apply_audio_volume() -> void:
 		AudioServer.set_bus_volume_db(bus_index, linear_to_db(maxf(master_volume, 0.0001)))
 		AudioServer.set_bus_mute(bus_index, master_volume <= 0.001)
 
-func load_settings() -> void:
+func load_settings(path: String = SETTINGS_PATH) -> void:
 	var config := ConfigFile.new()
-	if config.load(SETTINGS_PATH) != OK:
+	if config.load(path) != OK:
 		return
 	apply_snapshot({
 		"mouse_sensitivity_multiplier": config.get_value("controls", "mouse_sensitivity_multiplier", mouse_sensitivity_multiplier),
@@ -66,11 +69,12 @@ func load_settings() -> void:
 		"dynamic_crosshair": config.get_value("crosshair", "dynamic", dynamic_crosshair),
 		"radar_range": config.get_value("radar", "range", radar_range),
 		"radar_rotates": config.get_value("radar", "rotates", radar_rotates),
+		"friendly_fire": config.get_value("match", "friendly_fire", friendly_fire),
 		"ct_appearance": config.get_value("appearance", "CT", ct_appearance),
 		"t_appearance": config.get_value("appearance", "T", t_appearance),
 	}, false)
 
-func save_settings() -> void:
+func save_settings(path: String = SETTINGS_PATH) -> void:
 	var config := ConfigFile.new()
 	config.set_value("controls", "mouse_sensitivity_multiplier", mouse_sensitivity_multiplier)
 	config.set_value("audio", "master_volume", master_volume)
@@ -79,6 +83,7 @@ func save_settings() -> void:
 	config.set_value("crosshair", "dynamic", dynamic_crosshair)
 	config.set_value("radar", "range", radar_range)
 	config.set_value("radar", "rotates", radar_rotates)
+	config.set_value("match", "friendly_fire", friendly_fire)
 	config.set_value("appearance", "CT", ct_appearance)
 	config.set_value("appearance", "T", t_appearance)
-	config.save(SETTINGS_PATH)
+	config.save(path)

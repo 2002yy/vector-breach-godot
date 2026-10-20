@@ -18,6 +18,8 @@ signal team_selected(team: String)
 
 var _lobby := LobbyView.new()
 var _preview_camera: Camera3D
+var _friendly_fire_toggle: CheckButton
+var _friendly_rule_note: Label
 
 @onready var title_label: Label = $MenuPanel/Margin/VBox/Title
 @onready var preview_rect: TextureRect = $MenuPanel/Margin/VBox/Preview
@@ -121,11 +123,27 @@ func _create_settings_panel() -> void:
 	_settings_panel.offset_left = -610
 	_settings_panel.offset_right = -32
 	_settings_panel.offset_top = 70
+	_settings_panel.offset_bottom = 640
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_settings_panel.add_child(scroll)
 	var margin := MarginContainer.new()
+	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	for side in ["left", "top", "right", "bottom"]:
 		margin.add_theme_constant_override("margin_" + side, 24)
-	_settings_panel.add_child(margin)
+	scroll.add_child(margin)
 	$MenuPanel/Margin/VBox/Settings.reparent(margin)
+	_friendly_fire_toggle = CheckButton.new()
+	_friendly_fire_toggle.name = "FriendlyFire"
+	_friendly_fire_toggle.text = "允许队友伤害"
+	_friendly_fire_toggle.toggled.connect(func(_value: bool) -> void: _emit_settings())
+	margin.get_child(0).add_child(_friendly_fire_toggle)
+	_friendly_rule_note = Label.new()
+	_friendly_rule_note.name = "FriendlyFireRule"
+	_friendly_rule_note.add_theme_font_size_override("font_size", 13)
+	_friendly_rule_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	margin.get_child(0).add_child(_friendly_rule_note)
+
 	for appearance_team in ["CT", "T"]:
 		var row := HBoxContainer.new()
 		var label := Label.new()
@@ -311,6 +329,7 @@ func frame_map_preview(data: Dictionary) -> void:
 func _fit_overlay_layout() -> void:
 	var width := get_viewport().get_visible_rect().size.x
 	var height := get_viewport().get_visible_rect().size.y
+	_settings_panel.offset_bottom = minf(640.0, height - 32.0)
 	$PlayerHelp.offset_left = -minf(700.0, width - 432.0)
 	$PlayerHelp.offset_top = maxf(24.0, (height - 660.0) * 0.5)
 	$PlayerHelp.offset_bottom = -maxf(24.0, (height - 660.0) * 0.5)
@@ -325,6 +344,7 @@ func _load_settings_controls(snapshot: Dictionary) -> void:
 	dynamic_crosshair_toggle.set_pressed_no_signal(bool(snapshot.get("dynamic_crosshair", true)))
 	radar_range_slider.set_value_no_signal(float(snapshot.get("radar_range", 24.0)))
 	radar_rotates_toggle.set_pressed_no_signal(bool(snapshot.get("radar_rotates", true)))
+	_friendly_fire_toggle.set_pressed_no_signal(bool(snapshot.get("friendly_fire", false)))
 	for appearance_team in ["CT", "T"]:
 		var key := "ct_appearance" if appearance_team == "CT" else "t_appearance"
 		var choices: Array = Appearance.PROFILES[appearance_team]
@@ -343,6 +363,7 @@ func _emit_settings() -> void:
 		"dynamic_crosshair": dynamic_crosshair_toggle.button_pressed,
 		"radar_range": radar_range_slider.value,
 		"radar_rotates": radar_rotates_toggle.button_pressed,
+		"friendly_fire": _friendly_fire_toggle.button_pressed,
 		"ct_appearance": Appearance.profile_for("CT", _appearance_choices["CT"].selected),
 		"t_appearance": Appearance.profile_for("T", _appearance_choices["T"].selected),
 	}
@@ -350,6 +371,7 @@ func _emit_settings() -> void:
 	settings_changed.emit(snapshot)
 
 func _update_setting_labels() -> void:
+	_friendly_rule_note.text = "友伤：默认关闭；包含子弹、刀、爆炸和燃烧。对局内更改下回合生效。"
 	sensitivity_value.text = "%.2f 倍" % sensitivity_slider.value
 	volume_value.text = "%d%%" % int(volume_slider.value)
 	radar_range_value.text = "%d 米" % int(radar_range_slider.value)

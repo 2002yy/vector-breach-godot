@@ -1425,13 +1425,17 @@ func _pick_retreat_target(enemy_position: Vector3) -> Vector3:
 			best_position = point
 	return best_position
 
-func _fire_melee(target_point: Vector3, profile: Dictionary, weapon_name: String, weapon_slot: int) -> void:
+func _fire_melee(
+	target_point: Vector3, profile: Dictionary, weapon_name: String, weapon_slot: int
+) -> void:
 	_shot_count += 1
 	_shots_in_burst += 1
 	_shot_cooldown = float(profile.get("fire_interval", 0.42))
 	var origin := actor.call("get_eye_position") as Vector3
 	var direction := (target_point - origin).normalized()
-	var query := PhysicsRayQueryParameters3D.create(origin, origin + direction * float(profile.get("max_range", 2.4)), 1)
+	var query := PhysicsRayQueryParameters3D.create(
+		origin, origin + direction * float(profile.get("max_range", 2.4)), 1
+	)
 	query.exclude = [actor.get_rid()]
 	var hit := actor.get_world_3d().direct_space_state.intersect_ray(query)
 	var damage_result: Dictionary = {}
@@ -1443,28 +1447,44 @@ func _fire_melee(target_point: Vector3, profile: Dictionary, weapon_name: String
 				collider_team = String((collider as Node).get("team"))
 			elif collider is Node and (collider as Node).is_in_group("local_player"):
 				collider_team = GameState.player_team
-			if collider_team.is_empty() or collider_team != String(actor.get("team")):
-				damage_result = collider.call(
+			if (
+				collider_team.is_empty()
+				or collider_team != String(actor.get("team"))
+				or CombatEvents.friendly_fire
+			):
+				damage_result = CombatEvents.apply_damage(
+					collider,
 					"apply_hitscan_damage",
-					MeleeRules.damage(int(profile.get("damage", 55)), actor, collider),
-					hit.get("position", Vector3.ZERO),
-					1.0,
-					false,
-					String(actor.get("team")),
-					origin
-				) as Dictionary
-	actor.call("emit_ai_shot", {
-		"hit": bool(damage_result.get("hit", false)),
-		"position": hit.get("position", origin + direction * 2.4),
-		"damage_result": damage_result,
-		"weapon_slot": weapon_slot,
-		"weapon_name": weapon_name,
-		"shooter_name": String(actor.get("display_name")),
-		"shooter_team": String(actor.get("team")),
-	}, origin)
+					[
+						MeleeRules.damage(int(profile.get("damage", 55)), actor, collider),
+						hit.get("position", Vector3.ZERO),
+						1.0,
+						false,
+						String(actor.get("team")),
+						origin
+					],
+					CombatEvents.actor_source(actor, "knife", "melee")
+				)
+	(
+		actor
+		. call(
+			"emit_ai_shot",
+			{
+				"hit": bool(damage_result.get("hit", false)),
+				"position": hit.get("position", origin + direction * 2.4),
+				"damage_result": damage_result,
+				"weapon_slot": weapon_slot,
+				"weapon_name": weapon_name,
+				"shooter_name": String(actor.get("display_name")),
+				"shooter_team": String(actor.get("team")),
+			},
+			origin
+		)
+	)
 	if _shots_in_burst >= _burst_size:
 		_shots_in_burst = 0
 		_burst_pause = _next_burst_pause
+
 
 func _reset_weapon_ammo() -> void:
 	_weapon_ammo.clear()
@@ -1738,12 +1758,24 @@ func _resolve_weapon_rays(
 			if collider.is_in_group("local_player")
 			else String(collider.get("team"))
 		)
-		if team == String(actor.get("team")):
+		if team == String(actor.get("team")) and not CombatEvents.friendly_fire:
 			continue
-		var falloff := pow(float(profile.get("range_modifier", 1.0)), origin.distance_to(point) / 10.0)
-		var damage: Dictionary = collider.call("apply_hitscan_damage",
-			maxi(1, roundi(float(profile.get("damage", rifle_damage)) * falloff)), point,
-			float(profile.get("armor_penetration", 0.77)), false, String(actor.get("team")), origin)
+		var falloff := pow(
+			float(profile.get("range_modifier", 1.0)), origin.distance_to(point) / 10.0
+		)
+		var damage: Dictionary = CombatEvents.apply_damage(
+			collider,
+			"apply_hitscan_damage",
+			[
+				maxi(1, roundi(float(profile.get("damage", rifle_damage)) * falloff)),
+				point,
+				float(profile.get("armor_penetration", 0.77)),
+				false,
+				String(actor.get("team")),
+				origin
+			],
+			CombatEvents.actor_source(actor, _current_weapon_id)
+		)
 		if not bool(damage.get("hit", false)):
 			continue
 		var key := collider.get_instance_id()
@@ -1752,5 +1784,9 @@ func _resolve_weapon_rays(
 			events[key].killed = bool(events[key].killed) or bool(damage.killed)
 		else:
 			events[key] = damage
-	return {"hit": not events.is_empty(), "position": point, "damage_events": events.values(),
-		"damage_result": events.values()[0] if not events.is_empty() else {}}
+	return {
+		"hit": not events.is_empty(),
+		"position": point,
+		"damage_events": events.values(),
+		"damage_result": events.values()[0] if not events.is_empty() else {}
+	}

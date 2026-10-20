@@ -941,12 +941,7 @@ func _on_shot_resolved(result: Dictionary) -> void:
 					}
 				)
 			)
-			combat_hud.call(
-				"add_kill_feed",
-				"你",
-				String(damage_result.get("target_name", "训练目标")),
-				String(result.get("weapon_name", "步枪"))
-			)
+
 			_check_team_elimination()
 			if (
 				not _training_active()
@@ -958,8 +953,7 @@ func _on_shot_resolved(result: Dictionary) -> void:
 func _on_melee_resolved(result: Dictionary) -> void:
 	GameState.record_scoreboard_damage("你", GameState.player_team, result)
 	hit_feedback_layer.call("show_shot_feedback", {"hit": true, "damage_result": result})
-	if bool(result.get("killed", false)):
-		combat_hud.call("add_kill_feed", "你", String(result.get("target_name", "目标")), "背刺" if bool(result.get("backstab", false)) else "战术刀")
+
 	_check_team_elimination()
 
 func _on_targets_spawned(count: int) -> void:
@@ -978,6 +972,7 @@ func _on_player_died() -> void:
 	if _player_has_c4():
 		c4_device.call("drop_at", player.global_position - Vector3.UP * 0.82)
 		RoundManager.bomb_carried = false
+		combat_hud.call("show_radio_report", "队伍", "携弹队员阵亡，C4 已掉落")
 	weapon_system.call("cancel_reload")
 	tactical_equipment.call("cancel_use")
 	weapon_view_model.hide()
@@ -1008,11 +1003,18 @@ func _on_round_phase_changed(state_name: String) -> void:
 	if not RoundManager.can_buy():
 		_set_buy_menu(false)
 	if combat_hud.has_method("show_radio_report"):
-		if state_name == "Bomb Planted":
+		if state_name == "Freeze":
+			combat_hud.call(
+				"show_radio_report",
+				"对局规则",
+				"本回合友伤已开启" if CombatEvents.friendly_fire else "本回合友伤已关闭"
+			)
+		elif state_name == "Bomb Planted":
 			combat_hud.call("show_radio_report", "指挥", "C4 已安装，立即回防或守包")
 		elif state_name == "Round End":
 			combat_hud.call("show_radio_report", "指挥", "回合结束，准备下一局")
 	_update_ui(true)
+
 
 func _on_round_ended(winner: String, reason: String) -> void:
 	var transition := GameState.complete_round(winner, reason, RoundManager.round_serial)
@@ -1230,14 +1232,22 @@ func _update_objective_interaction(delta: float) -> void:
 		c4_device.call("set_carried", "CT")
 
 func _on_bomb_exploded(_site_label: String) -> void:
-	var damage := int(c4_device.call(
-		"calculate_explosion_damage",
-		player.global_position,
-		get_world_3d().direct_space_state,
-		[player.get_rid()]
-	))
+	var damage := int(
+		c4_device.call(
+			"calculate_explosion_damage",
+			player.global_position,
+			get_world_3d().direct_space_state,
+			[player.get_rid()]
+		)
+	)
 	if damage > 0 and not bool(player.get("is_dead")):
-		player.call("apply_hitscan_damage", damage, player.global_position, 0.65, false)
+		CombatEvents.apply_damage(
+			player,
+			"apply_hitscan_damage",
+			[damage, player.global_position, 0.65, false],
+			CombatEvents.actor_source(null, "c4", "objective")
+		)
+
 
 func _on_player_footstep(world_position: Vector3, surface: String, quiet: bool) -> void:
 	if combat_audio_feedback.has_method("play_footstep"):
@@ -1254,19 +1264,10 @@ func _on_player_landed(world_position: Vector3, surface: String, strength: float
 func _on_ai_shot(result: Dictionary, world_position: Vector3) -> void:
 	if combat_audio_feedback.has_method("play_shot"):
 		combat_audio_feedback.call("play_shot", result, world_position)
-	for damage_result in result.get("damage_events", [result.get("damage_result", {})]):
-		if bool(damage_result.get("killed", false)) and combat_hud.has_method("add_kill_feed"):
-			combat_hud.call(
-				"add_kill_feed",
-				String(result.get("shooter_name", "AI")),
-				String(damage_result.get("target_name", "你")),
-				String(result.get("weapon_name", "步枪"))
-			)
 
 
-func _on_area_damage(result: Dictionary, shooter_name: String, _shooter_team: String) -> void:
+func _on_area_damage(result: Dictionary, _shooter_name: String, _shooter_team: String) -> void:
 	if bool(result.get("killed", false)):
-		combat_hud.call("add_kill_feed", shooter_name, String(result.get("target_name", "目标")), "燃烧弹")
 		_check_team_elimination()
 
 func _on_ai_footstep(world_position: Vector3, surface: String, quiet: bool) -> void:
