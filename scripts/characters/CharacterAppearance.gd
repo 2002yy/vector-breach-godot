@@ -73,6 +73,7 @@ static func instantiate(id: String, suffix: String = "") -> Node3D:
 		return null
 	var model := scene.instantiate() as Node3D
 	preload("res://scripts/level/SourceAssetMaterials.gd").apply(model, scene_path)
+	preload("res://scripts/characters/SourceCharacterMaterials.gd").apply(model, scene_path)
 	return model
 
 

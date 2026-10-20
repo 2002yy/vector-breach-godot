@@ -44,6 +44,10 @@ func _run_all_tests() -> void:
 		_test_native_decal_alpha_keeps_offset_and_original_materials
 	)
 	await _run_test(
+		"native_character_channels_preserve_pbr_and_geometry",
+		_test_native_character_channels_preserve_pbr_and_geometry
+	)
+	await _run_test(
 		"source_helper_faces_preserve_real_surfaces_and_children",
 		_test_source_helper_faces_preserve_real_surfaces_and_children
 	)
@@ -130,6 +134,10 @@ func _test_source_overlay_offset_is_local_and_preserves_originals() -> void:
 
 func _test_native_decal_alpha_keeps_offset_and_original_materials() -> void:
 	SourceMaterialFixtures._test_native_decal_alpha_keeps_offset_and_original_materials(self)
+
+func _test_native_character_channels_preserve_pbr_and_geometry() -> void:
+	var CharacterMaterials = preload("res://scripts/tests/CharacterMaterialFixtures.gd")
+	CharacterMaterials.test_native_character_channels_preserve_pbr_and_geometry(self)
 
 func _test_source_helper_faces_preserve_real_surfaces_and_children() -> void:
 	SourceMaterialFixtures._test_source_helper_faces_preserve_real_surfaces_and_children(self)
