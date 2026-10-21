@@ -29,6 +29,7 @@ scenes=(
   "res://scenes/tests/AudioAssetTestRunner.tscn"
   "res://scenes/tests/C4DeviceTestRunner.tscn"
   "res://scenes/tests/PerformanceBudgetTestRunner.tscn"
+  "res://scenes/tests/SourceProbeDiagnosticTests.tscn"
 )
 
 run_scene() {
