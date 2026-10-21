@@ -1,6 +1,7 @@
 extends Node3D
 
 const Adapter = preload("res://scripts/level/SourceProbeDiagnostic.gd")
+const Composite = preload("res://scripts/characters/SourceCharacterPostlit.gd")
 var _folder := "user://probe-adapter-tests-" + str(OS.get_process_id())
 var _path: String
 var _data: Dictionary
@@ -79,7 +80,9 @@ func _ready() -> void:
 		)
 	)
 	var mesh := MeshInstance3D.new()
-	mesh.mesh = BoxMesh.new()
+	var geometry := ArrayMesh.new()
+	geometry.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, BoxMesh.new().surface_get_arrays(0))
+	mesh.mesh = geometry
 	var original := StandardMaterial3D.new()
 	mesh.material_override = null
 	mesh.mesh.surface_set_material(0, original)
@@ -133,12 +136,14 @@ func _ready() -> void:
 		buffer[0].x == 20 and buffer[1].x == 30 and buffer[2].x == 0,
 		"priority ties must preserve source order"
 	)
+	assert(await _composite(adapter, visual, mesh))
 	adapter.detach()
 	visual.queue_free()
-	for name in ["lighting.json", "volume.bin"]:
+	for name in ["lighting.json", "volume.bin", "source-materials.json", "character-inputs.json"]:
 		DirAccess.remove_absolute(_folder.path_join(name))
 	DirAccess.remove_absolute(_folder)
 	print("SOURCE_PROBE_ADAPTER_TESTS_OK boundaries=11")
+	print("SOURCE_CHARACTER_COMPOSITE_TESTS_OK boundaries=8")
 	print("[SourceProbeDiagnosticTests] PASS (1 tests)")
 	get_tree().quit()
 
@@ -146,3 +151,94 @@ func _ready() -> void:
 func _save(data: Dictionary) -> void:
 	var file := FileAccess.open(_path, FileAccess.WRITE)
 	file.store_string(JSON.stringify(data))
+
+
+func _composite(adapter: RefCounted, root: Node, mesh: MeshInstance3D) -> bool:
+	var source := FileAccess.open(_folder.path_join("source-materials.json"), FileAccess.WRITE)
+	source.store_string("{}")
+	source.close()
+	var native := {
+		"ShaderName": "csgo_character.vfx",
+		"FloatParams": {"g_fDistanceContrastExposure": 0.8},
+		"IntParams": {"F_DISTANCE_CONTRAST_ADJUSTMENT": 1}
+	}
+	var original := ShaderMaterial.new()
+	native = JSON.parse_string(JSON.stringify(native))
+	original.shader = preload("res://scripts/characters/native_character.gdshader")
+	original.resource_name = "fixture"
+	original.set_shader_parameter("base_color", Vector4.ONE)
+	original.set_shader_parameter("uv_scale", Vector3.ONE)
+	original.set_shader_parameter("uv_offset", Vector3.ZERO)
+	original.set_shader_parameter("use_base", false)
+	original.set_meta("source_material_parameters", native)
+	mesh.mesh.surface_set_material(0, original)
+	var profile := {
+		"schema": 1,
+		"contract": "source-character-contrast-inputs-v1",
+		"materials_manifest_sha256":
+		FileAccess.get_sha256(_folder.path_join("source-materials.json")),
+		"materials":
+		[
+			{
+				"name": "fixture",
+				"native_material": native,
+				"average_basis": "vtex-reflectivity-candidate",
+				"reflectivity_rgba": [0.5, 0.5, 0.5, 1]
+			}
+		]
+	}
+	var profile_path := _folder.path_join("character-inputs.json")
+	var file := FileAccess.open(profile_path, FileAccess.WRITE)
+	file.store_string(JSON.stringify(profile))
+	file.close()
+	var composite := Composite.new()
+	var options := {
+		"purpose": "diagnostic",
+		"accept_average_candidate": true,
+		"fog_input_kind": "diagnostic-constant",
+		"strength": 0.8,
+		"fog_modification": 1.0
+	}
+	assert(not composite.configure(adapter, profile_path))
+	assert(composite.configure(adapter, profile_path, options))
+	assert(composite.attach(root) == 1)
+	assert(composite.attach(root) == 0)
+	assert(mesh.get_active_material(0) == original and original.next_pass == null)
+	var proxy := mesh.get_node("PostlitSurface0") as MeshInstance3D
+	var overlay := proxy.material_override as ShaderMaterial
+	assert(is_equal_approx(overlay.get_shader_parameter("source_exposure"), 0.2))
+	original.set_shader_parameter("eye_left_center", Vector3(1, 2, 3))
+	assert(mesh.get_active_material(0).get_shader_parameter("eye_left_center") == Vector3(1, 2, 3))
+	var foreign := StandardMaterial3D.new()
+	mesh.material_overlay = foreign
+	composite.detach()
+	assert(mesh.material_overlay == foreign)
+	mesh.material_overlay = null
+	var rejected := options.duplicate()
+	rejected.fog_input_kind = "unverified-engine-fog"
+	assert(not composite.configure(adapter, profile_path, rejected))
+	assert(composite.attach(root) == 0)
+	assert(composite.configure(adapter, profile_path, options))
+	var morph_mesh := ArrayMesh.new()
+	morph_mesh.add_blend_shape("body")
+	var base_arrays := []
+	base_arrays.resize(Mesh.ARRAY_MAX)
+	base_arrays[Mesh.ARRAY_VERTEX] = PackedVector3Array([Vector3.ZERO, Vector3.RIGHT, Vector3.UP])
+	var shape_arrays := []
+	shape_arrays.resize(Mesh.ARRAY_MAX)
+	shape_arrays[Mesh.ARRAY_VERTEX] = PackedVector3Array(
+		[Vector3.RIGHT, Vector3.RIGHT * 2, Vector3.ONE]
+	)
+	morph_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, base_arrays, [shape_arrays])
+	morph_mesh.surface_set_material(0, original)
+	mesh.mesh = morph_mesh
+	mesh.set_blend_shape_value(0, 0.4)
+	assert(composite.attach(root) == 1)
+	var follower := mesh.get_node("PostlitSurface0") as MeshInstance3D
+	assert(is_equal_approx(follower.get_blend_shape_value(0), 0.4))
+	mesh.set_blend_shape_value(0, 0.8)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	assert(is_equal_approx(follower.get_blend_shape_value(0), 0.8))
+	composite.detach()
+	return true
