@@ -108,8 +108,10 @@ void fragment() {
 	geom_normal = normalize(NORMAL);
 	basis_t = safe_normalize(TANGENT, vec3(1.0, 0.0, 0.0));
 	basis_b = safe_normalize(BINORMAL, vec3(0.0, 1.0, 0.0));
+	vec3 base_normal_texel = vec3(0.5, 0.5, 1.0);
 	if (use_normal) {
-		NORMAL_MAP = texture(normal_texture, UV).rgb;
+		base_normal_texel = texture(normal_texture, UV).rgb;
+		NORMAL_MAP = base_normal_texel;
 		NORMAL_MAP_DEPTH = normal_strength;
 	}
 	cloth_mask = 0.0;
@@ -144,12 +146,20 @@ void fragment() {
 		float projection = dot(offset, ray);
 		float discriminant = projection * projection - dot(offset, offset) + eye_radius * eye_radius;
 		float hit_distance = -projection - sqrt(max(discriminant, 0.0));
+		// Run projected-coordinate derivatives for the whole fragment quad,
+		// including eye-mask and sphere-miss lanes. Only the outer uniforms branch.
+		vec3 sphere_offset = CAMERA_POSITION_WORLD + ray * hit_distance - center;
+		vec3 sphere_normal = sphere_offset / max(length(sphere_offset), 0.00000001);
+		vec2 projected = vec2(dot(sphere_normal, right), dot(sphere_normal, -up));
+		float radial = length(projected);
+		vec2 iris_uv = mix(projected * (2.0 - eye_iris), projected, vec2(radial));
+		vec2 iris_dx = dFdx(iris_uv);
+		vec2 iris_dy = dFdy(iris_uv);
 		if (mask > 0.0 && discriminant > 0.0 && hit_distance > 0.0) {
-			vec3 sphere_normal = normalize(CAMERA_POSITION_WORLD + ray * hit_distance - center);
-			vec2 projected = vec2(dot(sphere_normal, right), dot(sphere_normal, -up));
-			float radial = length(projected);
-			vec2 iris_uv = mix(projected * (2.0 - eye_iris), projected, vec2(radial));
-			vec4 texel = texture(eye_albedo, iris_uv * 0.5 + 0.5, -0.5);
+			// UV remap scale .5 times exp2(native mip bias -.5). Explicit
+			// gradients keep texture filtering defined inside the hit branch too.
+			vec4 texel = textureGrad(eye_albedo, iris_uv * 0.5 + 0.5,
+				iris_dx * 0.3535533906, iris_dy * 0.3535533906);
 			vec3 grey_axis = vec3(0.57735);
 			vec3 rotated = texel.rgb * cos(eye_hue) + cross(grey_axis, texel.rgb) * sin(eye_hue) + grey_axis * dot(grey_axis, texel.rgb) * (1.0 - cos(eye_hue));
 			vec3 eye_color = mix(texel.rgb, rotated, texel.a);
@@ -159,7 +169,7 @@ void fragment() {
 			eye_color *= front;
 			if (enable_eye_distance_filter) {
 				eye_color = source_eye_distance_color(eye_color, iris_uv, eye_pupil,
-					dFdx(iris_uv.x), distance(CAMERA_POSITION_WORLD, world_position));
+					iris_dx.x, distance(CAMERA_POSITION_WORLD, world_position));
 			}
 			float weight = mask * smoothstep(0.1, 0.3, front);
 			ALBEDO = mix(ALBEDO, eye_color, weight);
@@ -168,7 +178,7 @@ void fragment() {
 			vec3 cornea = normalize(mix(sphere_normal, normalize(sphere_normal - forward * 0.5), texel.a));
 			vec3 view_cornea = normalize((VIEW_MATRIX * vec4(cornea, 0.0)).xyz);
 			vec3 tangent_cornea = vec3(dot(view_cornea, basis_t), dot(view_cornea, basis_b), dot(view_cornea, geom_normal));
-			vec3 micro_normal = use_normal ? texture(normal_texture, UV).rgb * 2.0 - 1.0 : vec3(0.0, 0.0, 1.0);
+			vec3 micro_normal = base_normal_texel * 2.0 - 1.0;
 			micro_normal.xy *= normal_strength;
 			NORMAL_MAP = normalize(mix(normalize(micro_normal), tangent_cornea, sqrt(weight))) * 0.5 + 0.5;
 			NORMAL_MAP_DEPTH = 1.0;

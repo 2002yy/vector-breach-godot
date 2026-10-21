@@ -137,10 +137,36 @@ func _characters() -> void:
 						"mean_difference": difference
 					}
 				)
+			if pose == "head-turn":
+				await _quad_phases(camera, id, target, left, right)
 		assert(changed > 0, "real far eye branch never changed: " + id)
 		print("EYE_DISTANCE_PROFILE_OK ", id, " changed_far_samples=", changed)
 		model.queue_free()
 		await get_tree().process_frame
+
+
+func _quad_phases(
+	camera: Camera3D, id: String, target: Vector3, left: Vector3, right: Vector3
+) -> void:
+	var metre_per_pixel := (
+		2.0 * 5.08 * tan(deg_to_rad(camera.fov) * 0.5) / get_viewport().get_visible_rect().size.y
+	)
+	var signatures := {}
+	for phase in [0.0, 0.25, 0.5, 0.75]:
+		camera.position = target + Vector3(0, 0, -5.08)
+		camera.look_at(target)
+		camera.position.x += metre_per_pixel * phase
+		var label := "%s-quad-%s" % [id, phase]
+		var first := await _capture(label)
+		var repeat := await _capture(label + "-repeat")
+		var bounds := _eye_region(camera, left, right, first.get_size())
+		var eyes := first.get_region(bounds)
+		var error := _eye_difference(eyes, repeat.get_region(bounds))
+		assert(error < 0.000001, "stationary eye sample must be reproducible")
+		assert(eyes.save_png(_out.path_join(label + "-eyes.png")) == OK)
+		signatures[hash(first.get_data())] = true
+		_records.append({"quad_profile": id, "phase_pixels": phase, "repeat_mad": error})
+	assert(signatures.size() > 1, "subpixel camera sweep did not change raster coverage")
 
 
 func _eye_region(camera: Camera3D, left: Vector3, right: Vector3, size: Vector2i) -> Rect2i:
