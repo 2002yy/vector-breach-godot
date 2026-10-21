@@ -35,6 +35,10 @@ func _sync() -> void:
 		var value: Variant = _source.get(property)
 		if get(property) != value:
 			set(property, value)
+	# Remove the draw from camera culling too: even a discarded screen-reading
+	# material can change the transparent pass's screen-copy scheduling.
+	if _source.transparency > 0.0:
+		layers = 0
 	if material_override is ShaderMaterial:
 		# Transparent sources are absent from the opaque screen texture. Compositing
 		# them again would mix the background and double the character's fade.

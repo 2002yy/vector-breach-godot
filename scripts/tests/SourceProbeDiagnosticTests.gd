@@ -294,7 +294,7 @@ func _composite(adapter: RefCounted, root: Node, mesh: MeshInstance3D) -> bool:
 	assert(
 		is_equal_approx(proxy.transparency, mesh.transparency), "postlit fade must follow live mesh"
 	)
-	assert(proxy.layers == mesh.layers and proxy.visibility_range_end == mesh.visibility_range_end)
+	assert(proxy.layers == 0 and proxy.visibility_range_end == mesh.visibility_range_end)
 	assert(overlay.get_shader_parameter("source_draw_enabled") == false)
 	assert(
 		proxy.extra_cull_margin == mesh.extra_cull_margin and proxy.custom_aabb == mesh.custom_aabb
@@ -307,6 +307,7 @@ func _composite(adapter: RefCounted, root: Node, mesh: MeshInstance3D) -> bool:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	assert(overlay.get_shader_parameter("source_draw_enabled") == true)
+	assert(proxy.layers == mesh.layers)
 	original.set_shader_parameter("eye_left_center", Vector3(1, 2, 3))
 	assert(mesh.get_active_material(0).get_shader_parameter("eye_left_center") == Vector3(1, 2, 3))
 	var foreign := StandardMaterial3D.new()
