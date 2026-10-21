@@ -4,9 +4,9 @@
 
 ## main、PR 与唯一试玩包
 
-- PR **#49–#56 已合并**，当前远端 main 为 `2e0187874c500004ac517bab7cfd9d625f5024eb`。#57（原角色输入）、#58（原地图 LPV）、#59（地图坐标探针诊断）与 #60（角色后照明合成）仍开放；本片以 #60 已提交头 `948aa5d` 续接 Dust II 核验，明确保留依赖，不等待 CI、不依赖他处未提交代码。
+- PR **#49–#56 已合并**；本次以 main `2e0187874c500004ac517bab7cfd9d625f5024eb` 为共同基线整合 **#57–#62**，包括原输入/原地图 LPV、三图坐标与角色合成、淡出修复和透视动作验收。组合头须重新满足 main 的 `tests` 保护规则；实际 main/CI/包结果以 [主线整合记录](RELEASE_MAIN_PLAYABLE_2026-10-21.md) 指向的交付收据为准，不沿用旧分支绿灯。
 - #55 精确头 `af80048b4f3b21fcc7134fdd064d6f786795377d` 的 Tests `39419830963`、Windows Export / smoke `39419830823` 成功；合并后 main 精确头 `4bd98c1` 的 push Tests **39421373322 成功**（含 Blender 重建与正式原生检查），不是用 PR 绿色结果冒充 main 结果。
-- 唯一保留试玩包：`C:/Users/Zhang/Documents/VectorBreach-builds/VectorBreach-character-special-20261020/VectorBreach.exe`。须保留整个目录（EXE、PCK、assets）。包内代码为 `af80048`，与该 main merge 的运行时树一致；后续开发尚未交付时不覆盖这个包。
+- 已验证旧包/回退入口：`C:/Users/Zhang/Documents/VectorBreach-builds/VectorBreach-character-special-20261020/VectorBreach.exe`，代码 `af80048`。本次新包目标为 `D:/VectorBreach/releases/VectorBreach-main-20261021/VectorBreach.exe`，须整体保留目录；新包验证完才更新桌面入口。原探针合成仍只在独立诊断入口启用，不能把整合包日期当作正式比赛效果已开启。
 - 桌面 `C:/Users/Zhang/Desktop/3Dgame/启动当前游戏.cmd` 已更新到该目录，说明已整理成单一入口。原入口/说明备份后缀 `.before-consolidation-20261020-202033.bak`。
 - 按用户“保留最新版”清理了 12 份旧构建，共 39,315,066,527 字节（36.62 GiB）。源码、原版参考资源、测试截图/日志、旧构建的 JSON/TXT 元数据和工具保留；清理清单和收据在 `D:/AgentGamePipeline/evidence/release-consolidation-20261020/`。
 
@@ -28,7 +28,7 @@
 
 完整可执行清单见 [当前待修项](CURRENT_PENDING.md)。
 
-1. 用户恢复的角色优先级继续有效。本片分支 `feat/character-composite-motion-20261021`，以 #61 已提交头 `38d4106` 续接，修复合成表面淡出/可见性跟随并推进三图真实透视动作核验。雾与平均色的原引擎赋值仍需直接证据，保持单列；其他角色修验继续，下一片优先发丝环境瓣/眼球远距过滤。
+1. 当前完成主线整合/新包验收，分支 `integrate/character-lighting-main-20261021`；后续角色优先级继续有效：发丝环境瓣、眼球远距过滤、软法线/切线与多角色遮挡。雾/平均色原引擎赋值仍需直接证据并单列，不阻断有依据的其他修验。
 2. 启动/选图加载策略与分段耗时；用户明确允许选卡只更新静态真实地图预览，不在后台加载比赛地图。
 3. C4 成功提示/爆炸与结算、死亡观战视觉、AI 摇摆/速度与后续难度策略。C4 已有小型指挥完成消息，需改善醒目程度与观战覆盖，不是完全没有事件。
 4. 真实底图雷达、天空/高抛投掷边界、闪光 AI/玩家一致性、共享烟雾/环境光/体积雾；光追保持独立研究项。
