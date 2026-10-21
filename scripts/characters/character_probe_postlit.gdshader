@@ -6,6 +6,7 @@ render_mode unshaded, depth_draw_never, cull_back, fog_disabled;
 uniform sampler2D lit_screen : hint_screen_texture, repeat_disable, filter_nearest;
 uniform sampler2D surface_texture : source_color, filter_linear_mipmap_anisotropic;
 uniform bool inputs_ready = false;
+uniform bool source_draw_enabled = true;
 uniform bool use_surface_texture = false;
 uniform vec3 surface_albedo = vec3(1.0);
 uniform vec3 surface_uv_scale = vec3(1.0);
@@ -22,7 +23,7 @@ void vertex() {
 }
 
 void fragment() {
-	if (!inputs_ready || source_probe_count <= 0 || contrast_strength <= 0.0 || fog_modification <= 0.0) { discard; }
+	if (!source_draw_enabled || !inputs_ready || source_probe_count <= 0 || contrast_strength <= 0.0 || fog_modification <= 0.0) { discard; }
 	vec3 world = (INV_VIEW_MATRIX * vec4(VERTEX,1.0)).xyz;
 	float distance_m = distance(world,CAMERA_POSITION_WORLD);
 	if (distance_m <= 400.0*0.0254) { discard; }

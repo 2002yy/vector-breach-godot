@@ -284,6 +284,28 @@ func _composite(adapter: RefCounted, root: Node, mesh: MeshInstance3D) -> bool:
 	var proxy := mesh.get_node("PostlitSurface0") as MeshInstance3D
 	var overlay := proxy.material_override as ShaderMaterial
 	assert(is_equal_approx(overlay.get_shader_parameter("source_exposure"), 0.2))
+	mesh.transparency = 0.65
+	mesh.layers = 8
+	mesh.visibility_range_end = 25.0
+	mesh.extra_cull_margin = 2.0
+	mesh.custom_aabb = AABB(Vector3(-2, -2, -2), Vector3(4, 4, 4))
+	await get_tree().process_frame
+	await get_tree().process_frame
+	assert(
+		is_equal_approx(proxy.transparency, mesh.transparency), "postlit fade must follow live mesh"
+	)
+	assert(proxy.layers == mesh.layers and proxy.visibility_range_end == mesh.visibility_range_end)
+	assert(
+		proxy.extra_cull_margin == mesh.extra_cull_margin and proxy.custom_aabb == mesh.custom_aabb
+	)
+	mesh.transparency = 1.0
+	await get_tree().process_frame
+	await get_tree().process_frame
+	assert(overlay.get_shader_parameter("source_draw_enabled") == false)
+	mesh.transparency = 0.0
+	await get_tree().process_frame
+	await get_tree().process_frame
+	assert(overlay.get_shader_parameter("source_draw_enabled") == true)
 	original.set_shader_parameter("eye_left_center", Vector3(1, 2, 3))
 	assert(mesh.get_active_material(0).get_shader_parameter("eye_left_center") == Vector3(1, 2, 3))
 	var foreign := StandardMaterial3D.new()

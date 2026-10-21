@@ -67,6 +67,7 @@ func _composite_stage() -> bool:
 		["zero-strength", {"contrast_strength": 0.0}, color],
 		["zero-fog", {"fog_modification": 0.0}, color],
 		["not-ready", {"inputs_ready": false}, color],
+		["hidden-source", {"source_draw_enabled": false}, color],
 		["invalid-map", {"source_probe_count": 0}, color],
 		["uncovered", {"outside": true}, color],
 		["dark", {"color": Vector3.ZERO}, Vector3.ZERO],
@@ -87,6 +88,7 @@ func _composite_stage() -> bool:
 	]
 	var defaults := {
 		"inputs_ready": true,
+		"source_draw_enabled": true,
 		"contrast_strength": 0.8,
 		"fog_modification": 1.0,
 		"source_probe_count": 1,
