@@ -117,3 +117,43 @@ def box_direction(record, position, direction):
     if length <= 1e-12:
         return None
     return [v / length for v in projected]
+
+
+def reflection_weights(records, position, direction):
+    """Pinned VRF Scene.cs + environment.slang array mode (minor >= 2).
+
+    Dynamic point containment only; no baked object handshake visibility mask.
+    Return raw radiance weights, intentionally not normalized to one.
+    """
+    total = 0.01
+    result = []
+    for record in sorted(records, key=lambda r: (-r["priority"], r["cube_index"])):
+        if not record["enabled"] or not record["sample_supported"]:
+            continue
+        yaw = math.radians(record["yaw_degrees"])
+        c, s = math.cos(yaw), math.sin(yaw)
+        delta = [p - o for p, o in zip(position, record["origin"])]
+        local = [c * delta[0] + s * delta[1], -s * delta[0] + c * delta[1], delta[2]]
+        minimum = [v - 0.02 for v in record["bounds_min"]]
+        size = [v + 0.04 for v in record["bounds_size"]]
+        maximum = [a + b for a, b in zip(minimum, size)]
+        if any(p < lo or p > hi for p, lo, hi in zip(local, minimum, maximum)):
+            continue
+        edge = min(
+            min(max(min(p - lo, hi - p) / (fade + 0.02), 0), 1)
+            for p, lo, hi, fade in zip(local, minimum, maximum, record["edge_fade"])
+        )
+        if edge == 0:
+            continue
+        weight = edge * edge * (3 - 2 * edge) * (1 - total)
+        grown = dict(record, bounds_min=minimum, bounds_size=size)
+        projected = box_direction(grown, position, direction)
+        if projected is None:
+            continue
+        result.append(
+            {"cube": record["cube_index"], "weight": weight, "direction": projected}
+        )
+        total += weight
+        if total > 0.99:
+            break
+    return result
