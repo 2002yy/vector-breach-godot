@@ -16,8 +16,9 @@
 
 - 原 PS 的 `g_vAvgAlbedo` 来自 `TextureAverageColor(g_tColor)`。30 个材质的 VTEX reflectivity 与解码 PNG 线性平均色对照，最大单分量差约 **0.008322**，平均约 **0.001812**。这支持“线性平均色候选”，仍不能证明编译器/运行时采样合同完全一致。受控绑定保持候选标签及显式开关。
 - 原 PS 将 `g_flFogModificationAmount` 声明为 `FogModificationAmount` 渲染属性、默认 0，但未携带可恢复的动态绑定表达式。不能把地图雾不透明度直接当作该值。本片使用显式诊断常量 1，仅验证合成；原雾输入仍未关闭。
-- Dust II 的目标 manifest 为 `118363704811264052`，目标 VPK SHA256 为 `51d6bb432b6553bfae6c38219a527c5de2464a2b107080f2b8be7d8427ebb885`。单文件匿名下载被 Steam 拒绝旧 manifest 访问，未替换成错误版本。
-- 用户表示本机 Steam 已登录后，已核实正在运行的 `C:/Program Files (x86)/Steam/steam.exe`，并检查其登记的 C 盘/D 盘库、steamapps 下载内容/缓存及常见资源/备份目录。两个库都没有 CS2 `appmanifest_730.acf`，未找到 `de_dust2.vpk`。独立下载器支持手机 Steam QR 登录，但客户端现有登录不会自动认证独立工具；未读取或迁移登录令牌/密码。后续需独立交互认证后再尝试目标单文件，不能盲目整 depot 下载。
+- Dust II 已恢复：旧 manifest `118363704811264052` 的匿名请求确实被拒，但当前匿名 manifest `6962766052972832680` 仍提供**完全相同的地图文件**。只下载了 `game/csgo/maps/de_dust2.vpk`，262,476,433 字节；Steam SHA-1 为 `7dc529cd65d843a2b8a98c297e79b9923dd70a5d`，SHA256 为 `51d6bb432b6553bfae6c38219a527c5de2464a2b107080f2b8be7d8427ebb885`，与现用关卡记录的旧包完全一致。原包保存在 `D:/AgentGamePipeline/reference-assets/cs2-dust2-probe-20261021/game/csgo/maps/de_dust2.vpk`，未改动当前地图资产/数据。
+- 用户表示本机 Steam 已登录后，已检查其 C/D 登记库：未安装 CS2、未找到既有地图包。随后恢复原匿名定向取得方式成功，无需桌面账号、手机或认证。此前仅凭旧 manifest 拒绝而转向要求认证，判断过早；应先检查可访问 manifest 是否仍包含相同哈希的资源。未读取或迁移登录令牌/密码。
+- 使用 #58 已提交头 `52139e9` 的提取器和既有最终桥接器，按关卡权威 SHA256 验证后恢复 Dust II **43 探针 / 30 出生点 / 180 六向样本**，所有出生点覆盖率 1；原照明版本 8.2、一个雾实体、无未展开子 lump。原 RGBA32F 图集为 192×176×720，保存在本片 `dust2-lighting/`。这是源数据/CPU 恢复证据，Dust II 世界坐标、GPU 与最终角色合成尚未验收。
 
 ## 验证与证据
 
@@ -31,4 +32,6 @@
 
 ## 下一片
 
-优先恢复 Dust II 原包及其照明输入，确定原 `FogModificationAmount` 与 `TextureAverageColor` 的真实绑定，再进行完整动画、多个角色/透明遮挡、透视实战对照与帧率成本评估。发丝环境瓣、眼球远距过滤、软法线/切线仍按 [待修项](CURRENT_PENDING.md) 单列。唯一试玩包未覆盖；本片是可审核的受控诊断实现，尚不属于正式距离对比度已完成。
+原包及照明输入缺口已补齐，下一片优先核验 Dust II 的视觉根坐标与 GPU/角色合成，继续确定原 `FogModificationAmount` 与 `TextureAverageColor` 的真实绑定，再进行完整动画、多个角色/透明遮挡、透视实战对照与帧率成本评估。发丝环境瓣、眼球远距过滤、软法线/切线仍按 [待修项](CURRENT_PENDING.md) 单列。唯一试玩包未覆盖；本片是可审核的受控诊断实现，尚不属于正式距离对比度已完成。
+
+PR 为 [#60](https://github.com/2002yy/vector-breach-godot/pull/60)，行为提交 `b6fdce2c52e754b39ceec14a12e89fd863ad64ff`。创建后查询一次 CI 返回空列表；现有 workflow 只匹配 main push/以 main 为 base 的 PR，因此 stacked base 未触发 CI，不能标为绿色或合并就绪。后续以 main 为 base 时必须在当时精确头触发并验证要求的 CI/复审。

@@ -40,9 +40,11 @@
 
 ## 工作树与固定约束
 
-角色续片已将双向 LPV 接到照明后的原角色纹理合成，保留实时原材质、逐表面蒙皮与形变；两图各 **52 项 GPU 检查/50 PNG** 通过并查看六角色对照，18 原模型哈希不变。远景用隔离背景及正交相机验证，不能算实战远距/性能通过。平均色线性对照支持候选，但真实运行时合同未证实；雾修改量仍仅显式诊断常量。Dust II 旧 manifest 匿名访问被拒，用户已登录的 Steam 两个登记库均未安装 CS2、未找到原 VPK；需独立下载认证。本片未启用到实际对局，未覆盖试玩包；详见 [后照明合成记录](TASK_CHARACTER_PROBE_COMPOSITE_2026-10-21.md)。
+角色续片 [#60](https://github.com/2002yy/vector-breach-godot/pull/60) 已将双向 LPV 接到照明后的原角色纹理合成，保留实时原材质、逐表面蒙皮与形变；两图各 **52 项 GPU 检查/50 PNG** 通过并查看六角色对照，18 原模型哈希不变。远景用隔离背景及正交相机验证，不能算实战远距/性能通过。平均色仍是候选，雾修改量仅显式诊断常量。Dust II 经当前匿名 manifest 成功恢复，与现用旧原包 SHA256 完全相同，43 探针/30 出生点照明输入已提取；世界坐标/GPU/角色合成仍待验收，无需手机或账号认证。本片未启用到实际对局，未覆盖试玩包；详见 [后照明合成记录](TASK_CHARACTER_PROBE_COMPOSITE_2026-10-21.md)。
 
 本片完整原生 **207 项 / RUN_ALL_OK**、Python 非 Blender **31 项**、GdUnit **2/2**、GDScript 格式/lint、Godot 导入及 diff 检查通过。私有证据与提交/PR/CI 收据在 `D:/AgentGamePipeline/evidence/character-probe-composite-20261021/`，不把本机通过算作 CI/正式可玩验收。
+
+#60 以 #59 分支为 base，当前 workflow 仅匹配 main，因此创建后单次查询无 CI run；待转为 main base 后须在当时精确头运行 CI/复审，当前未合并。
 
 四个既有 `.import` 状态改动继续保留，不纳入功能提交：hand_equipment、c4_device、buy/pistol、buy/rifle。原版资源仅在本机忽略目录，不公开再分发。
 

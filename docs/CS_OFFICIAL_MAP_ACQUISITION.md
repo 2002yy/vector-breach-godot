@@ -24,6 +24,8 @@ Inferno、Mirage 早期包来自第三方整理的几何和重建材质；本机
 
 ## 1. Dust II 历史证据
 
+2026-10-21 恢复补充：旧 manifest 的匿名访问被拒后，改查当日 public manifest `6962766052972832680` 并只下载 `game/csgo/maps/de_dust2.vpk`。实际大小 262,476,433 字节、Steam SHA-1 `7dc529cd65d843a2b8a98c297e79b9923dd70a5d`，下载后 SHA256 与下表历史原包**完全相同**。无需登录、手机或整 depot 下载。原包现位于 `D:/AgentGamePipeline/reference-assets/cs2-dust2-probe-20261021/game/csgo/maps/de_dust2.vpk`，manifest/下载/哈希证据在 `D:/AgentGamePipeline/evidence/character-probe-composite-20261021/`。不要将“旧 manifest 不可访问”误判为“对应资源已无法取得”；先核验其他可访问清单和目标资源实际哈希。
+
 旧参考根目录：`D:/3Dgame-reference/cs2-current`，本次检查已不存在。游戏运行所用的转换成品仍在，不需要重新取得才能继续玩现有版本。
 
 | 字段 | 已找回的记录 |
