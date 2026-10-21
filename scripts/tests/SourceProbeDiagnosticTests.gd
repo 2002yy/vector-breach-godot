@@ -295,6 +295,7 @@ func _composite(adapter: RefCounted, root: Node, mesh: MeshInstance3D) -> bool:
 		is_equal_approx(proxy.transparency, mesh.transparency), "postlit fade must follow live mesh"
 	)
 	assert(proxy.layers == mesh.layers and proxy.visibility_range_end == mesh.visibility_range_end)
+	assert(overlay.get_shader_parameter("source_draw_enabled") == false)
 	assert(
 		proxy.extra_cull_margin == mesh.extra_cull_margin and proxy.custom_aabb == mesh.custom_aabb
 	)

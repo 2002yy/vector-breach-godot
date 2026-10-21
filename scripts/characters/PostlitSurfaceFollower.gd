@@ -36,6 +36,8 @@ func _sync() -> void:
 		if get(property) != value:
 			set(property, value)
 	if material_override is ShaderMaterial:
-		material_override.set_shader_parameter("source_draw_enabled", _source.transparency < 1.0)
+		# Transparent sources are absent from the opaque screen texture. Compositing
+		# them again would mix the background and double the character's fade.
+		material_override.set_shader_parameter("source_draw_enabled", _source.transparency == 0.0)
 	for index in range(mesh.get_blend_shape_count()):
 		set_blend_shape_value(index, _source.get_blend_shape_value(index))

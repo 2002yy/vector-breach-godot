@@ -169,7 +169,8 @@ func _exercise(id: String) -> bool:
 				"distinct_bone_poses": signatures.size()
 			}
 		)
-	assert(await _fade(model, skeleton, id))
+	for transparency in [0.25, 0.65, 1.0]:
+		assert(await _fade(model, skeleton, id, transparency))
 	_composite.detach()
 	model.queue_free()
 	await get_tree().process_frame
@@ -237,12 +238,14 @@ func _screen_bounds(skeleton: Skeleton3D, size: Vector2i) -> Rect2i:
 	return region.intersection(Rect2i(Vector2i.ZERO, size))
 
 
-func _fade(model: Node3D, skeleton: Skeleton3D, id: String) -> bool:
+func _fade(model: Node3D, skeleton: Skeleton3D, id: String, transparency: float) -> bool:
+	model.show()
+	id += "-opacity-" + str(transparency)
 	_camera.position = _lane.camera
 	_camera.look_at(model.position + Vector3.UP)
 	for mesh in model.find_children("*", "MeshInstance3D", true, false):
 		if not mesh.has_meta("source_postlit_surface"):
-			mesh.transparency = 1.0
+			mesh.transparency = transparency
 	var proxies := model.find_children("PostlitSurface*", "MeshInstance3D", true, false)
 	for proxy in proxies:
 		proxy.hide()
@@ -258,6 +261,7 @@ func _fade(model: Node3D, skeleton: Skeleton3D, id: String) -> bool:
 	_records.append(
 		{
 			"fade": id,
+			"transparency": transparency,
 			"difference": difference,
 			"roi": str(bounds),
 			"original_fade_residual":
