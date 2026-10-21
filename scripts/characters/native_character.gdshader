@@ -1,5 +1,6 @@
 shader_type spatial;
 render_mode diffuse_lambert, cull_back;
+#include "res://scripts/characters/source_eye_distance.gdshaderinc"
 
 // Source character channel contracts / BRDF reference: ValveResourceFormat
 // 54279ec226cc3e1c561b10f11f0f5e879b981e6e, complex.frag / common/pbr.
@@ -46,6 +47,7 @@ uniform vec3 aniso_pole = vec3(0.0, 1.0, 0.0);
 uniform float aniso_angle = 0.0;
 uniform float feature_weight = 1.0;
 uniform bool enable_eyes = false;
+uniform bool enable_eye_distance_filter = true;
 uniform float eye_weight = 1.0;
 uniform sampler2D eye_albedo : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform sampler2D eye_mask_texture : filter_linear_mipmap_anisotropic;
@@ -155,6 +157,10 @@ void fragment() {
 			eye_color *= smoothstep(eye_pupil, eye_pupil + 0.03, radial);
 			float front = clamp(dot(forward, sphere_normal), 0.0, 1.0);
 			eye_color *= front;
+			if (enable_eye_distance_filter) {
+				eye_color = source_eye_distance_color(eye_color, iris_uv, eye_pupil,
+					dFdx(iris_uv.x), distance(CAMERA_POSITION_WORLD, world_position));
+			}
 			float weight = mask * smoothstep(0.1, 0.3, front);
 			ALBEDO = mix(ALBEDO, eye_color, weight);
 			rough_xy = mix(rough_xy, vec2(0.1), weight);
