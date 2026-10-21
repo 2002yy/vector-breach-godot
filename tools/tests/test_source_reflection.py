@@ -7,11 +7,33 @@ from source_reflection import (
     box_direction,
     cube_direction,
     reflection_record,
+    reflection_weights,
     validate_blocks,
 )
 
 
 class ReflectionTests(unittest.TestCase):
+    def test_reflection_priority_array_order_residual_and_edge_rule(self):
+        high = dict(self.probe, cube_index=3, priority=2, edge_fade=[1, 1, 1])
+        low = dict(high, cube_index=1, priority=1)
+        # Native grown box [-2.02,2.02], fade width 1.02. At x=-1.51 edge=.5.
+        rows = reflection_weights([low, high], [8.49, 20, 30], [1, 0, 0])
+        self.assertEqual([r["cube"] for r in rows], [3, 1])
+        self.assertAlmostEqual(rows[0]["weight"], 0.495)
+        self.assertAlmostEqual(rows[1]["weight"], 0.2475)
+        # Stable tie uses native array index, never default entity enumeration.
+        low["priority"] = 2
+        self.assertEqual(
+            reflection_weights([high, low], [10, 20, 30], [1, 0, 0])[0]["cube"], 1
+        )
+        self.assertAlmostEqual(
+            sum(
+                r["weight"] for r in reflection_weights([high], [10, 20, 30], [1, 0, 0])
+            ),
+            0.99,
+        )
+        self.assertEqual(reflection_weights([high], [100, 20, 30], [1, 0, 0]), [])
+
     def setUp(self):
         self.payload = bytes(96)
         self.data = {
