@@ -60,7 +60,8 @@ $scenes = @(
     "res://scenes/tests/AudioAssetTestRunner.tscn",
     "res://scenes/tests/C4DeviceTestRunner.tscn",
     "res://scenes/tests/PerformanceBudgetTestRunner.tscn",
-    "res://scenes/tests/SourceProbeDiagnosticTests.tscn"
+    "res://scenes/tests/SourceProbeDiagnosticTests.tscn",
+    "res://scenes/tests/SourceReflectionTests.tscn"
 )
 
 Write-Host "Using Godot: $godot"
