@@ -5,7 +5,7 @@ import subprocess
 from pathlib import Path
 
 
-def build(dotnet, compiler, references, output):
+def build(dotnet, compiler, references, output, source=None):
     if output.exists():
         raise FileExistsError("Existing bridge preserved")
     required = [
@@ -21,7 +21,7 @@ def build(dotnet, compiler, references, output):
         raise FileNotFoundError(
             "Expected existing .NET compiler and extracted Source2Viewer assemblies"
         )
-    source = Path(__file__).resolve().parent / "native/SourceLightingDump.cs"
+    source = source or Path(__file__).resolve().parent / "native/SourceLightingDump.cs"
     libraries = sorted(references.glob("System.*.dll")) + required[1:]
     arguments = [
         str(dotnet),
@@ -42,8 +42,11 @@ def main():
     parser = argparse.ArgumentParser()
     for name in ("dotnet", "compiler", "references", "output"):
         parser.add_argument("--" + name, type=Path, required=True)
+    parser.add_argument("--source", type=Path)
     args = parser.parse_args()
-    build(**{key: value.resolve() for key, value in vars(args).items()})
+    build(
+        **{key: value.resolve() if value else None for key, value in vars(args).items()}
+    )
     print("SOURCE_LIGHTING_BRIDGE_BUILT", args.output)
 
 

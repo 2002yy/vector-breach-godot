@@ -4,9 +4,11 @@
 
 ## main、PR 与唯一试玩包
 
+- **#64 已合入 main `290da7628575dc6e2ed679d44dd3f4148d6d7b30`**；眼球远距修正精确 PR 头 `d7f460d` 的 Tests `39595482197`、Windows export/smoke `39595482274` 成功，审查的分支内导数问题已修复。当前独立开发片为原反射输入，未沿用这些结果代替新头 CI。
+
 - **#63 已合入 main `7ce895b8253a3dd61948b60527eb6c149629e661`**，包含 #57–#62 全部头；#57–#59 标记已合并，#60–#62 已关闭且保留分支。PR 精确头 `a85d7b5` 的 Tests `39590862440` 与 Windows export/smoke `39590862424` 成功；该 main 精确头的 push Tests `39591520517` 也已成功，单独核验，不沿用 PR 结果冒充。详见 [主线整合记录](RELEASE_MAIN_PLAYABLE_2026-10-21.md) 及其交付收据。
 - #55 精确头 `af80048b4f3b21fcc7134fdd064d6f786795377d` 的 Tests `39419830963`、Windows Export / smoke `39419830823` 成功；合并后 main 精确头 `4bd98c1` 的 push Tests **39421373322 成功**（含 Blender 重建与正式原生检查），不是用 PR 绿色结果冒充 main 结果。
-- **已验证当前包**：`D:/VectorBreach/releases/VectorBreach-main-20261021/VectorBreach.exe`，导出头 `a85d7b5` 与 main 合并提交的 Git tree 相同。须整体保留目录；旧 `VectorBreach-character-special-20261020` 包保留回退。原探针合成仍只在独立诊断入口启用，不能把整合包日期当作正式比赛效果已开启。
+- **已验证当前包**：`D:/VectorBreach/releases/VectorBreach-main-20261021/VectorBreach.exe`，导出头 `a85d7b5` 与 **#63 合并提交**的 Git tree 相同；不含后续 #64 眼球修正或本片反射输入。须整体保留目录；旧 `VectorBreach-character-special-20261020` 包保留回退。原探针合成仍只在独立诊断入口启用。
 - 桌面 `C:/Users/Zhang/Desktop/3Dgame/启动当前游戏.cmd` 已指向新包；原入口/说明备份后缀 `.before-main-lighting-20261021-192756.bak`。用户设置在包验收后逐字节恢复。
 - 按用户“保留最新版”清理了 12 份旧构建，共 39,315,066,527 字节（36.62 GiB）。源码、原版参考资源、测试截图/日志、旧构建的 JSON/TXT 元数据和工具保留；清理清单和收据在 `D:/AgentGamePipeline/evidence/release-consolidation-20261020/`。
 
@@ -28,7 +30,7 @@
 
 完整可执行清单见 [当前待修项](CURRENT_PENDING.md)。
 
-1. 当前分支 `fix/character-eye-filter-20261021` 从已交付 main 续修角色。已补原编译 PS 的眼球导数/距离修正规则，并修复命中分支中未定义的导数/隐式纹理梯度；最终 GPU **57 条/156 PNG**、既有 27 条 GPU 与 18 张绑定回归通过。完整最终证据见 [眼球远距记录](TASK_CHARACTER_EYE_DISTANCE_2026-10-21.md)。三图原 BC6H 反射数组已提取；发丝环境瓣仍需六面/mip/空间绑定核验。软法线/切线、多角色遮挡与原雾/平均色赋值继续单列。
+1. 当前分支 `feat/source-reflection-inputs-20261021` 已将三图 BC6H 原反射数组按原七级 mip 上传供显式诊断；三图 **1890** 个 HDR 采样、**1953** 组原坐标盒投影、27 张全景与取消/销毁检查通过，见 [反射输入记录](TASK_SOURCE_REFLECTION_INPUTS_2026-10-21.md)。下一片接游戏空间选择/混合、归一化/BRDF 与发丝第二瓣；没有启用正式角色环境反射。已合并眼球修正规则的 57 条/156 PNG、原材质与绑定回归见 [眼球记录](TASK_CHARACTER_EYE_DISTANCE_2026-10-21.md)。软法线/切线、多角色遮挡与原雾/平均色赋值继续单列。
 2. 启动/选图加载策略与分段耗时；用户明确允许选卡只更新静态真实地图预览，不在后台加载比赛地图。
 3. C4 成功提示/爆炸与结算、死亡观战视觉、AI 摇摆/速度与后续难度策略。C4 已有小型指挥完成消息，需改善醒目程度与观战覆盖，不是完全没有事件。
 4. 真实底图雷达、天空/高抛投掷边界、闪光 AI/玩家一致性、共享烟雾/环境光/体积雾；光追保持独立研究项。
