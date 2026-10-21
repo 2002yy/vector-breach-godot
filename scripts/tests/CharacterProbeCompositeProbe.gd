@@ -3,6 +3,7 @@ extends "res://scripts/tests/CharacterDistanceContrastProbe.gd"
 const Composite = preload("res://scripts/characters/SourceCharacterPostlit.gd")
 const Adapter = preload("res://scripts/level/SourceProbeDiagnostic.gd")
 const Appearance = preload("res://scripts/characters/CharacterAppearance.gd")
+const Alignment = preload("res://scripts/level/SourceVisualAlignment.gd")
 
 
 func _ready() -> void:
@@ -152,7 +153,11 @@ func _roles(args: PackedStringArray) -> bool:
 	var level: Node3D = preload("res://scenes/level/GrayboxLevel.tscn").instantiate()
 	level.level_id = data.level
 	world.add_child(level)
-	var alignment := Adapter.alignment_from_visual(level.get_node("VisualRoot/LevelVisual"))
+	var alignment := Alignment.resolve(
+		level.get_node("VisualRoot/LevelVisual"),
+		level_data,
+		args[args.find("--alignment-receipt") + 1] if "--alignment-receipt" in args else ""
+	)
 	var adapter := Adapter.new()
 	assert(adapter.configure(bundle, level_data, alignment, true))
 	var composite := Composite.new()

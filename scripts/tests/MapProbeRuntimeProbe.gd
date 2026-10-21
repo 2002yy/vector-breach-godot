@@ -4,6 +4,7 @@ const Adapter = preload("res://scripts/level/SourceProbeDiagnostic.gd")
 const Appearance = preload("res://scripts/characters/CharacterAppearance.gd")
 const NUMERIC = preload("res://scripts/tests/source_probe_world_numeric.gdshader")
 const LEVEL_SCENE = preload("res://scenes/level/GrayboxLevel.tscn")
+const Alignment = preload("res://scripts/level/SourceVisualAlignment.gd")
 var _out: String
 var _records: Array = []
 
@@ -41,11 +42,15 @@ func _ready() -> void:
 		" candidates=",
 		visual.find_children("*SourceAlignment*", "Node3D", true, false).size()
 	)
-	var alignment := Adapter.alignment_from_visual(visual)
+	var alignment := Alignment.resolve(
+		visual,
+		level_data,
+		args[args.find("--alignment-receipt") + 1] if "--alignment-receipt" in args else ""
+	)
 	assert(Adapter.valid_alignment(alignment))
 	var metadata: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(metadata_path))
 	var units: Dictionary = metadata.units
-	assert(units.sourceToWebAxes == ["x", "z", "-y"])
+	assert(units.sourceToWebAxes in [["x", "z", "-y"], ["y", "z", "x"]])
 	var offset: Array = units.sourceToWebOffset
 	var translation := (
 		Vector3(offset[0], offset[1], offset[2]) * (0.0254 / float(units.sourceToWebScale))
@@ -53,19 +58,24 @@ func _ready() -> void:
 	for sample in data.spawn_samples:
 		var p: Array = sample.position_source
 		var source := Vector3(p[0], p[1], p[2])
-		var expected := Vector3(source.x, source.z, -source.y) * 0.0254 + translation
+		var axes := (
+			Vector3(source.x, source.z, -source.y)
+			if units.sourceToWebAxes == ["x", "z", "-y"]
+			else Vector3(source.y, source.z, source.x)
+		)
+		var expected := axes * 0.0254 + translation
 		assert((alignment * source).distance_to(expected) < 0.0001)
 		assert((alignment.affine_inverse() * expected).distance_to(source) < 0.01)
 	var adapter := Adapter.new()
 	assert(not adapter.configure(bundle, level_data, alignment))
 	assert(adapter.configure(bundle, level_data, alignment, true))
 	level.visible = false
-	await _numeric(adapter, data, alignment)
+	assert(await _numeric(adapter, data, alignment))
 	assert("--moving-goldens" in args)
 	var moving: Array = JSON.parse_string(
 		FileAccess.get_file_as_string(args[args.find("--moving-goldens") + 1])
 	)
-	await _moving(adapter, alignment, moving)
+	assert(await _moving(adapter, alignment, moving))
 	level.visible = true
 	await get_tree().physics_frame
 	await get_tree().physics_frame
@@ -117,7 +127,7 @@ func _ready() -> void:
 	get_tree().quit()
 
 
-func _numeric(adapter: RefCounted, data: Dictionary, alignment: Transform3D) -> void:
+func _numeric(adapter: RefCounted, data: Dictionary, alignment: Transform3D) -> bool:
 	var viewport := SubViewport.new()
 	viewport.disable_3d = true
 	viewport.size = Vector2i(8, 8)
@@ -168,6 +178,7 @@ func _numeric(adapter: RefCounted, data: Dictionary, alignment: Transform3D) -> 
 			)
 	viewport.queue_free()
 	await get_tree().process_frame
+	return true
 
 
 func _capture(label: String) -> void:
@@ -177,7 +188,7 @@ func _capture(label: String) -> void:
 	assert(get_viewport().get_texture().get_image().save_png(_out.path_join(label + ".png")) == OK)
 
 
-func _moving(adapter: RefCounted, alignment: Transform3D, cases: Array) -> void:
+func _moving(adapter: RefCounted, alignment: Transform3D, cases: Array) -> bool:
 	var viewport := SubViewport.new()
 	viewport.size = Vector2i(32, 32)
 	viewport.own_world_3d = true
@@ -225,3 +236,4 @@ func _moving(adapter: RefCounted, alignment: Transform3D, cases: Array) -> void:
 		)
 	viewport.queue_free()
 	await get_tree().process_frame
+	return true

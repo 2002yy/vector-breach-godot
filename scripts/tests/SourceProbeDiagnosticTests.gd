@@ -2,6 +2,7 @@ extends Node3D
 
 const Adapter = preload("res://scripts/level/SourceProbeDiagnostic.gd")
 const Composite = preload("res://scripts/characters/SourceCharacterPostlit.gd")
+const Alignment = preload("res://scripts/level/SourceVisualAlignment.gd")
 var _folder := "user://probe-adapter-tests-" + str(OS.get_process_id())
 var _path: String
 var _data: Dictionary
@@ -73,6 +74,7 @@ func _ready() -> void:
 	visual.add_child(alignment)
 	var transform := Adapter.alignment_from_visual(visual)
 	assert(Adapter.valid_alignment(transform))
+	assert(_legacy_alignment())
 	assert(
 		(
 			(transform * Vector3(100, 200, 300)).distance_to(Vector3(19.558, 11.684, -26.5938))
@@ -139,17 +141,92 @@ func _ready() -> void:
 	assert(await _composite(adapter, visual, mesh))
 	adapter.detach()
 	visual.queue_free()
-	for name in ["lighting.json", "volume.bin", "source-materials.json", "character-inputs.json"]:
+	for name in [
+		"lighting.json",
+		"volume.bin",
+		"source-materials.json",
+		"character-inputs.json",
+		"legacy.tscn",
+		"alignment.json"
+	]:
 		DirAccess.remove_absolute(_folder.path_join(name))
 	DirAccess.remove_absolute(_folder)
 	print("SOURCE_PROBE_ADAPTER_TESTS_OK boundaries=11")
 	print("SOURCE_CHARACTER_COMPOSITE_TESTS_OK boundaries=8")
+	print("SOURCE_LEGACY_ALIGNMENT_TESTS_OK")
 	print("[SourceProbeDiagnosticTests] PASS (1 tests)")
 	get_tree().quit()
 
 
 func _save(data: Dictionary) -> void:
 	var file := FileAccess.open(_path, FileAccess.WRITE)
+	file.store_string(JSON.stringify(data))
+
+
+func _legacy_alignment() -> bool:
+	var root := Node3D.new()
+	var anchors := []
+	for index in range(3):
+		var mesh := MeshInstance3D.new()
+		mesh.name = "Anchor" + str(index)
+		mesh.mesh = BoxMesh.new()
+		mesh.scale = Vector3.ONE * 0.0254
+		root.add_child(mesh)
+		mesh.owner = root
+		anchors.append({"path": str(mesh.name), "source_bounds": [-0.5, -0.5, -0.5, 0.5, 0.5, 0.5]})
+	var packed := PackedScene.new()
+	assert(packed.pack(root) == OK)
+	var scene_path := _folder.path_join("legacy.tscn")
+	assert(ResourceSaver.save(packed, scene_path) == OK)
+	root.free()
+	var instance := (load(scene_path) as PackedScene).instantiate()
+	add_child(instance)
+	var data := {
+		"schema": 1,
+		"contract": "source-world-visual-alignment-v1",
+		"level": _level.id,
+		"source_vpk_sha256": _level.sourceTrace.vpkSha256,
+		"visual_scene": scene_path,
+		"visual_sha256": FileAccess.get_sha256(scene_path),
+		"anchors": anchors
+	}
+	var receipt := _folder.path_join("alignment.json")
+	_write_json(receipt, data)
+	assert(not Adapter.valid_alignment(Alignment.resolve(instance, _level)))
+	assert(Adapter.valid_alignment(Alignment.resolve(instance, _level, receipt)))
+	instance.position = Vector3(1, 2, 3)
+	assert(Alignment.resolve(instance, _level, receipt).origin == instance.position)
+	for field in ["visual_sha256", "source_vpk_sha256", "level", "visual_scene"]:
+		var changed := data.duplicate(true)
+		changed[field] = "wrong"
+		_write_json(receipt, changed)
+		assert(not Adapter.valid_alignment(Alignment.resolve(instance, _level, receipt)))
+	for path in ["../Anchor0", "/root/Anchor0", "missing", "Anchor1", "Anchor0:mesh", "./Anchor0"]:
+		var changed := data.duplicate(true)
+		changed.anchors[0].path = path
+		_write_json(receipt, changed)
+		assert(not Adapter.valid_alignment(Alignment.resolve(instance, _level, receipt)))
+	_write_json(receipt, data)
+	instance.get_node("Anchor1").position.x = 0.01
+	assert(not Adapter.valid_alignment(Alignment.resolve(instance, _level, receipt)))
+	instance.get_node("Anchor1").position.x = 0
+	instance.get_node("Anchor1").scale.x = 0.05
+	assert(not Adapter.valid_alignment(Alignment.resolve(instance, _level, receipt)))
+	instance.get_node("Anchor1").scale.x = 0.0254
+	var marker := Node3D.new()
+	marker.name = "OfficialSourceAlignment"
+	instance.add_child(marker)
+	assert(not Adapter.valid_alignment(Alignment.resolve(instance, _level, receipt)))
+	instance.remove_child(marker)
+	marker.free()
+	instance.get_node("Anchor1").mesh.size.x = 2
+	assert(not Adapter.valid_alignment(Alignment.resolve(instance, _level, receipt)))
+	instance.free()
+	return true
+
+
+func _write_json(path: String, data: Dictionary) -> void:
+	var file := FileAccess.open(path, FileAccess.WRITE)
 	file.store_string(JSON.stringify(data))
 
 
