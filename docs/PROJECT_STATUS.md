@@ -4,9 +4,13 @@
 
 ## main、PR 与唯一试玩包
 
-- **#66 已合入 main `5ea8c034a48f097dff54aaf4be2a789279680ed5`**；精确 PR 头 `cee5323` 的 Tests `39644309614`、Windows export/smoke `39644309674` 全成功。该 main push Tests `39645959880` 首次查询运行中；当前独立片 `feat/character-reflection-normalization-20261022` 不等待 CI，后续切到此 main 基线。
-- 当前片恢复三图 **217 组原 radiance SH** 和原 **64×64×3 BRDF 表**，将归一化/BRDF/发丝环境第二瓣接到两种原 hair 材质的受控角色候选；三图 **868** 组数值与 **24** 组角色近远景/姿势对照，关闭候选误差为零，见 [本片记录](TASK_CHARACTER_REFLECTION_NORMALIZATION_2026-10-22.md)。普通角色材质、正式对局和试玩包尚未启用；完整间接能量分配、软法线/切线及原 per-view 参数仍待核验。
-- 本片本机完整原生 **208**、Python 非 Blender **62**、GdUnit **2/2**、格式/lint/资源规则通过；三图 **102 PNG**，18 原模型哈希不变。精确提交/PR/CI 与保留的四个导入状态见本机 `D:/AgentGamePipeline/evidence/character-reflection-normalization-20261022/delivery.json`。
+- **#67 已合入 main `bd480eac0304878e3c78a3d59af82bfd1da1d13a`**；精确 PR 头 `09617cd9af5069fd36549028919defca4e1f1e34` 的 Tests `39651349173`、Windows export/smoke `39651349226` 全成功。main push Tests `39733653675` 首次快照运行中，本片不等待 CI。
+- 当前独立片 `feat/character-indirect-energy-20261022` 核实原动态探针组合，接入六轴 SH 回退、RGB 软法线和间接漫反射/镜面能量分配；三图新增 **210** 组数值与隔离阶段检查、**24** 个真实 hair 角色组合、**156 PNG**，见 [本片记录](TASK_CHARACTER_INDIRECT_ENERGY_2026-10-22.md)。SH 仍是由原光实体推导的查看器候选，未冒充原引擎 per-view 绑定；普通游戏与包未启用。
+- 本片完整原生 **208**、Python 非 Blender **66**、GdUnit **2/2**、格式/lint/资源规则通过，18 原模型哈希不变；24 张关闭新模式的图与 #67 逐像素相同。错误类型溯源字段的校验异常已修复并回归，收据见本机 `D:/AgentGamePipeline/evidence/character-indirect-energy-20261022/audit.json` / `delivery.json`。
+
+- **#66 已合入 main `5ea8c034a48f097dff54aaf4be2a789279680ed5`**；精确 PR 头 `cee5323` 的 Tests `39644309614`、Windows export/smoke `39644309674` 全成功。该 main push Tests `39645959880` 首次查询运行中；此为历史快照，当前基线见上方。
+- #67 恢复三图 **217 组原 radiance SH** 和原 **64×64×3 BRDF 表**，将归一化/BRDF/发丝环境第二瓣接到两种原 hair 材质的受控角色候选；三图 **868** 组数值与 **24** 组角色近远景/姿势对照，关闭候选误差为零，见 [前片记录](TASK_CHARACTER_REFLECTION_NORMALIZATION_2026-10-22.md)。普通角色材质、正式对局和试玩包尚未启用；后续间接能量进展见本文顶部。
+- #67 本机完整原生 **208**、Python 非 Blender **62**、GdUnit **2/2**、格式/lint/资源规则通过；三图 **102 PNG**，18 原模型哈希不变。精确提交/PR/CI 与保留的四个导入状态见本机 `D:/AgentGamePipeline/evidence/character-reflection-normalization-20261022/delivery.json`。
 
 - **#65 已合入 main `a00f81958a9a640083a5762a00f61efc07880e37`**；精确 PR 头 `69fc7e3` 的 Tests `39601697845`、Windows export/smoke `39601697868` 全成功。合并后 main push Tests `39641681474` 首次查询仍运行；此为当时快照，后续 #66 状态见上方。
 - #66 完成三图原反射数组的游戏空间选择/盒投影/重叠混合，**2140 条** CPU/GPU 签名检查（含 480 条重叠）、分数 mip 对照与三图移动反射表面截图通过，见 [运行时记录](TASK_CHARACTER_REFLECTION_RUNTIME_2026-10-22.md)。该片仍为显式诊断，后续角色绑定见本文顶部。
@@ -38,7 +42,7 @@
 
 完整可执行清单见 [当前待修项](CURRENT_PENDING.md)。
 
-1. #65/#66 已恢复三图 BC6H 原七级反射数组及游戏空间选择/混合；原 radiance SH、BRDF 与发丝环境第二瓣现已接真实角色受控候选，见 [本片记录](TASK_CHARACTER_REFLECTION_NORMALIZATION_2026-10-22.md)。下一片核对完整间接能量分配、法线/切线和真实 per-view 参数，再与 LPV 角色合成统一；没有启用正式角色环境反射。眼球时序、多角色遮挡、原雾/平均色赋值及性能继续单列，加载策略、C4/观战与 AI 运动/难度顺序保留。
+1. #65–#67 已恢复三图原反射/SH/BRDF 与受控 hair 角色绑定；本片已核实原动态 LPV 模式，并推进 hair 遮罩内间接能量/AO/RGB 软法线，见 [本片记录](TASK_CHARACTER_INDIRECT_ENERGY_2026-10-22.md)。下一片收敛探针重复采样并扩大非 hair 皮肤/布料候选，核验遮挡、蒙皮切线和真实 per-view 参数；没有启用正式角色环境反射。眼球时序、原雾/平均色赋值及性能继续单列，加载策略、C4/观战与 AI 运动/难度顺序保留。
 2. 启动/选图加载策略与分段耗时；用户明确允许选卡只更新静态真实地图预览，不在后台加载比赛地图。
 3. C4 成功提示/爆炸与结算、死亡观战视觉、AI 摇摆/速度与后续难度策略。C4 已有小型指挥完成消息，需改善醒目程度与观战覆盖，不是完全没有事件。
 4. 真实底图雷达、天空/高抛投掷边界、闪光 AI/玩家一致性、共享烟雾/环境光/体积雾；光追保持独立研究项。
