@@ -19,7 +19,8 @@ const INJECT := """
 	SourceHairEnvironment env_hair = source_hair_environment(world_position,env_world_normal,
 		env_geometric,env_world_tangent,env_world_bitangent,
 		normalize(CAMERA_POSITION_WORLD-world_position),rough_xy,ALBEDO,METALLIC,AO,
-		normal_softness,skin_mask,hair_mask,hair_shift,hair_roughness_scale,hair_transmission);
+		normal_softness,skin_mask,hair_mask,hair_shift,hair_roughness_scale,hair_transmission,
+		cloth_mask,sheen_tint,sheen_scale);
 	if (env_hair.weight > 0.0) {
 		RADIANCE = vec4(0.0,0.0,0.0,env_hair.weight);
 		EMISSION += env_hair.specular*env_hair.weight;
@@ -35,7 +36,12 @@ var _followers: Array[Node] = []
 
 
 func attach(
-	root: Node, reflection: RefCounted, probes: RefCounted, inputs: RefCounted, diagnostic := false
+	root: Node,
+	reflection: RefCounted,
+	probes: RefCounted,
+	inputs: RefCounted,
+	diagnostic := false,
+	body_diagnostic := false
 ) -> int:
 	if not diagnostic:
 		return 0
@@ -56,7 +62,7 @@ func attach(
 			if (
 				original == null
 				or original.next_pass != null
-				or original.get_shader_parameter("enable_hair") != true
+				or (not body_diagnostic and original.get_shader_parameter("enable_hair") != true)
 			):
 				continue
 			if original.shader == null or original.shader.code.count(ANCHOR) != 1:
@@ -74,6 +80,7 @@ func attach(
 				. replace(ANCHOR, ANCHOR + INJECT)
 			)
 			material.shader = shader
+			material.set_shader_parameter("source_body_enabled", body_diagnostic)
 			if (
 				not reflection.bind(material)
 				or not probes.bind(material)
