@@ -4,12 +4,14 @@ const Reflection = preload("res://scripts/level/SourceReflectionTexture.gd")
 const Adapter = preload("res://scripts/level/SourceReflectionDiagnostic.gd")
 const Inputs = preload("res://scripts/characters/SourceEnvironmentInputs.gd")
 const Indirect = preload("res://scripts/characters/SourceIndirectInputs.gd")
+const Composite = preload("res://scripts/characters/SourceCharacterEnvironment.gd")
 
 
 func _ready() -> void:
 	_records()
 	_normalization_inputs()
 	_indirect_inputs()
+	_material_toggle()
 	var payload := PackedByteArray()
 	payload.resize(96)
 	var data := {
@@ -65,6 +67,50 @@ func _ready() -> void:
 	source.release()
 	print("[SourceReflectionTests] PASS (1 tests)")
 	get_tree().quit()
+
+
+func _material_toggle() -> void:
+	for explicit_override in [false, true]:
+		var mesh := MeshInstance3D.new()
+		mesh.mesh = BoxMesh.new()
+		var original := StandardMaterial3D.new()
+		mesh.mesh.material = original
+		var previous: Material = original if explicit_override else null
+		var copy := ShaderMaterial.new()
+		copy.shader = Shader.new()
+		copy.shader.code = "shader_type spatial; uniform bool source_env_enabled = true;"
+		mesh.set_surface_override_material(0, copy)
+		var composite := Composite.new()
+		composite.materials.append(copy)
+		composite._bindings.append(
+			{
+				"mesh": mesh,
+				"surface": 0,
+				"previous": previous,
+				"original": original,
+				"copy": copy,
+				"active": true
+			}
+		)
+		assert(composite.set_enabled(false) == 1)
+		assert(copy.get_shader_parameter("source_env_enabled") == false)
+		assert(mesh.get_surface_override_material(0) == previous)
+		assert(mesh.get_active_material(0) == original)
+		assert(composite.set_enabled(false) == 0)
+		assert(composite.set_enabled(true) == 1)
+		assert(copy.get_shader_parameter("source_env_enabled") == true)
+		assert(mesh.get_surface_override_material(0) == copy)
+		assert(composite.set_enabled(true) == 0)
+		var external := StandardMaterial3D.new()
+		mesh.set_surface_override_material(0, external)
+		assert(composite.set_enabled(false) == 0)
+		mesh.set_surface_override_material(0, copy)
+		assert(composite.set_enabled(false) == 1)
+		mesh.set_surface_override_material(0, external)
+		assert(composite.set_enabled(true) == 0)
+		composite.detach()
+		assert(mesh.get_surface_override_material(0) == external)
+		mesh.free()
 
 
 func _records() -> void:

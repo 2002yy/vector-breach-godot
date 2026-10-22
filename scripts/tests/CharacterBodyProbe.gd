@@ -171,15 +171,15 @@ func _surfaces(adapter: RefCounted, alignment: Transform3D, cases: Array, out: S
 				assert(composite.attach(model, adapter, probes, _inputs, true, true) > 0)
 				assert(composite.attach(model, adapter, probes, _inputs, true, true) == 0)
 				_configure_candidate(composite)
-				for material in composite.materials:
-					material.set_shader_parameter("source_env_enabled", false)
+				assert(composite.set_enabled(false) == composite.materials.size())
+				assert(composite.set_enabled(false) == 0)
 				var disabled := await _capture(out, label + "-disabled")
 				assert(
-					_difference(baseline, disabled) < 0.00001,
-					"disabled body candidate exceeds diagnostic image tolerance"
+					_difference(baseline, disabled) == 0.0,
+					"disabled body candidate must restore original material identity"
 				)
-				for material in composite.materials:
-					material.set_shader_parameter("source_env_enabled", true)
+				assert(composite.set_enabled(true) == composite.materials.size())
+				assert(composite.set_enabled(true) == 0)
 				var enabled := await _capture(out, label + "-enabled")
 				var difference := _difference(baseline, enabled)
 				assert(difference > 0.000001, "body composition must affect real pixels")
@@ -187,8 +187,7 @@ func _surfaces(adapter: RefCounted, alignment: Transform3D, cases: Array, out: S
 				if pose == 0.0 and distance == 1.8:
 					occluder.visible = true
 					var hidden := await _capture(out, label + "-occluded")
-					for material in composite.materials:
-						material.set_shader_parameter("source_env_enabled", false)
+					assert(composite.set_enabled(false) == composite.materials.size())
 					var hidden_base := await _capture(out, label + "-occluded-disabled")
 					blocked = _difference(hidden, hidden_base)
 					assert(blocked == 0.0, "opaque depth must occlude custom indirect emission")

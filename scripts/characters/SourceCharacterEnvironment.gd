@@ -93,6 +93,7 @@ func attach(
 					"surface": surface,
 					"original": original,
 					"previous": mesh.get_surface_override_material(surface),
+					"active": true,
 					"copy": material
 				}
 			)
@@ -107,6 +108,25 @@ func attach(
 		root.add_child(follower)
 		_followers.append(follower)
 	return count
+
+
+func set_enabled(enabled: bool) -> int:
+	# A zero shader weight still leaves a different material object bound.
+	# Restore the exact original override when off; retain prepared inputs for on.
+	var changed := 0
+	for entry in _bindings:
+		if not is_instance_valid(entry.mesh) or entry.active == enabled:
+			continue
+		var expected: Material = entry.copy if entry.active else entry.previous
+		if entry.mesh.get_surface_override_material(entry.surface) != expected:
+			continue
+		entry.copy.set_shader_parameter("source_env_enabled", enabled)
+		entry.mesh.set_surface_override_material(
+			entry.surface, entry.copy if enabled else entry.previous
+		)
+		entry.active = enabled
+		changed += 1
+	return changed
 
 
 func detach() -> void:
