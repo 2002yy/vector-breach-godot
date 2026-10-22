@@ -4,9 +4,13 @@
 
 ## main、PR 与唯一试玩包
 
+- **#71 已合入 main `d21ba4240d8ff5a4e85ca1cbfe97284a2b56ab6a`**；精确头 `12c989b1617c6106aaed83d304bdaf29d6f9c0bb` 的 Tests `39826106691`、Windows export/smoke `39826106732` 全成功且 CLEAN。本批开发未等待 CI，结果就绪后整合已合并基线。
+- 当前片 `feat/character-ssao-input-20261023` 接实际 Godot SSAO 纹理，只衰减候选间接漫反射/镜面反射，不重复材质 AO，也不修改直接光或原自发光。受控单视图诊断已有开关/暂停重建/卸载流程；自动视口生命周期、原引擎遮蔽/per-view 和正式集成仍待完成，见 [本片记录](TASK_CHARACTER_SSAO_2026-10-23.md)。普通游戏和唯一试玩包未启用候选。
+- 本片整合 #71 后三图 **72** 组角色 SSAO 对照、**18** 组墙体遮挡、**24** 组 hair/眼球跟随及原数值回归通过；关闭/卸载均严格像素差 **0**。隔离直接光/原自发光保持零差，移动第一帧与暂停重建/销毁通过；共 **589 PNG**。完整原生 **208**、Python 非 Blender **75**、GdUnit **2/2**、格式/lint/导入/三类资源合同通过，18 原模型哈希不变。收据：本机 `D:/AgentGamePipeline/evidence/character-ssao-20261023/audit.json` / `delivery.json`；Dust II 基线天空紫黑外露物件单列待查。
+
 - **#70 已合入 main `76337b0c291463ac4b7049f14ea807eb02c93b3e`**；精确头 `cd6f82b6b2905080c1c5969cd211bedca4015691` 的 Tests `39774191397`、Windows export/smoke `39774191440` 全成功。main push Tests `39822146971` 首次快照运行中，本片不等待。
-- 当前片 `fix/character-normal-frame-20261023` 修复候选的未归一化 TBN 与 normal strength 向量混合；独立 **216** 组数值和六角色 **48** 组实际动作/强度/尺度对照通过，新重建与引擎光照阶段法线全部像素误差为 **0**。SSAO 正负对照已复现 EMISSION 路径缺口，尚未实现合成，见 [本片记录](TASK_CHARACTER_NORMAL_FRAME_2026-10-23.md)。普通游戏与试玩包未启用候选。
-- 本片完整原生 **208**、Python 非 Blender **75**、GdUnit **2/2**、格式/lint/导入/资源合同通过，18 原模型哈希不变；三图 72 组关闭/卸载仍全部严格零，24 组 hair/眼球跟随、18 组墙体遮挡及原采样/布料数值回归通过。共 **635 PNG**，收据见本机 `D:/AgentGamePipeline/evidence/character-normal-frame-20261023/audit.json` / `delivery.json`。SSAO 仅完成边界复现，不算功能实现。
+- #71 修复候选的未归一化 TBN 与 normal strength 向量混合；独立 **216** 组数值和六角色 **48** 组实际动作/强度/尺度对照通过，新重建与引擎光照阶段法线全部像素误差为 **0**。当时 SSAO 仅复现缺口，后续实际合成见本文顶部，见 [前片记录](TASK_CHARACTER_NORMAL_FRAME_2026-10-23.md)。普通游戏与试玩包未启用候选。
+- #71 完整原生 **208**、Python 非 Blender **75**、GdUnit **2/2**、格式/lint/导入/资源合同通过，18 原模型哈希不变；三图 72 组关闭/卸载仍全部严格零，24 组 hair/眼球跟随、18 组墙体遮挡及原采样/布料数值回归通过。共 **635 PNG**，收据见本机 `D:/AgentGamePipeline/evidence/character-normal-frame-20261023/audit.json` / `delivery.json`。该证据中的 SSAO 仅为边界复现，不替代本片合成证据。
 
 - **#69 已合入 main `5be8fc4b08f808ad8ae25f894d48edb6887e721c`**；精确头 `311442ae6a37b1643a09cdce974502fe899a0fc0` 的 Tests `39742846832`、Windows export/smoke `39742846581` 全成功。main push Tests `39771031078` 首次快照运行中，当前独立片不等待。
 - #70 将关闭操作改为恢复原材质绑定，新增材质副本/原 shader/零输出消融，三图关闭要求收紧为严格零，见 [前片记录](TASK_CHARACTER_ENVIRONMENT_TOGGLE_2026-10-22.md)。
@@ -54,7 +58,7 @@
 
 完整可执行清单见 [当前待修项](CURRENT_PENDING.md)。
 
-1. #65–#70 已恢复三图原反射/SH/BRDF、六向复用/全身受控候选及绑定级关闭；本片修 Godot 侧 TBN/normal depth 重建，48 组动作/强度/尺度对照逐像素匹配，见 [本片记录](TASK_CHARACTER_NORMAL_FRAME_2026-10-23.md)。下一片接候选 SSAO 实际合成，Source 2 原切线/蒙皮、对象遮挡与真实 per-view 仍单列；没有启用正式角色环境效果。眼球时序、原雾/平均色及性能继续保留，加载策略、C4/观战与 AI 运动/难度顺序不变。
+1. #65–#71 已恢复三图原反射/SH/BRDF、全身受控候选、绑定级关闭与 Godot 法线帧；本片接实际 SSAO 到候选间接光，见 [本片记录](TASK_CHARACTER_SSAO_2026-10-23.md)。下一片收敛视口拥有者、自动重建与开关同步，再接正常游戏集成；Source 2 原切线/蒙皮、对象遮挡与真实 per-view 仍单列。没有启用正式角色环境效果；眼球时序、原雾/平均色及性能继续保留，加载策略、C4/观战与 AI 运动/难度顺序不变。
 2. 启动/选图加载策略与分段耗时；用户明确允许选卡只更新静态真实地图预览，不在后台加载比赛地图。
 3. C4 成功提示/爆炸与结算、死亡观战视觉、AI 摇摆/速度与后续难度策略。C4 已有小型指挥完成消息，需改善醒目程度与观战覆盖，不是完全没有事件。
 4. 真实底图雷达、天空/高抛投掷边界、闪光 AI/玩家一致性、共享烟雾/环境光/体积雾；光追保持独立研究项。

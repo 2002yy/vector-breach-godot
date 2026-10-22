@@ -106,6 +106,14 @@ func _ready() -> void:
 	effect.set_requested(true)
 	var guard_on := await _capture("direct-emission-on")
 	assert(_difference(guard_off, guard_on) == 0.0, "direct/emission changed")
+	sun.light_energy = 0.0
+	var emission_only := await _capture("emission-only")
+	assert(_difference(guard_on, emission_only) > 0.0001, "direct light control missing")
+	material.set_shader_parameter("original_emission", 0.0)
+	var black := await _capture("no-original-emission")
+	assert(_difference(emission_only, black) > 0.0001, "original emission control missing")
+	sun.light_energy = 1.0
+	material.set_shader_parameter("original_emission", 0.15)
 	# Disable while Godot retains its old SSAO allocation: never sample stale shadows.
 	environment.ssao_enabled = false
 	effect.set_requested(false)
