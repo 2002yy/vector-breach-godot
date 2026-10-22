@@ -1,13 +1,13 @@
 extends RefCounted
 
-const PREFIX := '#include "res://scripts/characters/source_hair_environment.gdshaderinc"\n'
+const PREFIX := """
+#include "res://scripts/characters/source_hair_environment.gdshaderinc"
+#include "res://scripts/characters/source_normal_frame.gdshaderinc"
+"""
 const ANCHOR := "\tcurvature = clamp((inverse_radius_m * curvature_scale - 1.0) / 99.0, 0.0, 1.0);"
 const INJECT := """
-	vec3 env_micro = use_normal ? NORMAL_MAP*2.0-1.0 : vec3(0.0,0.0,1.0);
-	env_micro.xy *= NORMAL_MAP_DEPTH;
-	env_micro.z = sqrt(max(1.0-dot(env_micro.xy,env_micro.xy),0.0));
-	vec3 env_view_normal = safe_normalize(basis_t*env_micro.x+basis_b*env_micro.y
-		+geom_normal*env_micro.z,geom_normal);
+	vec3 env_view_normal = source_mapped_normal(NORMAL_MAP,NORMAL_MAP_DEPTH,
+		TANGENT,BINORMAL,NORMAL);
 	vec3 env_world_normal = normalize(mat3(INV_VIEW_MATRIX)*env_view_normal);
 	vec3 env_tangent = safe_normalize(cross(basis_b,env_view_normal),basis_t);
 	if (spherical_aniso) {
