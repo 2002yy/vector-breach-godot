@@ -2,10 +2,12 @@ extends Node
 
 const Reflection = preload("res://scripts/level/SourceReflectionTexture.gd")
 const Adapter = preload("res://scripts/level/SourceReflectionDiagnostic.gd")
+const Inputs = preload("res://scripts/characters/SourceEnvironmentInputs.gd")
 
 
 func _ready() -> void:
 	_records()
+	_normalization_inputs()
 	var payload := PackedByteArray()
 	payload.resize(96)
 	var data := {
@@ -106,3 +108,52 @@ func _records() -> void:
 	var duplicate := data.duplicate(true)
 	duplicate.probes[0].cube_index = 0
 	assert(Adapter.records(duplicate, level, alignment).is_empty())
+
+
+func _normalization_inputs() -> void:
+	var raw := PackedByteArray()
+	raw.resize(64 * 64 * 3 * 16)
+	var reflection := {
+		"level": "map",
+		"source_trace": {"vpkSha256": "a".repeat(64)},
+		"sha256": "b".repeat(64),
+		"compiled_sha256": "c".repeat(64),
+		"cubes": 1,
+		"mip_count": 7
+	}
+	var coefficients := []
+	coefficients.resize(27)
+	coefficients.fill(0.0)
+	var data := {
+		"schema": 1,
+		"contract": "source-reflection-normalization-v1",
+		"level": "map",
+		"source_trace": reflection.source_trace,
+		"reflection_sha256": reflection.sha256,
+		"compiled_reflection_sha256": reflection.compiled_sha256,
+		"normalization_sh": [[0, 0, 0, 0]],
+		"native_sh":
+		{
+			"compiled_sha256": reflection.compiled_sha256,
+			"cubes": 1,
+			"native_coefficients": coefficients
+		},
+		"brdf":
+		{
+			"file": "brdf-rgba-f32.bin",
+			"compiled_sha256": Inputs.BRDF_SHA,
+			"sha256": Reflection._sha(raw)
+		}
+	}
+	assert(Inputs.validate(data, reflection, raw))
+	for field in ["reflection_sha256", "compiled_reflection_sha256", "contract"]:
+		var invalid := data.duplicate(true)
+		invalid[field] = "invalid"
+		assert(not Inputs.validate(invalid, reflection, raw))
+	var changed := data.duplicate(true)
+	changed.normalization_sh[0][0] = 1
+	assert(not Inputs.validate(changed, reflection, raw))
+	changed = data.duplicate(true)
+	changed.native_sh.native_coefficients[0] = NAN
+	assert(not Inputs.validate(changed, reflection, raw))
+	assert(not Inputs.validate(data, reflection, raw.slice(1)))

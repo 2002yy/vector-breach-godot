@@ -6,15 +6,17 @@ uniform vec4 reflection_origin_yaw[128];
 uniform vec4 reflection_minimum[128];
 uniform vec4 reflection_size[128];
 uniform vec4 reflection_inverse_edge[128];
+uniform vec4 reflection_sh[128];
 
 // Explicit diagnostic consumer; no BRDF, radiance normalization or ambient fallback.
 // VRF environment.slang: total starts at .01, residual fade, stop above .99.
-vec4 sample_source_reflection(vec3 world, vec3 world_ray, float lod, bool signature) {
+vec4 source_reflection_internal(vec3 world, vec3 world_ray, float lod, bool signature, out vec4 harmonic) {
 	vec3 position = (game_to_source * vec4(world, 1.0)).xyz;
 	vec3 ray = mat3(game_to_source) * world_ray;
 	vec3 result = vec3(0.0);
 	float total = 0.01;
 	float coverage = 0.0;
+	harmonic = vec4(0.0);
 	for (int i = 0; i < reflection_count; i++) {
 		vec4 placement = reflection_origin_yaw[i];
 		vec3 delta = position - placement.xyz;
@@ -35,9 +37,24 @@ vec4 sample_source_reflection(vec3 world, vec3 world_ray, float lod, bool signat
 		vec3 value = signature ? vec3(cube / 128.0, projected.x * 0.5+0.5, projected.y * 0.5+0.5)
 			: textureLod(native_reflection, vec4(projected.xyz,cube), lod).rgb;
 		result += value * weight;
+		harmonic += reflection_sh[int(cube)] * weight;
 		total += weight;
 		coverage += weight;
 		if (total > 0.99) { break; }
 	}
+	harmonic /= total;
 	return vec4(result, coverage);
+}
+
+vec4 sample_source_reflection(vec3 world, vec3 world_ray, float lod, bool signature) {
+	vec4 unused;
+	return source_reflection_internal(world,world_ray,lod,signature,unused);
+}
+
+// Native character PS divides accumulated radiance and SH by total, including
+// the .01 initial reserve. Keep the earlier raw-radiance diagnostic unchanged.
+vec4 source_character_reflection(vec3 world, vec3 ray, float lod, out vec4 harmonic) {
+	vec4 value = source_reflection_internal(world,ray,lod,false,harmonic);
+	value.rgb /= (0.01+value.a);
+	return value;
 }

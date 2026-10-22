@@ -1,0 +1,33 @@
+#include "res://scripts/level/source_reflection_sampling.gdshaderinc"
+#include "res://scripts/level/source_probe_sampling.gdshaderinc"
+#include "res://scripts/characters/source_environment_math.gdshaderinc"
+uniform float source_env_second_weight = 1.0;
+uniform bool source_env_enabled = true;
+
+vec3 source_env_safe(vec3 value, vec3 fallback) {
+	return dot(value,value) > 1e-12 ? normalize(value) : fallback;
+}
+
+vec4 source_hair_environment(vec3 world, vec3 normal, vec3 tangent, vec3 bitangent, vec3 view,
+	vec2 rough_xy, vec3 albedo, float mask, float shift, float roughness_scale, float transmission) {
+	if (!source_env_enabled || mask <= 0.0) { return vec4(0.0); }
+	vec3 primary_normal,secondary_normal;
+	source_hair_frame(normal,view,tangent,bitangent,rough_xy,shift,primary_normal,secondary_normal);
+	float roughness = clamp(dot(rough_xy,vec2(0.5)),0.0,1.0);
+	float secondary_roughness = clamp(roughness*roughness_scale,0.0,1.0);
+	vec4 primary_sh, secondary_sh;
+	vec4 primary = source_character_reflection(world,source_environment_dominant(primary_normal,view,roughness),6.0*sqrt(roughness),primary_sh);
+	vec4 secondary = source_character_reflection(world,source_environment_dominant(secondary_normal,view,secondary_roughness),6.0*sqrt(secondary_roughness),secondary_sh);
+	vec3 source_primary = normalize(mat3(game_to_source)*primary_normal);
+	vec3 source_secondary = normalize(mat3(game_to_source)*secondary_normal);
+	vec3 source_normal = normalize(mat3(game_to_source)*normal);
+	vec4 irradiance = sample_source_probes((game_to_source*vec4(world,1.0)).xyz,source_normal);
+	if (primary.a <= 0.0 || secondary.a <= 0.0 || irradiance.a <= 0.0) { return vec4(0.0); }
+	float primary_factor = source_environment_normalization(roughness,source_primary,irradiance.rgb,primary_sh);
+	float secondary_factor = source_environment_normalization(secondary_roughness,source_secondary,irradiance.rgb,secondary_sh);
+	float weight = clamp(transmission*mask*source_env_second_weight,0.0,1.0);
+	vec3 f0 = vec3(mix(0.04,0.046,mask))*mix(vec3(1.0),normalize(albedo+vec3(0.001)),weight);
+	SourceEnvBRDF brdf = source_environment_brdf(f0,roughness,max(dot(normal,view),0.0));
+	vec3 reflected = mix(primary.rgb*primary_factor,secondary.rgb*secondary_factor,weight);
+	return vec4(reflected*(brdf.single_scatter+brdf.multi_scatter),clamp(mask,0.0,1.0));
+}
