@@ -1,12 +1,16 @@
 # Vector Breach 当前状态
 
-更新：2026-10-22。此文件为当前实现、优先级和交付状态的权威入口；旧任务文档及历史截图中的“当前版本/尚未实现”只对应当时提交。
+更新：2026-10-23。此文件为当前实现、优先级和交付状态的权威入口；旧任务文档及历史截图中的“当前版本/尚未实现”只对应当时提交。
 
 ## main、PR 与唯一试玩包
 
+- **#70 已合入 main `76337b0c291463ac4b7049f14ea807eb02c93b3e`**；精确头 `cd6f82b6b2905080c1c5969cd211bedca4015691` 的 Tests `39774191397`、Windows export/smoke `39774191440` 全成功。main push Tests `39822146971` 首次快照运行中，本片不等待。
+- 当前片 `fix/character-normal-frame-20261023` 修复候选的未归一化 TBN 与 normal strength 向量混合；独立 **216** 组数值和六角色 **48** 组实际动作/强度/尺度对照通过，新重建与引擎光照阶段法线全部像素误差为 **0**。SSAO 正负对照已复现 EMISSION 路径缺口，尚未实现合成，见 [本片记录](TASK_CHARACTER_NORMAL_FRAME_2026-10-23.md)。普通游戏与试玩包未启用候选。
+- 本片完整原生 **208**、Python 非 Blender **75**、GdUnit **2/2**、格式/lint/导入/资源合同通过，18 原模型哈希不变；三图 72 组关闭/卸载仍全部严格零，24 组 hair/眼球跟随、18 组墙体遮挡及原采样/布料数值回归通过。共 **635 PNG**，收据见本机 `D:/AgentGamePipeline/evidence/character-normal-frame-20261023/audit.json` / `delivery.json`。SSAO 仅完成边界复现，不算功能实现。
+
 - **#69 已合入 main `5be8fc4b08f808ad8ae25f894d48edb6887e721c`**；精确头 `311442ae6a37b1643a09cdce974502fe899a0fc0` 的 Tests `39742846832`、Windows export/smoke `39742846581` 全成功。main push Tests `39771031078` 首次快照运行中，当前独立片不等待。
-- 当前片 `fix/character-environment-toggle-20261022` 将关闭操作改为恢复原材质绑定，并新增材质副本/原 shader/零输出消融，三图关闭要求收紧为严格零；同时核对到 TBN/normal depth 与后续 SSAO 的具体合同缺口，见 [本片记录](TASK_CHARACTER_ENVIRONMENT_TOGGLE_2026-10-22.md)。普通游戏和唯一试玩包未启用候选。
-- 本片三图 **72/72** 组关闭与卸载均为像素误差 **0**，18 组墙体遮挡及旧数值/hair 回归通过；**486** 张三图截图、**12** 张消融截图。完整原生 **208**、Python 非 Blender **71**、GdUnit **2/2**、格式/lint/资源合同通过，18 原模型哈希不变，详见本机 `D:/AgentGamePipeline/evidence/character-environment-toggle-20261022/audit.json` / `delivery.json`。绑定级关闭已修，原 shader uniform 置零仍只是保留副本的诊断方式。
+- #70 将关闭操作改为恢复原材质绑定，新增材质副本/原 shader/零输出消融，三图关闭要求收紧为严格零，见 [前片记录](TASK_CHARACTER_ENVIRONMENT_TOGGLE_2026-10-22.md)。
+- #70 三图 **72/72** 组关闭与卸载均为像素误差 **0**，18 组墙体遮挡及旧数值/hair 回归通过；**486** 张三图截图、**12** 张消融截图。完整原生 **208**、Python 非 Blender **71**、GdUnit **2/2**、格式/lint/资源合同通过，18 原模型哈希不变，详见本机 `D:/AgentGamePipeline/evidence/character-environment-toggle-20261022/audit.json` / `delivery.json`。绑定级关闭已修，原 shader uniform 置零仍只是保留副本的诊断方式。
 
 - **#68 已合入 main `3bba8518f8a5cceb743838fd2f164f204569d88b`**；精确头 `d38b6782ba1f2ad6e910499f0f62814044cead46` 的 Tests `39737778623`、Windows export/smoke `39737778775` 全成功。main push Tests `39739136299` 首次快照运行中；新片独立开发，不等待 CI。
 - #69 将 LPV 的四次重复选取收敛为一次六向读取，并扩展六角色皮肤/布料受控候选，加入原布料间接能量与部分遮罩方向规则，见 [前片记录](TASK_CHARACTER_PROBE_CUBE_2026-10-22.md)。
@@ -50,7 +54,7 @@
 
 完整可执行清单见 [当前待修项](CURRENT_PENDING.md)。
 
-1. #65–#69 已恢复三图原反射/SH/BRDF、六向复用和全身受控候选；本片将关闭操作改为恢复原材质对象，见 [本片记录](TASK_CHARACTER_ENVIRONMENT_TOGGLE_2026-10-22.md)。下一片修 TBN/normal depth 重建合同并验证蒙皮动作，再核验环境遮挡/per-view；没有启用正式角色环境反射。眼球时序、原雾/平均色赋值及性能继续单列，加载策略、C4/观战与 AI 运动/难度顺序保留。
+1. #65–#70 已恢复三图原反射/SH/BRDF、六向复用/全身受控候选及绑定级关闭；本片修 Godot 侧 TBN/normal depth 重建，48 组动作/强度/尺度对照逐像素匹配，见 [本片记录](TASK_CHARACTER_NORMAL_FRAME_2026-10-23.md)。下一片接候选 SSAO 实际合成，Source 2 原切线/蒙皮、对象遮挡与真实 per-view 仍单列；没有启用正式角色环境效果。眼球时序、原雾/平均色及性能继续保留，加载策略、C4/观战与 AI 运动/难度顺序不变。
 2. 启动/选图加载策略与分段耗时；用户明确允许选卡只更新静态真实地图预览，不在后台加载比赛地图。
 3. C4 成功提示/爆炸与结算、死亡观战视觉、AI 摇摆/速度与后续难度策略。C4 已有小型指挥完成消息，需改善醒目程度与观战覆盖，不是完全没有事件。
 4. 真实底图雷达、天空/高抛投掷边界、闪光 AI/玩家一致性、共享烟雾/环境光/体积雾；光追保持独立研究项。
