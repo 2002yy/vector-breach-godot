@@ -3,11 +3,13 @@ extends Node
 const Reflection = preload("res://scripts/level/SourceReflectionTexture.gd")
 const Adapter = preload("res://scripts/level/SourceReflectionDiagnostic.gd")
 const Inputs = preload("res://scripts/characters/SourceEnvironmentInputs.gd")
+const Indirect = preload("res://scripts/characters/SourceIndirectInputs.gd")
 
 
 func _ready() -> void:
 	_records()
 	_normalization_inputs()
+	_indirect_inputs()
 	var payload := PackedByteArray()
 	payload.resize(96)
 	var data := {
@@ -108,6 +110,31 @@ func _records() -> void:
 	var duplicate := data.duplicate(true)
 	duplicate.probes[0].cube_index = 0
 	assert(Adapter.records(duplicate, level, alignment).is_empty())
+
+
+func _indirect_inputs() -> void:
+	var lighting := {"level": "map", "source_trace": {"vpkSha256": "a"}}
+	var data := {
+		"schema": 1,
+		"contract": "source-indirect-diagnostic-v1",
+		"kind": "viewer-derived-source-sun-SH1",
+		"level": "map",
+		"source_trace": lighting.source_trace,
+		"lighting_sha256": "b",
+		"ambient_sh": [[0, 0, 1, 2], [0, 0, 1, 2], [0, 0, 1, 2]]
+	}
+	assert(Indirect.valid(data, lighting, "b"))
+	for field in ["level", "source_trace", "lighting_sha256", "kind", "contract", "schema"]:
+		var bad := data.duplicate(true)
+		bad[field] = "wrong"
+		assert(not Indirect.valid(bad, lighting, "b"))
+	for value in [NAN, INF, "1"]:
+		var bad := data.duplicate(true)
+		bad.ambient_sh[0][0] = value
+		assert(not Indirect.valid(bad, lighting, "b"))
+	var inputs := Indirect.new()
+	assert(not inputs.configure("res://missing-indirect.json", "res://missing-lighting.json"))
+	assert(not inputs.bind(ShaderMaterial.new()))
 
 
 func _normalization_inputs() -> void:

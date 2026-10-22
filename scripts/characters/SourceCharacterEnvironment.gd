@@ -15,12 +15,18 @@ const INJECT := """
 	}
 	vec3 env_world_tangent = normalize(mat3(INV_VIEW_MATRIX)*env_tangent);
 	vec3 env_world_bitangent = normalize(cross(env_world_normal,env_world_tangent));
-	vec4 env_hair = source_hair_environment(world_position,env_world_normal,
-		env_world_tangent,env_world_bitangent,normalize(CAMERA_POSITION_WORLD-world_position),
-		rough_xy,ALBEDO,hair_mask,hair_shift,hair_roughness_scale,hair_transmission);
-	if (env_hair.a > 0.0) {
-		RADIANCE = vec4(0.0,0.0,0.0,env_hair.a);
-		EMISSION += env_hair.rgb*env_hair.a;
+	vec3 env_geometric = normalize(mat3(INV_VIEW_MATRIX)*geom_normal);
+	SourceHairEnvironment env_hair = source_hair_environment(world_position,env_world_normal,
+		env_geometric,env_world_tangent,env_world_bitangent,
+		normalize(CAMERA_POSITION_WORLD-world_position),rough_xy,ALBEDO,METALLIC,AO,
+		normal_softness,skin_mask,hair_mask,hair_shift,hair_roughness_scale,hair_transmission);
+	if (env_hair.weight > 0.0) {
+		RADIANCE = vec4(0.0,0.0,0.0,env_hair.weight);
+		EMISSION += env_hair.specular*env_hair.weight;
+		if (source_indirect_enabled) {
+			IRRADIANCE = vec4(0.0,0.0,0.0,env_hair.weight);
+			EMISSION += env_hair.diffuse*env_hair.weight;
+		}
 	}
 """
 var materials: Array[ShaderMaterial] = []

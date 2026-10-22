@@ -119,6 +119,7 @@ func _surfaces(adapter: RefCounted, alignment: Transform3D, cases: Array, out: S
 				var baseline := await _capture(out, label + "-baseline")
 				assert(composite.attach(model, adapter, probes, _inputs, true) > 0)
 				assert(composite.attach(model, adapter, probes, _inputs, true) == 0)
+				_configure_candidate(composite)
 				for material in composite.materials:
 					material.set_shader_parameter("source_env_enabled", false)
 				var disabled := await _capture(out, label + "-disabled")
@@ -137,6 +138,7 @@ func _surfaces(adapter: RefCounted, alignment: Transform3D, cases: Array, out: S
 				assert(
 					difference > 0.000000001, "second environment lobe must affect real hair pixels"
 				)
+				await _exercise_indirect(composite, out, label, second)
 				var followed := await _follow_check(composite, model, player, pose)
 				_role_records.append(
 					{
@@ -152,6 +154,16 @@ func _surfaces(adapter: RefCounted, alignment: Transform3D, cases: Array, out: S
 	var file := FileAccess.open(out.path_join("characters.json"), FileAccess.WRITE)
 	file.store_string(JSON.stringify(_role_records, "\t"))
 	print("CHARACTER_HAIR_ENVIRONMENT_OK ", JSON.stringify(_role_records))
+
+
+func _configure_candidate(_composite: RefCounted) -> void:
+	pass
+
+
+func _exercise_indirect(
+	_composite: RefCounted, _out: String, _label: String, _second: Image
+) -> void:
+	pass
 
 
 func _follow_check(
