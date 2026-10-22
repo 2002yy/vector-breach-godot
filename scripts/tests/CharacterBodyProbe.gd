@@ -124,6 +124,15 @@ func _body_math(out: String) -> Dictionary:
 func _surfaces(adapter: RefCounted, alignment: Transform3D, cases: Array, out: String) -> void:
 	await super._surfaces(adapter, alignment, cases, out)
 	var args := OS.get_cmdline_user_args()
+	var ssao: CompositorEffect
+	if "--ssao" in args:
+		ssao = preload("res://scripts/characters/SourceCharacterSSAO.gd").new()
+		ssao.set_requested(true)
+		for child in get_children():
+			if child is WorldEnvironment:
+				child.environment.ssao_enabled = true
+				child.compositor = Compositor.new()
+				child.compositor.compositor_effects = [ssao]
 	var level: Dictionary = JSON.parse_string(
 		FileAccess.get_file_as_string("res://data/levels/" + _normalization.level + ".json")
 	)
@@ -171,6 +180,9 @@ func _surfaces(adapter: RefCounted, alignment: Transform3D, cases: Array, out: S
 				assert(composite.attach(model, adapter, probes, _inputs, true, true) > 0)
 				assert(composite.attach(model, adapter, probes, _inputs, true, true) == 0)
 				_configure_candidate(composite)
+				if ssao != null:
+					for material in composite.materials:
+						ssao.bind(material)
 				assert(composite.set_enabled(false) == composite.materials.size())
 				assert(composite.set_enabled(false) == 0)
 				var disabled := await _capture(out, label + "-disabled")
@@ -181,6 +193,15 @@ func _surfaces(adapter: RefCounted, alignment: Transform3D, cases: Array, out: S
 				assert(composite.set_enabled(true) == composite.materials.size())
 				assert(composite.set_enabled(true) == 0)
 				var enabled := await _capture(out, label + "-enabled")
+				var ssao_difference := -1.0
+				if ssao != null:
+					for material in composite.materials:
+						material.set_shader_parameter("source_ssao_enabled", false)
+					var bypass := await _capture(out, label + "-ssao-bypass")
+					ssao_difference = _difference(enabled, bypass)
+					assert(ssao_difference > 0.0, "SSAO must affect actual character indirect")
+					for material in composite.materials:
+						material.set_shader_parameter("source_ssao_enabled", true)
 				var difference := _difference(baseline, enabled)
 				assert(difference > 0.000001, "body composition must affect real pixels")
 				var blocked := -1.0
@@ -202,6 +223,7 @@ func _surfaces(adapter: RefCounted, alignment: Transform3D, cases: Array, out: S
 				records.append(
 					{
 						"label": label,
+						"ssao_difference": ssao_difference,
 						"materials": material_count,
 						"restored_difference": _difference(baseline, restored),
 						"difference": difference,
