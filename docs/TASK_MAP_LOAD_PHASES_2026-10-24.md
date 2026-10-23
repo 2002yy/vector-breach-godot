@@ -27,7 +27,7 @@ Inferno 碰撞生成与原场景读取都是明显目标。原始 `geometry_ms` 
 
 本机证据目录：`D:/AgentGamePipeline/evidence/map-load-phases-20261024/`。三图默认 Main 真实 Vulkan 启动/切卡/开始/返回流程共 21 PNG，通过零预加载、只加载最终地图一次、禁止重复开始，已检查三图购买完成画面。`run-lobby.py` 为执行入口，`default/<map>/loading.json` 为原始分段收据。
 
-新增原生回归检查实际层计时、子阶段不重复计算、可选层状态、失败清空旧数据、角色地图身份与实际阵容计数（三张经典图九个机器人，Gatehouse 测试图按其配置）。完整原生、Python、GdUnit、lint、原资源哈希及最终提交/PR/首次 CI 结果见同目录 `audit.json` / `delivery.json`。开发中出现旧脚本 lint 新增告警，已调整变量顺序和仅新增函数的排版，最终要求相对基线零新增。首轮完整回归还发现新增用例错误地将 Gatehouse 当作九机器人地图（实际五个），已改为核对实际生成阵容，原失败日志保留为 native-first-failure.log，未修改地图人数配置。
+新增原生回归检查实际层计时、子阶段不重复计算、可选层状态、失败清空旧数据、角色地图身份与实际阵容计数（三张经典图九个机器人，Gatehouse 测试图按其配置）。完整原生、Python、GdUnit、lint、原资源哈希及最终提交/PR/首次 CI 结果见同目录 `audit.json` / `delivery.json`。开发中出现旧脚本 lint 新增告警，已调整变量顺序和仅新增函数的排版，最终要求相对基线零新增。首轮完整回归还发现新增用例错误地将 Gatehouse 当作九机器人地图（实际五个），已改为核对实际生成阵容，原失败日志保留为 native-first-failure.log，未修改地图人数配置。按用户要求停止冗余全量重跑（native-stopped-at-user-request.log），仅重跑修正后的单个用例并补跑首轮未到达的五组；结合首轮通过项，分段覆盖原生 210 项，不宣称单次 RUN_ALL_OK。Python 非 Blender 80、GdUnit 2/2、旧文件 lint 零新增及规范脚本格式/lint 通过，18 原模型和四张原缩略图哈希不变。
 
 四个原有脏 `.import` 保留不提交。地图 JSON、原 GLB、材质参数、纹理、碰撞规则、正常 UI 和试玩包未改；本片只增加可查询的诊断数据，不启用 #75 角色环境候选。
 
