@@ -73,8 +73,7 @@ func _surfaces(adapter: RefCounted, alignment: Transform3D, cases: Array, out: S
 	var level: Dictionary = JSON.parse_string(
 		FileAccess.get_file_as_string("res://data/levels/" + _normalization.level + ".json")
 	)
-	var probes := Probes.new()
-	assert(probes.configure(args[args.find("--lighting") + 1], level, alignment, true))
+	var probes := _surface_probes(args[args.find("--lighting") + 1], level, alignment)
 	var environment := WorldEnvironment.new()
 	environment.environment = Environment.new()
 	environment.environment.background_mode = Environment.BG_COLOR
@@ -154,6 +153,12 @@ func _surfaces(adapter: RefCounted, alignment: Transform3D, cases: Array, out: S
 	var file := FileAccess.open(out.path_join("characters.json"), FileAccess.WRITE)
 	file.store_string(JSON.stringify(_role_records, "\t"))
 	print("CHARACTER_HAIR_ENVIRONMENT_OK ", JSON.stringify(_role_records))
+
+
+func _surface_probes(path: String, level: Dictionary, alignment: Transform3D) -> RefCounted:
+	var result := Probes.new()
+	assert(result.configure(path, level, alignment, true))
+	return result
 
 
 func _configure_candidate(_composite: RefCounted) -> void:
