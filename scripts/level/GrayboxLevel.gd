@@ -30,9 +30,11 @@ func load_level(next_level_id: String, emit_errors: bool = true) -> bool:
 	load_count += 1
 	last_load_timings = {"id": next_level_id, "success": false}
 	level_load_started.emit(next_level_id)
+	last_load_timings["load_started_ms"] = (Time.get_ticks_usec() - began) / 1000.0
 	level_id = next_level_id
+	var data_began := Time.get_ticks_usec()
 	var level_data: Dictionary = LevelDataLoader.load_level(level_id, emit_errors)
-	last_load_timings["data_ms"] = (Time.get_ticks_usec() - began) / 1000.0
+	last_load_timings["data_ms"] = (Time.get_ticks_usec() - data_began) / 1000.0
 	if level_data.is_empty():
 		last_load_timings["level_ms"] = (Time.get_ticks_usec() - began) / 1000.0
 		return false

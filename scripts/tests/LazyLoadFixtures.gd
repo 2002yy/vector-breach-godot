@@ -53,6 +53,11 @@ static func run(host: Node) -> void:
 	)
 	host.call("_assert_true", main.last_start_timings.total_ms >= 0, "start duration measured")
 	var actors: Dictionary = main.last_start_timings.preparation.actor_phases
+	host.call(
+		"_assert_true",
+		actors.has("detach_ms") and actors.deferred_free_excluded,
+		"actor timing explicitly excludes deferred resource destruction"
+	)
 	host.call("_assert_equal", actors.id, "gatehouse", "actor phases belong to actual loaded map")
 	var roster_count := 0
 	for actor in main.get_node("CombatSandbox").get_children():

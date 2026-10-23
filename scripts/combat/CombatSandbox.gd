@@ -35,7 +35,9 @@ func load_for_level(level_data: Dictionary) -> void:
 	var began := Time.get_ticks_usec()
 	last_load_timings = {"id": String(level_data.get("id", "")), "actor_count": 0}
 	_clear_targets()
-	last_load_timings["retire_ms"] = (Time.get_ticks_usec() - began) / 1000.0
+	# queue_free() completes later; this measures detachment, not destruction.
+	last_load_timings["detach_ms"] = (Time.get_ticks_usec() - began) / 1000.0
+	last_load_timings["deferred_free_excluded"] = true
 	var level_id := String(level_data.get("id", ""))
 	if _loaded_level_id != level_id:
 		_loaded_level_id = level_id

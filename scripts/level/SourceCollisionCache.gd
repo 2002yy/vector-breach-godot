@@ -8,14 +8,27 @@ static func cache_path(source: String, directory := DIRECTORY) -> String:
 	return directory.path_join(source.sha256_text() + ".res")
 
 
+static func physical_path(resource: String) -> String:
+	var path := ProjectSettings.globalize_path(resource)
+	if resource.begins_with("res://") and not path.is_absolute_path():
+		var base := OS.get_executable_path().get_base_dir()
+		if OS.has_feature("editor"):
+			# Editor-driven PCK validation has no source-project resource root.
+			base = DirAccess.open(".").get_current_dir()
+		return base.path_join(resource.trim_prefix("res://"))
+	return path
+
+
 static func signature(source: String) -> Dictionary:
-	if not FileAccess.file_exists(source) or not FileAccess.file_exists(source + ".import"):
+	# The export keeps original bytes beside the PCK; do not hash remapped imports.
+	var physical := physical_path(source)
+	if not FileAccess.file_exists(physical) or not FileAccess.file_exists(physical + ".import"):
 		return {}
 	return {
 		"version": VERSION,
 		"source": source,
-		"source_sha256": FileAccess.get_sha256(source),
-		"import_sha256": FileAccess.get_sha256(source + ".import"),
+		"source_sha256": FileAccess.get_sha256(physical),
+		"import_sha256": FileAccess.get_sha256(physical + ".import"),
 		"engine": Engine.get_version_info().hex,
 	}
 
@@ -73,7 +86,7 @@ static func load_shapes(
 	var began := Time.get_ticks_usec()
 	receipt.clear()
 	receipt["status"] = "missing"
-	var path := cache_path(source, directory)
+	var path := physical_path(cache_path(source, directory))
 	if not FileAccess.file_exists(path) or not FileAccess.file_exists(path + ".json"):
 		return {}
 	receipt.status = "invalid"
