@@ -1,5 +1,7 @@
 extends Node3D
 
+signal level_prepared(level_data: Dictionary)
+
 const WorldWeaponPickup = preload("res://scripts/combat/WorldWeaponPickup.gd")
 const TrainingTelemetry = preload("res://scripts/training/TrainingTelemetry.gd")
 const ClassicMatchLayout = preload("res://scripts/level/ClassicMatchLayout.gd")
@@ -708,6 +710,7 @@ func _on_level_loaded(level_data: Dictionary) -> void:
 		player.call("reset_to_spawn")
 		start_menu.call("frame_map_preview", level_data)
 	_level_loading = false
+	level_prepared.emit(level_data)
 
 func _capture_default_environment() -> void:
 	var environment := world_environment.environment

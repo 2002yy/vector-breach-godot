@@ -1,5 +1,7 @@
 extends Node3D
 
+signal level_load_started(level_id: String)
+
 const LevelDataLoader = preload("res://scripts/level/LevelDataLoader.gd")
 const ShapeBuilder = preload("res://scripts/level/ShapeBuilder.gd")
 
@@ -20,6 +22,7 @@ func _ready() -> void:
 	load_level(level_id)
 
 func load_level(next_level_id: String, emit_errors: bool = true) -> void:
+	level_load_started.emit(next_level_id)
 	level_id = next_level_id
 	var level_data: Dictionary = LevelDataLoader.load_level(level_id, emit_errors)
 	if level_data.is_empty():

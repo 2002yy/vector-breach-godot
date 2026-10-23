@@ -61,7 +61,12 @@ func stop() -> void:
 func teammates() -> Array[CharacterBody3D]:
 	var alive: Array[CharacterBody3D] = []
 	for candidate in get_tree().get_nodes_in_group("combat_actors"):
-		if candidate is CharacterBody3D and candidate.get("team") == _team:
+		if (
+			candidate is CharacterBody3D
+			and candidate.get_viewport() == get_viewport()
+			and not candidate.is_queued_for_deletion()
+			and candidate.get("team") == _team
+		):
 			if not bool(candidate.get("is_dead")):
 				alive.append(candidate)
 	alive.sort_custom(
@@ -78,7 +83,7 @@ func cycle(direction: int) -> void:
 	if alive.is_empty():
 		target = null
 		return
-	var index := alive.find(target)
+	var index := alive.find(target) if is_instance_valid(target) else -1
 	if index < 0:
 		index = 0 if direction >= 0 else alive.size() - 1
 	else:
@@ -98,7 +103,14 @@ func toggle_mode() -> void:
 func tick() -> void:
 	if not active:
 		return
-	if not is_instance_valid(target) or bool(target.get("is_dead")):
+	if (
+		not is_instance_valid(target)
+		or not target.is_inside_tree()
+		or target.get_viewport() != get_viewport()
+		or target.is_queued_for_deletion()
+		or bool(target.get("is_dead"))
+	):
+		target = null
 		cycle(1)
 	if not is_instance_valid(target):
 		if is_instance_valid(_view_model):
@@ -132,7 +144,13 @@ func get_snapshot() -> Dictionary:
 	if not active:
 		return {"active": false}
 	var snapshot := {"active": true, "first_person": first_person, "has_target": false}
-	if is_instance_valid(target) and not bool(target.get("is_dead")):
+	if (
+		is_instance_valid(target)
+		and target.is_inside_tree()
+		and target.get_viewport() == get_viewport()
+		and not target.is_queued_for_deletion()
+		and not bool(target.get("is_dead"))
+	):
 		var combat: Dictionary = target.call("get_combat_snapshot")
 		var ai: Dictionary = combat.get("ai", {})
 		(

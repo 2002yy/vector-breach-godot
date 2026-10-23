@@ -1,6 +1,70 @@
 extends RefCounted
 
 
+static func spectator_boundaries(host: Node) -> void:
+	var main: Node3D = host.call("_instantiate_main")
+	await host.call("_await_main_ready")
+	main.call("_on_map_selected", main.call("find_level_option_index", "gatehouse"))
+	main.call("_on_team_selected", "CT")
+	await main.call("_on_start_pressed")
+	var sandbox := main.get_node("CombatSandbox")
+	for actor in sandbox.get_children():
+		actor.set_physics_process(false)
+	RoundManager.set_live()
+	main.get_node("Player").call("apply_explosive_damage", 1000)
+	var watch: Node = main.get("spectator")
+	watch.call("tick")
+	var first: Node = watch.get("target")
+	sandbox.remove_child(first)
+	host.call(
+		"_assert_true", not watch.get_snapshot().has_target, "detached teammate is not sampled"
+	)
+	watch.call("tick")
+	host.call("_assert_true", watch.get("target") != first, "detached target hands off")
+	var foreign_view := SubViewport.new()
+	foreign_view.own_world_3d = true
+	main.add_child(foreign_view)
+	foreign_view.add_child(first)
+	watch.set("target", first)
+	host.call(
+		"_assert_true",
+		not watch.get_snapshot().has_target,
+		"moved target in another viewport is not sampled"
+	)
+	watch.call("tick")
+	host.call("_assert_true", watch.get("target") != first, "moved target hands off locally")
+	foreign_view.remove_child(first)
+	sandbox.add_child(first)
+	watch.set("target", first)
+	first.free()
+	watch.call("cycle", 1)
+	watch.call("tick")
+	host.call(
+		"_assert_true",
+		watch.get_snapshot().has_target,
+		"freed target cycles without typed-array errors"
+	)
+	var foreign := preload("res://scenes/combat/TacticalActor.tscn").instantiate()
+	foreign.set("team", "CT")
+	foreign_view.add_child(foreign)
+	foreign.set_physics_process(false)
+	host.call(
+		"_assert_true", not watch.teammates().has(foreign), "preview viewport teammate is excluded"
+	)
+	var last: Node = watch.get("target")
+	last.queue_free()
+	host.call(
+		"_assert_true", not watch.get_snapshot().has_target, "retiring teammate is not sampled"
+	)
+	watch.call("tick")
+	host.call(
+		"_assert_true",
+		not watch.get_snapshot().has_target,
+		"no local teammate never falls back across viewports"
+	)
+	await host.call("_cleanup_main", main)
+
+
 static func lobby_controls(host: Node) -> void:
 	var main: Node3D = host.call("_instantiate_main")
 	await host.call("_await_main_ready")

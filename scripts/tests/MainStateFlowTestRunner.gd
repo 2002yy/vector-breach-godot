@@ -9,6 +9,7 @@ var _passes: int = 0
 
 func _test_spectator_lifecycle() -> void:
 	await MatchExperience.spectator_lifecycle(self)
+	await MatchExperience.spectator_boundaries(self)
 
 func _test_purchases_and_help() -> void:
 	await MatchExperience.purchases_and_help(self)
