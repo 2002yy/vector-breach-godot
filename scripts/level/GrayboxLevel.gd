@@ -114,7 +114,10 @@ func _apply_visual_scene(level_data: Dictionary, emit_errors: bool) -> void:
 	if collision_instance != null:
 		if collision_instance is Node3D:
 			(collision_instance as Node3D).visible = false
-		_build_runtime_collision(collision_instance, emit_errors, not bool(level_data.get("retain_collision_meshes", false)))
+		_build_runtime_collision(
+			collision_instance, emit_errors, not bool(level_data.get("retain_collision_meshes", false)),
+			String(level_data.get("runtime_collision_scene", ""))
+		)
 	var visual_instance := _instantiate_visual_resource(
 		String(level_data.get("visual_scene", "")),
 		"LevelVisual",
@@ -217,18 +220,38 @@ func _hide_filtered_visual_meshes_recursive(node: Node, name_filters: Array) -> 
 	for child in node.get_children():
 		_hide_filtered_visual_meshes_recursive(child, name_filters)
 
-func _build_runtime_collision(root: Node, emit_errors: bool, release_meshes: bool = false) -> void:
-	var collision_mesh_count: int = _build_runtime_collision_recursive(root, release_meshes)
+func _build_runtime_collision(
+	root: Node, emit_errors: bool, release_meshes: bool = false, source: String = ""
+) -> void:
+	var began := Time.get_ticks_usec()
+	var cached := {}
+	if release_meshes and not source.is_empty():
+		var receipt := {"status": "disabled"}
+		if "--disable-collision-cache" not in OS.get_cmdline_user_args():
+			cached = preload("res://scripts/level/SourceCollisionCache.gd").load_shapes(
+				root, source, receipt
+			)
+		last_load_timings["collision_cache"] = receipt
+	var collision_mesh_count: int = _build_runtime_collision_recursive(
+		root, release_meshes, cached, root
+	)
+	last_load_timings["collision_build_ms"] = (Time.get_ticks_usec() - began) / 1000.0
 	if collision_mesh_count == 0 and emit_errors:
 		push_warning("Runtime collision requested, but no COLLISION_* meshes were found")
 
-func _build_runtime_collision_recursive(node: Node, release_meshes: bool = false) -> int:
+func _build_runtime_collision_recursive(
+	node: Node, release_meshes: bool = false, cached: Dictionary = {}, source_root: Node = null
+) -> int:
 	var collision_mesh_count: int = 0
 	if node is MeshInstance3D:
 		var mesh_instance := node as MeshInstance3D
 		var mesh_name: String = String(mesh_instance.name)
 		if mesh_name.begins_with("COLLISION_") and mesh_instance.mesh != null:
-			var collision_shape: Shape3D = mesh_instance.mesh.create_trimesh_shape()
+			var collision_shape: Shape3D = (
+				cached.get(String(source_root.get_path_to(node))) if source_root != null else null
+			)
+			if collision_shape == null:
+				collision_shape = mesh_instance.mesh.create_trimesh_shape()
 			if collision_shape != null:
 				var static_body := StaticBody3D.new()
 				static_body.name = "RuntimeCollision"
@@ -244,7 +267,9 @@ func _build_runtime_collision_recursive(node: Node, release_meshes: bool = false
 				mesh_instance.mesh = null
 
 	for child in node.get_children():
-		collision_mesh_count += _build_runtime_collision_recursive(child, release_meshes)
+		collision_mesh_count += _build_runtime_collision_recursive(
+			child, release_meshes, cached, source_root
+		)
 	return collision_mesh_count
 
 func _clear_visual_scene() -> void:
