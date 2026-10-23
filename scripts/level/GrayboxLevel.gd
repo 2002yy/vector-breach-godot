@@ -6,6 +6,9 @@ const ShapeBuilder = preload("res://scripts/level/ShapeBuilder.gd")
 signal level_loaded(level_data: Dictionary)
 
 @export var level_id: String = "depot"
+@export var load_on_ready := true
+var load_count := 0
+var last_load_timings: Dictionary = {}
 
 @onready var geometry_root: Node3D = $GeometryRoot
 @onready var visual_root: Node3D = $VisualRoot
@@ -17,26 +20,41 @@ var _current_level_data: Dictionary = {}
 var _render_profile_state: Dictionary = {}
 
 func _ready() -> void:
-	load_level(level_id)
+	if load_on_ready:
+		load_level(level_id)
 
-func load_level(next_level_id: String, emit_errors: bool = true) -> void:
+func load_level(next_level_id: String, emit_errors: bool = true) -> bool:
+	var began := Time.get_ticks_usec()
+	load_count += 1
+	last_load_timings = {"id": next_level_id, "success": false}
 	level_id = next_level_id
 	var level_data: Dictionary = LevelDataLoader.load_level(level_id, emit_errors)
+	last_load_timings["data_ms"] = (Time.get_ticks_usec() - began) / 1000.0
 	if level_data.is_empty():
-		return
+		last_load_timings["level_ms"] = (Time.get_ticks_usec() - began) / 1000.0
+		return false
 
 	_current_level_data = level_data
 	var build_options: Dictionary = GameState.get_shape_build_options()
 	var level_build_options: Variant = level_data.get("buildOptions", {})
 	if level_build_options is Dictionary:
 		build_options.merge(level_build_options as Dictionary, true)
+	var phase := Time.get_ticks_usec()
 	ShapeBuilder.build_into(geometry_root, level_data, build_options)
+	last_load_timings["geometry_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
+	phase = Time.get_ticks_usec()
 	_apply_visual_scene(level_data, emit_errors)
+	last_load_timings["visual_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
+	phase = Time.get_ticks_usec()
 	_apply_render_profile(level_data)
 	_apply_lights(level_data)
 	_apply_markers(level_data)
 	GameState.set_level(level_id, String(level_data.get("name", level_id)))
+	last_load_timings["setup_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
+	last_load_timings["level_ms"] = (Time.get_ticks_usec() - began) / 1000.0
+	last_load_timings["success"] = true
 	level_loaded.emit(level_data)
+	return true
 
 func _apply_render_profile(level_data: Dictionary) -> void:
 	_restore_render_profile()

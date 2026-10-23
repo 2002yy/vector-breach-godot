@@ -220,7 +220,7 @@ func _test_new_match_isolation() -> void:
 	for group_name in ["weapon_pickups", "grenade_projectiles", "smoke_volumes"]:
 		transient_refs.append(_add_transient_fixture(main, group_name))
 	main.call("_on_team_selected", next_start_team)
-	main.call("_on_start_pressed")
+	await main.call("_on_start_pressed")
 
 	_assert_equal(int(main.get_instance_id()), main_id, "%s: new match should reuse the same Main instance" % prefix)
 	_assert_equal(int(GameState.match_serial), first_match_serial + 1, "%s: new match should advance only match serial" % prefix)
@@ -450,7 +450,7 @@ func _instantiate_main(starting_team: String) -> Node3D:
 	await _await_reload_frames()
 	main.call("_on_team_selected", starting_team)
 	await get_tree().process_frame
-	main.call("_on_start_pressed")
+	await main.call("_on_start_pressed")
 	await _await_reload_frames()
 	return main
 

@@ -52,6 +52,7 @@ light_energy = 0.74
 shadow_enabled = true
 
 [node name="Level" parent="." instance=ExtResource("1")]
+load_on_ready = false
 
 [node name="Player" parent="." instance=ExtResource("2")]
 position = Vector3(0, 2, 0)

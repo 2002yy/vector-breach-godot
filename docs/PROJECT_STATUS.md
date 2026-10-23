@@ -4,6 +4,11 @@
 
 ## main、PR 与唯一试玩包
 
+- **当前 main 为 `bfc7ba5dbe4e0739f2781a4a45faf05104f37cfe`（#74 已合并）**，该 main push Tests `39933544038` 成功。以下旧批次状态为历史记录。
+- 当前片 `feat/lobby-lazy-load-20261023` 独立从上述 main 开发：正式 Main 启动/选卡不加载关卡，开始只加载最终选择一次；显示加载状态，拒绝重复开始/加载中切图，失败恢复可重试菜单。三图使用本机真实地图静态背景，新增文件与原缩略图分开，原图/原模型不改。见 [本片记录](TASK_LOBBY_LAZY_LOAD_2026-10-23.md)。
+- 本片完整原生 **209**、Python 非 Blender **80**、GdUnit **2/2**、资源规则/导入/规范化脚本格式与 lint、旧文件 lint 无新增错误通过；三图 Vulkan 流程与菜单共 **28 PNG**，18 原模型和四张原缩略图哈希不变。暖运行开始耗时 Dust II **13.53 秒**、Mirage **9.10 秒**、Inferno **23.52 秒**，场景资源/适配阶段包含运行时碰撞，仍需拆分优化；不能据此称 70% FPS 通过。证据：本机 `D:/AgentGamePipeline/evidence/lobby-lazy-load-20261023/audit.json`，精确提交/PR/CI 首次快照见同目录 `delivery.json`。试玩包未更新。
+- 前批 **#75**（显式 ControlledGame 候选入口）本片开始时仍 OPEN/BLOCKED，头 `2a04aff9166aef873b6cf7295763c29695b0787f`，Tests `39951782732` 与 Windows Export `39951782784` 运行中；只查一次，不等待。本片不包含其 WIP；两片合并时需处理 Main/Graybox 相邻生命周期代码，并改旧 ControlledGameProbe 的“选卡即加载”假设，组合头尚未验证。
+
 - #74 续修：旧头 `03ab625343246d3ad172936f0466c22af9be4ccf` 的 Tests `39920566997`、Windows export/smoke `39920566998` 已成功，但发现跨视口角色绑定审查项，不能据此合并。本批已修 `attach_character` 的现场边界，三图双视口拒绝前后材质身份不变、像素差 **0**；原角色/回退全回归，共 **579 PNG**。完整原生 **208**、Python **80**、GdUnit **2/2**、格式/lint/静态导入/资源合同通过，18 原模型哈希不变。新头提交/CI 首次快照见本机 `character-viewport-boundary-20261023/delivery.json`，不等待新 CI。正式入口接线仍待下一片；见 [续修记录](TASK_CHARACTER_VIEWPORT_BOUNDARY_2026-10-23.md)。
 - **#73 已合入 main `8f2dc7e8181a231df1f286bce8e68510a994ad7d`**；精确头 `4504306af964811b338364e99894c4f5805978c4` 的 Tests `39914919499`、Windows export/smoke `39914919468` 全成功且 CLEAN。main push Tests `39916850404` 也已成功。本片从已合并基线继续，不等待新 CI。
 - 当前片 `feat/character-runtime-inputs-20261023` 将三图原反射/LPV/SH/BRDF/对齐收据收敛为可重定位私有输入包，新增场景级输入拥有者，整组成功后才发布；错误地图/哈希、旧上传取消、视觉根移出和退出均撤销候选、恢复原材质。正常 Main/Actor 和根视口尚未接线，见 [本片记录](TASK_CHARACTER_RUNTIME_INPUTS_2026-10-23.md)。三包约 **1.1 GB**，不算加载性能优化，试玩包未更新。
