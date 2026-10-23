@@ -72,7 +72,11 @@ static func _failure(host: Node) -> void:
 	var main: Node = host.call("_instantiate_main", false)
 	await host.call("_await_main_ready")
 	main.get_node("Level").set_script(FailedLevel)
+	var failed: Array = []
+	var selected: String = main.level_options[main.selected_level_index].id
+	main.level_start_failed.connect(func(id: String): failed.append(id))
 	await main.call("_on_start_pressed")
+	host.call("_assert_equal", failed, [selected], "failed Start publishes one lifecycle failure")
 	host.call(
 		"_assert_true",
 		not main._starting and not main._level_loading,

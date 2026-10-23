@@ -2,6 +2,7 @@ extends Node3D
 
 signal targets_spawned(count: int)
 signal combatants_spawned(friendly_count: int, enemy_count: int)
+signal combatants_clearing
 signal ai_shot(result: Dictionary, world_position: Vector3)
 signal ai_footstep(world_position: Vector3, surface: String, quiet: bool)
 signal radio_report(caller: String, message: String)
@@ -141,6 +142,7 @@ func set_c4_device(device: Node3D) -> void:
 			child.call("set_ai_c4_device", device)
 
 func _clear_targets() -> void:
+	combatants_clearing.emit()
 	for child in get_children():
 		remove_child(child)
 		child.queue_free()

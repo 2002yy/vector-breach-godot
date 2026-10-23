@@ -6,6 +6,11 @@ var rigs: Dictionary = {}
 var skeleton_bones := 0
 
 
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE:
+		preload("res://scripts/characters/NativeActorVisual.gd").clear_material_overrides(self)
+
+
 func install(id: String) -> bool:
 	if not Appearance.available(id):
 		return false

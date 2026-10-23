@@ -1,5 +1,7 @@
 extends Node3D
 
+signal level_load_started(level_id: String)
+
 const LevelDataLoader = preload("res://scripts/level/LevelDataLoader.gd")
 const ShapeBuilder = preload("res://scripts/level/ShapeBuilder.gd")
 
@@ -27,6 +29,7 @@ func load_level(next_level_id: String, emit_errors: bool = true) -> bool:
 	var began := Time.get_ticks_usec()
 	load_count += 1
 	last_load_timings = {"id": next_level_id, "success": false}
+	level_load_started.emit(next_level_id)
 	level_id = next_level_id
 	var level_data: Dictionary = LevelDataLoader.load_level(level_id, emit_errors)
 	last_load_timings["data_ms"] = (Time.get_ticks_usec() - began) / 1000.0

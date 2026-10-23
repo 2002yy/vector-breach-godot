@@ -13,6 +13,21 @@ var weapon_kind := ""
 var profile_id := ""
 
 
+static func clear_material_overrides(root: Node) -> void:
+	# Godot #85817: clear instance overrides at deletion, before dependencies die.
+	# Mesh resources and their original surface materials remain untouched.
+	for mesh in root.find_children("*", "MeshInstance3D", true, false):
+		mesh.material_override = null
+		mesh.material_overlay = null
+		for surface in range(mesh.get_surface_override_material_count()):
+			mesh.set_surface_override_material(surface, null)
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE:
+		clear_material_overrides(self)
+
+
 func install(id: String) -> bool:
 	model = Appearance.instantiate(id)
 	if model == null:
