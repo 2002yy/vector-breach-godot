@@ -27,7 +27,7 @@ Inferno 两次均值从约 5.61 秒降到 3.72 秒，碰撞阶段约减少 34%�
 - 三图共 **123** 个形状、**3,265,932** 个三角面逐项精确相等；原节点变换、网格释放和碰撞层默认值一致。
 - **11,725** 次射线比较命中/位置/法线，**1,467** 次玩家胶囊重叠数量比较，结果一致。
 - 三图默认 Main 实际启动/选卡/开始/返回，四轮共 **84 PNG**；原流程关闭缓存、候选命中缓存；零预加载和每次最终地图只加载一次通过，已检查三张候选购买完成图。
-- 新增故障回退与真实物理射线原生用例；完整原生、Python 非 Blender、GdUnit、格式/lint 与资源哈希结果见本机 `D:/AgentGamePipeline/evidence/baked-collision-cache-20261024/audit.json`。提交、PR、精确头 CI 首次快照见 `delivery.json`；不等待 CI。
+- 新增故障回退与真实物理射线原生用例；完整原生 **210 / RUN_ALL_OK**、Python 非 Blender **80**、GdUnit **2/2**、规范脚本格式/lint 与旧文件 lint 零新增通过，18 原模型和四张原缩略图 SHA256 不变。四个原有脏 `.import` 保留不提交。最终收据见本机 `D:/AgentGamePipeline/evidence/baked-collision-cache-20261024/audit.json`。提交、PR、精确头 CI 首次快照见 `delivery.json`；不等待 CI。PR #78，生产提交 `ece0c8c5ba88a6c0733bf0687f224de9e22386cb`，后续文档头见交付收据。
 
 执行入口：本机 `run-probes.py` / `physics.gd`，原始数据为 `measurements.json`、`physics-*.json` 及每轮 `loading.json`。计时从相同候选代码通过开发参数切换，其他行为一致；独立物理对照使用同一 Godot 物理后端。
 
