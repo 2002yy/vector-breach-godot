@@ -2,6 +2,7 @@ extends RefCounted
 
 const PREFIX := """
 #include "res://scripts/characters/source_hair_environment.gdshaderinc"
+#include "res://scripts/characters/source_ssao.gdshaderinc"
 #include "res://scripts/characters/source_normal_frame.gdshaderinc"
 """
 const ANCHOR := "\tcurvature = clamp((inverse_radius_m * curvature_scale - 1.0) / 99.0, 0.0, 1.0);"
@@ -22,11 +23,12 @@ const INJECT := """
 		normal_softness,skin_mask,hair_mask,hair_shift,hair_roughness_scale,hair_transmission,
 		cloth_mask,sheen_tint,sheen_scale);
 	if (env_hair.weight > 0.0) {
+		float env_ssao = source_screen_occlusion(SCREEN_UV);
 		RADIANCE = vec4(0.0,0.0,0.0,env_hair.weight);
-		EMISSION += env_hair.specular*env_hair.weight;
+		EMISSION += env_hair.specular*env_hair.weight*env_ssao;
 		if (source_indirect_enabled) {
 			IRRADIANCE = vec4(0.0,0.0,0.0,env_hair.weight);
-			EMISSION += env_hair.diffuse*env_hair.weight;
+			EMISSION += env_hair.diffuse*env_hair.weight*env_ssao;
 		}
 	}
 """
