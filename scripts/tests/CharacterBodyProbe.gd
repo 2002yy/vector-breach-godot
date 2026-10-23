@@ -125,14 +125,23 @@ func _surfaces(adapter: RefCounted, alignment: Transform3D, cases: Array, out: S
 	await super._surfaces(adapter, alignment, cases, out)
 	var args := OS.get_cmdline_user_args()
 	var ssao: CompositorEffect
-	if "--ssao" in args:
-		ssao = preload("res://scripts/characters/SourceCharacterSSAO.gd").new()
-		ssao.set_requested(true)
+	var ssao_owner: Node
+	if "--ssao" in args or "--ssao-owner" in args:
 		for child in get_children():
 			if child is WorldEnvironment:
 				child.environment.ssao_enabled = true
-				child.compositor = Compositor.new()
-				child.compositor.compositor_effects = [ssao]
+				if "--ssao-owner" in args:
+					ssao_owner = (
+						preload("res://scripts/characters/SourceCharacterSSAOOwner.gd").new()
+					)
+					child.add_child(ssao_owner)
+					assert(ssao_owner.attach(child, true))
+					ssao = ssao_owner.effect
+				else:
+					ssao = preload("res://scripts/characters/SourceCharacterSSAO.gd").new()
+					ssao.set_requested(true)
+					child.compositor = Compositor.new()
+					child.compositor.compositor_effects = [ssao]
 	var level: Dictionary = JSON.parse_string(
 		FileAccess.get_file_as_string("res://data/levels/" + _normalization.level + ".json")
 	)
