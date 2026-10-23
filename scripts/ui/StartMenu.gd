@@ -18,6 +18,7 @@ signal team_selected(team: String)
 
 var _lobby := LobbyView.new()
 var _preview_camera: Camera3D
+var _static_background: TextureRect
 var _friendly_fire_toggle: CheckButton
 var _friendly_rule_note: Label
 
@@ -87,6 +88,14 @@ func _ready() -> void:
 	dynamic_crosshair_toggle.toggled.connect(func(_enabled: bool) -> void: _emit_settings())
 	radar_rotates_toggle.toggled.connect(func(_enabled: bool) -> void: _emit_settings())
 	_lobby.build(self)
+	_static_background = TextureRect.new()
+	_static_background.name = "MapBackground"
+	_static_background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_static_background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	_static_background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_static_background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(_static_background)
+	move_child(_static_background, 0)
 	_preview_camera = preload("res://scripts/ui/LobbyMapCamera.gd").new()
 	_preview_camera.name = "LobbyMapCamera"
 	add_child(_preview_camera)
@@ -286,8 +295,23 @@ func set_map_details(option: Dictionary, can_resume: bool) -> void:
 	map_select.tooltip_text = "先结束当前对局，再选择新地图" if can_resume else ""
 	description_label.visible = false
 	_lobby.update(option, can_resume)
+	_static_background.texture = LobbyView.background(option)
+	_static_background.visible = not can_resume and _static_background.texture != null
 	MenuStyle.button(start_button, not can_resume)
 	MenuStyle.button(resume_button, can_resume)
+
+func set_loading(active: bool) -> void:
+	start_button.disabled = active
+	resume_button.disabled = active
+	_return_to_maps_button.disabled = active
+	_lobby.map_card.disabled = active or resume_button.visible
+	for button in _lobby.team_buttons.values():
+		button.disabled = active or resume_button.visible
+	if active:
+		start_button.text = "正在准备对局…"
+		hint_label.text = "正在加载所选地图，请稍候"
+	elif not _map_options.is_empty():
+		set_map_details(_map_options[_selected_map_index], resume_button.visible)
 
 func set_match_summary(snapshot: Dictionary, record_path: String) -> void:
 	description_label.show()

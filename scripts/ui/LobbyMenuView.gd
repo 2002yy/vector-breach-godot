@@ -114,7 +114,11 @@ func build(menu: CanvasLayer) -> void:
 	hero_name.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.75))
 	hero_name.add_theme_constant_override("outline_size", 5)
 	hero.add_child(hero_name)
-	hero.add_child(Style.label("选择阵营，与 AI 队友共同完成任务", 18))
+	var caption := Style.label("选择阵营，与 AI 队友共同完成任务", 18)
+	for label in [hero_mode, caption]:
+		label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+		label.add_theme_constant_override("outline_size", 4)
+	hero.add_child(caption)
 
 
 func _build_picker() -> void:
@@ -261,3 +265,12 @@ static func thumbnail(option: Dictionary) -> Texture2D:
 		if ResourceLoader.exists(path):
 			return load(path) as Texture2D
 	return null
+
+
+static func background(option: Dictionary) -> Texture2D:
+	var path := (
+		"res://assets/local_reference/cs_official/ui/maps/" + String(option.id) + "-background.png"
+	)
+	if ResourceLoader.exists(path):
+		return load(path) as Texture2D
+	return thumbnail(option)

@@ -3,6 +3,7 @@ extends Node
 const MAIN_SCENE = preload("res://scenes/Main.tscn")
 const ACTOR_SCENE = preload("res://scenes/combat/TacticalActor.tscn")
 const MatchExperience = preload("res://scripts/tests/MatchExperienceFixtures.gd")
+const LazyLoad = preload("res://scripts/tests/LazyLoadFixtures.gd")
 
 var _failures: PackedStringArray = []
 var _passes: int = 0
@@ -153,6 +154,9 @@ func _ready() -> void:
 	get_tree().quit(1)
 
 func _run_all_tests() -> void:
+	await _run_test(
+		"menu_selection_is_lazy_and_start_is_single_with_failure_recovery", _test_lazy_loading
+	)
 	await _run_test("lobby_card_selection_guide_tabs_and_camera_restore", _test_lobby_controls)
 	await _run_test(
 		"teammate_spectator_lifecycle_and_information_boundary", _test_spectator_lifecycle
@@ -240,13 +244,21 @@ func _assert_float_close(actual: float, expected: float, epsilon: float, message
 		return
 	_failures.append("%s | expected=%s actual=%s epsilon=%s" % [message, str(expected), str(actual), str(epsilon)])
 
-func _instantiate_main() -> Node3D:
+func _test_lazy_loading() -> void:
+	await LazyLoad.run(self)
+
+func _instantiate_main(with_level := true) -> Node3D:
 	GameState.reset_runtime_state()
 	GameState.set_menu_state(true)
 	GameState.set_game_started(false)
 	RoundManager.set_warmup()
 	var main: Node3D = MAIN_SCENE.instantiate()
 	add_child(main)
+	# Physics/combat fixtures explicitly prepare a world; boot/menu cases opt out.
+	if with_level:
+		main.get_node("Level").call("load_level", "gatehouse")
+		main.get_node("Player").call("reset_to_spawn")
+		main.get_node("Player").set_physics_process(true)
 	main.call("_on_team_selected", "T")
 	return main
 
@@ -261,7 +273,7 @@ func _await_main_ready() -> void:
 	await get_tree().process_frame
 
 func _test_initial_boot_shows_menu_and_default_map() -> void:
-	var main: Node3D = _instantiate_main()
+	var main: Node3D = _instantiate_main(false)
 	await _await_main_ready()
 
 	var start_menu: CanvasLayer = main.get_node("StartMenu")
@@ -318,14 +330,14 @@ func _test_initial_boot_shows_menu_and_default_map() -> void:
 	_assert_equal(String(GameState.current_level_id), "gatehouse", "boot should sync the active 3v3 map id into GameState")
 	_assert_true(String(GameState.current_level_name).contains("门厅区"), "boot should expose the localized Gatehouse name")
 	_assert_true(description_label.text.contains("门厅区"), "menu description should render the Gatehouse copy")
-	_assert_equal(String(level.call("get_current_level_data").get("id", "")), "gatehouse", "level scene should load Gatehouse on boot")
-	_assert_equal(level.get_node("VisualRoot").get_child_count(), 1, "boot should instantiate the Gatehouse visual scene behind the menu")
+	_assert_true((level.call("get_current_level_data") as Dictionary).is_empty(), "boot should not load any level data")
+	_assert_equal(level.get_node("VisualRoot").get_child_count(), 0, "boot should use a static preview without instantiating a map")
 	_assert_equal(String(RoundManager.get_state_name()), "Warmup", "boot should leave round manager in warmup/menu state")
 
 	await _cleanup_main(main)
 
 func _test_map_selection_updates_game_state_and_menu_copy() -> void:
-	var main: Node3D = _instantiate_main()
+	var main: Node3D = _instantiate_main(false)
 	await _await_main_ready()
 
 	var start_menu: CanvasLayer = main.get_node("StartMenu")
@@ -352,7 +364,7 @@ func _test_squad_economy_includes_player_and_help_matches_loadout() -> void:
 		var main: Node3D = _instantiate_main()
 		await _await_main_ready()
 		main.call("_on_team_selected", start_team)
-		main.call("_on_start_pressed")
+		await main.call("_on_start_pressed")
 		GameState.player_money = 3200
 		var sandbox := main.get_node("CombatSandbox")
 		for actor in sandbox.get_children():
@@ -443,7 +455,7 @@ func _test_start_game_transitions_to_live_state() -> void:
 		return
 	main.call("_on_map_selected", reforged_index)
 	await get_tree().process_frame
-	main.call("_on_start_pressed")
+	await main.call("_on_start_pressed")
 	await _await_main_ready()
 
 	var start_menu: CanvasLayer = main.get_node("StartMenu")
@@ -489,7 +501,7 @@ func _test_start_game_transitions_to_live_state() -> void:
 func _test_pause_then_resume_restores_live_state() -> void:
 	var main: Node3D = _instantiate_main()
 	await _await_main_ready()
-	main.call("_on_start_pressed")
+	await main.call("_on_start_pressed")
 	await _await_main_ready()
 	RoundManager.set_live()
 	await get_tree().process_frame
@@ -587,7 +599,7 @@ func _test_level_environment_overrides_restore_defaults() -> void:
 func _test_weapon_view_model_tracks_switch_and_shot() -> void:
 	var main: Node3D = _instantiate_main()
 	await _await_main_ready()
-	main.call("_on_start_pressed")
+	await main.call("_on_start_pressed")
 	await _await_main_ready()
 
 	var weapon_system: Node = main.get_node("WeaponSystem")
@@ -821,7 +833,7 @@ func _test_rotating_radar_tracks_bounds_targets_and_heading() -> void:
 	await _await_main_ready()
 	var reforged_index := int(main.call("find_level_option_index", "foundry-reforged"))
 	main.call("_on_map_selected", reforged_index)
-	main.call("_on_start_pressed")
+	await main.call("_on_start_pressed")
 	await _await_main_ready()
 	var player: CharacterBody3D = main.get_node("Player")
 	player.rotation.y = 0.75
@@ -866,7 +878,7 @@ func _test_ladder_water_and_tactical_actors_are_runtime_systems() -> void:
 	var main: Node3D = _instantiate_main()
 	await _await_main_ready()
 	main.call("_on_map_selected", int(main.call("find_level_option_index", "test-collision-room")))
-	main.call("_on_start_pressed")
+	await main.call("_on_start_pressed")
 	await _await_main_ready()
 	var player := main.get_node("Player") as CharacterBody3D
 	RoundManager.set_live()
@@ -993,7 +1005,7 @@ func _test_combat_audio_tracks_shot_hit_reload_and_switch() -> void:
 func _test_player_mouse_look_bypasses_gui_consumption() -> void:
 	var main: Node3D = _instantiate_main()
 	await _await_main_ready()
-	main.call("_on_start_pressed")
+	await main.call("_on_start_pressed")
 	await _await_main_ready()
 	var player: CharacterBody3D = main.get_node("Player")
 	var camera_pivot: Node3D = player.get_node("CameraPivot")
@@ -1020,7 +1032,7 @@ func _test_player_mouse_look_bypasses_gui_consumption() -> void:
 func _test_scoreboard_kill_feed_and_training_summary_work() -> void:
 	var main: Node3D = _instantiate_main()
 	await _await_main_ready()
-	main.call("_on_start_pressed")
+	await main.call("_on_start_pressed")
 	await _await_main_ready()
 	var hud: CanvasLayer = main.get_node("CombatHud")
 	var scoreboard: PanelContainer = hud.get_node("HudRoot/Scoreboard")
@@ -1057,7 +1069,7 @@ func _test_scoreboard_kill_feed_and_training_summary_work() -> void:
 func _test_pause_menu_blocks_combat_commands() -> void:
 	var main: Node3D = _instantiate_main()
 	await _await_main_ready()
-	main.call("_on_start_pressed")
+	await main.call("_on_start_pressed")
 	await _await_main_ready()
 
 	var weapon_system: Node = main.get_node("WeaponSystem")
@@ -1078,7 +1090,7 @@ func _test_pause_menu_blocks_combat_commands() -> void:
 func _test_freeze_allows_weapon_management() -> void:
 	var main: Node3D = _instantiate_main()
 	await _await_main_ready()
-	main.call("_on_start_pressed")
+	await main.call("_on_start_pressed")
 	await _await_main_ready()
 	_assert_equal(String(RoundManager.get_state_name()), "Freeze", "fixture should remain in freeze")
 	var weapon_system: Node = main.get_node("WeaponSystem")
@@ -1108,7 +1120,7 @@ func _test_economy_escalates_losses_and_caps_money() -> void:
 func _test_player_damage_tags_and_death_ends_round() -> void:
 	var main: Node3D = _instantiate_main()
 	await _await_main_ready()
-	main.call("_on_start_pressed")
+	await main.call("_on_start_pressed")
 	await _await_main_ready()
 	RoundManager.set_live()
 	await get_tree().process_frame
@@ -1139,7 +1151,7 @@ func _test_player_damage_tags_and_death_ends_round() -> void:
 func _test_knife_and_grenade_equipment_are_actionable() -> void:
 	var main: Node3D = _instantiate_main()
 	await _await_main_ready()
-	main.call("_on_start_pressed")
+	await main.call("_on_start_pressed")
 	await _await_main_ready()
 	RoundManager.set_live()
 	var equipment: Node = main.get_node("TacticalEquipment")
@@ -1160,7 +1172,7 @@ func _test_knife_and_grenade_equipment_are_actionable() -> void:
 func _test_heavy_stab() -> void:
 	var main := _instantiate_main()
 	await _await_main_ready()
-	main.call("_on_start_pressed")
+	await main.call("_on_start_pressed")
 	await _await_main_ready()
 	main.call("_on_player_ready")
 	main.set_process(false)
@@ -1199,7 +1211,7 @@ func _test_heavy_stab() -> void:
 func _test_pending_use_cancellation() -> void:
 	var main := _instantiate_main()
 	await _await_main_ready()
-	main.call("_on_start_pressed")
+	await main.call("_on_start_pressed")
 	await _await_main_ready()
 	main.call("_on_player_ready")
 	main.set_process(false)
@@ -1287,7 +1299,7 @@ func _test_sleeve_contacts() -> void:
 func _test_reload_pause_and_cancel() -> void:
 	var main := _instantiate_main()
 	await _await_main_ready()
-	main.call("_on_start_pressed")
+	await main.call("_on_start_pressed")
 	await _await_main_ready()
 	main.call("_on_player_ready")
 	main.set_process(false)
@@ -1327,7 +1339,7 @@ func _test_reload_pause_and_cancel() -> void:
 func _test_buy_plant_defuse_round_loop() -> void:
 	var main: Node3D = _instantiate_main()
 	await _await_main_ready()
-	main.call("_on_start_pressed")
+	await main.call("_on_start_pressed")
 	await _await_main_ready()
 	var weapon_system: Node = main.get_node("WeaponSystem")
 	GameState.player_money = 4000
@@ -1448,7 +1460,7 @@ func _test_return_to_maps() -> void:
 func _test_equipment_models() -> void:
 	var main: Node3D = _instantiate_main()
 	await _await_main_ready()
-	main.call("_on_start_pressed")
+	await main.call("_on_start_pressed")
 	await _await_main_ready()
 	main.call("_set_buy_menu", false)
 	var equipment: Node = main.get_node("TacticalEquipment")
@@ -1490,7 +1502,7 @@ func _test_equipment_models() -> void:
 func _test_c4_prompts() -> void:
 	var main: Node3D = _instantiate_main()
 	await _await_main_ready()
-	main.call("_on_start_pressed")
+	await main.call("_on_start_pressed")
 	await _await_main_ready()
 	main.call("_set_buy_menu", false)
 	var key := InputEventKey.new()
@@ -1540,7 +1552,7 @@ func _test_c4_prompts() -> void:
 func _test_bot_c4_ownership() -> void:
 	var main: Node3D = _instantiate_main()
 	await _await_main_ready()
-	main.call("_on_start_pressed")
+	await main.call("_on_start_pressed")
 	await _await_main_ready()
 	main.call("_set_buy_menu", false)
 	RoundManager.set_live()
@@ -1591,7 +1603,7 @@ func _test_bot_c4_ownership() -> void:
 func _test_c4_ai_hint() -> void:
 	var main: Node3D = _instantiate_main()
 	await _await_main_ready()
-	main.call("_on_start_pressed")
+	await main.call("_on_start_pressed")
 	await _await_main_ready()
 	RoundManager.interaction_owner = "ai"
 	for interaction in ["plant", "defuse"]:
