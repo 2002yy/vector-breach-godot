@@ -10,7 +10,7 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	for entry in bindings:
-		if not is_instance_valid(entry.mesh):
+		if not is_instance_valid(entry.mesh) or not entry.original is ShaderMaterial:
 			continue
 		for parameter in ["enable_eyes", "eye_radius"]:
 			entry.copy.set_shader_parameter(

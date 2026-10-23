@@ -1608,6 +1608,7 @@ func _test_c4_ai_hint() -> void:
 
 
 func _test_character_profiles() -> void:
+	preload("res://scripts/tests/HandsLifecycleFixtures.gd").run(self)
 	var Appearance = preload("res://scripts/characters/CharacterAppearance.gd")
 	var original_settings := UserSettings.get_snapshot()
 	UserSettings.apply_snapshot({"ct_appearance": "t-elite", "t_appearance": "../../bad"}, false)

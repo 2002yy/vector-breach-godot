@@ -1,5 +1,7 @@
 # 矢量突袭：启动、操作与地图档案
 
+2026-10-24 源码候选：`scenes/ControlledGame.tscn` 可显式加载三图私有环境包，包含玩家与队友观战手臂候选；换外观/切人自动重绑，缺包时保持原材质。默认 Main 与已验证试玩包未开启候选。本片修复子视口 3D 音频监听，键位保持原样；启动参数与限制见 [接线记录](TASK_CONTROLLED_GAME_VIEWPORT_2026-10-23.md)。当前已验证包仍为 `D:/VectorBreach/releases/VectorBreach-main-20261021/VectorBreach.exe`，需保留整个目录，以下旧包地址属于历史记录。
+
 当前追加候选（2026-10-20）：`D:/AgentGamePipeline/builds/VectorBreach-combat-events-20261020/VectorBreach.exe`，需保留整个构建目录。桌面入口以本片交付收据为准。右上真实击杀条目与左下队伍消息已分开；设置可开启“允许队友伤害”，默认关闭，局内修改下回合生效。关闭时队友仍挡枪，自伤与闪光另按原规则处理；开启后子弹、刀、爆炸、燃烧均可伤及队友。友杀有警告且不发正常击杀奖励。验证与边界见 [本片记录](TASK_COMBAT_EVENTS_FRIENDLY_FIRE_2026-10-20.md)。以下旧包地址属于历史记录。
 
 更新：2026-10-19。项目状态以 [PROJECT_STATUS.md](PROJECT_STATUS.md) 为准。本批四项能力与验收边界见 [本批记录](TASK_MATCH_AI_ECONOMY_SPECTATOR_UI_2026-10-19.md)。

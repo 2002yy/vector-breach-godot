@@ -205,7 +205,7 @@ func track(character: RefCounted) -> void:
 		_characters.append(character)
 
 
-func attach_character(root: Node, body := true) -> RefCounted:
+func attach_character(root: Node, body := true, plain := false) -> RefCounted:
 	if (
 		not configured
 		or not is_inside_tree()
@@ -220,7 +220,7 @@ func attach_character(root: Node, body := true) -> RefCounted:
 	):
 		return null
 	var character := Composite.new()
-	if character.attach(root, reflection, probes, inputs, true, body) == 0:
+	if character.attach(root, reflection, probes, inputs, true, body, plain) == 0:
 		return null
 	for material in character.materials:
 		if not indirect.bind(material):

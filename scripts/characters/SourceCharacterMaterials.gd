@@ -4,6 +4,30 @@ const CHARACTER_SHADER = preload("res://scripts/characters/native_character.gdsh
 static var _manifests: Dictionary = {}
 
 
+static func plain_environment_source(original: StandardMaterial3D) -> ShaderMaterial:
+	# Explicit environment candidate only. Plain Source character surfaces were
+	# intentionally absent from the special-effects manifest (e.g. FBI sleeves).
+	var native: Dictionary = original.get_meta("source_material_parameters", {})
+	if (
+		native.get("ShaderName") != "csgo_character.vfx"
+		or original.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED
+		or original.blend_mode != BaseMaterial3D.BLEND_MODE_MIX
+		or original.shading_mode != BaseMaterial3D.SHADING_MODE_PER_PIXEL
+		or original.next_pass != null
+		or original.emission_enabled
+		or original.detail_enabled
+		or original.clearcoat_enabled
+		or original.refraction_enabled
+	):
+		return null
+	for flag in native.get("IntParams", {}):
+		if String(flag).begins_with("F_") and int(native.IntParams[flag]) != 0:
+			return null
+	var result := _material(original, {"native_material": native})
+	result.set_shader_parameter("normal_softness", Vector3.ZERO)
+	return result
+
+
 static func apply(root: Node, scene_path: String) -> int:
 	var path := scene_path.get_base_dir().path_join("source-character-shading.json")
 	var special_path := scene_path.get_base_dir().path_join("source-character-special.json")
@@ -113,16 +137,7 @@ static func _apply_recursive(node: Node, entries: Dictionary, cache: Dictionary)
 	return count
 
 
-static func _material(original: StandardMaterial3D, entry: Dictionary) -> ShaderMaterial:
-	var result := ShaderMaterial.new()
-	result.shader = CHARACTER_SHADER
-	if original.cull_mode != BaseMaterial3D.CULL_BACK:
-		var variant := CHARACTER_SHADER.duplicate() as Shader
-		var mode := (
-			"cull_disabled" if original.cull_mode == BaseMaterial3D.CULL_DISABLED else "cull_front"
-		)
-		variant.code = variant.code.replace("cull_back", mode)
-		result.shader = variant
+static func copy_pbr(original: StandardMaterial3D, result: ShaderMaterial) -> void:
 	result.resource_name = original.resource_name
 	result.render_priority = original.render_priority
 	result.set_shader_parameter("base_color", original.albedo_color.srgb_to_linear())
@@ -153,6 +168,19 @@ static func _material(original: StandardMaterial3D, entry: Dictionary) -> Shader
 		result.set_shader_parameter("use_" + key, enabled)
 		if bindings[key] != null:
 			result.set_shader_parameter(key + "_texture", bindings[key])
+
+
+static func _material(original: StandardMaterial3D, entry: Dictionary) -> ShaderMaterial:
+	var result := ShaderMaterial.new()
+	result.shader = CHARACTER_SHADER
+	if original.cull_mode != BaseMaterial3D.CULL_BACK:
+		var variant := CHARACTER_SHADER.duplicate() as Shader
+		var mode := (
+			"cull_disabled" if original.cull_mode == BaseMaterial3D.CULL_DISABLED else "cull_front"
+		)
+		variant.code = variant.code.replace("cull_back", mode)
+		result.shader = variant
+	copy_pbr(original, result)
 	var native: Dictionary = entry.get("native_material", {})
 	var flags: Dictionary = native.get("IntParams", {})
 	var floats: Dictionary = native.get("FloatParams", {})

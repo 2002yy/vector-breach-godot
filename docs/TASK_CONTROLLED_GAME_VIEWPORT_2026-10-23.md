@@ -1,5 +1,7 @@
 # 显式候选游戏入口与角色生命周期
 
+2026-10-24 续修：玩家与观战第一人称手臂、普通 PBR 袖子适配、3D 音频监听及优先次序见 [手臂接线记录](TASK_FIRST_PERSON_ENVIRONMENT_2026-10-24.md)。下文“手臂尚未接线”属于原批头的历史边界，最新状态以项目入口为准。
+
 ## 基线与入口
 
 分支 `feat/controlled-game-viewport-20261023`，main 基线 `bfc7ba5dbe4e0739f2781a4a45faf05104f37cfe`。#74 精确修复头 `38cee770e413892bd0492246a88a829cb3a6996c` 的 Tests `39925209809`、Windows export/smoke `39925209839` 成功，审查项解决且 CLEAN 后合并；没有等待新片 CI。

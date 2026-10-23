@@ -4,6 +4,7 @@ extends Control
 const MainScene = preload("res://scenes/Main.tscn")
 const SSAOOwner = preload("res://scripts/characters/SourceCharacterSSAOOwner.gd")
 const RuntimeInputs = preload("res://scripts/characters/SourceCharacterRuntimeInputs.gd")
+const Hands = preload("res://scripts/player/FirstPersonHands.gd")
 
 @export var bundle_paths: PackedStringArray = []
 var game: Node3D
@@ -30,6 +31,7 @@ func _ready() -> void:
 	viewport.name = "GameViewport"
 	viewport.size = Vector2i(size).max(Vector2i(2, 2))
 	viewport.own_world_3d = true
+	viewport.audio_listener_enable_3d = true
 	viewport.handle_input_locally = true
 	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	add_child(viewport)
@@ -43,6 +45,7 @@ func _ready() -> void:
 	viewport.add_child(ssao)
 	runtime = RuntimeInputs.new()
 	viewport.add_child(runtime)
+	get_tree().node_added.connect(_node_added)
 	game = MainScene.instantiate()
 	game.get_node("Level").level_load_started.connect(_map_started)
 	game.level_prepared.connect(_map_prepared)
@@ -146,6 +149,7 @@ func _refresh_characters() -> void:
 	if not is_inside_tree() or not runtime.configured or ssao.effect == null:
 		return
 	var alive := {}
+	var hand_ids := {}
 	for actor in game.get_node("CombatSandbox").get_children():
 		if not actor.has_method("get_native_character") or actor.is_queued_for_deletion():
 			continue
@@ -157,6 +161,16 @@ func _refresh_characters() -> void:
 			continue
 		var id := visual.get_instance_id()
 		alive[id] = visual
+	for hands in get_tree().get_nodes_in_group("first_person_hands"):
+		if hands.get_viewport() != viewport or hands.is_queued_for_deletion():
+			continue
+		if not hands.native_changed.is_connected(_refresh_characters):
+			hands.native_changed.connect(_refresh_characters)
+			hands.native_changing.connect(_appearance_changing)
+		var visual: Node3D = hands.get_native_hands()
+		if is_instance_valid(visual):
+			alive[visual.get_instance_id()] = visual
+			hand_ids[visual.get_instance_id()] = true
 	# Retire old materials before RuntimeInputs.track can prune dead meshes.
 	for id in _bound.keys():
 		if not alive.has(id):
@@ -164,11 +178,18 @@ func _refresh_characters() -> void:
 	for id in alive:
 		if _bound.has(id):
 			continue
-		var composite: RefCounted = runtime.attach_character(alive[id])
+		var composite: RefCounted = runtime.attach_character(alive[id], true, hand_ids.has(id))
 		if composite != null:
 			for material in composite.materials:
 				ssao.bind(material)
 			_bound[id] = composite
+
+
+func _node_added(node: Node) -> void:
+	# Spectator view models are created after map preparation. Wait for ready so
+	# the hands group and initial appearance are available; filter viewport there.
+	if node.get_script() == Hands:
+		_refresh_characters.call_deferred()
 
 
 func _appearance_changing(visual: Node3D) -> void:
@@ -208,6 +229,7 @@ func _release_retired() -> void:
 
 func _exit_tree() -> void:
 	_session += 1
+	_characters_clearing()
 	if is_instance_valid(runtime):
 		runtime.clear()
 	if is_instance_valid(ssao):

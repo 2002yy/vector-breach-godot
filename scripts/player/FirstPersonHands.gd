@@ -1,5 +1,8 @@
 extends Node3D
 
+signal native_changing(visual: Node3D)
+signal native_changed
+
 const Appearance = preload("res://scripts/characters/CharacterAppearance.gd")
 const NativeHands = preload("res://scripts/player/NativeCharacterHands.gd")
 
@@ -31,6 +34,7 @@ var _base_left := Vector3(-0.12, -0.19, -0.58)
 
 
 func _ready() -> void:
+	add_to_group("first_person_hands")
 	right = _hand("Right", 1.0)
 	left = _hand("Left", -1.0)
 	magazine = MeshInstance3D.new()
@@ -261,6 +265,7 @@ func _update_appearance() -> void:
 		return
 	_appearance_id = id
 	if _native_hands != null:
+		native_changing.emit(_native_hands)
 		_native_hands.free()
 		_native_hands = null
 	var native := NativeHands.new()
@@ -276,6 +281,16 @@ func _update_appearance() -> void:
 				child.visible = _native_hands == null
 	for sleeve in _forearms.values():
 		sleeve.visible = _native_hands == null
+	native_changed.emit()
+
+
+func get_native_hands() -> Node3D:
+	return _native_hands
+
+
+func _exit_tree() -> void:
+	if is_instance_valid(_native_hands):
+		native_changing.emit(_native_hands)
 
 
 func _resolved_curl(label: String) -> float:

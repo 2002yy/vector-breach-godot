@@ -20,6 +20,8 @@ func _run() -> void:
 	_host = HostScene.instantiate()
 	add_child(_host)
 	_game = _host.game
+	assert(_host.viewport.audio_listener_enable_3d)
+	_checks["positional_audio_listener_enabled"] = true
 	await _settle()
 	_game.call("_on_map_selected", _game.call("find_level_option_index", _level_id))
 	await _settle()
@@ -33,6 +35,7 @@ func _run() -> void:
 	await _settle()
 	_freeze_roster()
 	await _buy()
+	await _hands_environment()
 	await _resize_and_look()
 	await _appearance_and_roster()
 	await _spectator()
@@ -154,17 +157,111 @@ func _appearance_and_roster() -> void:
 	assert(_host._bound.has(actor.get_native_character().get_instance_id()))
 	_checks["appearance_rebound"] = true
 	print("CONTROLLED_STEP appearance checked")
-	var old: Array = _host._bound.keys()
+	var old: Array = []
+	for member in sandbox.get_children():
+		if member.has_method("get_native_character"):
+			old.append(member.get_native_character().get_instance_id())
+	var bound_count: int = _host._bound.size()
 	sandbox.call("load_for_level", _game.get_node("Level").get_current_level_data())
 	print("CONTROLLED_STEP roster installed")
 	await get_tree().process_frame
 	await get_tree().process_frame
 	_freeze_roster()
-	assert(_host._bound.size() == old.size())
+	assert(_host._bound.size() == bound_count)
 	for id in old:
 		assert(not _host._bound.has(id))
 	_checks["round_roster_rebound"] = true
 	await _capture("rebound")
+
+
+func _hands_environment() -> void:
+	var view := _game.get_node("Player/CameraPivot/Camera3D/WeaponViewModel")
+	var hands: Node3D = view.hands
+	var hidden: Array = []
+	for node in _game.find_children("*", "CanvasLayer", true, false):
+		hidden.append([node, node.visible])
+		node.visible = false
+	var player := _game.get_node("Player")
+	player.set_physics_process(false)
+	_game.set_process(false)
+	view.set_process(false)
+	hands.set_process(false)
+	hands.animator.stop()
+	var profiles := {}
+	for profile in ["ct-st6", "ct-sas-officer", "ct-fbi", "t-phoenix", "t-elite", "t-blackwolf"]:
+		var previous: Node3D = hands.get_native_hands()
+		var old := previous.get_instance_id()
+		hands.set_appearance_profile(profile)
+		await get_tree().process_frame
+		var visual: Node3D = hands.get_native_hands()
+		assert(_host._bound.has(visual.get_instance_id()))
+		if visual.get_instance_id() != old:
+			assert(not _host._bound.has(old))
+		var composite: RefCounted = _host._bound[visual.get_instance_id()]
+		assert(not composite.materials.is_empty())
+		for entry in composite._bindings:
+			if entry.original is StandardMaterial3D:
+				var expected: Color = entry.original.albedo_color.srgb_to_linear()
+				print(
+					"HANDS_TINT ",
+					profile,
+					" ",
+					entry.original.resource_name,
+					" expected=",
+					expected,
+					" actual=",
+					entry.copy.get_shader_parameter("base_color")
+				)
+				var actual: Variant = entry.copy.get_shader_parameter("base_color")
+				if actual is Color:
+					assert(actual.is_equal_approx(expected), "plain adapter original tint")
+				else:
+					assert(actual is Vector4)
+					assert(
+						actual.is_equal_approx(
+							Vector4(expected.r, expected.g, expected.b, expected.a)
+						)
+					)
+			print(
+				"HANDS_BIND ",
+				profile,
+				" ",
+				entry.mesh.name,
+				" ",
+				entry.surface,
+				" ",
+				entry.copy.get_shader_parameter("source_body_enabled"),
+				" ",
+				entry.copy.get_shader_parameter("source_indirect_enabled")
+			)
+		# Recompute the same native pose once after replacing the rig.
+		hands.call("_process", 0.0)
+		composite.set_enabled(false)
+		await _capture("hands-" + profile + "-off")
+		var off: PackedByteArray = _host.viewport.get_texture().get_image().get_data()
+		composite.set_enabled(true)
+		for frame in range(30):
+			await RenderingServer.frame_post_draw
+		await _capture("hands-" + profile + "-on")
+		var on: PackedByteArray = _host.viewport.get_texture().get_image().get_data()
+		assert(off != on, "hands environment must affect actual rendered pixels: " + profile)
+		composite.set_enabled(false)
+		await _capture("hands-" + profile + "-restored")
+		assert(off == _host.viewport.get_texture().get_image().get_data(), "exact hand fallback")
+		for entry in composite._bindings:
+			assert(entry.mesh.get_surface_override_material(entry.surface) == entry.previous)
+		composite.set_enabled(true)
+		profiles[profile] = {
+			"materials": composite.materials.size(), "pixels_changed": true, "fallback_exact": true
+		}
+	hands.set_appearance_profile("")
+	for entry in hidden:
+		entry[0].visible = entry[1]
+	player.set_physics_process(true)
+	hands.set_process(true)
+	view.set_process(true)
+	_game.set_process(true)
+	_checks["first_person_profiles"] = profiles
 
 
 func _spectator() -> void:
@@ -183,9 +280,20 @@ func _spectator() -> void:
 	assert(watch.target == first)
 	var before: bool = watch.get_snapshot().first_person
 	await _key(KEY_SPACE)
+	watch.call("tick")
+	await get_tree().process_frame
 	print("CONTROLLED_STEP spectator first person")
 	assert(watch.get_snapshot().first_person != before)
 	await _capture("spectator")
+	var spectator_hands: Node3D = watch._view_model.hands
+	var spectator_id: int = spectator_hands.get_native_hands().get_instance_id()
+	assert(_host._bound.has(spectator_id), "dynamic spectator hands must bind")
+	await _key(KEY_BRACKETRIGHT)
+	watch.call("tick")
+	await get_tree().process_frame
+	assert(_host._bound.has(spectator_hands.get_native_hands().get_instance_id()))
+	await _capture("spectator-hands-switched")
+	_checks["spectator_hands_bound_and_switched"] = true
 	_checks["spectator_input"] = true
 	await _key(KEY_ESCAPE)
 	assert(_game.menu_open)
