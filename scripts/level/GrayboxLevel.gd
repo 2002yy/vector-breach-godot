@@ -101,7 +101,12 @@ func get_current_level_data() -> Dictionary:
 	return _current_level_data
 
 func _apply_visual_scene(level_data: Dictionary, emit_errors: bool) -> void:
+	# Synchronous wall time only: nested layer timings must not be added twice.
+	last_load_timings["visual_phases_ms"] = {}
+	last_load_timings["scene_layers"] = {}
+	var phase := Time.get_ticks_usec()
 	_clear_visual_scene()
+	phase = _finish_visual_phase("retire_previous", phase)
 	geometry_root.visible = true
 	var has_visible_scene := false
 	# Build independent physics before the original render scene raises memory
@@ -111,27 +116,34 @@ func _apply_visual_scene(level_data: Dictionary, emit_errors: bool) -> void:
 		"LevelCollisionSource",
 		emit_errors
 	)
+	phase = _finish_visual_phase("collision_scene", phase)
 	if collision_instance != null:
 		if collision_instance is Node3D:
 			(collision_instance as Node3D).visible = false
 		_build_runtime_collision(collision_instance, emit_errors, not bool(level_data.get("retain_collision_meshes", false)))
+	phase = _finish_visual_phase("collision_shapes", phase)
 	var visual_instance := _instantiate_visual_resource(
 		String(level_data.get("visual_scene", "")),
 		"LevelVisual",
 		emit_errors
 	)
+	phase = _finish_visual_phase("visual_scene", phase)
 	if visual_instance != null:
 		has_visible_scene = true
 		_hide_filtered_visual_meshes(visual_instance, level_data.get("hidden_visual_name_contains", []) as Array)
 		if bool(level_data.get("reconstructed_materials", false)):
 			preload("res://scripts/level/ClassicResearchMaterials.gd").apply(visual_instance)
+		phase = _finish_visual_phase("filter_and_reconstructed_materials", phase)
 		if bool(level_data.get("original_reference_materials", false)) or String(level_data.get("id", "")) == "dustline-depths-original-local":
 			_repair_reference_vertex_channels(visual_instance)
+			phase = _finish_visual_phase("vertex_channels", phase)
 			var effect_manifest := String(level_data.get("visual_scene", "")).get_base_dir().path_join("source-effects.json")
 			preload("res://scripts/level/SourceEffectMaterials.gd").apply(visual_instance, effect_manifest)
+			phase = _finish_visual_phase("effect_materials", phase)
 			var overlay_manifest := String(level_data.get("visual_scene", "")).get_base_dir().path_join("source-overlay-offset.json")
 			var overlays: int = preload("res://scripts/level/SourceOverlayMaterials.gd").apply(visual_instance, overlay_manifest)
 			visual_instance.set_meta("source_overlay_repair_surfaces", overlays)
+			phase = _finish_visual_phase("overlay_materials", phase)
 			var decal_manifest := (
 				String(level_data.get("visual_scene", ""))
 				.get_base_dir().path_join("source-decal-alpha.json")
@@ -140,27 +152,38 @@ func _apply_visual_scene(level_data: Dictionary, emit_errors: bool) -> void:
 				visual_instance, decal_manifest
 			)
 			visual_instance.set_meta("source_decal_alpha_surfaces", decals)
+			phase = _finish_visual_phase("decal_materials", phase)
 			var modulate_manifest := decal_manifest.get_base_dir().path_join("source-modulate.json")
 			var modulates: int = preload("res://scripts/level/SourceModulateMaterials.gd").apply(
 				visual_instance, modulate_manifest
 			)
 			visual_instance.set_meta("source_mod2x_surfaces", modulates)
+			phase = _finish_visual_phase("mod2x_materials", phase)
 			preload("res://scripts/level/SourceVisualHelpers.gd").apply(visual_instance)
+			phase = _finish_visual_phase("visual_helpers", phase)
 		if bool(level_data.get("runtime_collision_from_visual", false)):
 			_build_runtime_collision(visual_instance, emit_errors)
+		phase = _finish_visual_phase("visual_collision_shapes", phase)
 		var batch_manifest := String(level_data.get("visual_scene", "")).get_base_dir().path_join("source-overlay-offset.json")
 		if visual_instance is Node3D:
 			preload("res://scripts/level/SourceStaticBatches.gd").apply(visual_instance, batch_manifest)
+		phase = _finish_visual_phase("static_batches", phase)
 
 	var overlay_instance := _instantiate_visual_resource(
 		String(level_data.get("overlay_visual_scene", "")),
 		"LevelOverlay",
 		emit_errors
 	)
+	_finish_visual_phase("overlay_scene", phase)
 	if overlay_instance != null:
 		has_visible_scene = true
 
 	geometry_root.visible = not has_visible_scene
+
+func _finish_visual_phase(key: String, began: int) -> int:
+	var ended := Time.get_ticks_usec()
+	last_load_timings.visual_phases_ms[key] = (ended - began) / 1000.0
+	return ended
 
 func _repair_reference_vertex_channels(node: Node) -> void:
 	# Source 2 foliage / fabric packs animation weights into COLOR_0.
@@ -183,22 +206,38 @@ func _repair_reference_vertex_channels(node: Node) -> void:
 		_repair_reference_vertex_channels(child)
 
 func _instantiate_visual_resource(scene_path: String, stable_name: String, emit_errors: bool) -> Node:
+	var began := Time.get_ticks_usec()
+	# This helper also serves isolated fixtures outside load_level().
+	if not last_load_timings.has("scene_layers"):
+		last_load_timings["scene_layers"] = {}
+	var timing := {"path": scene_path, "status": "skipped"}
+	last_load_timings.scene_layers[stable_name] = timing
 	if scene_path.is_empty():
 		return null
+	timing.status = "missing"
 	if not ResourceLoader.exists(scene_path, "PackedScene"):
 		if emit_errors:
 			push_warning("Missing level scene layer: %s" % scene_path)
 		return null
 
+	timing["cached_before_load"] = ResourceLoader.has_cached(scene_path)
 	var scene_resource: Resource = load(scene_path)
+	timing["resource_ms"] = (Time.get_ticks_usec() - began) / 1000.0
+	timing.status = "invalid"
 	if not (scene_resource is PackedScene):
 		if emit_errors:
 			push_warning("Level scene layer is not a PackedScene: %s" % scene_path)
 		return null
 
+	var phase := Time.get_ticks_usec()
 	var scene_instance: Node = (scene_resource as PackedScene).instantiate()
+	timing["instantiate_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
 	scene_instance.name = stable_name
+	phase = Time.get_ticks_usec()
 	visual_root.add_child(scene_instance)
+	timing["attach_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
+	timing["total_ms"] = (Time.get_ticks_usec() - began) / 1000.0
+	timing.status = "ready"
 	return scene_instance
 
 func _hide_filtered_visual_meshes(root: Node, name_filters: Array) -> void:

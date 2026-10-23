@@ -1,13 +1,13 @@
 # Vector Breach 当前状态
 
-更新：2026-10-23。此文件为当前实现、优先级和交付状态的权威入口；旧任务文档及历史截图中的“当前版本/尚未实现”只对应当时提交。
+更新：2026-10-24。此文件为当前实现、优先级和交付状态的权威入口；旧任务文档及历史截图中的“当前版本/尚未实现”只对应当时提交。
 
 ## main、PR 与唯一试玩包
 
-- **当前 main 为 `bfc7ba5dbe4e0739f2781a4a45faf05104f37cfe`（#74 已合并）**，该 main push Tests `39933544038` 成功。以下旧批次状态为历史记录。
-- 当前片 `feat/lobby-lazy-load-20261023` 独立从上述 main 开发：正式 Main 启动/选卡不加载关卡，开始只加载最终选择一次；显示加载状态，拒绝重复开始/加载中切图，失败恢复可重试菜单。三图使用本机真实地图静态背景，新增文件与原缩略图分开，原图/原模型不改。见 [本片记录](TASK_LOBBY_LAZY_LOAD_2026-10-23.md)。
-- 本片完整原生 **209**、Python 非 Blender **80**、GdUnit **2/2**、资源规则/导入/规范化脚本格式与 lint、旧文件 lint 无新增错误通过；三图 Vulkan 流程与菜单共 **28 PNG**，18 原模型和四张原缩略图哈希不变。暖运行开始耗时 Dust II **13.53 秒**、Mirage **9.10 秒**、Inferno **23.52 秒**，场景资源/适配阶段包含运行时碰撞，仍需拆分优化；不能据此称 70% FPS 通过。证据：本机 `D:/AgentGamePipeline/evidence/lobby-lazy-load-20261023/audit.json`，精确提交/PR/CI 首次快照见同目录 `delivery.json`。试玩包未更新。
-- 前批 **#75**（显式 ControlledGame 候选入口）本片开始时仍 OPEN/BLOCKED，头 `2a04aff9166aef873b6cf7295763c29695b0787f`，Tests `39951782732` 与 Windows Export `39951782784` 运行中；只查一次，不等待。本片不包含其 WIP；两片合并时需处理 Main/Graybox 相邻生命周期代码，并改旧 ControlledGameProbe 的“选卡即加载”假设，组合头尚未验证。
+- **当前 main 为 `bbfd904fd26636106acc1de4c43c7d7fab69eb70`（#76 已合并）**；#76 精确头 `c8ee16e` 的 Tests `39957199686`、Windows export/smoke `39957199665` 全成功，main push Tests `39994705993` 成功。默认 Main 已有启动/选卡零关卡加载，唯一试玩包仍为 #63。
+- **本片从上述 main 独立开发加载分段**：拆出原场景读取/实例化、碰撞生成、各材质修复、静态批次及角色生成/导航/收尾。三图 Vulkan 流程 21 PNG；固定代码单次暖运行原场景读取约 2.34–6.36 秒，Inferno 碰撞生成约 **6.03 秒**、角色生成约 1.68 秒。见 [本片记录](TASK_MAP_LOAD_PHASES_2026-10-24.md)，本机验证及精确提交/PR/CI 首次快照在 `D:/AgentGamePipeline/evidence/map-load-phases-20261024/audit.json` / `delivery.json`。本片增加诊断数据，尚不宣称提速或 70% FPS 通过。
+- **#75 仍是独立候选 PR**：已接玩家/观战手臂、普通袖子参数保留、3D 音频监听和 #76 懒加载生命周期，头 `eb5d70431958de3d615089db2d76e5b384ca521f`。本轮首次快照 OPEN/BLOCKED，Tests `39998848984`、Windows `39998849044` 仍运行中，只查一次不等待。本机组合完整原生 209 / Python 80 / GdUnit 2/2、三图 126 PNG 的证据在 `controlled-lazy-integration-20261024/`，不能替代新头 CI/审查或正式画质验收。本分支不包含该 PR 的候选入口生产代码。
+- 四个原有脏 `.import` 保留；原模型/材质/地图/碰撞和试玩包不改。返回选图仍保留旧场景，冷启动、峰值内存/最长帧、私有环境包分段和稳态 FPS 待测。下一片优先验证离线碰撞缓存，然后场景/角色加载 → C4/观战 → AI 运动/难度 → 图形地图补全 → 最新头 18 场、连续人工三图、70% FPS 和发布；光追最后独立评估。
 
 - #74 续修：旧头 `03ab625343246d3ad172936f0466c22af9be4ccf` 的 Tests `39920566997`、Windows export/smoke `39920566998` 已成功，但发现跨视口角色绑定审查项，不能据此合并。本批已修 `attach_character` 的现场边界，三图双视口拒绝前后材质身份不变、像素差 **0**；原角色/回退全回归，共 **579 PNG**。完整原生 **208**、Python **80**、GdUnit **2/2**、格式/lint/静态导入/资源合同通过，18 原模型哈希不变。新头提交/CI 首次快照见本机 `character-viewport-boundary-20261023/delivery.json`，不等待新 CI。正式入口接线仍待下一片；见 [续修记录](TASK_CHARACTER_VIEWPORT_BOUNDARY_2026-10-23.md)。
 - **#73 已合入 main `8f2dc7e8181a231df1f286bce8e68510a994ad7d`**；精确头 `4504306af964811b338364e99894c4f5805978c4` 的 Tests `39914919499`、Windows export/smoke `39914919468` 全成功且 CLEAN。main push Tests `39916850404` 也已成功。本片从已合并基线继续，不等待新 CI。
