@@ -7,4 +7,7 @@ func _ready() -> void:
 	viewport.own_world_3d = true
 	viewport.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	add_child(viewport)
-	viewport.add_child(preload("res://scenes/tests/CharacterBodyProbe.tscn").instantiate())
+	var scene: PackedScene = load("res://scenes/tests/CharacterBodyProbe.tscn")
+	if "--runtime-bundle" in OS.get_cmdline_user_args():
+		scene = load("res://scenes/tests/CharacterRuntimeBundleProbe.tscn")
+	viewport.add_child(scene.instantiate())

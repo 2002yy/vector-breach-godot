@@ -5,12 +5,57 @@ const Adapter = preload("res://scripts/level/SourceReflectionDiagnostic.gd")
 const Inputs = preload("res://scripts/characters/SourceEnvironmentInputs.gd")
 const Indirect = preload("res://scripts/characters/SourceIndirectInputs.gd")
 const Composite = preload("res://scripts/characters/SourceCharacterEnvironment.gd")
+const RuntimeInputs = preload("res://scripts/characters/SourceCharacterRuntimeInputs.gd")
+
+
+func _bundle_contract() -> void:
+	var files := []
+	for path in ["r.json", "l.json", "n.json", "i.json", "blocks.bin", "brdf.bin", "atlas.bin"]:
+		files.append({"path": path, "bytes": 1, "sha256": "a".repeat(64)})
+	var data := {
+		"schema": 1,
+		"contract": "source-character-runtime-bundle-v1",
+		"purpose": "controlled-candidate",
+		"level": "test-map",
+		"vpk_sha256": "a".repeat(64),
+		"inputs":
+		{
+			"reflection": "r.json",
+			"lighting": "l.json",
+			"normalization": "n.json",
+			"indirect": "i.json"
+		},
+		"files": files,
+	}
+	var level := {"id": "test-map", "sourceTrace": {"vpkSha256": "a".repeat(64)}}
+	assert(RuntimeInputs.manifest_paths(data, level).size() == 4)
+	for change in [
+		{"schema": true},
+		{"level": "other"},
+		{"purpose": "shipping"},
+		{"vpk_sha256": {}},
+		{"files": {}},
+		{"inputs": []},
+	]:
+		var bad := data.duplicate(true)
+		bad.merge(change, true)
+		assert(RuntimeInputs.manifest_paths(bad, level).is_empty())
+	for path in ["../outside", "/absolute", "C:/private", "a\\b", "a//b", "./r.json"]:
+		assert(not RuntimeInputs.relative(path))
+	for value in [0, -1, 0.5, NAN, true, "1"]:
+		var bad := data.duplicate(true)
+		bad.files[0].bytes = value
+		assert(RuntimeInputs.manifest_paths(bad, level).is_empty())
+	var duplicate := data.duplicate(true)
+	duplicate.files[1].path = "R.JSON"
+	assert(RuntimeInputs.manifest_paths(duplicate, level).is_empty())
 
 
 func _ready() -> void:
 	_records()
 	_normalization_inputs()
 	_indirect_inputs()
+	_bundle_contract()
 	_material_toggle()
 	var payload := PackedByteArray()
 	payload.resize(96)
