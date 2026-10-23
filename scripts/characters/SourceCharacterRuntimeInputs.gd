@@ -206,7 +206,18 @@ func track(character: RefCounted) -> void:
 
 
 func attach_character(root: Node, body := true) -> RefCounted:
-	if not configured:
+	if (
+		not configured
+		or not is_inside_tree()
+		or is_queued_for_deletion()
+		or not is_instance_valid(root)
+	):
+		return null
+	if (
+		not root.is_inside_tree()
+		or root.is_queued_for_deletion()
+		or root.get_viewport() != get_viewport()
+	):
 		return null
 	var character := Composite.new()
 	if character.attach(root, reflection, probes, inputs, true, body) == 0:

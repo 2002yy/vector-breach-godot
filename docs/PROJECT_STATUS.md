@@ -4,6 +4,7 @@
 
 ## main、PR 与唯一试玩包
 
+- #74 续修：旧头 `03ab625343246d3ad172936f0466c22af9be4ccf` 的 Tests `39920566997`、Windows export/smoke `39920566998` 已成功，但发现跨视口角色绑定审查项，不能据此合并。本批已修 `attach_character` 的现场边界，三图双视口拒绝前后材质身份不变、像素差 **0**；原角色/回退全回归，共 **579 PNG**。完整原生 **208**、Python **80**、GdUnit **2/2**、格式/lint/静态导入/资源合同通过，18 原模型哈希不变。新头提交/CI 首次快照见本机 `character-viewport-boundary-20261023/delivery.json`，不等待新 CI。正式入口接线仍待下一片；见 [续修记录](TASK_CHARACTER_VIEWPORT_BOUNDARY_2026-10-23.md)。
 - **#73 已合入 main `8f2dc7e8181a231df1f286bce8e68510a994ad7d`**；精确头 `4504306af964811b338364e99894c4f5805978c4` 的 Tests `39914919499`、Windows export/smoke `39914919468` 全成功且 CLEAN。main push Tests `39916850404` 也已成功。本片从已合并基线继续，不等待新 CI。
 - 当前片 `feat/character-runtime-inputs-20261023` 将三图原反射/LPV/SH/BRDF/对齐收据收敛为可重定位私有输入包，新增场景级输入拥有者，整组成功后才发布；错误地图/哈希、旧上传取消、视觉根移出和退出均撤销候选、恢复原材质。正常 Main/Actor 和根视口尚未接线，见 [本片记录](TASK_CHARACTER_RUNTIME_INPUTS_2026-10-23.md)。三包约 **1.1 GB**，不算加载性能优化，试玩包未更新。
 - 本片整包路径三图 **72** 组角色对照、**18** 组墙体遮挡、**24** 组 hair/眼球跟随及原数值回归通过；错误哈希/地图和拥有者退出后的画面严格像素差 **0**。共 **573 PNG**。完整原生 **208**、Python 非 Blender **80**、GdUnit **2/2**、格式/lint/导入/三类资源合同通过，18 原模型哈希不变。收据：本机 `D:/AgentGamePipeline/evidence/character-runtime-inputs-20261023/audit.json` / `delivery.json`。
