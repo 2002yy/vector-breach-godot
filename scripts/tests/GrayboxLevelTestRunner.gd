@@ -53,6 +53,9 @@ func _run_all_tests() -> void:
 	)
 	await _run_test("static_batches_preserve_attributes_and_exclude_special_surfaces", _test_static_batches_preserve_attributes_and_exclude_special_surfaces)
 	await _run_test("released_collision_mesh_keeps_physics_and_visuals", _test_released_collision_mesh_keeps_physics_and_visuals)
+	await _run_test(
+		"collision_cache_preserves_shapes_and_rejects_stale_inputs", _test_collision_cache
+	)
 	await _run_test("render_profile_restores_viewport_and_sun", _test_render_profile_restores_viewport_and_sun)
 	await _run_test("missing_level_does_not_clobber_current_state", _test_missing_level_does_not_clobber_current_state)
 	await _run_test(
@@ -103,6 +106,9 @@ func _test_load_timings_partition_visual_work_and_reset_on_failure() -> void:
 		"captured previous receipt remains immutable"
 	)
 	await _cleanup_level(level)
+
+func _test_collision_cache() -> void:
+	await preload("res://scripts/tests/SourceCollisionCacheFixtures.gd").run(self)
 
 func _run_test(test_name: String, callable: Callable) -> void:
 	var failed_before: int = _failures.size()
