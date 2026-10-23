@@ -762,6 +762,7 @@ func _on_level_loaded(level_data: Dictionary) -> void:
 	if combat_sandbox.has_method("load_for_level"):
 		combat_sandbox.call("load_for_level", level_data)
 	timings["actors_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
+	timings["actor_phases"] = combat_sandbox.last_load_timings.duplicate(true)
 	timings["prepare_ms"] = (Time.get_ticks_usec() - began) / 1000.0
 	_preparation_timings = timings
 	_level_loading = false

@@ -55,6 +55,54 @@ func _run_all_tests() -> void:
 	await _run_test("released_collision_mesh_keeps_physics_and_visuals", _test_released_collision_mesh_keeps_physics_and_visuals)
 	await _run_test("render_profile_restores_viewport_and_sun", _test_render_profile_restores_viewport_and_sun)
 	await _run_test("missing_level_does_not_clobber_current_state", _test_missing_level_does_not_clobber_current_state)
+	await _run_test(
+		"load_timings_partition_visual_work_and_reset_on_failure",
+		_test_load_timings_partition_visual_work_and_reset_on_failure
+	)
+
+func _test_load_timings_partition_visual_work_and_reset_on_failure() -> void:
+	var level: Node3D = _instantiate_level()
+	var timing: Dictionary = level.last_load_timings.duplicate(true)
+	var phases: Dictionary = timing.visual_phases_ms
+	var sum_ms := 0.0
+	for duration in phases.values():
+		_assert_true(float(duration) >= 0.0, "phase durations cannot be negative")
+		sum_ms += float(duration)
+	_assert_true(sum_ms <= float(timing.visual_ms), "visual phases cannot double count work")
+	for key in [
+		"retire_previous",
+		"collision_scene",
+		"collision_shapes",
+		"visual_scene",
+		"static_batches",
+		"overlay_scene"
+	]:
+		_assert_true(phases.has(key), "visual receipt includes " + key)
+	var visual: Dictionary = timing.scene_layers.LevelVisual
+	_assert_equal(visual.status, "ready", "real depot visual layer recorded")
+	_assert_true(
+		visual.has("cached_before_load"), "cache observation accompanies resource duration"
+	)
+	_assert_true(
+		visual.total_ms >= visual.resource_ms + visual.instantiate_ms + visual.attach_ms,
+		"layer timings are nested in total"
+	)
+	_assert_equal(timing.scene_layers.LevelOverlay.status, "skipped", "absent layer is explicit")
+	_assert_true(not level.load_level("missing-load-timing-fixture", false), "invalid map fails")
+	_assert_true(
+		not level.last_load_timings.has("visual_phases_ms"),
+		"failure cannot report preceding map phases"
+	)
+	_assert_true(
+		not level.last_load_timings.has("scene_layers"),
+		"failure cannot report preceding map resources"
+	)
+	_assert_equal(
+		timing.scene_layers.LevelVisual.status,
+		"ready",
+		"captured previous receipt remains immutable"
+	)
+	await _cleanup_level(level)
 
 func _run_test(test_name: String, callable: Callable) -> void:
 	var failed_before: int = _failures.size()
