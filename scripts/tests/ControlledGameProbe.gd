@@ -1,6 +1,7 @@
 extends Node
 
 const HostScene = preload("res://scenes/ControlledGame.tscn")
+const FAILED_LEVEL = preload("res://scripts/tests/LazyLoadFixtures.gd").FailedLevel
 var _host: Control
 var _game: Node3D
 var _out := ""
@@ -23,16 +24,41 @@ func _run() -> void:
 	assert(_host.viewport.audio_listener_enable_3d)
 	_checks["positional_audio_listener_enabled"] = true
 	await _settle()
+	var level := _game.get_node("Level")
+	assert(level.load_count == 0 and level.get_current_level_data().is_empty())
+	assert(not _host.runtime.configured and _host.runtime._pending.is_empty())
+	assert(_host._bound.is_empty())
+	await _capture("boot-zero-loads")
+	for id in ["dustline-depths-original-local", "mirage-classic-local", "inferno-classic-local"]:
+		_game.call("_on_map_selected", _game.call("find_level_option_index", id))
+		await _settle()
+		assert(level.load_count == 0 and level.get_current_level_data().is_empty())
+		assert(not _host.runtime.configured and _host.runtime._pending.is_empty())
+		assert(_host._bound.is_empty(), "cards cannot bind characters or upload inputs")
+		await _capture("selected-" + id)
+	_checks["boot_and_cards_loads"] = 0
+	_checks["boot_and_cards_no_candidate_upload"] = true
 	_game.call("_on_map_selected", _game.call("find_level_option_index", _level_id))
 	await _settle()
-	assert(_host.runtime.configured and _host.runtime.level_id == _level_id)
-	assert(not _host._bound.is_empty())
-	_checks["initial_characters"] = _host._bound.size()
-	_freeze_roster()
 	await _capture("menu")
 	await _menus()
-	await _game.call("_on_start_pressed")
+	var start_began := Time.get_ticks_usec()
+	_game.call("_on_start_pressed")
+	_game.call("_on_start_pressed")
+	await RenderingServer.frame_post_draw
+	assert(_game._starting and level.load_count == 0)
+	assert(_game.get_node("StartMenu").start_button.disabled)
+	assert(get_viewport().get_texture().get_image().save_png(_out.path_join("loading.png")) == OK)
+	while _game._starting:
+		await get_tree().process_frame
 	await _settle()
+	assert(level.load_count == 1, "double Start must load only the final map once")
+	assert(_host.runtime.configured and _host.runtime.level_id == _level_id)
+	assert(not _host._bound.is_empty())
+	_checks["actual_start_loads"] = level.load_count
+	_checks["start"] = _game.last_start_timings.duplicate(true)
+	_checks["candidate_ready_ms"] = (Time.get_ticks_usec() - start_began) / 1000.0
+	_checks["initial_characters"] = _host._bound.size()
 	_freeze_roster()
 	await _buy()
 	await _hands_environment()
@@ -40,6 +66,7 @@ func _run() -> void:
 	await _appearance_and_roster()
 	await _spectator()
 	await _map_exit()
+	await _failed_start()
 	_host.queue_free()
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -182,6 +209,10 @@ func _hands_environment() -> void:
 		hidden.append([node, node.visible])
 		node.visible = false
 	var player := _game.get_node("Player")
+	var input_active: bool = _host.is_processing_input()
+	_host.set_process_input(false)
+	var camera: Camera3D = _host.viewport.get_camera_3d()
+	var fixed_camera := camera.global_transform
 	player.set_physics_process(false)
 	_game.set_process(false)
 	view.set_process(false)
@@ -247,6 +278,7 @@ func _hands_environment() -> void:
 		assert(off != on, "hands environment must affect actual rendered pixels: " + profile)
 		composite.set_enabled(false)
 		await _capture("hands-" + profile + "-restored")
+		assert(camera.global_transform == fixed_camera, "pixel comparison camera must stay fixed")
 		assert(off == _host.viewport.get_texture().get_image().get_data(), "exact hand fallback")
 		for entry in composite._bindings:
 			assert(entry.mesh.get_surface_override_material(entry.surface) == entry.previous)
@@ -258,6 +290,7 @@ func _hands_environment() -> void:
 	for entry in hidden:
 		entry[0].visible = entry[1]
 	player.set_physics_process(true)
+	_host.set_process_input(input_active)
 	hands.set_process(true)
 	view.set_process(true)
 	_game.set_process(true)
@@ -303,8 +336,23 @@ func _spectator() -> void:
 
 
 func _map_exit() -> void:
-	_game.get_node("Level").call("load_level", "gatehouse")
+	var level := _game.get_node("Level")
+	_game.call("_open_menu", false)
+	_game.call("_return_to_map_selection")
 	await _settle()
+	var before: int = level.load_count
+	var session: int = _host._session
+	_game.call("_on_map_selected", _game.call("find_level_option_index", "gatehouse"))
+	await _settle()
+	assert(level.load_count == before and level.get_current_level_data().id == _level_id)
+	assert(not level.visible and not _game.get_node("Player").is_physics_processing())
+	assert(_host.runtime.level_id == _level_id and _host._session == session)
+	assert(_host.runtime._pending.is_empty(), "reselection cannot upload another map")
+	_checks["return_selection_keeps_loaded_identity_without_reloading"] = true
+	await _capture("return-selection")
+	await _game.call("_on_start_pressed")
+	await _settle()
+	assert(level.load_count == before + 1 and level.get_current_level_data().id == "gatehouse")
 	assert(not _host.runtime.configured and _host._bound.is_empty())
 	await _capture("map-fallback")
 	_game.get_node("Level").call("load_level", _level_id)
@@ -318,6 +366,20 @@ func _map_exit() -> void:
 	await _settle()
 	assert(not _host.runtime.configured and _host._bound.is_empty())
 	_checks["map_fallback_and_old_upload_canceled"] = true
+
+
+func _failed_start() -> void:
+	_game.call("_open_menu", false)
+	_game.call("_return_to_map_selection")
+	_game.get_node("Level").set_script(FAILED_LEVEL)
+	await _game.call("_on_start_pressed")
+	await _settle()
+	assert(not _game.game_started and not _game._starting)
+	assert(not _host.runtime.configured and _host._bound.is_empty())
+	assert(_host.candidate_state == "地图加载失败，保留原材质")
+	assert(not _game.get_node("StartMenu").start_button.disabled)
+	_checks["failed_start_releases_candidate_and_allows_retry"] = true
+	await _capture("failed-start")
 
 
 func _key(code: Key) -> void:

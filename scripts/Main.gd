@@ -1,6 +1,7 @@
 extends Node3D
 
 signal level_prepared(level_data: Dictionary)
+signal level_start_failed(level_id: String)
 
 const WorldWeaponPickup = preload("res://scripts/combat/WorldWeaponPickup.gd")
 const TrainingTelemetry = preload("res://scripts/training/TrainingTelemetry.gd")
@@ -82,6 +83,10 @@ const LOCAL_REFERENCE_OPTION := {
 }
 
 var spectator: Node3D
+
+var last_start_timings: Dictionary = {}
+var _starting := false
+var _preparation_timings: Dictionary = {}
 
 @onready var level: Node3D = $Level
 @onready var player: CharacterBody3D = $Player
@@ -287,7 +292,7 @@ func _on_settings_changed(snapshot: Dictionary) -> void:
 		combat_hud.call("apply_settings", UserSettings.get_snapshot())
 
 func _on_team_selected(team: String) -> void:
-	if game_started:
+	if game_started or _starting:
 		return
 	selected_start_team = team if team in ["T", "CT"] else "T"
 	start_menu.call("select_team", selected_start_team)
@@ -369,6 +374,9 @@ func _process(delta: float) -> void:
 			combat_hud.call("update_radar", _build_radar_snapshot())
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _starting:
+		get_viewport().set_input_as_handled()
+		return
 	if event.is_action_pressed("fullscreen_toggle"):
 		_toggle_fullscreen()
 		get_viewport().set_input_as_handled()
@@ -545,19 +553,17 @@ func _unhandled_input(event: InputEvent) -> void:
 func _apply_selected_map() -> void:
 	var option: Dictionary = level_options[selected_level_index]
 	start_menu.call("set_map_details", option, game_started)
-	if not game_started:
-		level.call("load_level", option["id"])
 	GameState.set_level(String(option["id"]), String(option["name"]))
 	_update_ui(true)
 
 func _on_map_selected(index: int) -> void:
-	if game_started:
+	if game_started or _starting:
 		return
 	selected_level_index = clampi(index, 0, level_options.size() - 1)
 	_apply_selected_map()
 
 func _return_to_map_selection() -> void:
-	if not menu_open or not game_started:
+	if not menu_open or not game_started or _starting:
 		return
 	spectator.call("stop")
 	_clear_round_drops()
@@ -567,8 +573,34 @@ func _return_to_map_selection() -> void:
 	_open_menu(true)
 
 func _on_start_pressed() -> void:
+	if _starting:
+		return
+	_starting = true
+	var began := Time.get_ticks_usec()
+	start_menu.call("set_loading", true)
+	# Give the loading state a complete frame before synchronous engine work.
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var presented := Time.get_ticks_usec()
+	await _start_selected_map()
+	last_start_timings = {
+		"id": String(level_options[selected_level_index].id),
+		"success": game_started and not _level_load_failed,
+		"menu_ms": (presented - began) / 1000.0,
+		"total_ms": (Time.get_ticks_usec() - began) / 1000.0,
+		"level": level.last_load_timings.duplicate(true),
+		"preparation": _preparation_timings.duplicate(true),
+	}
+	_starting = false
+	start_menu.call("set_loading", false)
+
+func _start_selected_map() -> void:
 	spectator.call("stop")
 	var option: Dictionary = level_options[selected_level_index]
+	_level_loading = true
+	_level_load_failed = false
+	_preparation_timings.clear()
+	_set_world_active(false)
 	combat_hud.call("show_training_panel", false)
 	selected_start_team = "T" if (start_menu.get("team_select") as OptionButton).selected == 0 else "CT"
 	if String(option["id"]) == "training-range":
@@ -586,15 +618,22 @@ func _on_start_pressed() -> void:
 	if is_instance_valid(training_telemetry):
 		training_telemetry.call("begin_round", 1)
 	_clear_round_drops()
-	level.call("load_level", option["id"])
+	if not level.call("load_level", option["id"]):
+		_level_load_failed = true
+		_level_loading = false
 	while _level_loading:
 		await get_tree().physics_frame
 	if _level_load_failed:
+		game_started = false
+		GameState.reset_runtime_state()
+		GameState.set_game_started(false)
+		level_start_failed.emit(String(option["id"]))
 		_open_menu(true)
 		return
 	if player.has_method("reset_to_spawn"):
 		player.call("reset_to_spawn")
 	game_started = true
+	_set_world_active(true)
 	GameState.set_game_started(true)
 	if weapon_system.has_method("configure_default_loadout"):
 		weapon_system.call("configure_default_loadout", true, GameState.is_competitive_level())
@@ -666,7 +705,15 @@ func _open_menu(initial_open: bool) -> void:
 	if player.has_method("set_mouse_capture_enabled"):
 		player.call("set_mouse_capture_enabled", false)
 	weapon_view_model.visible = false
+	if initial_open:
+		_set_world_active(false)
 	_update_ui(true)
+
+func _set_world_active(active: bool) -> void:
+	level.visible = active
+	combat_sandbox.visible = active
+	c4_device.visible = active
+	player.set_physics_process(active)
 
 func _toggle_fullscreen() -> void:
 	var current_mode: DisplayServer.WindowMode = DisplayServer.window_get_mode()
@@ -677,6 +724,8 @@ func _toggle_fullscreen() -> void:
 	_update_ui(true)
 
 func _on_level_loaded(level_data: Dictionary) -> void:
+	var began := Time.get_ticks_usec()
+	var timings := {"physics_settle_ms": 0.0, "layout_ms": 0.0}
 	_level_load_failed = false
 	_apply_level_environment(level_data)
 	preload("res://scripts/level/SourceModulateMaterials.gd").update_environment(
@@ -684,12 +733,16 @@ func _on_level_loaded(level_data: Dictionary) -> void:
 	)
 	_level_load_serial += 1
 	var serial := _level_load_serial
+	timings["environment_ms"] = (Time.get_ticks_usec() - began) / 1000.0
+	var phase := Time.get_ticks_usec()
 	if LocalClassicMaps.is_classic(String(level_data.get("id", ""))):
 		_level_loading = true
 		for _frame in range(2):
 			await get_tree().physics_frame
 		if serial != _level_load_serial:
 			return
+		timings["physics_settle_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
+		phase = Time.get_ticks_usec()
 		var layout := ClassicMatchLayout.load_authored(level_data)
 		if layout.is_empty():
 			_level_load_failed = true
@@ -704,11 +757,13 @@ func _on_level_loaded(level_data: Dictionary) -> void:
 			var yaw_defaults := {"T": 77.0, "CT": -100.0}
 			var spawn_yaws: Dictionary = level_data.get("spawnYawDegrees", yaw_defaults)
 			GameState.player_spawn_yaw_radians = deg_to_rad(float(spawn_yaws.get(GameState.player_team, 0.0)))
+		timings["layout_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
+	phase = Time.get_ticks_usec()
 	if combat_sandbox.has_method("load_for_level"):
 		combat_sandbox.call("load_for_level", level_data)
-	if not game_started and player.has_method("reset_to_spawn"):
-		player.call("reset_to_spawn")
-		start_menu.call("frame_map_preview", level_data)
+	timings["actors_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
+	timings["prepare_ms"] = (Time.get_ticks_usec() - began) / 1000.0
+	_preparation_timings = timings
 	_level_loading = false
 	level_prepared.emit(level_data)
 

@@ -1,5 +1,7 @@
 # 玩家与观战手臂环境候选接线
 
+后续与已合并 #76 的组合验证见 [整合记录](TASK_CONTROLLED_LAZY_INTEGRATION_2026-10-24.md)。下文为手臂独立续修头 `aaa714c` 的证据，不替代组合头。
+
 2026-10-24。续修 #75 分支 `feat/controlled-game-viewport-20261023`，前次验证头 `2a04aff9166aef873b6cf7295763c29695b0787f`，main 基线 `bfc7ba5dbe4e0739f2781a4a45faf05104f37cfe`。本片不等待 CI，不依赖 #76 未合并代码；完整重排见 [执行次序](DEVELOPMENT_ORDER_2026-10-24.md)。
 
 ## 行为

@@ -49,6 +49,7 @@ func _ready() -> void:
 	game = MainScene.instantiate()
 	game.get_node("Level").level_load_started.connect(_map_started)
 	game.level_prepared.connect(_map_prepared)
+	game.level_start_failed.connect(_map_failed)
 	game.get_node("CombatSandbox").combatants_spawned.connect(_roster_changed)
 	game.get_node("CombatSandbox").combatants_clearing.connect(_characters_clearing)
 	viewport.add_child(game)
@@ -56,7 +57,7 @@ func _ready() -> void:
 	resized.connect(_resize)
 	get_window().focus_exited.connect(_focus_lost)
 	get_window().focus_entered.connect(_focus_returned)
-	# Main's initial classic-map preparation completes after two physics frames.
+	# Lobby selection is metadata only; input configuration starts at level_prepared.
 	_resize()
 
 
@@ -139,6 +140,11 @@ func _map_prepared(data: Dictionary) -> void:
 	candidate_state = "候选已启用" if applied else "候选输入失效，保留原材质"
 	if applied:
 		_refresh_characters()
+
+
+func _map_failed(level_id: String) -> void:
+	_map_started(level_id)
+	candidate_state = "地图加载失败，保留原材质"
 
 
 func _roster_changed(_friendly: int, _enemy: int) -> void:

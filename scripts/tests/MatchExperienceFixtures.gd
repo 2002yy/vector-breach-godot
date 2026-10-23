@@ -66,7 +66,7 @@ static func spectator_boundaries(host: Node) -> void:
 
 
 static func lobby_controls(host: Node) -> void:
-	var main: Node3D = host.call("_instantiate_main")
+	var main: Node3D = host.call("_instantiate_main", false)
 	await host.call("_await_main_ready")
 	var menu := main.get_node("StartMenu")
 	menu.find_child("CTCard", true, false).pressed.emit()
@@ -84,7 +84,7 @@ static func lobby_controls(host: Node) -> void:
 		"_assert_equal",
 		GameState.current_level_id,
 		"training-range",
-		"thumbnail selection loads its actual map, not a display-only state"
+		"thumbnail selection updates the pending map identity"
 	)
 	menu.call("toggle_player_help")
 	var help := menu.get_node("PlayerHelp")
@@ -117,7 +117,7 @@ static func lobby_controls(host: Node) -> void:
 
 
 static func purchases_and_help(host: Node) -> void:
-	var main: Node3D = host.call("_instantiate_main")
+	var main: Node3D = host.call("_instantiate_main", false)
 	await host.call("_await_main_ready")
 	var preview_player: CharacterBody3D = main.get_node("Player")
 	preview_player.global_position = Vector3(999, 999, 999)
@@ -125,8 +125,8 @@ static func purchases_and_help(host: Node) -> void:
 	await host.call("_await_main_ready")
 	host.call(
 		"_assert_true",
-		preview_player.global_position.distance_to(GameState.player_spawn) < 0.5,
-		"map selection resets preview camera to the new map spawn"
+		preview_player.global_position == Vector3(999, 999, 999),
+		"map selection leaves the unloaded world and player untouched"
 	)
 	host.call("_assert_true", not bool(main.get("game_started")), "preview does not start match")
 	main.call("_on_map_selected", main.call("find_level_option_index", "gatehouse"))
