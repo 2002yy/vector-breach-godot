@@ -17,6 +17,7 @@ signal radio_report(caller: String, message: String)
 
 var c4_device: Node3D
 var last_load_timings: Dictionary = {}
+var _load_generation := 0
 var _current_level_data: Dictionary = {}
 var _bomb_carrier_actor: CharacterBody3D
 var _loaded_level_id: String = ""
@@ -31,9 +32,15 @@ func _ready() -> void:
 	if not RoundManager.round_ended.is_connected(_on_round_ended_capture):
 		RoundManager.round_ended.connect(_on_round_ended_capture)
 
-func load_for_level(level_data: Dictionary) -> void:
+func load_for_level(level_data: Dictionary, staged: bool = false) -> void:
+	_load_generation += 1
+	var generation := _load_generation
+	var pending: Array[Dictionary] = []
+	var spawn_work_usec := 0
+	var max_actor_usec := 0
+	var yielded_frames := 0
 	var began := Time.get_ticks_usec()
-	last_load_timings = {"id": String(level_data.get("id", "")), "actor_count": 0}
+	last_load_timings = {"id": String(level_data.get("id", "")), "actor_count": 0, "staged": staged}
 	_clear_targets()
 	# queue_free() completes later; this measures detachment, not destruction.
 	last_load_timings["detach_ms"] = (Time.get_ticks_usec() - began) / 1000.0
@@ -60,6 +67,7 @@ func load_for_level(level_data: Dictionary) -> void:
 	for record_variant in _build_spawn_records(level_data):
 		if not record_variant is Dictionary:
 			continue
+		var actor_began := Time.get_ticks_usec()
 		var record := record_variant as Dictionary
 		if _competitive_hard_reset_pending and GameState.is_competitive_level():
 			_apply_competitive_reset(record)
@@ -79,6 +87,9 @@ func load_for_level(level_data: Dictionary) -> void:
 			continue
 		var target_node := target_instance as Node3D
 		target_node.position = Vector3(float(record.get("x", 0.0)), float(record.get("y", dummy_height)), float(record.get("z", 0.0)))
+		if staged:
+			pending.append({"node": target_node, "mode": target_node.process_mode})
+			target_node.process_mode = Node.PROCESS_MODE_DISABLED
 		add_child(target_node)
 		if target_node.has_method("configure_from_record"):
 			var route_name := String(record.get("route", ""))
@@ -112,6 +123,20 @@ func load_for_level(level_data: Dictionary) -> void:
 			friendly_count += 1
 		else:
 			enemy_count += 1
+		var actor_usec := Time.get_ticks_usec() - actor_began
+		spawn_work_usec += actor_usec
+		max_actor_usec = maxi(max_actor_usec, actor_usec)
+		if staged:
+			# Only the explicit start path yields; round resets remain synchronous.
+			yielded_frames += 1
+			await get_tree().process_frame
+			if generation != _load_generation:
+				return
+	for entry in pending:
+		(entry.node as Node).process_mode = entry.mode
+	last_load_timings["spawn_work_ms"] = spawn_work_usec / 1000.0
+	last_load_timings["max_actor_work_ms"] = max_actor_usec / 1000.0
+	last_load_timings["yielded_frames"] = yielded_frames
 	last_load_timings["spawn_configure_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
 	last_load_timings.actor_count = friendly_count + enemy_count
 	phase = Time.get_ticks_usec()
