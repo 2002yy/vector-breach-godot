@@ -33,6 +33,9 @@ func _run() -> void:
 		assert(level.load_count == 0 and level.get_node("VisualRoot").get_child_count() == 0)
 		assert(_main.get_node("StartMenu/MapBackground").texture != null)
 		await _capture("selected-" + id)
+	assert(
+		get_node("/root/SceneReader").submitted_count == 0, "cards cannot start background reads"
+	)
 	if "--menu-only" in args:
 		print("LAZY_MENUS_ONLY_OK")
 		get_tree().quit()

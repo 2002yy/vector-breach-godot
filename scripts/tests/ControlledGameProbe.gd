@@ -36,6 +36,9 @@ func _run() -> void:
 		assert(not _host.runtime.configured and _host.runtime._pending.is_empty())
 		assert(_host._bound.is_empty(), "cards cannot bind characters or upload inputs")
 		await _capture("selected-" + id)
+	assert(
+		get_node("/root/SceneReader").submitted_count == 0, "cards cannot start background reads"
+	)
 	_checks["boot_and_cards_loads"] = 0
 	_checks["boot_and_cards_no_candidate_upload"] = true
 	_game.call("_on_map_selected", _game.call("find_level_option_index", _level_id))

@@ -9,11 +9,15 @@ class FailedLevel:
 		last_load_timings = {"id": next_level_id, "success": false}
 		return false
 
+	func load_level_async(next_level_id: String, emit_errors: bool = true) -> bool:
+		return load_level(next_level_id, emit_errors)
+
 
 static func run(host: Node) -> void:
 	var main: Node = host.call("_instantiate_main", false)
 	await host.call("_await_main_ready")
 	var level := main.get_node("Level")
+	var reads_before: int = host.get_node("/root/SceneReader").submitted_count
 	var player := main.get_node("Player")
 	var at: Vector3 = player.global_position
 	for id in ["training-range", "foundry-reforged", "gatehouse", "training-range", "gatehouse"]:
@@ -32,6 +36,12 @@ static func run(host: Node) -> void:
 			"_assert_true", not player.is_physics_processing(), "unloaded-menu player cannot fall"
 		)
 		host.call("_assert_equal", player.global_position, at, "selection cannot move player")
+	host.call(
+		"_assert_equal",
+		host.get_node("/root/SceneReader").submitted_count,
+		reads_before,
+		"cards cannot submit background reads"
+	)
 	main.call("_on_start_pressed")
 	main.call("_on_start_pressed")
 	main.call("_on_map_selected", main.call("find_level_option_index", "training-range"))
@@ -39,6 +49,14 @@ static func run(host: Node) -> void:
 	host.call("_assert_equal", level.load_count, 0, "loading UI is shown before engine work")
 	var partial_frames := 0
 	while main._starting:
+		if main._level_loading:
+			host.call("_assert_true", not main.game_started, "loading world is not a live match")
+			host.call(
+				"_assert_equal",
+				RoundManager.state,
+				RoundManager.RoundState.WARMUP,
+				"loading cannot advance the old round timer"
+			)
 		var sandbox := main.get_node("CombatSandbox")
 		if sandbox.get_child_count() > 0 and sandbox.last_load_timings.actor_count == 0:
 			partial_frames += 1

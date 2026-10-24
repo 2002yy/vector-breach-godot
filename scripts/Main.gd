@@ -599,6 +599,9 @@ func _start_selected_map() -> void:
 	var option: Dictionary = level_options[selected_level_index]
 	_level_loading = true
 	_level_load_failed = false
+	game_started = false
+	GameState.set_game_started(false)
+	RoundManager.set_warmup()
 	_preparation_timings.clear()
 	_set_world_active(false)
 	combat_hud.call("show_training_panel", false)
@@ -618,7 +621,7 @@ func _start_selected_map() -> void:
 	if is_instance_valid(training_telemetry):
 		training_telemetry.call("begin_round", 1)
 	_clear_round_drops()
-	if not level.call("load_level", option["id"]):
+	if not await level.call("load_level_async", option["id"]):
 		_level_load_failed = true
 		_level_loading = false
 	while _level_loading:

@@ -12,6 +12,8 @@ signal level_loaded(level_data: Dictionary)
 var load_count := 0
 var last_load_timings: Dictionary = {}
 
+var _load_generation := 0
+
 @onready var geometry_root: Node3D = $GeometryRoot
 @onready var visual_root: Node3D = $VisualRoot
 @onready var lighting_root: Node3D = $LightingRoot
@@ -27,6 +29,36 @@ func _ready() -> void:
 
 func load_level(next_level_id: String, emit_errors: bool = true) -> bool:
 	var began := Time.get_ticks_usec()
+	var data := _begin_level(next_level_id, emit_errors, began)
+	if data.is_empty():
+		return false
+	var phase := Time.get_ticks_usec()
+	_apply_visual_scene(data, emit_errors)
+	last_load_timings["visual_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
+	return _finish_level(data, began)
+
+func load_level_async(next_level_id: String, emit_errors: bool = true) -> bool:
+	var began := Time.get_ticks_usec()
+	var data := _begin_level(next_level_id, emit_errors, began)
+	if data.is_empty():
+		return false
+	var generation := _load_generation
+	var visual_began := Time.get_ticks_usec()
+	var phase := _begin_visual_scene(data, emit_errors)
+	var path := String(data.get("visual_scene", ""))
+	var receipt: Dictionary = await get_node("/root/SceneReader").read_scene(path)
+	if generation != _load_generation:
+		return false
+	var resource := receipt.get("resource") as Resource
+	receipt.erase("resource")
+	var visual := _instantiate_visual_resource(path, "LevelVisual", emit_errors, resource, receipt)
+	phase = _finish_visual_phase("visual_scene", phase)
+	_finish_visual_scene(data, emit_errors, visual, phase)
+	last_load_timings["visual_ms"] = (Time.get_ticks_usec() - visual_began) / 1000.0
+	return _finish_level(data, began)
+
+func _begin_level(next_level_id: String, emit_errors: bool, began: int) -> Dictionary:
+	_load_generation += 1
 	load_count += 1
 	last_load_timings = {"id": next_level_id, "success": false}
 	level_load_started.emit(next_level_id)
@@ -37,7 +69,7 @@ func load_level(next_level_id: String, emit_errors: bool = true) -> bool:
 	last_load_timings["data_ms"] = (Time.get_ticks_usec() - data_began) / 1000.0
 	if level_data.is_empty():
 		last_load_timings["level_ms"] = (Time.get_ticks_usec() - began) / 1000.0
-		return false
+		return {}
 
 	_current_level_data = level_data
 	var build_options: Dictionary = GameState.get_shape_build_options()
@@ -47,10 +79,10 @@ func load_level(next_level_id: String, emit_errors: bool = true) -> bool:
 	var phase := Time.get_ticks_usec()
 	ShapeBuilder.build_into(geometry_root, level_data, build_options)
 	last_load_timings["geometry_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
-	phase = Time.get_ticks_usec()
-	_apply_visual_scene(level_data, emit_errors)
-	last_load_timings["visual_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
-	phase = Time.get_ticks_usec()
+	return level_data
+
+func _finish_level(level_data: Dictionary, began: int) -> bool:
+	var phase := Time.get_ticks_usec()
 	_apply_render_profile(level_data)
 	_apply_lights(level_data)
 	_apply_markers(level_data)
@@ -90,6 +122,7 @@ func _apply_render_profile(level_data: Dictionary) -> void:
 	viewport.use_occlusion_culling = true
 
 func _exit_tree() -> void:
+	_load_generation += 1
 	_restore_render_profile()
 
 func _restore_render_profile() -> void:
@@ -106,14 +139,23 @@ func get_current_level_data() -> Dictionary:
 	return _current_level_data
 
 func _apply_visual_scene(level_data: Dictionary, emit_errors: bool) -> void:
-	# Synchronous wall time only: nested layer timings must not be added twice.
+	var phase := _begin_visual_scene(level_data, emit_errors)
+	var visual_instance := _instantiate_visual_resource(
+		String(level_data.get("visual_scene", "")),
+		"LevelVisual",
+		emit_errors
+	)
+	phase = _finish_visual_phase("visual_scene", phase)
+	_finish_visual_scene(level_data, emit_errors, visual_instance, phase)
+
+func _begin_visual_scene(level_data: Dictionary, emit_errors: bool) -> int:
+	# Wall time includes asynchronous waiting; do not add nested timings twice.
 	last_load_timings["visual_phases_ms"] = {}
 	last_load_timings["scene_layers"] = {}
 	var phase := Time.get_ticks_usec()
 	_clear_visual_scene()
 	phase = _finish_visual_phase("retire_previous", phase)
 	geometry_root.visible = true
-	var has_visible_scene := false
 	# Build independent physics before the original render scene raises memory
 	# pressure. Runtime keeps the shapes and transforms, not duplicate GPU meshes.
 	var collision_instance := _instantiate_visual_resource(
@@ -130,12 +172,12 @@ func _apply_visual_scene(level_data: Dictionary, emit_errors: bool) -> void:
 			String(level_data.get("runtime_collision_scene", ""))
 		)
 	phase = _finish_visual_phase("collision_shapes", phase)
-	var visual_instance := _instantiate_visual_resource(
-		String(level_data.get("visual_scene", "")),
-		"LevelVisual",
-		emit_errors
-	)
-	phase = _finish_visual_phase("visual_scene", phase)
+	return phase
+
+func _finish_visual_scene(
+	level_data: Dictionary, emit_errors: bool, visual_instance: Node, phase: int
+) -> void:
+	var has_visible_scene := false
 	if visual_instance != null:
 		has_visible_scene = true
 		_hide_filtered_visual_meshes(visual_instance, level_data.get("hidden_visual_name_contains", []) as Array)
@@ -213,7 +255,10 @@ func _repair_reference_vertex_channels(node: Node) -> void:
 	for child in node.get_children():
 		_repair_reference_vertex_channels(child)
 
-func _instantiate_visual_resource(scene_path: String, stable_name: String, emit_errors: bool) -> Node:
+func _instantiate_visual_resource(
+	scene_path: String, stable_name: String, emit_errors: bool,
+	supplied: Resource = null, receipt: Dictionary = {}
+) -> Node:
 	var began := Time.get_ticks_usec()
 	# This helper also serves isolated fixtures outside load_level().
 	if not last_load_timings.has("scene_layers"):
@@ -229,8 +274,13 @@ func _instantiate_visual_resource(scene_path: String, stable_name: String, emit_
 		return null
 
 	timing["cached_before_load"] = ResourceLoader.has_cached(scene_path)
-	var scene_resource: Resource = load(scene_path)
-	timing["resource_ms"] = (Time.get_ticks_usec() - began) / 1000.0
+	var scene_resource: Resource
+	if receipt.get("threaded", false):
+		timing.merge(receipt, true)
+		scene_resource = supplied
+	else:
+		scene_resource = load(scene_path)
+		timing["resource_ms"] = (Time.get_ticks_usec() - began) / 1000.0
 	timing.status = "invalid"
 	if not (scene_resource is PackedScene):
 		if emit_errors:
@@ -245,6 +295,8 @@ func _instantiate_visual_resource(scene_path: String, stable_name: String, emit_
 	visual_root.add_child(scene_instance)
 	timing["attach_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
 	timing["total_ms"] = (Time.get_ticks_usec() - began) / 1000.0
+	if receipt.get("threaded", false):
+		timing.total_ms += float(timing.get("resource_ms", 0.0))
 	timing.status = "ready"
 	return scene_instance
 

@@ -25,7 +25,11 @@ func _ready() -> void:
 func _test_scene_source_lifetime() -> void:
 	preload("res://scripts/tests/SceneInstanceFixtures.gd").run(self)
 
+func _test_threaded_reader() -> void:
+	await preload("res://scripts/tests/SceneReaderFixtures.gd").run(self)
+
 func _run_all_tests() -> void:
+	await _run_test("threaded_reader_coalesces_and_drains_abandoned_clients", _test_threaded_reader)
 	await _run_test("scene_source_lifetime_follows_instances", _test_scene_source_lifetime)
 	await _run_test("default_load_applies_markers_and_geometry", _test_default_load_applies_markers_and_geometry)
 	await _run_test("load_level_rebuilds_geometry_and_updates_state", _test_load_level_rebuilds_geometry_and_updates_state)
