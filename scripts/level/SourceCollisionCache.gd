@@ -119,6 +119,7 @@ static func verify_files(source: String, directory := DIRECTORY) -> Dictionary:
 	proof["verify_ms"] = (Time.get_ticks_usec() - began) / 1000.0
 	if before.is_empty() or before != _file_stamps(source, path):
 		return proof
+	proof["source_sha256"] = identity.get("source_sha256", "")
 	proof["cache_sha256"] = raw.get("cache_sha256", "")
 	proof["import_sha256"] = identity.get("import_sha256", "")
 	proof["stamps"] = before
@@ -126,12 +127,17 @@ static func verify_files(source: String, directory := DIRECTORY) -> Dictionary:
 	return proof
 
 
+static func shape_geometry(shape: ConcavePolygonShape3D) -> Array:
+	return [shape.get_faces(), shape.backface_collision, shape.margin, shape.custom_solver_bias]
+
+
 static func load_shapes(
 	root: Node,
 	source: String,
 	receipt: Dictionary,
 	directory := DIRECTORY,
-	verified: Dictionary = {}
+	verified: Dictionary = {},
+	retained: Dictionary = {}
 ) -> Dictionary:
 	var began := Time.get_ticks_usec()
 	var proof := verify_files(source, directory) if verified.is_empty() else verified
@@ -158,12 +164,31 @@ static func load_shapes(
 	receipt["verify_ms"] = float(proof.get("verify_ms", 0.0))
 	receipt["background_verified"] = not verified.is_empty()
 	var phase := Time.get_ticks_usec()
-	var payload := ResourceLoader.load(path, "Resource", ResourceLoader.CACHE_MODE_IGNORE)
+	var reuse: bool = retained.get("valid", false) == true
+	for key in ["source", "path", "engine", "source_sha256", "cache_sha256", "import_sha256"]:
+		reuse = reuse and retained.get(key) == proof.get(key)
+	if reuse:
+		for key in retained.get("shapes", {}):
+			var shape: Variant = retained.shapes[key]
+			if (
+				not shape is ConcavePolygonShape3D
+				or retained.get("geometry", {}).get(key) != shape_geometry(shape)
+			):
+				reuse = false
+				break
+	var shapes: Variant
+	var transforms: Variant
+	if reuse:
+		shapes = retained.get("shapes", {})
+		transforms = retained.get("transforms", {})
+	else:
+		var payload := ResourceLoader.load(path, "Resource", ResourceLoader.CACHE_MODE_IGNORE)
+		if payload == null:
+			return {}
+		shapes = payload.get_meta("shapes", {})
+		transforms = payload.get_meta("transforms", {})
 	receipt["read_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
-	if payload == null:
-		return {}
-	var shapes: Variant = payload.get_meta("shapes", {})
-	var transforms: Variant = payload.get_meta("transforms", {})
+	receipt["warm_reused"] = reuse
 	if not shapes is Dictionary or not transforms is Dictionary:
 		return {}
 	var expected := meshes(root)

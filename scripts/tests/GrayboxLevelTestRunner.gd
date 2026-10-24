@@ -1,30 +1,24 @@
 extends Node
 
 const SourceMaterialFixtures = preload("res://scripts/tests/SourceMaterialFixtures.gd")
-
 const GRAYBOX_LEVEL_SCENE = preload("res://scenes/level/GrayboxLevel.tscn")
 const LevelDataLoader = preload("res://scripts/level/LevelDataLoader.gd")
 const SourceEffectMaterials = preload("res://scripts/level/SourceEffectMaterials.gd")
 const SourceOverlayMaterials = preload("res://scripts/level/SourceOverlayMaterials.gd")
-
 var _failures: PackedStringArray = []
 var _passes: int = 0
-
 func _ready() -> void:
 	await _run_all_tests()
 	if _failures.is_empty():
 		print("[GrayboxLevelTests] PASS (%d tests)" % _passes)
 		get_tree().quit(0)
 		return
-
 	push_error("[GrayboxLevelTests] FAIL (%d/%d failed)" % [_failures.size(), _passes + _failures.size()])
 	for failure in _failures:
 		push_error("  - %s" % failure)
 	get_tree().quit(1)
-
 func _test_scene_source_lifetime() -> void:
 	preload("res://scripts/tests/SceneInstanceFixtures.gd").run(self)
-
 func _test_threaded_reader() -> void:
 	await preload("res://scripts/tests/SceneReaderFixtures.gd").run(self)
 
@@ -34,7 +28,13 @@ func _test_staged_collision() -> void:
 func _test_background_verification() -> void:
 	await preload("res://scripts/tests/CollisionVerifierFixtures.gd").run(self)
 
+func _test_warm_collision_lease() -> void:
+	await preload("res://scripts/tests/WarmCollisionLeaseFixtures.gd").run(self)
+
 func _run_all_tests() -> void:
+	await _run_test(
+		"warm_collision_lease_is_validated_invalidated_and_released", _test_warm_collision_lease
+	)
 	await _run_test(
 		"background_collision_verification_preserves_cache_contract", _test_background_verification
 	)

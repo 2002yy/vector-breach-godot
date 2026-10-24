@@ -15,6 +15,8 @@ var load_count := 0
 var last_load_timings: Dictionary = {}
 
 var _load_generation := 0
+# Keeping the live Shape3D also preserves its already-built Jolt geometry on same-map reload.
+var _collision_lease: Dictionary = {}
 
 @onready var geometry_root: Node3D = $GeometryRoot
 @onready var visual_root: Node3D = $VisualRoot
@@ -30,6 +32,7 @@ func _ready() -> void:
 		load_level(level_id)
 
 func load_level(next_level_id: String, emit_errors: bool = true) -> bool:
+	_clear_collision_lease()
 	var began := Time.get_ticks_usec()
 	var data := _begin_level(next_level_id, emit_errors, began)
 	if data.is_empty():
@@ -62,6 +65,8 @@ func load_level_async(next_level_id: String, emit_errors: bool = true) -> bool:
 	return _finish_level(data, began)
 
 func _begin_level(next_level_id: String, emit_errors: bool, began: int) -> Dictionary:
+	if next_level_id != String(_current_level_data.get("id", "")):
+		_clear_collision_lease()
 	_load_generation += 1
 	load_count += 1
 	last_load_timings = {"id": next_level_id, "success": false}
@@ -126,6 +131,7 @@ func _apply_render_profile(level_data: Dictionary) -> void:
 	viewport.use_occlusion_culling = true
 
 func _exit_tree() -> void:
+	_clear_collision_lease()
 	_load_generation += 1
 	_restore_render_profile()
 
@@ -375,9 +381,43 @@ func _load_runtime_collision_cache_async(
 		"wall_ms":proof.get("wall_ms",0.0), "status":proof.get("status", "invalid")
 	}
 	var receipt := {}
-	var cached := CollisionCache.load_shapes(root, source, receipt, CollisionCache.DIRECTORY, proof)
+	var cached := CollisionCache.load_shapes(
+		root, source, receipt, CollisionCache.DIRECTORY, proof, _collision_lease
+	)
+	_replace_collision_lease(root, cached, proof)
 	last_load_timings["collision_cache"] = receipt
 	return cached
+
+func _invalidate_collision_lease(path: String) -> void:
+	# CollisionShape3D assignment also changes debug presentation, not its physics geometry.
+	var shape: ConcavePolygonShape3D = _collision_lease.shapes[path]
+	if CollisionCache.shape_geometry(shape) != _collision_lease.geometry[path]:
+		_collision_lease["valid"] = false
+
+func _clear_collision_lease() -> void:
+	for path in _collision_lease.get("shapes", {}):
+		var shape: ConcavePolygonShape3D = _collision_lease.shapes[path]
+		var invalidate := _invalidate_collision_lease.bind(path)
+		if shape.changed.is_connected(invalidate):
+			shape.changed.disconnect(invalidate)
+	_collision_lease.clear()
+
+func _replace_collision_lease(root: Node, shapes: Dictionary, proof: Dictionary) -> void:
+	_clear_collision_lease()
+	if shapes.is_empty():
+		return
+	var transforms := {}
+	for path in CollisionCache.meshes(root):
+		transforms[path] = root.get_node(path).transform
+	_collision_lease = {"valid":true, "shapes":shapes, "transforms":transforms, "geometry":{}}
+	for key in ["source", "path", "engine", "source_sha256", "cache_sha256", "import_sha256"]:
+		_collision_lease[key] = proof.get(key)
+	for path in shapes:
+		var shape: ConcavePolygonShape3D = shapes[path]
+		_collision_lease.geometry[path] = CollisionCache.shape_geometry(shape)
+		var invalidate := _invalidate_collision_lease.bind(path)
+		if not shape.changed.is_connected(invalidate):
+			shape.changed.connect(invalidate)
 
 func _finish_collision_build(began: int, count: int, emit_errors: bool) -> void:
 	last_load_timings["collision_build_ms"] = (Time.get_ticks_usec() - began) / 1000.0
