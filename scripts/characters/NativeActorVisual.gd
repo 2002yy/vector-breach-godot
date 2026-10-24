@@ -85,6 +85,15 @@ func set_weapon(kind: String) -> void:
 	weapon_socket.add_child(weapon)
 
 
+func source_scenes() -> Array[PackedScene]:
+	var scenes: Array[PackedScene] = []
+	for instance in [model, weapon]:
+		var scene := preload("res://scripts/SceneInstance.gd").source(instance)
+		if scene != null and scene not in scenes:
+			scenes.append(scene)
+	return scenes
+
+
 func clip_for(action: StringName) -> StringName:
 	if weapon_kind in ["pistol", "knife"] and action in [&"idle", &"run", &"crouch"]:
 		return StringName(weapon_kind + "_" + String(action))

@@ -198,6 +198,8 @@ func _appearance_and_roster() -> void:
 			old.append(member.get_native_character().get_instance_id())
 	var bound_count: int = _host._bound.size()
 	sandbox.call("load_for_level", _game.get_node("Level").get_current_level_data())
+	assert(sandbox.last_load_timings.retained_scene_count > 0)
+	_checks["round_source_scene_bridge_count"] = sandbox.last_load_timings.retained_scene_count
 	print("CONTROLLED_STEP roster installed")
 	await get_tree().process_frame
 	await get_tree().process_frame

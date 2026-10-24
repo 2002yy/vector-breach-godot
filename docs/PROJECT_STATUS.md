@@ -2,7 +2,11 @@
 
 更新：2026-10-24。此文件为当前实现、优先级和交付状态的权威入口；旧任务文档及历史截图中的“当前版本/尚未实现”只对应当时提交。
 
-## 当前批：角色路网准备复用
+## 当前批：外观场景存活期
+
+基于已提交 `75dda9d3cf3f5b47d9f1761d2e8346b7248d97ab`（#81；Tests `40074824735` 和手动完整 Windows 导出/冒烟 `40074878721` 已成功；普通 PR Windows 曾跳过，不算该项通过证据），分支 `feature/appearance-scene-lifetime`。实测六角色专用材质暖处理约 1 ms，资源读取才是主要部分，未按最初假设修改 shader。角色/第一人称手臂与原版装备实例持有自己的源 PackedScene，旧阵容源资源仅临时保留到新阵容就绪，最后持有者销毁后释放，无应用级常驻缓存。最终原生 213、Python 80、GdUnit 2/2、格式/无新增 lint/资源合同和三图双入口 6 次 Vulkan（126 PNG）通过，独立工厂后续 16/16 次缓存命中及参数隔离通过。工作范围、回归/交付头与 CI 首次快照见 [本批记录](TASK_APPEARANCE_SCENE_LIFETIME_2026-10-24.md) 和本机 `appearance-scene-lifetime-20261024/delivery.json`。试玩包仍为 main `598cde1` 的已验收版本；本片未覆盖。冷读、上传及整体加载/帧率仍待验。
+
+## 前批：角色路网准备复用
 
 基于已提交 `eca9a6d7ed5f027e10cadf413e0c464af31effc7`（#80，当前 Tests `40073238664`、Windows `40073238667` 已成功；本批不等待远端审查或 CI），分支 `feature/actor-navigation-preparation`。每次阵容准备只解析/归一化一次路网，拓扑逐层只读，AI 分别拥有 AStar、封路与动态危险状态。无跨地图静态缓存，不共用可变寻路实例。此前单角色测量中，外观安装暖态约 125–141 ms，其余配置约 54–60 ms，本片先消除重复路网解析。完整原生 212、Python 80、GdUnit 2/2、格式/无新增 lint/资源合同、三图双入口 6 次 Vulkan（126 PNG）已通过。验证、提交、PR/CI 及限制见本机 `actor-navigation-preparation-20261024/delivery.json` 与 [本批记录](TASK_ACTOR_NAVIGATION_PREPARATION_2026-10-24.md)。试玩包仍为 main `598cde1` 的已验收版本。
 

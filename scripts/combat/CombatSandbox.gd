@@ -43,9 +43,21 @@ func load_for_level(level_data: Dictionary, staged: bool = false) -> void:
 	var yielded_frames := 0
 	var began := Time.get_ticks_usec()
 	last_load_timings = {"id": String(level_data.get("id", "")), "actor_count": 0, "staged": staged}
+	var retiring_scenes: Array[PackedScene] = []
+	for actor in get_children():
+		if not actor.has_method("get_native_character"):
+			continue
+		var visual: Node = actor.call("get_native_character")
+		if visual != null and visual.has_method("source_scenes"):
+			for scene in visual.call("source_scenes"):
+				if scene not in retiring_scenes:
+					retiring_scenes.append(scene)
+	last_load_timings["retained_scene_count"] = retiring_scenes.size()
+	last_load_timings["retain_scenes_ms"] = (Time.get_ticks_usec() - began) / 1000.0
+	var detach_began := Time.get_ticks_usec()
 	_clear_targets()
 	# queue_free() completes later; this measures detachment, not destruction.
-	last_load_timings["detach_ms"] = (Time.get_ticks_usec() - began) / 1000.0
+	last_load_timings["detach_ms"] = (Time.get_ticks_usec() - detach_began) / 1000.0
 	last_load_timings["deferred_free_excluded"] = true
 	var level_id := String(level_data.get("id", ""))
 	if _loaded_level_id != level_id:
@@ -157,6 +169,8 @@ func load_for_level(level_data: Dictionary, staged: bool = false) -> void:
 	GameState.set_scoreboard_combatants(scoreboard_records)
 	_sync_team_economy()
 	_competitive_hard_reset_pending = false
+	# Old sources bridge deferred actor destruction only until the new roster is ready.
+	retiring_scenes.clear()
 	last_load_timings["finalize_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
 	last_load_timings["total_ms"] = (Time.get_ticks_usec() - began) / 1000.0
 
