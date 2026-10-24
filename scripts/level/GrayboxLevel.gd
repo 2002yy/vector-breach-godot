@@ -359,6 +359,26 @@ func _load_runtime_collision_cache(root: Node, release_meshes: bool, source: Str
 		last_load_timings["collision_cache"] = receipt
 	return cached
 
+func _load_runtime_collision_cache_async(
+	root: Node, release_meshes: bool, source: String, generation: int
+) -> Dictionary:
+	if (
+		not release_meshes or source.is_empty()
+		or "--disable-collision-cache" in OS.get_cmdline_user_args()
+	):
+		return _load_runtime_collision_cache(root, release_meshes, source)
+	var proof: Dictionary = await get_node("/root/CollisionVerifier").verify(source)
+	if generation != _load_generation:
+		return {}
+	last_load_timings["collision_verification"] = {
+		"wait_frames":proof.get("wait_frames",0), "max_frame_gap_ms":proof.get("max_frame_gap_ms",0.0),
+		"wall_ms":proof.get("wall_ms",0.0), "status":proof.get("status", "invalid")
+	}
+	var receipt := {}
+	var cached := CollisionCache.load_shapes(root, source, receipt, CollisionCache.DIRECTORY, proof)
+	last_load_timings["collision_cache"] = receipt
+	return cached
+
 func _finish_collision_build(began: int, count: int, emit_errors: bool) -> void:
 	last_load_timings["collision_build_ms"] = (Time.get_ticks_usec() - began) / 1000.0
 	if count == 0 and emit_errors:
@@ -376,7 +396,11 @@ func _build_runtime_collision_async(
 	root: Node, emit_errors: bool, release_meshes: bool, source: String, generation: int
 ) -> bool:
 	var began := Time.get_ticks_usec()
-	var cached := _load_runtime_collision_cache(root, release_meshes, source)
+	var cached: Dictionary = await _load_runtime_collision_cache_async(
+		root, release_meshes, source, generation
+	)
+	if generation != _load_generation:
+		return false
 	var meshes: Dictionary = CollisionCache.meshes(root)
 	var count := 0
 	var frames := 0

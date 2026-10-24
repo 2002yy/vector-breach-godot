@@ -31,7 +31,13 @@ func _test_threaded_reader() -> void:
 func _test_staged_collision() -> void:
 	await preload("res://scripts/tests/StagedCollisionFixtures.gd").run(self)
 
+func _test_background_verification() -> void:
+	await preload("res://scripts/tests/CollisionVerifierFixtures.gd").run(self)
+
 func _run_all_tests() -> void:
+	await _run_test(
+		"background_collision_verification_preserves_cache_contract", _test_background_verification
+	)
 	await _run_test(
 		"staged_collision_preserves_faces_physics_and_cancellation", _test_staged_collision
 	)

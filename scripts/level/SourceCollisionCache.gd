@@ -80,32 +80,83 @@ static func bake(root: Node, source: String, directory := DIRECTORY) -> bool:
 	return true
 
 
-static func load_shapes(
-	root: Node, source: String, receipt: Dictionary, directory := DIRECTORY
-) -> Dictionary:
+static func _file_stamps(source: String, path: String) -> Dictionary:
+	var stamps := {}
+	var physical := physical_path(source)
+	for file_path in [physical, physical + ".import", path, path + ".json"]:
+		var file := FileAccess.open(file_path, FileAccess.READ)
+		if file == null:
+			return {}
+		stamps[file_path] = [file.get_length(), FileAccess.get_modified_time(file_path)]
+	return stamps
+
+
+static func verify_files(source: String, directory := DIRECTORY) -> Dictionary:
 	var began := Time.get_ticks_usec()
-	receipt.clear()
-	receipt["status"] = "missing"
 	var path := physical_path(cache_path(source, directory))
+	var proof := {
+		"status": "missing", "source": source, "path": path, "engine": Engine.get_version_info().hex
+	}
+	var before := _file_stamps(source, path)
 	if not FileAccess.file_exists(path) or not FileAccess.file_exists(path + ".json"):
-		return {}
-	receipt.status = "invalid"
+		return proof
+	proof.status = "invalid"
 	var file := FileAccess.open(path + ".json", FileAccess.READ)
 	if file == null or file.get_length() > 65536:
-		return {}
+		return proof
 	var parser := JSON.new()
 	if parser.parse(file.get_as_text()) != OK or not parser.data is Dictionary:
-		return {}
+		return proof
 	var raw: Dictionary = parser.data
 	var identity := signature(source)
 	if identity.is_empty():
-		return {}
+		return proof
 	for key in identity:
 		if raw.get(key) != identity[key]:
-			return {}
+			return proof
 	if raw.get("cache_sha256", "") != FileAccess.get_sha256(path):
+		return proof
+	proof["verify_ms"] = (Time.get_ticks_usec() - began) / 1000.0
+	if before.is_empty() or before != _file_stamps(source, path):
+		return proof
+	proof["cache_sha256"] = raw.get("cache_sha256", "")
+	proof["import_sha256"] = identity.get("import_sha256", "")
+	proof["stamps"] = before
+	proof.status = "verified"
+	return proof
+
+
+static func load_shapes(
+	root: Node,
+	source: String,
+	receipt: Dictionary,
+	directory := DIRECTORY,
+	verified: Dictionary = {}
+) -> Dictionary:
+	var began := Time.get_ticks_usec()
+	var proof := verify_files(source, directory) if verified.is_empty() else verified
+	receipt.clear()
+	receipt["status"] = "missing" if proof.get("status") == "missing" else "invalid"
+	if proof.get("status") != "verified":
 		return {}
-	receipt["verify_ms"] = (Time.get_ticks_usec() - began) / 1000.0
+	var path := physical_path(cache_path(source, directory))
+	if proof.get("source") != source or proof.get("path") != path:
+		return {}
+	if proof.get("engine") != Engine.get_version_info().hex:
+		return {}
+	if proof.get("stamps", {}).is_empty() or proof.stamps != _file_stamps(source, path):
+		return {}
+	if not verified.is_empty():
+		# Bind the consumed payload/import bytes again; only large source hashing waits off-thread.
+		if FileAccess.get_sha256(path) != proof.get("cache_sha256", ""):
+			return {}
+		if (
+			FileAccess.get_sha256(physical_path(source) + ".import")
+			!= proof.get("import_sha256", "")
+		):
+			return {}
+	receipt["verify_ms"] = float(proof.get("verify_ms", 0.0))
+	receipt["background_verified"] = not verified.is_empty()
 	var phase := Time.get_ticks_usec()
 	var payload := ResourceLoader.load(path, "Resource", ResourceLoader.CACHE_MODE_IGNORE)
 	receipt["read_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
