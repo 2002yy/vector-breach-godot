@@ -28,7 +28,13 @@ func _test_scene_source_lifetime() -> void:
 func _test_threaded_reader() -> void:
 	await preload("res://scripts/tests/SceneReaderFixtures.gd").run(self)
 
+func _test_staged_collision() -> void:
+	await preload("res://scripts/tests/StagedCollisionFixtures.gd").run(self)
+
 func _run_all_tests() -> void:
+	await _run_test(
+		"staged_collision_preserves_faces_physics_and_cancellation", _test_staged_collision
+	)
 	await _run_test("threaded_reader_coalesces_and_drains_abandoned_clients", _test_threaded_reader)
 	await _run_test("scene_source_lifetime_follows_instances", _test_scene_source_lifetime)
 	await _run_test("default_load_applies_markers_and_geometry", _test_default_load_applies_markers_and_geometry)

@@ -7,6 +7,8 @@ const ShapeBuilder = preload("res://scripts/level/ShapeBuilder.gd")
 
 signal level_loaded(level_data: Dictionary)
 
+const CollisionCache = preload("res://scripts/level/SourceCollisionCache.gd")
+
 @export var level_id: String = "depot"
 @export var load_on_ready := true
 var load_count := 0
@@ -44,7 +46,9 @@ func load_level_async(next_level_id: String, emit_errors: bool = true) -> bool:
 		return false
 	var generation := _load_generation
 	var visual_began := Time.get_ticks_usec()
-	var phase := _begin_visual_scene(data, emit_errors)
+	var phase: int = await _begin_visual_scene_async(data, emit_errors, generation)
+	if phase < 0:
+		return false
 	var path := String(data.get("visual_scene", ""))
 	var receipt: Dictionary = await get_node("/root/SceneReader").read_scene(path)
 	if generation != _load_generation:
@@ -149,13 +153,7 @@ func _apply_visual_scene(level_data: Dictionary, emit_errors: bool) -> void:
 	_finish_visual_scene(level_data, emit_errors, visual_instance, phase)
 
 func _begin_visual_scene(level_data: Dictionary, emit_errors: bool) -> int:
-	# Wall time includes asynchronous waiting; do not add nested timings twice.
-	last_load_timings["visual_phases_ms"] = {}
-	last_load_timings["scene_layers"] = {}
-	var phase := Time.get_ticks_usec()
-	_clear_visual_scene()
-	phase = _finish_visual_phase("retire_previous", phase)
-	geometry_root.visible = true
+	var phase := _reset_visual_scene()
 	# Build independent physics before the original render scene raises memory
 	# pressure. Runtime keeps the shapes and transforms, not duplicate GPU meshes.
 	var collision_instance := _instantiate_visual_resource(
@@ -172,6 +170,40 @@ func _begin_visual_scene(level_data: Dictionary, emit_errors: bool) -> int:
 			String(level_data.get("runtime_collision_scene", ""))
 		)
 	phase = _finish_visual_phase("collision_shapes", phase)
+	return phase
+
+func _begin_visual_scene_async(
+	level_data: Dictionary, emit_errors: bool, generation: int
+) -> int:
+	var phase := _reset_visual_scene()
+	# Build independent physics before the original render scene raises memory
+	# pressure. Runtime keeps the shapes and transforms, not duplicate GPU meshes.
+	var collision_instance := _instantiate_visual_resource(
+		String(level_data.get("runtime_collision_scene", "")),
+		"LevelCollisionSource",
+		emit_errors
+	)
+	phase = _finish_visual_phase("collision_scene", phase)
+	if collision_instance != null:
+		if collision_instance is Node3D:
+			(collision_instance as Node3D).visible = false
+		var completed: bool = await _build_runtime_collision_async(
+			collision_instance, emit_errors, not bool(level_data.get("retain_collision_meshes", false)),
+			String(level_data.get("runtime_collision_scene", "")), generation
+		)
+		if not completed:
+			return -1
+	phase = _finish_visual_phase("collision_shapes", phase)
+	return phase
+
+func _reset_visual_scene() -> int:
+	# Wall time includes asynchronous waiting; do not add nested timings twice.
+	last_load_timings["visual_phases_ms"] = {}
+	last_load_timings["scene_layers"] = {}
+	var phase := Time.get_ticks_usec()
+	_clear_visual_scene()
+	phase = _finish_visual_phase("retire_previous", phase)
+	geometry_root.visible = true
 	return phase
 
 func _finish_visual_scene(
@@ -316,56 +348,102 @@ func _hide_filtered_visual_meshes_recursive(node: Node, name_filters: Array) -> 
 	for child in node.get_children():
 		_hide_filtered_visual_meshes_recursive(child, name_filters)
 
-func _build_runtime_collision(
-	root: Node, emit_errors: bool, release_meshes: bool = false, source: String = ""
-) -> void:
-	var began := Time.get_ticks_usec()
+func _load_runtime_collision_cache(root: Node, release_meshes: bool, source: String) -> Dictionary:
 	var cached := {}
 	if release_meshes and not source.is_empty():
 		var receipt := {"status": "disabled"}
 		if "--disable-collision-cache" not in OS.get_cmdline_user_args():
-			cached = preload("res://scripts/level/SourceCollisionCache.gd").load_shapes(
+			cached = CollisionCache.load_shapes(
 				root, source, receipt
 			)
 		last_load_timings["collision_cache"] = receipt
-	var collision_mesh_count: int = _build_runtime_collision_recursive(
-		root, release_meshes, cached, root
-	)
+	return cached
+
+func _finish_collision_build(began: int, count: int, emit_errors: bool) -> void:
 	last_load_timings["collision_build_ms"] = (Time.get_ticks_usec() - began) / 1000.0
-	if collision_mesh_count == 0 and emit_errors:
+	if count == 0 and emit_errors:
 		push_warning("Runtime collision requested, but no COLLISION_* meshes were found")
+
+func _build_runtime_collision(
+	root: Node, emit_errors: bool, release_meshes: bool = false, source: String = ""
+) -> void:
+	var began := Time.get_ticks_usec()
+	var cached := _load_runtime_collision_cache(root, release_meshes, source)
+	var count := _build_runtime_collision_recursive(root, release_meshes, cached, root)
+	_finish_collision_build(began, count, emit_errors)
+
+func _build_runtime_collision_async(
+	root: Node, emit_errors: bool, release_meshes: bool, source: String, generation: int
+) -> bool:
+	var began := Time.get_ticks_usec()
+	var cached := _load_runtime_collision_cache(root, release_meshes, source)
+	var meshes: Dictionary = CollisionCache.meshes(root)
+	var count := 0
+	var frames := 0
+	var work_usec := 0
+	var maximum_work := 0
+	var maximum_gap := 0
+	var previous := Time.get_ticks_usec()
+	for mesh in meshes.values():
+		var phase := Time.get_ticks_usec()
+		count += _attach_runtime_collision(mesh, release_meshes, cached, root)
+		var work := Time.get_ticks_usec() - phase
+		work_usec += work
+		maximum_work = maxi(maximum_work, work)
+		frames += 1
+		await get_tree().process_frame
+		if generation != _load_generation:
+			return false
+		var now := Time.get_ticks_usec()
+		maximum_gap = maxi(maximum_gap, now - previous)
+		previous = now
+	last_load_timings["collision_yielded_frames"] = frames
+	last_load_timings["collision_mesh_count"] = count
+	last_load_timings["collision_work_ms"] = work_usec / 1000.0
+	last_load_timings["collision_max_mesh_work_ms"] = maximum_work / 1000.0
+	last_load_timings["collision_max_frame_gap_ms"] = maximum_gap / 1000.0
+	_finish_collision_build(began, count, emit_errors)
+	return true
 
 func _build_runtime_collision_recursive(
 	node: Node, release_meshes: bool = false, cached: Dictionary = {}, source_root: Node = null
 ) -> int:
 	var collision_mesh_count: int = 0
 	if node is MeshInstance3D:
-		var mesh_instance := node as MeshInstance3D
-		var mesh_name: String = String(mesh_instance.name)
-		if mesh_name.begins_with("COLLISION_") and mesh_instance.mesh != null:
-			var collision_shape: Shape3D = (
-				cached.get(String(source_root.get_path_to(node))) if source_root != null else null
-			)
-			if collision_shape == null:
-				collision_shape = mesh_instance.mesh.create_trimesh_shape()
-			if collision_shape != null:
-				var static_body := StaticBody3D.new()
-				static_body.name = "RuntimeCollision"
-				var shape_node := CollisionShape3D.new()
-				shape_node.name = "CollisionShape3D"
-				shape_node.shape = collision_shape
-				mesh_instance.add_child(static_body)
-				static_body.add_child(shape_node)
-				collision_mesh_count += 1
-			if mesh_name.begins_with("COLLISION_ONLY_"):
-				mesh_instance.visible = false
-			if release_meshes and collision_shape != null:
-				mesh_instance.mesh = null
+		collision_mesh_count += _attach_runtime_collision(
+			node as MeshInstance3D, release_meshes, cached, source_root
+		)
 
 	for child in node.get_children():
 		collision_mesh_count += _build_runtime_collision_recursive(
 			child, release_meshes, cached, source_root
 		)
+	return collision_mesh_count
+
+func _attach_runtime_collision(
+	mesh_instance: MeshInstance3D, release_meshes: bool, cached: Dictionary, source_root: Node
+) -> int:
+	var collision_mesh_count := 0
+	var mesh_name: String = String(mesh_instance.name)
+	if mesh_name.begins_with("COLLISION_") and mesh_instance.mesh != null:
+		var collision_shape: Shape3D = (
+			cached.get(String(source_root.get_path_to(mesh_instance))) if source_root != null else null
+		)
+		if collision_shape == null:
+			collision_shape = mesh_instance.mesh.create_trimesh_shape()
+		if collision_shape != null:
+			var static_body := StaticBody3D.new()
+			static_body.name = "RuntimeCollision"
+			var shape_node := CollisionShape3D.new()
+			shape_node.name = "CollisionShape3D"
+			shape_node.shape = collision_shape
+			mesh_instance.add_child(static_body)
+			static_body.add_child(shape_node)
+			collision_mesh_count += 1
+		if mesh_name.begins_with("COLLISION_ONLY_"):
+			mesh_instance.visible = false
+		if release_meshes and collision_shape != null:
+			mesh_instance.mesh = null
 	return collision_mesh_count
 
 func _clear_visual_scene() -> void:
