@@ -2,6 +2,32 @@
 
 更新：2026-10-24。此文件为当前实现、优先级和交付状态的权威入口；旧任务文档及历史截图中的“当前版本/尚未实现”只对应当时提交。
 
+## 当前批：专用碰撞层分帧注册
+
+基于已提交 `767f7d32a8e9e52f76a2dff5fd23341bd8b67051`（#83；Tests `40081728126`、Windows 导出/冒烟 `40081728141` 全成功），分支 `feature/staged-collision-registration`。仅异步开局的专用碰撞层按原网格逐个注册、让出主循环帧，缓存验证和形状不改；同步 API 与视觉层自建碰撞路径保持同步。缓存校验/读取与单个大网格仍可能阻塞，不宣称总加载或最长帧达标。主视觉后台读取须等专用碰撞全部完成，过期代次/销毁停止旧注册。工作与验证见 [本批记录](TASK_STAGED_COLLISION_REGISTRATION_2026-10-24.md)，最终提交、PR/CI 见本机 `staged-collision-registration-20261024/delivery.json`。现有试玩包未覆盖。
+
+本机最终验证：原生 **215**、Python **80**、GdUnit **2/2**、格式/无新增 lint/资源合同通过；真实三图 **123 形状、3,265,932 三角面、11,725 射线、1,467 胶囊** 对照一致，双入口 **6 次 Vulkan、126 PNG** 通过。注册窗口最大采样间隔约 Dust II 306 ms、Mirage 80 ms、Inferno 1,918 ms；大网格和校验仍阻塞，整体加载/FPS 未验收。
+
+## 前批：地图视觉资源后台读取
+
+基线已提交 `1c7be484198c8dd24706f9d64387064cdc658ce7`（#82；Tests `40077149926`、Windows 导出/冒烟 `40077149929` 全成功），分支 `feature/threaded-map-visual-read`。仅点击开始后，先执行原碰撞构建/释放网格，再后台读取主视觉场景；实例化、材质和覆盖层仍在主线程。串行服务合并同路径请求、排空已销毁调用者的请求，过期代次不能覆盖新地图；同步 load_level API 保留。等待期间 Warmup、game_started=false。三图读取期最大主循环采样间隔约 16–69 ms，不覆盖其他阻塞阶段。详见 [本批记录](TASK_THREADED_MAP_VISUAL_READ_2026-10-24.md)；最终验证、提交、PR/CI 见本机 `threaded-map-visual-read-20261024/delivery.json`。试玩包未覆盖，整体最长帧与 70% FPS 未验收。
+
+本机最终验证：完整原生 **214**、Python **80**、GdUnit **2/2**、格式/无新增 lint/资源合同通过；三图普通/候选 **6 次 Vulkan、126 PNG** 通过，失败收尾修复未改变成功路径，复用其画面检查。原生失败令牌释放/同路径重试聚焦通过，四个既有脏导入与用户设置逐字节保持。
+
+## 前批：外观场景存活期
+
+基于已提交 `75dda9d3cf3f5b47d9f1761d2e8346b7248d97ab`（#81；Tests `40074824735` 和手动完整 Windows 导出/冒烟 `40074878721` 已成功；普通 PR Windows 曾跳过，不算该项通过证据），分支 `feature/appearance-scene-lifetime`。实测六角色专用材质暖处理约 1 ms，资源读取才是主要部分，未按最初假设修改 shader。角色/第一人称手臂与原版装备实例持有自己的源 PackedScene，旧阵容源资源仅临时保留到新阵容就绪，最后持有者销毁后释放，无应用级常驻缓存。最终原生 213、Python 80、GdUnit 2/2、格式/无新增 lint/资源合同和三图双入口 6 次 Vulkan（126 PNG）通过，独立工厂后续 16/16 次缓存命中及参数隔离通过。工作范围、回归/交付头与 CI 首次快照见 [本批记录](TASK_APPEARANCE_SCENE_LIFETIME_2026-10-24.md) 和本机 `appearance-scene-lifetime-20261024/delivery.json`。试玩包仍为 main `598cde1` 的已验收版本；本片未覆盖。冷读、上传及整体加载/帧率仍待验。
+
+## 前批：角色路网准备复用
+
+基于已提交 `eca9a6d7ed5f027e10cadf413e0c464af31effc7`（#80，当前 Tests `40073238664`、Windows `40073238667` 已成功；本批不等待远端审查或 CI），分支 `feature/actor-navigation-preparation`。每次阵容准备只解析/归一化一次路网，拓扑逐层只读，AI 分别拥有 AStar、封路与动态危险状态。无跨地图静态缓存，不共用可变寻路实例。此前单角色测量中，外观安装暖态约 125–141 ms，其余配置约 54–60 ms，本片先消除重复路网解析。完整原生 212、Python 80、GdUnit 2/2、格式/无新增 lint/资源合同、三图双入口 6 次 Vulkan（126 PNG）已通过。验证、提交、PR/CI 及限制见本机 `actor-navigation-preparation-20261024/delivery.json` 与 [本批记录](TASK_ACTOR_NAVIGATION_PREPARATION_2026-10-24.md)。试玩包仍为 main `598cde1` 的已验收版本。
+
+## 前批：开局角色分帧生成
+
+基线 main `598cde156cf9de6a99e88045d5f71849e06f906c`（#79 已合并，main push Tests `40071323710` 已成功）。分支 `feature/staged-opening-actors`。开始后按角色让出帧，完整阵容前停用 AI/动画；轮次重置和训练补员保留同步行为。增加生成工作量、单角色最大工作时间与让帧数，旧加载被替换后拒绝继续发布。完整原生 211、Python 80、GdUnit 2/2、三图普通/候选六次 Vulkan（126 PNG）及格式/无新增 lint/资源合同通过。验证、交付头及 CI 首次快照见本机 `staged-opening-actors-20261024/delivery.json`，详见 [本批记录](TASK_STAGED_OPENING_ACTORS_2026-10-24.md)。地图资源/碰撞/材质同步阶段、单角色实例化以及候选包上传仍会阻塞；未宣称最长帧或总加载时间达标。
+
+唯一已验收试玩版为 `D:/VectorBreach/releases/VectorBreach-playtest-20261024/`，源码组合等同 main `598cde1`；普通入口和显式角色环境入口均已发布，完整原生 211、实包三图双入口与实际 EXE 已通过。四个原有脏导入保留。当前批尚未更新该包。下面整合阶段记载为历史过程，最终发布结果见 `playable-cleanup-20261024/delivery.json`。
+
 ## main、PR 与唯一试玩包
 
 - **本片整理仓库并整合新试玩版**：基线 main `bbfd904fd26636106acc1de4c43c7d7fab69eb70`，整合 #75 / #77 / #78 的已提交头，分支 `integrate/playable-cleanup-20261024`。最终 PR/main 头、实际发布状态及验证见本机 `D:/AgentGamePipeline/evidence/playable-cleanup-20261024/delivery.json` / `audit.json`，详见 [发布说明](RELEASE_PLAYTEST_2026-10-24.md)。不在候选阶段预写已合并。

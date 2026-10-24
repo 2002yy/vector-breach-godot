@@ -599,6 +599,9 @@ func _start_selected_map() -> void:
 	var option: Dictionary = level_options[selected_level_index]
 	_level_loading = true
 	_level_load_failed = false
+	game_started = false
+	GameState.set_game_started(false)
+	RoundManager.set_warmup()
 	_preparation_timings.clear()
 	_set_world_active(false)
 	combat_hud.call("show_training_panel", false)
@@ -618,7 +621,7 @@ func _start_selected_map() -> void:
 	if is_instance_valid(training_telemetry):
 		training_telemetry.call("begin_round", 1)
 	_clear_round_drops()
-	if not level.call("load_level", option["id"]):
+	if not await level.call("load_level_async", option["id"]):
 		_level_load_failed = true
 		_level_loading = false
 	while _level_loading:
@@ -760,7 +763,9 @@ func _on_level_loaded(level_data: Dictionary) -> void:
 		timings["layout_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
 	phase = Time.get_ticks_usec()
 	if combat_sandbox.has_method("load_for_level"):
-		combat_sandbox.call("load_for_level", level_data)
+		await combat_sandbox.call("load_for_level", level_data, _starting)
+	if serial != _level_load_serial:
+		return
 	timings["actors_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
 	timings["actor_phases"] = combat_sandbox.last_load_timings.duplicate(true)
 	timings["prepare_ms"] = (Time.get_ticks_usec() - began) / 1000.0
