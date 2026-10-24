@@ -1394,6 +1394,7 @@ func _test_buy_plant_defuse_round_loop() -> void:
 	await _cleanup_main(main)
 
 func _test_frozen_classic_layout() -> void:
+	await preload("res://scripts/tests/LayoutVerifierFixtures.gd").run(self)
 	var source_path := "user://classic-frozen-source-test.txt"
 	var manifest_path := "user://classic-frozen-manifest-test.json"
 	var file := FileAccess.open(source_path, FileAccess.WRITE)
