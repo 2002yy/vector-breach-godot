@@ -1,6 +1,7 @@
 extends Node
 
 const Cache = preload("res://scripts/level/SourceCollisionCache.gd")
+const Layout = preload("res://scripts/level/ClassicMatchLayout.gd")
 
 
 class Job:
@@ -9,6 +10,9 @@ class Job:
 	var source := ""
 	var directory := ""
 	var result: Dictionary = {}
+	var layout_data: Dictionary = {}
+	var manifest_path := ""
+	var layout_job := false
 
 
 var submitted_count := 0
@@ -38,7 +42,37 @@ func verify(source: String, directory: String = Cache.DIRECTORY) -> Dictionary:
 
 static func _verify_files(job: Job) -> void:
 	# Pure filesystem work; no scene nodes, shapes or physics-server calls.
-	job.result = Cache.verify_files(job.source, job.directory)
+	if job.layout_job:
+		var stamps := Layout.input_stamps(job.layout_data, job.manifest_path)
+		var layout := Layout.load_authored(job.layout_data, job.manifest_path)
+		if stamps.is_empty() or stamps != Layout.input_stamps(job.layout_data, job.manifest_path):
+			layout = {}
+		job.result = {
+			"layout": layout,
+			"stamps": stamps,
+			"status": "verified" if not layout.is_empty() else "invalid"
+		}
+	else:
+		job.result = Cache.verify_files(job.source, job.directory)
+
+
+func load_layout(data: Dictionary, manifest_path: String = Layout.AUTHORED_PATH) -> Dictionary:
+	var key := JSON.stringify(["layout", data, manifest_path])
+	if not _jobs.has(key):
+		var queued := Job.new()
+		queued.layout_data = data.duplicate(true)
+		queued.manifest_path = manifest_path
+		queued.layout_job = true
+		_jobs[key] = queued
+		_queue.append(key)
+		_pump.call_deferred()
+	var job: Job = _jobs[key]
+	await job.done
+	var result := job.result.duplicate(true)
+	if result.status == "verified" and result.stamps != Layout.input_stamps(data, manifest_path):
+		result.layout = {}
+		result.status = "stale"
+	return result
 
 
 func _exit_tree() -> void:

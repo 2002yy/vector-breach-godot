@@ -736,17 +736,23 @@ func _on_level_loaded(level_data: Dictionary) -> void:
 	)
 	_level_load_serial += 1
 	var serial := _level_load_serial
+	var level_load_count: int = level.load_count
 	timings["environment_ms"] = (Time.get_ticks_usec() - began) / 1000.0
 	var phase := Time.get_ticks_usec()
 	if LocalClassicMaps.is_classic(String(level_data.get("id", ""))):
 		_level_loading = true
 		for _frame in range(2):
 			await get_tree().physics_frame
-		if serial != _level_load_serial:
+		if serial != _level_load_serial or level_load_count != level.load_count:
 			return
 		timings["physics_settle_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
 		phase = Time.get_ticks_usec()
-		var layout := ClassicMatchLayout.load_authored(level_data)
+		var verified: Dictionary = await get_node("/root/CollisionVerifier").load_layout(level_data)
+		if serial != _level_load_serial or level_load_count != level.load_count:
+			return
+		var layout: Dictionary = verified.get("layout", {})
+		verified.erase("layout")
+		timings["layout_verification"] = verified
 		if layout.is_empty():
 			_level_load_failed = true
 			_level_loading = false
@@ -764,7 +770,7 @@ func _on_level_loaded(level_data: Dictionary) -> void:
 	phase = Time.get_ticks_usec()
 	if combat_sandbox.has_method("load_for_level"):
 		await combat_sandbox.call("load_for_level", level_data, _starting)
-	if serial != _level_load_serial:
+	if serial != _level_load_serial or level_load_count != level.load_count:
 		return
 	timings["actors_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
 	timings["actor_phases"] = combat_sandbox.last_load_timings.duplicate(true)

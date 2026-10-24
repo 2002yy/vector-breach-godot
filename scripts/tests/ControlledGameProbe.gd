@@ -368,14 +368,21 @@ func _map_exit() -> void:
 	assert(level.load_count == before + 1 and level.get_current_level_data().id == "gatehouse")
 	assert(not _host.runtime.configured and _host._bound.is_empty())
 	await _capture("map-fallback")
-	_game.get_node("Level").call("load_level", _level_id)
-	for frame in range(2):
-		await get_tree().physics_frame
+	var canceled: Array[bool] = []
+	# Observe the upload within the prepared emission: a frame poll can miss it entirely.
+	var cancel_upload := func(data: Dictionary) -> void:
+		if data.get("id") != _level_id:
+			return
+		assert(not _host.runtime._pending.is_empty(), "prepared map starts candidate upload")
+		canceled.append(true)
+		level.call("load_level", "gatehouse")
+	_game.level_prepared.connect(cancel_upload)
+	level.call("load_level", _level_id)
 	var deadline := Time.get_ticks_msec() + 120000
-	while _host.runtime._pending.is_empty():
+	while canceled.is_empty():
 		assert(Time.get_ticks_msec() < deadline)
 		await get_tree().process_frame
-	_game.get_node("Level").call("load_level", "gatehouse")
+	_game.level_prepared.disconnect(cancel_upload)
 	await _settle()
 	assert(not _host.runtime.configured and _host._bound.is_empty())
 	_checks["map_fallback_and_old_upload_canceled"] = true
