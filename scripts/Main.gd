@@ -88,6 +88,8 @@ var last_start_timings: Dictionary = {}
 var _starting := false
 var _preparation_timings: Dictionary = {}
 
+var _start_failure := "map"
+
 @onready var level: Node3D = $Level
 @onready var player: CharacterBody3D = $Player
 @onready var world_environment: WorldEnvironment = $WorldEnvironment
@@ -232,6 +234,10 @@ func _ready() -> void:
 			break
 	if level.has_signal("level_loaded"):
 		level.connect("level_loaded", _on_level_loaded)
+	if level.has_signal("load_progress"):
+		level.connect("load_progress", _on_loading_progress)
+	if combat_sandbox.has_signal("load_progress"):
+		combat_sandbox.connect("load_progress", _on_loading_progress)
 	if weapon_system.has_signal("shot_resolved"):
 		weapon_system.connect("shot_resolved", _on_shot_resolved)
 	tactical_equipment.connect("equipment_changed", _sync_equipment_view)
@@ -576,6 +582,7 @@ func _on_start_pressed() -> void:
 	if _starting:
 		return
 	_starting = true
+	_start_failure = "map"
 	var began := Time.get_ticks_usec()
 	start_menu.call("set_loading", true)
 	# Give the loading state a complete frame before synchronous engine work.
@@ -593,6 +600,12 @@ func _on_start_pressed() -> void:
 	}
 	_starting = false
 	start_menu.call("set_loading", false)
+	if not game_started:
+		start_menu.call("show_loading_error", _start_failure)
+
+func _on_loading_progress(stage: String, completed: int, total: int) -> void:
+	if _starting:
+		start_menu.call("set_loading_stage", stage, completed, total)
 
 func _start_selected_map() -> void:
 	spectator.call("stop")
@@ -747,6 +760,7 @@ func _on_level_loaded(level_data: Dictionary) -> void:
 			return
 		timings["physics_settle_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
 		phase = Time.get_ticks_usec()
+		_on_loading_progress("rules", 0, 0)
 		var verified: Dictionary = await get_node("/root/CollisionVerifier").load_layout(level_data)
 		if serial != _level_load_serial or level_load_count != level.load_count:
 			return
@@ -754,6 +768,7 @@ func _on_level_loaded(level_data: Dictionary) -> void:
 		verified.erase("layout")
 		timings["layout_verification"] = verified
 		if layout.is_empty():
+			_start_failure = "layout"
 			_level_load_failed = true
 			_level_loading = false
 			push_error("经典地图缺少有效的本机冻结路网 JSON，或碰撞/关卡资源已变更。请显式重建并审计本机基线。")
@@ -768,6 +783,7 @@ func _on_level_loaded(level_data: Dictionary) -> void:
 			GameState.player_spawn_yaw_radians = deg_to_rad(float(spawn_yaws.get(GameState.player_team, 0.0)))
 		timings["layout_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
 	phase = Time.get_ticks_usec()
+	_on_loading_progress("team", 0, 0)
 	if combat_sandbox.has_method("load_for_level"):
 		await combat_sandbox.call("load_for_level", level_data, _starting)
 	if serial != _level_load_serial or level_load_count != level.load_count:

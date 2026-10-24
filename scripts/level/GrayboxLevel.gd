@@ -1,6 +1,7 @@
 extends Node3D
 
 signal level_load_started(level_id: String)
+signal load_progress(stage: String, completed: int, total: int)
 
 const LevelDataLoader = preload("res://scripts/level/LevelDataLoader.gd")
 const ShapeBuilder = preload("res://scripts/level/ShapeBuilder.gd")
@@ -55,10 +56,15 @@ func load_level_async(next_level_id: String, emit_errors: bool = true) -> bool:
 	last_load_timings["retained_visual_scene"] = retiring_visual != null
 	var generation := _load_generation
 	var visual_began := Time.get_ticks_usec()
+	load_progress.emit("scene", 0, 0)
+	await get_tree().process_frame
+	if generation != _load_generation:
+		return false
 	var phase: int = await _begin_visual_scene_async(data, emit_errors, generation)
 	if phase < 0:
 		return false
 	var path := String(data.get("visual_scene", ""))
+	load_progress.emit("visual", 0, 0)
 	var receipt: Dictionary = await get_node("/root/SceneReader").read_scene(path)
 	if generation != _load_generation:
 		return false
@@ -467,6 +473,7 @@ func _build_runtime_collision_async(
 	for mesh in meshes.values():
 		var phase := Time.get_ticks_usec()
 		count += _attach_runtime_collision(mesh, release_meshes, cached, root)
+		load_progress.emit("scene", count, meshes.size())
 		var work := Time.get_ticks_usec() - phase
 		work_usec += work
 		maximum_work = maxi(maximum_work, work)

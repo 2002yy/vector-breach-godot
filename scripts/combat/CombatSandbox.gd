@@ -3,6 +3,7 @@ extends Node3D
 signal targets_spawned(count: int)
 signal combatants_spawned(friendly_count: int, enemy_count: int)
 signal combatants_clearing
+signal load_progress(stage: String, completed: int, total: int)
 signal ai_shot(result: Dictionary, world_position: Vector3)
 signal ai_footstep(world_position: Vector3, surface: String, quiet: bool)
 signal radio_report(caller: String, message: String)
@@ -80,7 +81,8 @@ func load_for_level(level_data: Dictionary, staged: bool = false) -> void:
 	last_load_timings["navigation_prepare_count"] = 1
 	last_load_timings["navigation_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
 	phase = Time.get_ticks_usec()
-	for record_variant in _build_spawn_records(level_data):
+	var spawn_records := _build_spawn_records(level_data)
+	for record_variant in spawn_records:
 		if not record_variant is Dictionary:
 			continue
 		var actor_began := Time.get_ticks_usec()
@@ -145,6 +147,7 @@ func load_for_level(level_data: Dictionary, staged: bool = false) -> void:
 		max_actor_usec = maxi(max_actor_usec, actor_usec)
 		if staged:
 			# Only the explicit start path yields; round resets remain synchronous.
+			load_progress.emit("team", friendly_count + enemy_count, spawn_records.size())
 			yielded_frames += 1
 			await get_tree().process_frame
 			if generation != _load_generation:

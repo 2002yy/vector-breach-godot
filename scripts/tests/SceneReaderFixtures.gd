@@ -89,6 +89,10 @@ static func _stale_level(host: Node, path: String) -> void:
 	var completed: Array = []
 	level.level_loaded.connect(func(data: Dictionary): completed.append(data.id))
 	level.call("load_level_async", "async-fixture", false)
+	await host.get_tree().process_frame
+	host.call(
+		"_assert_true", host.get_node("/root/SceneReader").pending_count() > 0, "read submitted"
+	)
 	level.call("load_level", "gatehouse", false)
 	var visual_count: int = level.get_node("VisualRoot").get_child_count()
 	var reader := host.get_node("/root/SceneReader")
@@ -107,6 +111,7 @@ static func _stale_level(host: Node, path: String) -> void:
 		"stale scene cannot attach"
 	)
 	level.call("load_level_async", "async-fixture", false)
+	await host.get_tree().process_frame
 	level.free()
 	while reader.pending_count() > 0:
 		await host.get_tree().process_frame

@@ -2,7 +2,13 @@
 
 更新：2026-10-25。此文件为当前实现、优先级和交付状态的权威入口；旧任务文档及历史截图中的“当前版本/尚未实现”只对应当时提交。
 
-## 当前批：冻结路网后台校验
+## 当前批：加载阶段与失败反馈
+
+基线 `0b46ebcd990c40f199d93314734e21e5c0255cc9`（#88；Tests `40116863338`、Windows 导出/冒烟 `40116863269` 已成功），分支 `feature/loading-progress-feedback`。现有菜单增加五阶段状态与真实场景/队伍计数；成功清除，失败提供地图/对局数据恢复建议及重试，换图不留旧错误。无估算百分比；场景阶段先让出首帧并保留代次检查。详见 [本批记录](TASK_LOADING_PROGRESS_FEEDBACK_2026-10-25.md) 和本机 `loading-progress-feedback-20261025/audit.json` / `delivery.json`。冷 Jolt、整场/人工三图/70% FPS 仍单列，试玩包未覆盖；下一片接 C4 全员/观战安装成功提示与取消边界。
+
+最终原生 **217**、Python **80**、GdUnit **2/2**、格式/无新增 lint/资源合同、三图双入口 **6 次 Vulkan / 144 PNG** 通过；三图均捕获五个真实阶段。另两次 UI 探针补实际对局数据失败分支与 **1280×720** 状态检查，**10 PNG**，总计 **154 PNG**。原生完整只跑一次，原有四个脏导入和用户设置字节保持。
+
+## 前批：冻结路网后台校验
 
 基线 `1fc63bc80e055522c9db32349379714510b3d244`（#87），分支 `feature/background-layout-verification`。前头 Windows 导出/冒烟 `40114441378` 已成功，Tests `40114441372` 首查仍运行，未等待。冻结路网每次仍独立核对碰撞/关卡 SHA，把文件与 JSON 工作放到现有串行工作池，交接复核文件状态；Main 增加 load_count 边界，防止新加载尚未完成时旧布局结果被发布。详见 [本批记录](TASK_BACKGROUND_LAYOUT_VERIFICATION_2026-10-25.md) 和本机 `background-layout-verification-20261025/audit.json` / `delivery.json`。不改变冻结路网、几何、物理设置或已验收试玩包。
 

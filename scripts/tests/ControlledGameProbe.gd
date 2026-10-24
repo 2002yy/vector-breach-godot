@@ -398,6 +398,8 @@ func _failed_start() -> void:
 	assert(not _host.runtime.configured and _host._bound.is_empty())
 	assert(_host.candidate_state == "地图加载失败，保留原材质")
 	assert(not _game.get_node("StartMenu").start_button.disabled)
+	assert(_game.get_node("StartMenu").loading_status.state == "failed")
+	assert(_game.get_node("StartMenu").start_button.text == "重试对局")
 	_checks["failed_start_releases_candidate_and_allows_retry"] = true
 	await _capture("failed-start")
 

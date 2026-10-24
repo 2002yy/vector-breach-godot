@@ -17,6 +17,11 @@ static func run(host: Node) -> void:
 	var main: Node = host.call("_instantiate_main", false)
 	await host.call("_await_main_ready")
 	var level := main.get_node("Level")
+	var menu := main.get_node("StartMenu")
+	var phases: Array[String] = []
+	var observe := func(stage: String, _completed: int, _total: int) -> void: phases.append(stage)
+	level.load_progress.connect(observe)
+	main.get_node("CombatSandbox").load_progress.connect(observe)
 	var reads_before: int = host.get_node("/root/SceneReader").submitted_count
 	var player := main.get_node("Player")
 	var at: Vector3 = player.global_position
@@ -42,11 +47,18 @@ static func run(host: Node) -> void:
 		reads_before,
 		"cards cannot submit background reads"
 	)
+	menu.show_loading_error("layout")
+	host.call(
+		"_assert_true", menu.loading_status.detail.text.contains("对局数据"), "specific layout guidance"
+	)
 	main.call("_on_start_pressed")
 	main.call("_on_start_pressed")
 	main.call("_on_map_selected", main.call("find_level_option_index", "training-range"))
 	host.call("_assert_true", main._starting, "start is pending while loading frame is painted")
 	host.call("_assert_equal", level.load_count, 0, "loading UI is shown before engine work")
+	host.call(
+		"_assert_equal", menu.loading_status.stage, "map", "retry clears old error immediately"
+	)
 	var partial_frames := 0
 	while main._starting:
 		if main._level_loading:
@@ -83,6 +95,11 @@ static func run(host: Node) -> void:
 		"match becomes playable"
 	)
 	host.call("_assert_true", main.last_start_timings.total_ms >= 0, "start duration measured")
+	for phase in ["scene", "visual", "team"]:
+		host.call("_assert_true", phase in phases, "real workflow reports " + phase)
+	host.call("_assert_equal", menu.loading_status.state, "idle", "success clears progress")
+	main.call("_on_loading_progress", "team", 1, 9)
+	host.call("_assert_equal", menu.loading_status.state, "idle", "late progress stays hidden")
 	var actors: Dictionary = main.last_start_timings.preparation.actor_phases
 	host.call(
 		"_assert_true",
@@ -156,6 +173,19 @@ static func _failure(host: Node) -> void:
 	)
 	host.call(
 		"_assert_true", not main.get_node("StartMenu").start_button.disabled, "failure allows retry"
+	)
+	var menu := main.get_node("StartMenu")
+	host.call("_assert_equal", menu.loading_status.state, "failed", "failure remains visible")
+	host.call(
+		"_assert_true", menu.loading_status.detail.text.contains("完整"), "failure offers recovery"
+	)
+	host.call("_assert_equal", menu.start_button.text, "重试对局", "action is explicit")
+	await main.call("_on_start_pressed")
+	host.call("_assert_equal", failed.size(), 2, "retry runs a fresh attempt")
+	host.call("_assert_true", not menu.start_button.disabled, "repeated failure remains retryable")
+	main.call("_on_map_selected", main.call("find_level_option_index", "training-range"))
+	host.call(
+		"_assert_equal", menu.loading_status.state, "idle", "new selection clears old failure"
 	)
 	await host.call("_cleanup_main", main)
 
