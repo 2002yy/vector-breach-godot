@@ -48,10 +48,9 @@ static func build(kind: String, team: String = "T") -> Node3D:
 	var key := item_key(kind, team)
 	if not available(key):
 		return null
-	var packed := load(ROOT + key + ".glb") as PackedScene
-	if packed == null:
+	var model := preload("res://scripts/SceneInstance.gd").instantiate(ROOT + key + ".glb")
+	if model == null:
 		return null
-	var model := packed.instantiate() as Node3D
 	preload("res://scripts/level/SourceAssetMaterials.gd").apply(model, ROOT + key + ".glb")
 	model.set_meta("official_cs", key)
 	var mount: Array = _items[key].get("mount_transform", [])

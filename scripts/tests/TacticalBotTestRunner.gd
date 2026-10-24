@@ -11,6 +11,7 @@ var _failures: PackedStringArray = []
 var _passes: int = 0
 
 func _ready() -> void:
+	await _run_test("prepared_topology_preserves_independent_navigation", _test_prepared_navigation)
 	await _run_test("oscillation_detection_and_bounded_waypoint_reselection", _test_route_progress)
 	await _run_test("bot_configuration_uses_route_and_classic_timing", _test_bot_configuration_uses_route_and_classic_timing)
 	await _run_test("freeze_holds_then_live_patrols", _test_freeze_holds_then_live_patrols)
@@ -51,6 +52,9 @@ func _ready() -> void:
 	for failure in _failures:
 		push_error("  - %s" % failure)
 	get_tree().quit(1)
+
+func _test_prepared_navigation() -> void:
+	preload("res://scripts/tests/PreparedNavigationFixtures.gd").run(self)
 
 func _test_dense_native_navigation() -> void:
 	var model := BotNavigationModel.new()

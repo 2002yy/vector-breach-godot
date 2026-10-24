@@ -7,10 +7,14 @@ const ShapeBuilder = preload("res://scripts/level/ShapeBuilder.gd")
 
 signal level_loaded(level_data: Dictionary)
 
+const CollisionCache = preload("res://scripts/level/SourceCollisionCache.gd")
+
 @export var level_id: String = "depot"
 @export var load_on_ready := true
 var load_count := 0
 var last_load_timings: Dictionary = {}
+
+var _load_generation := 0
 
 @onready var geometry_root: Node3D = $GeometryRoot
 @onready var visual_root: Node3D = $VisualRoot
@@ -27,6 +31,38 @@ func _ready() -> void:
 
 func load_level(next_level_id: String, emit_errors: bool = true) -> bool:
 	var began := Time.get_ticks_usec()
+	var data := _begin_level(next_level_id, emit_errors, began)
+	if data.is_empty():
+		return false
+	var phase := Time.get_ticks_usec()
+	_apply_visual_scene(data, emit_errors)
+	last_load_timings["visual_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
+	return _finish_level(data, began)
+
+func load_level_async(next_level_id: String, emit_errors: bool = true) -> bool:
+	var began := Time.get_ticks_usec()
+	var data := _begin_level(next_level_id, emit_errors, began)
+	if data.is_empty():
+		return false
+	var generation := _load_generation
+	var visual_began := Time.get_ticks_usec()
+	var phase: int = await _begin_visual_scene_async(data, emit_errors, generation)
+	if phase < 0:
+		return false
+	var path := String(data.get("visual_scene", ""))
+	var receipt: Dictionary = await get_node("/root/SceneReader").read_scene(path)
+	if generation != _load_generation:
+		return false
+	var resource := receipt.get("resource") as Resource
+	receipt.erase("resource")
+	var visual := _instantiate_visual_resource(path, "LevelVisual", emit_errors, resource, receipt)
+	phase = _finish_visual_phase("visual_scene", phase)
+	_finish_visual_scene(data, emit_errors, visual, phase)
+	last_load_timings["visual_ms"] = (Time.get_ticks_usec() - visual_began) / 1000.0
+	return _finish_level(data, began)
+
+func _begin_level(next_level_id: String, emit_errors: bool, began: int) -> Dictionary:
+	_load_generation += 1
 	load_count += 1
 	last_load_timings = {"id": next_level_id, "success": false}
 	level_load_started.emit(next_level_id)
@@ -37,7 +73,7 @@ func load_level(next_level_id: String, emit_errors: bool = true) -> bool:
 	last_load_timings["data_ms"] = (Time.get_ticks_usec() - data_began) / 1000.0
 	if level_data.is_empty():
 		last_load_timings["level_ms"] = (Time.get_ticks_usec() - began) / 1000.0
-		return false
+		return {}
 
 	_current_level_data = level_data
 	var build_options: Dictionary = GameState.get_shape_build_options()
@@ -47,10 +83,10 @@ func load_level(next_level_id: String, emit_errors: bool = true) -> bool:
 	var phase := Time.get_ticks_usec()
 	ShapeBuilder.build_into(geometry_root, level_data, build_options)
 	last_load_timings["geometry_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
-	phase = Time.get_ticks_usec()
-	_apply_visual_scene(level_data, emit_errors)
-	last_load_timings["visual_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
-	phase = Time.get_ticks_usec()
+	return level_data
+
+func _finish_level(level_data: Dictionary, began: int) -> bool:
+	var phase := Time.get_ticks_usec()
 	_apply_render_profile(level_data)
 	_apply_lights(level_data)
 	_apply_markers(level_data)
@@ -90,6 +126,7 @@ func _apply_render_profile(level_data: Dictionary) -> void:
 	viewport.use_occlusion_culling = true
 
 func _exit_tree() -> void:
+	_load_generation += 1
 	_restore_render_profile()
 
 func _restore_render_profile() -> void:
@@ -106,14 +143,17 @@ func get_current_level_data() -> Dictionary:
 	return _current_level_data
 
 func _apply_visual_scene(level_data: Dictionary, emit_errors: bool) -> void:
-	# Synchronous wall time only: nested layer timings must not be added twice.
-	last_load_timings["visual_phases_ms"] = {}
-	last_load_timings["scene_layers"] = {}
-	var phase := Time.get_ticks_usec()
-	_clear_visual_scene()
-	phase = _finish_visual_phase("retire_previous", phase)
-	geometry_root.visible = true
-	var has_visible_scene := false
+	var phase := _begin_visual_scene(level_data, emit_errors)
+	var visual_instance := _instantiate_visual_resource(
+		String(level_data.get("visual_scene", "")),
+		"LevelVisual",
+		emit_errors
+	)
+	phase = _finish_visual_phase("visual_scene", phase)
+	_finish_visual_scene(level_data, emit_errors, visual_instance, phase)
+
+func _begin_visual_scene(level_data: Dictionary, emit_errors: bool) -> int:
+	var phase := _reset_visual_scene()
 	# Build independent physics before the original render scene raises memory
 	# pressure. Runtime keeps the shapes and transforms, not duplicate GPU meshes.
 	var collision_instance := _instantiate_visual_resource(
@@ -130,12 +170,46 @@ func _apply_visual_scene(level_data: Dictionary, emit_errors: bool) -> void:
 			String(level_data.get("runtime_collision_scene", ""))
 		)
 	phase = _finish_visual_phase("collision_shapes", phase)
-	var visual_instance := _instantiate_visual_resource(
-		String(level_data.get("visual_scene", "")),
-		"LevelVisual",
+	return phase
+
+func _begin_visual_scene_async(
+	level_data: Dictionary, emit_errors: bool, generation: int
+) -> int:
+	var phase := _reset_visual_scene()
+	# Build independent physics before the original render scene raises memory
+	# pressure. Runtime keeps the shapes and transforms, not duplicate GPU meshes.
+	var collision_instance := _instantiate_visual_resource(
+		String(level_data.get("runtime_collision_scene", "")),
+		"LevelCollisionSource",
 		emit_errors
 	)
-	phase = _finish_visual_phase("visual_scene", phase)
+	phase = _finish_visual_phase("collision_scene", phase)
+	if collision_instance != null:
+		if collision_instance is Node3D:
+			(collision_instance as Node3D).visible = false
+		var completed: bool = await _build_runtime_collision_async(
+			collision_instance, emit_errors, not bool(level_data.get("retain_collision_meshes", false)),
+			String(level_data.get("runtime_collision_scene", "")), generation
+		)
+		if not completed:
+			return -1
+	phase = _finish_visual_phase("collision_shapes", phase)
+	return phase
+
+func _reset_visual_scene() -> int:
+	# Wall time includes asynchronous waiting; do not add nested timings twice.
+	last_load_timings["visual_phases_ms"] = {}
+	last_load_timings["scene_layers"] = {}
+	var phase := Time.get_ticks_usec()
+	_clear_visual_scene()
+	phase = _finish_visual_phase("retire_previous", phase)
+	geometry_root.visible = true
+	return phase
+
+func _finish_visual_scene(
+	level_data: Dictionary, emit_errors: bool, visual_instance: Node, phase: int
+) -> void:
+	var has_visible_scene := false
 	if visual_instance != null:
 		has_visible_scene = true
 		_hide_filtered_visual_meshes(visual_instance, level_data.get("hidden_visual_name_contains", []) as Array)
@@ -213,7 +287,10 @@ func _repair_reference_vertex_channels(node: Node) -> void:
 	for child in node.get_children():
 		_repair_reference_vertex_channels(child)
 
-func _instantiate_visual_resource(scene_path: String, stable_name: String, emit_errors: bool) -> Node:
+func _instantiate_visual_resource(
+	scene_path: String, stable_name: String, emit_errors: bool,
+	supplied: Resource = null, receipt: Dictionary = {}
+) -> Node:
 	var began := Time.get_ticks_usec()
 	# This helper also serves isolated fixtures outside load_level().
 	if not last_load_timings.has("scene_layers"):
@@ -229,8 +306,13 @@ func _instantiate_visual_resource(scene_path: String, stable_name: String, emit_
 		return null
 
 	timing["cached_before_load"] = ResourceLoader.has_cached(scene_path)
-	var scene_resource: Resource = load(scene_path)
-	timing["resource_ms"] = (Time.get_ticks_usec() - began) / 1000.0
+	var scene_resource: Resource
+	if receipt.get("threaded", false):
+		timing.merge(receipt, true)
+		scene_resource = supplied
+	else:
+		scene_resource = load(scene_path)
+		timing["resource_ms"] = (Time.get_ticks_usec() - began) / 1000.0
 	timing.status = "invalid"
 	if not (scene_resource is PackedScene):
 		if emit_errors:
@@ -245,6 +327,8 @@ func _instantiate_visual_resource(scene_path: String, stable_name: String, emit_
 	visual_root.add_child(scene_instance)
 	timing["attach_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
 	timing["total_ms"] = (Time.get_ticks_usec() - began) / 1000.0
+	if receipt.get("threaded", false):
+		timing.total_ms += float(timing.get("resource_ms", 0.0))
 	timing.status = "ready"
 	return scene_instance
 
@@ -264,56 +348,126 @@ func _hide_filtered_visual_meshes_recursive(node: Node, name_filters: Array) -> 
 	for child in node.get_children():
 		_hide_filtered_visual_meshes_recursive(child, name_filters)
 
-func _build_runtime_collision(
-	root: Node, emit_errors: bool, release_meshes: bool = false, source: String = ""
-) -> void:
-	var began := Time.get_ticks_usec()
+func _load_runtime_collision_cache(root: Node, release_meshes: bool, source: String) -> Dictionary:
 	var cached := {}
 	if release_meshes and not source.is_empty():
 		var receipt := {"status": "disabled"}
 		if "--disable-collision-cache" not in OS.get_cmdline_user_args():
-			cached = preload("res://scripts/level/SourceCollisionCache.gd").load_shapes(
+			cached = CollisionCache.load_shapes(
 				root, source, receipt
 			)
 		last_load_timings["collision_cache"] = receipt
-	var collision_mesh_count: int = _build_runtime_collision_recursive(
-		root, release_meshes, cached, root
-	)
+	return cached
+
+func _load_runtime_collision_cache_async(
+	root: Node, release_meshes: bool, source: String, generation: int
+) -> Dictionary:
+	if (
+		not release_meshes or source.is_empty()
+		or "--disable-collision-cache" in OS.get_cmdline_user_args()
+	):
+		return _load_runtime_collision_cache(root, release_meshes, source)
+	var proof: Dictionary = await get_node("/root/CollisionVerifier").verify(source)
+	if generation != _load_generation:
+		return {}
+	last_load_timings["collision_verification"] = {
+		"wait_frames":proof.get("wait_frames",0), "max_frame_gap_ms":proof.get("max_frame_gap_ms",0.0),
+		"wall_ms":proof.get("wall_ms",0.0), "status":proof.get("status", "invalid")
+	}
+	var receipt := {}
+	var cached := CollisionCache.load_shapes(root, source, receipt, CollisionCache.DIRECTORY, proof)
+	last_load_timings["collision_cache"] = receipt
+	return cached
+
+func _finish_collision_build(began: int, count: int, emit_errors: bool) -> void:
 	last_load_timings["collision_build_ms"] = (Time.get_ticks_usec() - began) / 1000.0
-	if collision_mesh_count == 0 and emit_errors:
+	if count == 0 and emit_errors:
 		push_warning("Runtime collision requested, but no COLLISION_* meshes were found")
+
+func _build_runtime_collision(
+	root: Node, emit_errors: bool, release_meshes: bool = false, source: String = ""
+) -> void:
+	var began := Time.get_ticks_usec()
+	var cached := _load_runtime_collision_cache(root, release_meshes, source)
+	var count := _build_runtime_collision_recursive(root, release_meshes, cached, root)
+	_finish_collision_build(began, count, emit_errors)
+
+func _build_runtime_collision_async(
+	root: Node, emit_errors: bool, release_meshes: bool, source: String, generation: int
+) -> bool:
+	var began := Time.get_ticks_usec()
+	var cached: Dictionary = await _load_runtime_collision_cache_async(
+		root, release_meshes, source, generation
+	)
+	if generation != _load_generation:
+		return false
+	var meshes: Dictionary = CollisionCache.meshes(root)
+	var count := 0
+	var frames := 0
+	var work_usec := 0
+	var maximum_work := 0
+	var maximum_gap := 0
+	var previous := Time.get_ticks_usec()
+	for mesh in meshes.values():
+		var phase := Time.get_ticks_usec()
+		count += _attach_runtime_collision(mesh, release_meshes, cached, root)
+		var work := Time.get_ticks_usec() - phase
+		work_usec += work
+		maximum_work = maxi(maximum_work, work)
+		frames += 1
+		await get_tree().process_frame
+		if generation != _load_generation:
+			return false
+		var now := Time.get_ticks_usec()
+		maximum_gap = maxi(maximum_gap, now - previous)
+		previous = now
+	last_load_timings["collision_yielded_frames"] = frames
+	last_load_timings["collision_mesh_count"] = count
+	last_load_timings["collision_work_ms"] = work_usec / 1000.0
+	last_load_timings["collision_max_mesh_work_ms"] = maximum_work / 1000.0
+	last_load_timings["collision_max_frame_gap_ms"] = maximum_gap / 1000.0
+	_finish_collision_build(began, count, emit_errors)
+	return true
 
 func _build_runtime_collision_recursive(
 	node: Node, release_meshes: bool = false, cached: Dictionary = {}, source_root: Node = null
 ) -> int:
 	var collision_mesh_count: int = 0
 	if node is MeshInstance3D:
-		var mesh_instance := node as MeshInstance3D
-		var mesh_name: String = String(mesh_instance.name)
-		if mesh_name.begins_with("COLLISION_") and mesh_instance.mesh != null:
-			var collision_shape: Shape3D = (
-				cached.get(String(source_root.get_path_to(node))) if source_root != null else null
-			)
-			if collision_shape == null:
-				collision_shape = mesh_instance.mesh.create_trimesh_shape()
-			if collision_shape != null:
-				var static_body := StaticBody3D.new()
-				static_body.name = "RuntimeCollision"
-				var shape_node := CollisionShape3D.new()
-				shape_node.name = "CollisionShape3D"
-				shape_node.shape = collision_shape
-				mesh_instance.add_child(static_body)
-				static_body.add_child(shape_node)
-				collision_mesh_count += 1
-			if mesh_name.begins_with("COLLISION_ONLY_"):
-				mesh_instance.visible = false
-			if release_meshes and collision_shape != null:
-				mesh_instance.mesh = null
+		collision_mesh_count += _attach_runtime_collision(
+			node as MeshInstance3D, release_meshes, cached, source_root
+		)
 
 	for child in node.get_children():
 		collision_mesh_count += _build_runtime_collision_recursive(
 			child, release_meshes, cached, source_root
 		)
+	return collision_mesh_count
+
+func _attach_runtime_collision(
+	mesh_instance: MeshInstance3D, release_meshes: bool, cached: Dictionary, source_root: Node
+) -> int:
+	var collision_mesh_count := 0
+	var mesh_name: String = String(mesh_instance.name)
+	if mesh_name.begins_with("COLLISION_") and mesh_instance.mesh != null:
+		var collision_shape: Shape3D = (
+			cached.get(String(source_root.get_path_to(mesh_instance))) if source_root != null else null
+		)
+		if collision_shape == null:
+			collision_shape = mesh_instance.mesh.create_trimesh_shape()
+		if collision_shape != null:
+			var static_body := StaticBody3D.new()
+			static_body.name = "RuntimeCollision"
+			var shape_node := CollisionShape3D.new()
+			shape_node.name = "CollisionShape3D"
+			shape_node.shape = collision_shape
+			mesh_instance.add_child(static_body)
+			static_body.add_child(shape_node)
+			collision_mesh_count += 1
+		if mesh_name.begins_with("COLLISION_ONLY_"):
+			mesh_instance.visible = false
+		if release_meshes and collision_shape != null:
+			mesh_instance.mesh = null
 	return collision_mesh_count
 
 func _clear_visual_scene() -> void:
