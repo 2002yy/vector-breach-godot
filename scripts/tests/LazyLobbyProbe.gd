@@ -44,8 +44,16 @@ func _run() -> void:
 	await RenderingServer.frame_post_draw
 	assert(_main._starting and level.load_count == 0, "loading screen precedes engine work")
 	assert(get_viewport().get_texture().get_image().save_png(_out.path_join("loading.png")) == OK)
+	var staged_frames := 0
 	while _main._starting:
+		var sandbox := _main.get_node("CombatSandbox")
+		if sandbox.get_child_count() > 0 and sandbox.last_load_timings.actor_count == 0:
+			staged_frames += 1
+			assert(not _main.game_started)
+			for actor in sandbox.get_children():
+				assert(actor.process_mode == Node.PROCESS_MODE_DISABLED)
 		await get_tree().process_frame
+	assert(staged_frames >= 9, "classic start presents at least one frame per AI actor")
 	assert(level.load_count == 1 and level.get_current_level_data().id == target)
 	assert(_main.game_started and _main.last_start_timings.success)
 	_receipt["start"] = _main.last_start_timings.duplicate(true)
