@@ -7,6 +7,8 @@ signal ai_shot(result: Dictionary, world_position: Vector3)
 signal ai_footstep(world_position: Vector3, surface: String, quiet: bool)
 signal radio_report(caller: String, message: String)
 
+const Navigation = preload("res://scripts/ai/BotNavigationModel.gd")
+
 @export var dummy_scene: PackedScene
 @export var use_spawn_points: bool = true
 @export var use_landmarks: bool = true
@@ -62,6 +64,8 @@ func load_for_level(level_data: Dictionary, staged: bool = false) -> void:
 	var appearance_counts := {"CT": 0, "T": 0}
 	var phase := Time.get_ticks_usec()
 	var navigation_graph := _build_navigation_graph(level_data)
+	var navigation_template := Navigation.prepare(navigation_graph)
+	last_load_timings["navigation_prepare_count"] = 1
 	last_load_timings["navigation_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
 	phase = Time.get_ticks_usec()
 	for record_variant in _build_spawn_records(level_data):
@@ -97,6 +101,7 @@ func load_for_level(level_data: Dictionary, staged: bool = false) -> void:
 			var ai_routes: Dictionary = level_data.get("aiRoutes", {}) as Dictionary
 			record["routePoints"] = ai_routes.get(route_name, routes.get(route_name, []))
 			record["navigationGraph"] = navigation_graph
+			record["navigationTemplate"] = navigation_template
 			var appearance_team := String(record.get("team", "T"))
 			if appearance_team == "friendly":
 				appearance_team = GameState.player_team

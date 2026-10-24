@@ -2,7 +2,11 @@
 
 更新：2026-10-24。此文件为当前实现、优先级和交付状态的权威入口；旧任务文档及历史截图中的“当前版本/尚未实现”只对应当时提交。
 
-## 当前批：开局角色分帧生成
+## 当前批：角色路网准备复用
+
+基于已提交 `eca9a6d7ed5f027e10cadf413e0c464af31effc7`（#80，当前 Tests `40073238664`、Windows `40073238667` 已成功；本批不等待远端审查或 CI），分支 `feature/actor-navigation-preparation`。每次阵容准备只解析/归一化一次路网，拓扑逐层只读，AI 分别拥有 AStar、封路与动态危险状态。无跨地图静态缓存，不共用可变寻路实例。此前单角色测量中，外观安装暖态约 125–141 ms，其余配置约 54–60 ms，本片先消除重复路网解析。完整原生 212、Python 80、GdUnit 2/2、格式/无新增 lint/资源合同、三图双入口 6 次 Vulkan（126 PNG）已通过。验证、提交、PR/CI 及限制见本机 `actor-navigation-preparation-20261024/delivery.json` 与 [本批记录](TASK_ACTOR_NAVIGATION_PREPARATION_2026-10-24.md)。试玩包仍为 main `598cde1` 的已验收版本。
+
+## 前批：开局角色分帧生成
 
 基线 main `598cde156cf9de6a99e88045d5f71849e06f906c`（#79 已合并，main push Tests `40071323710` 已成功）。分支 `feature/staged-opening-actors`。开始后按角色让出帧，完整阵容前停用 AI/动画；轮次重置和训练补员保留同步行为。增加生成工作量、单角色最大工作时间与让帧数，旧加载被替换后拒绝继续发布。完整原生 211、Python 80、GdUnit 2/2、三图普通/候选六次 Vulkan（126 PNG）及格式/无新增 lint/资源合同通过。验证、交付头及 CI 首次快照见本机 `staged-opening-actors-20261024/delivery.json`，详见 [本批记录](TASK_STAGED_OPENING_ACTORS_2026-10-24.md)。地图资源/碰撞/材质同步阶段、单角色实例化以及候选包上传仍会阻塞；未宣称最长帧或总加载时间达标。
 

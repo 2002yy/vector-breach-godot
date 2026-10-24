@@ -74,10 +74,18 @@ static func run(host: Node) -> void:
 	host.call("_assert_equal", actors.id, "gatehouse", "actor phases belong to actual loaded map")
 	host.call("_assert_true", actors.staged, "explicit start selects staged construction")
 	host.call("_assert_equal", actors.yielded_frames, actors.actor_count, "one yield per actor")
+	host.call(
+		"_assert_equal", actors.navigation_prepare_count, 1, "topology prepares once per roster"
+	)
 	var roster_count := 0
 	for actor in main.get_node("CombatSandbox").get_children():
 		if actor is CharacterBody3D:
 			roster_count += 1
+			host.call(
+				"_assert_true",
+				actor.get("bot_brain").get("_navigation").points.is_read_only(),
+				"real actors consume prepared topology"
+			)
 			host.call("_assert_true", actor.can_process(), "complete roster reactivates together")
 	host.call(
 		"_assert_equal", actors.actor_count, roster_count, "actor receipt matches actual roster"
