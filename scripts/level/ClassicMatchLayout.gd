@@ -3,6 +3,20 @@ extends RefCounted
 const AUTHORED_PATH := "res://data/levels/match-local/dustline.json"
 
 
+static func input_stamps(data: Dictionary, manifest_path: String = AUTHORED_PATH) -> Dictionary:
+	manifest_path = String(data.get("match_manifest", manifest_path))
+	var collision := String(data.get("runtime_collision_scene", data.get("visual_scene", "")))
+	var level := "res://data/levels/%s.json" % String(data.get("id", ""))
+	var result := {}
+	for path in [manifest_path, collision, level]:
+		var file := FileAccess.open(path, FileAccess.READ)
+		if file == null:
+			return {}
+		result[path] = [file.get_length(), FileAccess.get_modified_time(path)]
+		file.close()
+	return result
+
+
 # Runtime consumes frozen local JSON. Only the explicit authoring tool scans
 # collision; asset/data changes invalidate this baseline instead of moving routes.
 static func load_authored(data: Dictionary, manifest_path: String = AUTHORED_PATH) -> Dictionary:

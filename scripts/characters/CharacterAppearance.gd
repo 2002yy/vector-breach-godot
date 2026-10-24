@@ -68,10 +68,9 @@ static func instantiate(id: String, suffix: String = "") -> Node3D:
 	if not available(id):
 		return null
 	var scene_path := String(record(id).get("asset_root", ROOT)) + id + suffix + ".glb"
-	var scene := load(scene_path) as PackedScene
-	if scene == null:
+	var model := preload("res://scripts/SceneInstance.gd").instantiate(scene_path)
+	if model == null:
 		return null
-	var model := scene.instantiate() as Node3D
 	preload("res://scripts/level/SourceAssetMaterials.gd").apply(model, scene_path)
 	preload("res://scripts/characters/SourceCharacterMaterials.gd").apply(model, scene_path)
 	return model
