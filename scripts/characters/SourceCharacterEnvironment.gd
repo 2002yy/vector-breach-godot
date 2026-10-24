@@ -1,5 +1,7 @@
 extends RefCounted
 
+const CharacterMaterials = preload("res://scripts/characters/SourceCharacterMaterials.gd")
+
 const PREFIX := """
 #include "res://scripts/characters/source_hair_environment.gdshaderinc"
 #include "res://scripts/characters/source_ssao.gdshaderinc"
@@ -43,7 +45,8 @@ func attach(
 	probes: RefCounted,
 	inputs: RefCounted,
 	diagnostic := false,
-	body_diagnostic := false
+	body_diagnostic := false,
+	plain_diagnostic := false
 ) -> int:
 	if not diagnostic:
 		return 0
@@ -60,19 +63,22 @@ func attach(
 					already = true
 			if already:
 				continue
-			var original := mesh.get_active_material(surface) as ShaderMaterial
+			var original := mesh.get_active_material(surface)
+			var source := original as ShaderMaterial
+			if source == null and original is StandardMaterial3D and plain_diagnostic:
+				source = CharacterMaterials.plain_environment_source(original)
 			if (
-				original == null
+				source == null
 				or original.next_pass != null
-				or (not body_diagnostic and original.get_shader_parameter("enable_hair") != true)
+				or (not body_diagnostic and source.get_shader_parameter("enable_hair") != true)
 			):
 				continue
-			if original.shader == null or original.shader.code.count(ANCHOR) != 1:
+			if source.shader == null or source.shader.code.count(ANCHOR) != 1:
 				continue
-			var material := original.duplicate() as ShaderMaterial
+			var material := source.duplicate() as ShaderMaterial
 			var shader := Shader.new()
 			shader.code = (
-				original
+				source
 				. shader
 				. code
 				. replace(
@@ -82,6 +88,11 @@ func attach(
 				. replace(ANCHOR, ANCHOR + INJECT)
 			)
 			material.shader = shader
+			if original is StandardMaterial3D:
+				# A freshly constructed adapter has not been drawn yet. Copy its
+				# uniforms explicitly across the injected shader replacement.
+				CharacterMaterials.copy_pbr(original, material)
+				material.set_shader_parameter("normal_softness", Vector3.ZERO)
 			material.set_shader_parameter("source_body_enabled", body_diagnostic)
 			if (
 				not reflection.bind(material)

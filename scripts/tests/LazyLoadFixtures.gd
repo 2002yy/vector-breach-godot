@@ -52,6 +52,25 @@ static func run(host: Node) -> void:
 		"match becomes playable"
 	)
 	host.call("_assert_true", main.last_start_timings.total_ms >= 0, "start duration measured")
+	var actors: Dictionary = main.last_start_timings.preparation.actor_phases
+	host.call(
+		"_assert_true",
+		actors.has("detach_ms") and actors.deferred_free_excluded,
+		"actor timing explicitly excludes deferred resource destruction"
+	)
+	host.call("_assert_equal", actors.id, "gatehouse", "actor phases belong to actual loaded map")
+	var roster_count := 0
+	for actor in main.get_node("CombatSandbox").get_children():
+		if actor is CharacterBody3D:
+			roster_count += 1
+	host.call(
+		"_assert_equal", actors.actor_count, roster_count, "actor receipt matches actual roster"
+	)
+	host.call(
+		"_assert_true",
+		actors.total_ms >= actors.spawn_configure_ms,
+		"actor total includes configuration"
+	)
 	main.call("_open_menu", false)
 	main.call("_return_to_map_selection")
 	main.call("_on_map_selected", main.call("find_level_option_index", "training-range"))
@@ -72,7 +91,11 @@ static func _failure(host: Node) -> void:
 	var main: Node = host.call("_instantiate_main", false)
 	await host.call("_await_main_ready")
 	main.get_node("Level").set_script(FailedLevel)
+	var failed: Array = []
+	var selected: String = main.level_options[main.selected_level_index].id
+	main.level_start_failed.connect(func(id: String): failed.append(id))
 	await main.call("_on_start_pressed")
+	host.call("_assert_equal", failed, [selected], "failed Start publishes one lifecycle failure")
 	host.call(
 		"_assert_true",
 		not main._starting and not main._level_loading,

@@ -2,6 +2,7 @@ extends Node3D
 
 signal targets_spawned(count: int)
 signal combatants_spawned(friendly_count: int, enemy_count: int)
+signal combatants_clearing
 signal ai_shot(result: Dictionary, world_position: Vector3)
 signal ai_footstep(world_position: Vector3, surface: String, quiet: bool)
 signal radio_report(caller: String, message: String)
@@ -15,6 +16,7 @@ signal radio_report(caller: String, message: String)
 @export var fallback_spacing: float = 6.0
 
 var c4_device: Node3D
+var last_load_timings: Dictionary = {}
 var _current_level_data: Dictionary = {}
 var _bomb_carrier_actor: CharacterBody3D
 var _loaded_level_id: String = ""
@@ -30,7 +32,12 @@ func _ready() -> void:
 		RoundManager.round_ended.connect(_on_round_ended_capture)
 
 func load_for_level(level_data: Dictionary) -> void:
+	var began := Time.get_ticks_usec()
+	last_load_timings = {"id": String(level_data.get("id", "")), "actor_count": 0}
 	_clear_targets()
+	# queue_free() completes later; this measures detachment, not destruction.
+	last_load_timings["detach_ms"] = (Time.get_ticks_usec() - began) / 1000.0
+	last_load_timings["deferred_free_excluded"] = true
 	var level_id := String(level_data.get("id", ""))
 	if _loaded_level_id != level_id:
 		_loaded_level_id = level_id
@@ -41,11 +48,15 @@ func load_for_level(level_data: Dictionary) -> void:
 	if dummy_scene == null:
 		targets_spawned.emit(0)
 		combatants_spawned.emit(0, 0)
+		last_load_timings["total_ms"] = (Time.get_ticks_usec() - began) / 1000.0
 		return
 	var friendly_count := 0
 	var enemy_count := 0
 	var appearance_counts := {"CT": 0, "T": 0}
+	var phase := Time.get_ticks_usec()
 	var navigation_graph := _build_navigation_graph(level_data)
+	last_load_timings["navigation_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
+	phase = Time.get_ticks_usec()
 	for record_variant in _build_spawn_records(level_data):
 		if not record_variant is Dictionary:
 			continue
@@ -101,6 +112,9 @@ func load_for_level(level_data: Dictionary) -> void:
 			friendly_count += 1
 		else:
 			enemy_count += 1
+	last_load_timings["spawn_configure_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
+	last_load_timings.actor_count = friendly_count + enemy_count
+	phase = Time.get_ticks_usec()
 	targets_spawned.emit(enemy_count)
 	combatants_spawned.emit(friendly_count, enemy_count)
 	_assign_bomb_roles(level_data)
@@ -113,6 +127,8 @@ func load_for_level(level_data: Dictionary) -> void:
 	GameState.set_scoreboard_combatants(scoreboard_records)
 	_sync_team_economy()
 	_competitive_hard_reset_pending = false
+	last_load_timings["finalize_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
+	last_load_timings["total_ms"] = (Time.get_ticks_usec() - began) / 1000.0
 
 func clear_saved_round_state(reset_roster: bool = false) -> void:
 	_saved_round_loadouts.clear()
@@ -141,6 +157,7 @@ func set_c4_device(device: Node3D) -> void:
 			child.call("set_ai_c4_device", device)
 
 func _clear_targets() -> void:
+	combatants_clearing.emit()
 	for child in get_children():
 		remove_child(child)
 		child.queue_free()

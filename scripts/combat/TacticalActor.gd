@@ -1,5 +1,8 @@
 extends CharacterBody3D
 
+signal appearance_changed
+signal appearance_changing(visual: Node3D)
+
 const Appearance = preload("res://scripts/characters/CharacterAppearance.gd")
 const NativeVisual = preload("res://scripts/characters/NativeActorVisual.gd")
 var _native_visual: Node3D
@@ -502,10 +505,18 @@ func _has_ai_standing_clearance() -> bool:
 	return get_world_3d().direct_space_state.intersect_shape(query, 1).is_empty()
 
 
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE:
+		NativeVisual.clear_material_overrides(self)
+
+func get_native_character() -> Node3D:
+	return _native_visual
+
 func _install_appearance(id: String) -> void:
 	if id == _appearance_id:
 		return
 	if _native_visual != null:
+		appearance_changing.emit(_native_visual)
 		_native_visual.free()
 		_native_visual = null
 	var native := NativeVisual.new()
@@ -524,3 +535,4 @@ func _install_appearance(id: String) -> void:
 	actor_visual.position = Vector3(0, _actor_visual_y, 0)
 	_active_visual_animation = &""
 	_discover_imported_animations()
+	appearance_changed.emit()

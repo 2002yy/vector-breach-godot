@@ -1,5 +1,8 @@
 extends Node3D
 
+signal level_prepared(level_data: Dictionary)
+signal level_start_failed(level_id: String)
+
 const WorldWeaponPickup = preload("res://scripts/combat/WorldWeaponPickup.gd")
 const TrainingTelemetry = preload("res://scripts/training/TrainingTelemetry.gd")
 const ClassicMatchLayout = preload("res://scripts/level/ClassicMatchLayout.gd")
@@ -624,6 +627,7 @@ func _start_selected_map() -> void:
 		game_started = false
 		GameState.reset_runtime_state()
 		GameState.set_game_started(false)
+		level_start_failed.emit(String(option["id"]))
 		_open_menu(true)
 		return
 	if player.has_method("reset_to_spawn"):
@@ -758,9 +762,11 @@ func _on_level_loaded(level_data: Dictionary) -> void:
 	if combat_sandbox.has_method("load_for_level"):
 		combat_sandbox.call("load_for_level", level_data)
 	timings["actors_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
+	timings["actor_phases"] = combat_sandbox.last_load_timings.duplicate(true)
 	timings["prepare_ms"] = (Time.get_ticks_usec() - began) / 1000.0
 	_preparation_timings = timings
 	_level_loading = false
+	level_prepared.emit(level_data)
 
 func _capture_default_environment() -> void:
 	var environment := world_environment.environment

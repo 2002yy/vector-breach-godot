@@ -6,6 +6,31 @@ const Inputs = preload("res://scripts/characters/SourceEnvironmentInputs.gd")
 const Indirect = preload("res://scripts/characters/SourceIndirectInputs.gd")
 const Composite = preload("res://scripts/characters/SourceCharacterEnvironment.gd")
 const RuntimeInputs = preload("res://scripts/characters/SourceCharacterRuntimeInputs.gd")
+const ControlledGame = preload("res://scripts/characters/ControlledGame.gd")
+
+
+func _catalog_contract() -> void:
+	var path := "user://character-catalog-" + str(Time.get_ticks_usec()) + ".json"
+	var data := {"contract": "source-character-runtime-bundle-v1", "level": "test-map"}
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	file.store_string(JSON.stringify(data))
+	file.close()
+	assert(ControlledGame.bundle_catalog([path]) == {"test-map": path})
+	assert(ControlledGame.bundle_catalog([path, path]).is_empty())
+	for change in [{"level": []}, {"level": ""}, {"contract": "wrong"}]:
+		var bad := data.duplicate()
+		bad.merge(change, true)
+		file = FileAccess.open(path, FileAccess.WRITE)
+		file.store_string(JSON.stringify(bad))
+		file.close()
+		assert(ControlledGame.bundle_catalog([path]).is_empty())
+	for text in ["{broken", " ".repeat(65537)]:
+		file = FileAccess.open(path, FileAccess.WRITE)
+		file.store_string(text)
+		file.close()
+		assert(ControlledGame.bundle_catalog([path]).is_empty())
+	assert(DirAccess.remove_absolute(path) == OK)
+	assert(ControlledGame.bundle_catalog([path]).is_empty())
 
 
 func _bundle_contract() -> void:
@@ -56,6 +81,7 @@ func _ready() -> void:
 	_normalization_inputs()
 	_indirect_inputs()
 	_bundle_contract()
+	_catalog_contract()
 	_material_toggle()
 	var payload := PackedByteArray()
 	payload.resize(96)

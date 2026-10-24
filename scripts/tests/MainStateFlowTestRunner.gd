@@ -10,6 +10,7 @@ var _passes: int = 0
 
 func _test_spectator_lifecycle() -> void:
 	await MatchExperience.spectator_lifecycle(self)
+	await MatchExperience.spectator_boundaries(self)
 
 func _test_purchases_and_help() -> void:
 	await MatchExperience.purchases_and_help(self)
@@ -1619,6 +1620,7 @@ func _test_c4_ai_hint() -> void:
 
 
 func _test_character_profiles() -> void:
+	preload("res://scripts/tests/HandsLifecycleFixtures.gd").run(self)
 	var Appearance = preload("res://scripts/characters/CharacterAppearance.gd")
 	var original_settings := UserSettings.get_snapshot()
 	UserSettings.apply_snapshot({"ct_appearance": "t-elite", "t_appearance": "../../bad"}, false)
