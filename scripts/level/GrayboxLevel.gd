@@ -8,6 +8,7 @@ const ShapeBuilder = preload("res://scripts/level/ShapeBuilder.gd")
 signal level_loaded(level_data: Dictionary)
 
 const CollisionCache = preload("res://scripts/level/SourceCollisionCache.gd")
+const SceneInstance = preload("res://scripts/SceneInstance.gd")
 
 @export var level_id: String = "depot"
 @export var load_on_ready := true
@@ -32,21 +33,26 @@ func _ready() -> void:
 		load_level(level_id)
 
 func load_level(next_level_id: String, emit_errors: bool = true) -> bool:
+	var retiring_visual := _retain_current_visual(next_level_id)
 	_clear_collision_lease()
 	var began := Time.get_ticks_usec()
 	var data := _begin_level(next_level_id, emit_errors, began)
 	if data.is_empty():
 		return false
+	last_load_timings["retained_visual_scene"] = retiring_visual != null
 	var phase := Time.get_ticks_usec()
 	_apply_visual_scene(data, emit_errors)
+	retiring_visual = null
 	last_load_timings["visual_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
 	return _finish_level(data, began)
 
 func load_level_async(next_level_id: String, emit_errors: bool = true) -> bool:
+	var retiring_visual := _retain_current_visual(next_level_id)
 	var began := Time.get_ticks_usec()
 	var data := _begin_level(next_level_id, emit_errors, began)
 	if data.is_empty():
 		return false
+	last_load_timings["retained_visual_scene"] = retiring_visual != null
 	var generation := _load_generation
 	var visual_began := Time.get_ticks_usec()
 	var phase: int = await _begin_visual_scene_async(data, emit_errors, generation)
@@ -59,10 +65,18 @@ func load_level_async(next_level_id: String, emit_errors: bool = true) -> bool:
 	var resource := receipt.get("resource") as Resource
 	receipt.erase("resource")
 	var visual := _instantiate_visual_resource(path, "LevelVisual", emit_errors, resource, receipt)
+	retiring_visual = null
 	phase = _finish_visual_phase("visual_scene", phase)
 	_finish_visual_scene(data, emit_errors, visual, phase)
 	last_load_timings["visual_ms"] = (Time.get_ticks_usec() - visual_began) / 1000.0
 	return _finish_level(data, began)
+
+func _retain_current_visual(next_level_id: String) -> PackedScene:
+	if next_level_id != String(_current_level_data.get("id", "")):
+		return null
+	if not is_instance_valid(visual_root):
+		return null
+	return SceneInstance.source(visual_root.get_node_or_null("LevelVisual"))
 
 func _begin_level(next_level_id: String, emit_errors: bool, began: int) -> Dictionary:
 	if next_level_id != String(_current_level_data.get("id", "")):
@@ -327,6 +341,8 @@ func _instantiate_visual_resource(
 
 	var phase := Time.get_ticks_usec()
 	var scene_instance: Node = (scene_resource as PackedScene).instantiate()
+	if stable_name == "LevelVisual":
+		scene_instance.set_meta(SceneInstance.SOURCE_META, scene_resource)
 	timing["instantiate_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
 	scene_instance.name = stable_name
 	phase = Time.get_ticks_usec()

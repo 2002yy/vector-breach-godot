@@ -19,6 +19,7 @@ func _ready() -> void:
 	get_tree().quit(1)
 func _test_scene_source_lifetime() -> void:
 	preload("res://scripts/tests/SceneInstanceFixtures.gd").run(self)
+	await preload("res://scripts/tests/MapVisualLifetimeFixtures.gd").run(self)
 func _test_threaded_reader() -> void:
 	await preload("res://scripts/tests/SceneReaderFixtures.gd").run(self)
 
