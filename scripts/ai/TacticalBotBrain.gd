@@ -233,7 +233,10 @@ func configure(record: Dictionary) -> void:
 	ai_money = clampi(int(record.get("aiMoney", ai_money)), 0, 16000)
 	recoil_compensation = clampf(float(record.get("aiRecoilCompensation", recoil_compensation)), 0.0, 0.05)
 	_route_points = BotNavigationModel.parse_points(record.get("routePoints", []))
-	_navigation.configure(record.get("navigationGraph", {}))
+	var prepared: Variant = record.get("navigationTemplate")
+	_navigation.configure(
+		prepared if prepared is BotNavigationModel else record.get("navigationGraph", {})
+	)
 	_route_index = _nearest_route_index()
 	_route_direction = -1 if String(actor.get("team")) == "CT" else 1
 	_reset_weapon_ammo()

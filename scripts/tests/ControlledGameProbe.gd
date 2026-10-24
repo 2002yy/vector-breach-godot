@@ -36,6 +36,9 @@ func _run() -> void:
 		assert(not _host.runtime.configured and _host.runtime._pending.is_empty())
 		assert(_host._bound.is_empty(), "cards cannot bind characters or upload inputs")
 		await _capture("selected-" + id)
+	assert(
+		get_node("/root/SceneReader").submitted_count == 0, "cards cannot start background reads"
+	)
 	_checks["boot_and_cards_loads"] = 0
 	_checks["boot_and_cards_no_candidate_upload"] = true
 	_game.call("_on_map_selected", _game.call("find_level_option_index", _level_id))
@@ -49,8 +52,16 @@ func _run() -> void:
 	assert(_game._starting and level.load_count == 0)
 	assert(_game.get_node("StartMenu").start_button.disabled)
 	assert(get_viewport().get_texture().get_image().save_png(_out.path_join("loading.png")) == OK)
+	var staged_frames := 0
 	while _game._starting:
+		var sandbox := _game.get_node("CombatSandbox")
+		if sandbox.get_child_count() > 0 and sandbox.last_load_timings.actor_count == 0:
+			staged_frames += 1
+			assert(not _game.game_started)
+			for actor in sandbox.get_children():
+				assert(actor.process_mode == Node.PROCESS_MODE_DISABLED)
 		await get_tree().process_frame
+	assert(staged_frames >= 9, "classic start presents at least one frame per AI actor")
 	await _settle()
 	assert(level.load_count == 1, "double Start must load only the final map once")
 	assert(_host.runtime.configured and _host.runtime.level_id == _level_id)
@@ -190,6 +201,8 @@ func _appearance_and_roster() -> void:
 			old.append(member.get_native_character().get_instance_id())
 	var bound_count: int = _host._bound.size()
 	sandbox.call("load_for_level", _game.get_node("Level").get_current_level_data())
+	assert(sandbox.last_load_timings.retained_scene_count > 0)
+	_checks["round_source_scene_bridge_count"] = sandbox.last_load_timings.retained_scene_count
 	print("CONTROLLED_STEP roster installed")
 	await get_tree().process_frame
 	await get_tree().process_frame
