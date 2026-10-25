@@ -1,0 +1,316 @@
+{
+  "formal_release_ready": false,
+  "same_inputs_all_profiles": false,
+  "selection_hz": 60,
+  "new_controls_holdout_hz": 120,
+  "choices": {
+    "runup_objective_rise_00": "air_brake_060_085",
+    "runup_objective_rise_01": "jump_025"
+  },
+  "reference_traces_unchanged": true,
+  "original_modern_baseline_reproduced_60": true,
+  "study_results": [
+    {
+      "case": "runup_objective_rise_00",
+      "variant": "baseline",
+      "mode": "jump",
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.916666666666667,
+      "arrival_time": 0.916666666666667,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "case": "runup_objective_rise_00",
+      "variant": "jump_025",
+      "mode": "jump",
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": 0.9,
+      "arrival_time": null,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "case": "runup_objective_rise_00",
+      "variant": "crouch_with_jump",
+      "mode": "jump",
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": 0.983333333333333,
+      "arrival_time": null,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "case": "runup_objective_rise_00",
+      "variant": "air_brake_060_085",
+      "mode": "jump",
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 1.01666666666667,
+      "arrival_time": 1.01666666666667,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "case": "runup_objective_rise_01",
+      "variant": "baseline",
+      "mode": "jump",
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": 0.983333333333333,
+      "arrival_time": null,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "case": "runup_objective_rise_01",
+      "variant": "jump_025",
+      "mode": "jump",
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.816666666666667,
+      "arrival_time": 0.816666666666667,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "case": "runup_objective_rise_01",
+      "variant": "crouch_with_jump",
+      "mode": "jump",
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": 0.983333333333333,
+      "arrival_time": null,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "case": "runup_objective_rise_01",
+      "variant": "air_brake_060_085",
+      "mode": "jump",
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.916666666666667,
+      "arrival_time": 0.916666666666667,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    }
+  ],
+  "results": [
+    {
+      "case": "runup_objective_rise_00",
+      "scheme": "current",
+      "mode": "jump",
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 1.06666666666667,
+      "arrival_time": 1.06666666666667,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "case": "runup_objective_rise_00",
+      "scheme": "legacy_16",
+      "mode": "jump",
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.9,
+      "arrival_time": 0.9,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "case": "runup_objective_rise_00",
+      "scheme": "modern_cs",
+      "mode": "jump",
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 1.01666666666667,
+      "arrival_time": 1.01666666666667,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "case": "runup_objective_rise_01",
+      "scheme": "current",
+      "mode": "jump",
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 1.06666666666667,
+      "arrival_time": 1.06666666666667,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "case": "runup_objective_rise_01",
+      "scheme": "legacy_16",
+      "mode": "jump",
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.9,
+      "arrival_time": 0.9,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "case": "runup_objective_rise_01",
+      "scheme": "modern_cs",
+      "mode": "jump",
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.816666666666667,
+      "arrival_time": 0.816666666666667,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "case": "runup_objective_rise_00",
+      "scheme": "current",
+      "mode": "jump",
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 1.025,
+      "arrival_time": 1.025,
+      "jump_delays": [
+        0.00833333333333336
+      ]
+    },
+    {
+      "case": "runup_objective_rise_00",
+      "scheme": "legacy_16",
+      "mode": "jump",
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.883333333333333,
+      "arrival_time": 0.883333333333333,
+      "jump_delays": [
+        0.00833333333333336
+      ]
+    },
+    {
+      "case": "runup_objective_rise_00",
+      "scheme": "modern_cs",
+      "mode": "jump",
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.891666666666667,
+      "arrival_time": 0.891666666666667,
+      "jump_delays": [
+        0.00833333333333336
+      ]
+    },
+    {
+      "case": "runup_objective_rise_01",
+      "scheme": "current",
+      "mode": "jump",
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 1.025,
+      "arrival_time": 1.025,
+      "jump_delays": [
+        0.00833333333333336
+      ]
+    },
+    {
+      "case": "runup_objective_rise_01",
+      "scheme": "legacy_16",
+      "mode": "jump",
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.883333333333333,
+      "arrival_time": 0.883333333333333,
+      "jump_delays": [
+        0.00833333333333336
+      ]
+    },
+    {
+      "case": "runup_objective_rise_01",
+      "scheme": "modern_cs",
+      "mode": "jump",
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.791666666666667,
+      "arrival_time": 0.791666666666667,
+      "jump_delays": [
+        0.00833333333333336
+      ]
+    }
+  ],
+  "cross_frequency_landing": [
+    {
+      "case": "modern_cs__runup_objective_rise_00__jump",
+      "position_difference_m": 1.0217308345283471,
+      "time_difference_seconds": 0.1250000000000029,
+      "contact_normal_60": [
+        -0.450684517621994,
+        0.892683327198029,
+        1.85577320621633e-07
+      ],
+      "contact_normal_120": [
+        8.15542421150894e-07,
+        1.0,
+        8.16481247056799e-07
+      ],
+      "precision_equivalence_review": "pending"
+    },
+    {
+      "case": "modern_cs__runup_objective_rise_01__jump",
+      "position_difference_m": 0.2555739100616422,
+      "time_difference_seconds": 0.025000000000000022,
+      "contact_normal_60": [
+        -6.07062075846758e-14,
+        1.0,
+        6.94398124778672e-07
+      ],
+      "contact_normal_120": [
+        4.25725232844343e-07,
+        1.0,
+        4.26193196290114e-07
+      ],
+      "precision_equivalence_review": "pending"
+    }
+  ],
+  "cross_frequency_precision_accepted": false,
+  "verification": {
+    "ordinary_python_tests": 178,
+    "new_policy_regressions": 14,
+    "bounded_study_trials": 24,
+    "selected_matrix_trials": 36,
+    "first_landing_passes": 12,
+    "control_arrivals": 0,
+    "control_trials": 24,
+    "full_native_suite_repeated": false,
+    "production_changed": false,
+    "original_assets_changed": false
+  },
+  "detail_scope": "jump rows; full control rows and traces local; aggregate counts retained"
+}
