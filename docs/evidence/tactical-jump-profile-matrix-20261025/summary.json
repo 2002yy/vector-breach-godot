@@ -1,0 +1,828 @@
+{
+  "formal_release_ready": false,
+  "original_new_route_matrix": {
+    "formal_release_ready": false,
+    "same_inputs_all_profiles": true,
+    "current_traces_unchanged": true,
+    "trials": 72,
+    "results": [
+      {
+        "map": "dust2",
+        "case": "objective_rise_00",
+        "scheme": "current",
+        "mode": "jump",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.683333333333333,
+        "arrival_time": 0.683333333333333,
+        "jump_delays": [
+          0.016666666666666663
+        ]
+      },
+      {
+        "map": "dust2",
+        "case": "objective_rise_00",
+        "scheme": "legacy_16",
+        "mode": "jump",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.533333333333333,
+        "arrival_time": 0.533333333333333,
+        "jump_delays": [
+          0.016666666666666663
+        ]
+      },
+      {
+        "map": "dust2",
+        "case": "objective_rise_00",
+        "scheme": "modern_cs",
+        "mode": "jump",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.616666666666667,
+        "arrival_time": 0.616666666666667,
+        "jump_delays": [
+          0.016666666666666663
+        ]
+      },
+      {
+        "map": "dust2",
+        "case": "objective_rise_00",
+        "scheme": "current",
+        "mode": "jump",
+        "physics_hz": 120,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.616666666666667,
+        "arrival_time": 0.616666666666667,
+        "jump_delays": [
+          0.008333333333333331
+        ]
+      },
+      {
+        "map": "dust2",
+        "case": "objective_rise_00",
+        "scheme": "legacy_16",
+        "mode": "jump",
+        "physics_hz": 120,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.533333333333333,
+        "arrival_time": 0.533333333333333,
+        "jump_delays": [
+          0.008333333333333331
+        ]
+      },
+      {
+        "map": "dust2",
+        "case": "objective_rise_00",
+        "scheme": "modern_cs",
+        "mode": "jump",
+        "physics_hz": 120,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.6,
+        "arrival_time": 0.6,
+        "jump_delays": [
+          0.008333333333333331
+        ]
+      },
+      {
+        "map": "mirage",
+        "case": "objective_rise_00",
+        "scheme": "current",
+        "mode": "jump",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.566666666666667,
+        "arrival_time": 0.566666666666667,
+        "jump_delays": [
+          0.016666666666666663
+        ]
+      },
+      {
+        "map": "mirage",
+        "case": "objective_rise_00",
+        "scheme": "legacy_16",
+        "mode": "jump",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.583333333333333,
+        "arrival_time": 0.583333333333333,
+        "jump_delays": [
+          0.016666666666666663
+        ]
+      },
+      {
+        "map": "mirage",
+        "case": "objective_rise_00",
+        "scheme": "modern_cs",
+        "mode": "jump",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.6,
+        "arrival_time": 0.6,
+        "jump_delays": [
+          0.016666666666666663
+        ]
+      },
+      {
+        "map": "mirage",
+        "case": "objective_rise_00",
+        "scheme": "current",
+        "mode": "jump",
+        "physics_hz": 120,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.558333333333333,
+        "arrival_time": 0.558333333333333,
+        "jump_delays": [
+          0.008333333333333331
+        ]
+      },
+      {
+        "map": "mirage",
+        "case": "objective_rise_00",
+        "scheme": "legacy_16",
+        "mode": "jump",
+        "physics_hz": 120,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.591666666666667,
+        "arrival_time": 0.591666666666667,
+        "jump_delays": [
+          0.008333333333333331
+        ]
+      },
+      {
+        "map": "mirage",
+        "case": "objective_rise_00",
+        "scheme": "modern_cs",
+        "mode": "jump",
+        "physics_hz": 120,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.575,
+        "arrival_time": 0.575,
+        "jump_delays": [
+          0.008333333333333331
+        ]
+      },
+      {
+        "map": "inferno",
+        "case": "objective_rise_00",
+        "scheme": "current",
+        "mode": "jump",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.816666666666667,
+        "arrival_time": 0.816666666666667,
+        "jump_delays": [
+          0.016666666666666663
+        ]
+      },
+      {
+        "map": "inferno",
+        "case": "objective_rise_00",
+        "scheme": "legacy_16",
+        "mode": "jump",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.65,
+        "arrival_time": 0.65,
+        "jump_delays": [
+          0.016666666666666663
+        ]
+      },
+      {
+        "map": "inferno",
+        "case": "objective_rise_00",
+        "scheme": "modern_cs",
+        "mode": "jump",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.733333333333333,
+        "arrival_time": 0.733333333333333,
+        "jump_delays": [
+          0.016666666666666663
+        ]
+      },
+      {
+        "map": "inferno",
+        "case": "objective_rise_01",
+        "scheme": "current",
+        "mode": "jump",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.816666666666667,
+        "arrival_time": 0.816666666666667,
+        "jump_delays": [
+          0.016666666666666663
+        ]
+      },
+      {
+        "map": "inferno",
+        "case": "objective_rise_01",
+        "scheme": "legacy_16",
+        "mode": "jump",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.65,
+        "arrival_time": 0.65,
+        "jump_delays": [
+          0.016666666666666663
+        ]
+      },
+      {
+        "map": "inferno",
+        "case": "objective_rise_01",
+        "scheme": "modern_cs",
+        "mode": "jump",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.666666666666667,
+        "arrival_time": 0.666666666666667,
+        "jump_delays": [
+          0.016666666666666663
+        ]
+      },
+      {
+        "map": "inferno",
+        "case": "objective_rise_00",
+        "scheme": "current",
+        "mode": "jump",
+        "physics_hz": 120,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.775,
+        "arrival_time": 0.775,
+        "jump_delays": [
+          0.008333333333333331
+        ]
+      },
+      {
+        "map": "inferno",
+        "case": "objective_rise_00",
+        "scheme": "legacy_16",
+        "mode": "jump",
+        "physics_hz": 120,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.633333333333333,
+        "arrival_time": 0.633333333333333,
+        "jump_delays": [
+          0.008333333333333331
+        ]
+      },
+      {
+        "map": "inferno",
+        "case": "objective_rise_00",
+        "scheme": "modern_cs",
+        "mode": "jump",
+        "physics_hz": 120,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.641666666666667,
+        "arrival_time": 0.641666666666667,
+        "jump_delays": [
+          0.008333333333333331
+        ]
+      },
+      {
+        "map": "inferno",
+        "case": "objective_rise_01",
+        "scheme": "current",
+        "mode": "jump",
+        "physics_hz": 120,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.775,
+        "arrival_time": 0.775,
+        "jump_delays": [
+          0.008333333333333331
+        ]
+      },
+      {
+        "map": "inferno",
+        "case": "objective_rise_01",
+        "scheme": "legacy_16",
+        "mode": "jump",
+        "physics_hz": 120,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.633333333333333,
+        "arrival_time": 0.633333333333333,
+        "jump_delays": [
+          0.008333333333333331
+        ]
+      },
+      {
+        "map": "inferno",
+        "case": "objective_rise_01",
+        "scheme": "modern_cs",
+        "mode": "jump",
+        "physics_hz": 120,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.641666666666667,
+        "arrival_time": 0.641666666666667,
+        "jump_delays": [
+          0.008333333333333331
+        ]
+      }
+    ],
+    "first_landing_passes": {
+      "current": 8,
+      "legacy_16": 8,
+      "modern_cs": 8
+    },
+    "jump_trials": {
+      "current": 8,
+      "legacy_16": 8,
+      "modern_cs": 8
+    },
+    "control_trials": {
+      "current": 16,
+      "legacy_16": 16,
+      "modern_cs": 16
+    },
+    "control_arrivals": {
+      "current": 0,
+      "legacy_16": 0,
+      "modern_cs": 0
+    },
+    "detail_scope": "jump outcomes; all paired controls retained as per-profile counts, full rows local"
+  },
+  "fresh_runup_reference": {
+    "formal_release_ready": false,
+    "reference_profile": "current",
+    "trials": 18,
+    "points": [
+      {
+        "map": "mirage",
+        "case": "runup_objective_rise_00",
+        "status": "qualified_jump",
+        "body_corridor_clear": {
+          "60": true,
+          "120": true
+        },
+        "first_landing": {
+          "60": true,
+          "120": true
+        },
+        "walking_arrival": {
+          "60": false,
+          "120": false
+        }
+      },
+      {
+        "map": "inferno",
+        "case": "runup_objective_rise_00",
+        "status": "qualified_jump",
+        "body_corridor_clear": {
+          "60": true,
+          "120": true
+        },
+        "first_landing": {
+          "60": true,
+          "120": true
+        },
+        "walking_arrival": {
+          "60": false,
+          "120": false
+        }
+      },
+      {
+        "map": "inferno",
+        "case": "runup_objective_rise_01",
+        "status": "qualified_jump",
+        "body_corridor_clear": {
+          "60": true,
+          "120": true
+        },
+        "first_landing": {
+          "60": true,
+          "120": true
+        },
+        "walking_arrival": {
+          "60": false,
+          "120": false
+        }
+      }
+    ]
+  },
+  "fresh_runup_matrix": {
+    "formal_release_ready": false,
+    "same_inputs_all_profiles": true,
+    "current_traces_unchanged": true,
+    "trials": 54,
+    "results": [
+      {
+        "map": "mirage",
+        "case": "runup_objective_rise_00",
+        "scheme": "current",
+        "mode": "jump",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.816666666666667,
+        "arrival_time": 0.816666666666667,
+        "jump_delays": [
+          0.016666666666666663
+        ]
+      },
+      {
+        "map": "mirage",
+        "case": "runup_objective_rise_00",
+        "scheme": "legacy_16",
+        "mode": "jump",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.833333333333333,
+        "arrival_time": 0.833333333333333,
+        "jump_delays": [
+          0.016666666666666663
+        ]
+      },
+      {
+        "map": "mirage",
+        "case": "runup_objective_rise_00",
+        "scheme": "modern_cs",
+        "mode": "jump",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.85,
+        "arrival_time": 0.85,
+        "jump_delays": [
+          0.016666666666666663
+        ]
+      },
+      {
+        "map": "mirage",
+        "case": "runup_objective_rise_00",
+        "scheme": "current",
+        "mode": "jump",
+        "physics_hz": 120,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.825,
+        "arrival_time": 0.825,
+        "jump_delays": [
+          0.00833333333333336
+        ]
+      },
+      {
+        "map": "mirage",
+        "case": "runup_objective_rise_00",
+        "scheme": "legacy_16",
+        "mode": "jump",
+        "physics_hz": 120,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.841666666666667,
+        "arrival_time": 0.841666666666667,
+        "jump_delays": [
+          0.00833333333333336
+        ]
+      },
+      {
+        "map": "mirage",
+        "case": "runup_objective_rise_00",
+        "scheme": "modern_cs",
+        "mode": "jump",
+        "physics_hz": 120,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.825,
+        "arrival_time": 0.825,
+        "jump_delays": [
+          0.00833333333333336
+        ]
+      },
+      {
+        "map": "inferno",
+        "case": "runup_objective_rise_00",
+        "scheme": "current",
+        "mode": "jump",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 1.06666666666667,
+        "arrival_time": 1.06666666666667,
+        "jump_delays": [
+          0.016666666666666663
+        ]
+      },
+      {
+        "map": "inferno",
+        "case": "runup_objective_rise_00",
+        "scheme": "legacy_16",
+        "mode": "jump",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.9,
+        "arrival_time": 0.9,
+        "jump_delays": [
+          0.016666666666666663
+        ]
+      },
+      {
+        "map": "inferno",
+        "case": "runup_objective_rise_00",
+        "scheme": "modern_cs",
+        "mode": "jump",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.916666666666667,
+        "arrival_time": 0.916666666666667,
+        "jump_delays": [
+          0.016666666666666663
+        ]
+      },
+      {
+        "map": "inferno",
+        "case": "runup_objective_rise_01",
+        "scheme": "current",
+        "mode": "jump",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 1.06666666666667,
+        "arrival_time": 1.06666666666667,
+        "jump_delays": [
+          0.016666666666666663
+        ]
+      },
+      {
+        "map": "inferno",
+        "case": "runup_objective_rise_01",
+        "scheme": "legacy_16",
+        "mode": "jump",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.9,
+        "arrival_time": 0.9,
+        "jump_delays": [
+          0.016666666666666663
+        ]
+      },
+      {
+        "map": "inferno",
+        "case": "runup_objective_rise_01",
+        "scheme": "modern_cs",
+        "mode": "jump",
+        "physics_hz": 60,
+        "first_landing": false,
+        "supported_arrival": false,
+        "landing_time": 0.983333333333333,
+        "arrival_time": null,
+        "jump_delays": [
+          0.016666666666666663
+        ]
+      },
+      {
+        "map": "inferno",
+        "case": "runup_objective_rise_00",
+        "scheme": "current",
+        "mode": "jump",
+        "physics_hz": 120,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 1.025,
+        "arrival_time": 1.025,
+        "jump_delays": [
+          0.00833333333333336
+        ]
+      },
+      {
+        "map": "inferno",
+        "case": "runup_objective_rise_00",
+        "scheme": "legacy_16",
+        "mode": "jump",
+        "physics_hz": 120,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.883333333333333,
+        "arrival_time": 0.883333333333333,
+        "jump_delays": [
+          0.00833333333333336
+        ]
+      },
+      {
+        "map": "inferno",
+        "case": "runup_objective_rise_00",
+        "scheme": "modern_cs",
+        "mode": "jump",
+        "physics_hz": 120,
+        "first_landing": false,
+        "supported_arrival": false,
+        "landing_time": 0.958333333333333,
+        "arrival_time": null,
+        "jump_delays": [
+          0.00833333333333336
+        ]
+      },
+      {
+        "map": "inferno",
+        "case": "runup_objective_rise_01",
+        "scheme": "current",
+        "mode": "jump",
+        "physics_hz": 120,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 1.025,
+        "arrival_time": 1.025,
+        "jump_delays": [
+          0.00833333333333336
+        ]
+      },
+      {
+        "map": "inferno",
+        "case": "runup_objective_rise_01",
+        "scheme": "legacy_16",
+        "mode": "jump",
+        "physics_hz": 120,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.883333333333333,
+        "arrival_time": 0.883333333333333,
+        "jump_delays": [
+          0.00833333333333336
+        ]
+      },
+      {
+        "map": "inferno",
+        "case": "runup_objective_rise_01",
+        "scheme": "modern_cs",
+        "mode": "jump",
+        "physics_hz": 120,
+        "first_landing": false,
+        "supported_arrival": false,
+        "landing_time": 0.958333333333333,
+        "arrival_time": null,
+        "jump_delays": [
+          0.00833333333333336
+        ]
+      }
+    ],
+    "first_landing_passes": {
+      "current": 6,
+      "legacy_16": 6,
+      "modern_cs": 3
+    },
+    "jump_trials": {
+      "current": 6,
+      "legacy_16": 6,
+      "modern_cs": 6
+    },
+    "control_trials": {
+      "current": 12,
+      "legacy_16": 12,
+      "modern_cs": 12
+    },
+    "control_arrivals": {
+      "current": 0,
+      "legacy_16": 0,
+      "modern_cs": 0
+    },
+    "detail_scope": "jump outcomes; all paired controls retained as per-profile counts, full rows local"
+  },
+  "modern_runup_diagnostics": [
+    {
+      "map": "mirage",
+      "case": "runup_objective_rise_00",
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "reason": "reached",
+      "jump_requested_time": 0.35,
+      "jump_consumed_time": 0.366666666666667,
+      "crouch_consumed_time": 0.383333333333333,
+      "crouch_after_takeoff": 0.016666666666666052,
+      "landing_height_error": 0.035741925239563,
+      "signed_landing_height_error": -0.035741949081430135,
+      "landing_horizontal_error": 1.13074684143066,
+      "apex_feet_relative_to_target": 0.06888113021850018,
+      "landing_contact_count": 2,
+      "takeoff_horizontal_speed": 4.919567108154319
+    },
+    {
+      "map": "mirage",
+      "case": "runup_objective_rise_00",
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "reason": "reached",
+      "jump_requested_time": 0.35,
+      "jump_consumed_time": 0.358333333333333,
+      "crouch_consumed_time": 0.383333333333333,
+      "crouch_after_takeoff": 0.025000000000000022,
+      "landing_height_error": 0.0438278913497925,
+      "signed_landing_height_error": -0.04382791519164986,
+      "landing_horizontal_error": 1.14654159545898,
+      "apex_feet_relative_to_target": 0.03621444702148002,
+      "landing_contact_count": 2,
+      "takeoff_horizontal_speed": 4.828556537628189
+    },
+    {
+      "map": "inferno",
+      "case": "runup_objective_rise_00",
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "reason": "reached",
+      "jump_requested_time": 0.35,
+      "jump_consumed_time": 0.366666666666667,
+      "crouch_consumed_time": 0.383333333333333,
+      "crouch_after_takeoff": 0.016666666666666052,
+      "landing_height_error": 0.000934600830078125,
+      "signed_landing_height_error": 0.0009346961975102985,
+      "landing_horizontal_error": 0.588773727416992,
+      "apex_feet_relative_to_target": 0.7129746437072804,
+      "landing_contact_count": 2,
+      "takeoff_horizontal_speed": 4.919567108154305
+    },
+    {
+      "map": "inferno",
+      "case": "runup_objective_rise_01",
+      "physics_hz": 60,
+      "first_landing": false,
+      "supported_arrival": false,
+      "reason": "wrong_elevation",
+      "jump_requested_time": 0.35,
+      "jump_consumed_time": 0.366666666666667,
+      "crouch_consumed_time": 0.383333333333333,
+      "crouch_after_takeoff": 0.016666666666666052,
+      "landing_height_error": 0.221137046813965,
+      "signed_landing_height_error": -0.22113695144653,
+      "landing_horizontal_error": 1.49618911743164,
+      "apex_feet_relative_to_target": 0.7128177642822298,
+      "landing_contact_count": 2,
+      "takeoff_horizontal_speed": 4.919567108154319
+    },
+    {
+      "map": "inferno",
+      "case": "runup_objective_rise_00",
+      "physics_hz": 120,
+      "first_landing": false,
+      "supported_arrival": false,
+      "reason": "wrong_elevation",
+      "jump_requested_time": 0.35,
+      "jump_consumed_time": 0.358333333333333,
+      "crouch_consumed_time": 0.383333333333333,
+      "crouch_after_takeoff": 0.025000000000000022,
+      "landing_height_error": 0.221482753753662,
+      "signed_landing_height_error": -0.22148265838622994,
+      "landing_horizontal_error": 1.23021268844604,
+      "apex_feet_relative_to_target": 0.6801558494567903,
+      "landing_contact_count": 2,
+      "takeoff_horizontal_speed": 4.828556537628175
+    },
+    {
+      "map": "inferno",
+      "case": "runup_objective_rise_01",
+      "physics_hz": 120,
+      "first_landing": false,
+      "supported_arrival": false,
+      "reason": "wrong_elevation",
+      "jump_requested_time": 0.35,
+      "jump_consumed_time": 0.358333333333333,
+      "crouch_consumed_time": 0.383333333333333,
+      "crouch_after_takeoff": 0.025000000000000022,
+      "landing_height_error": 0.22182035446167,
+      "signed_landing_height_error": -0.2218202590942404,
+      "landing_horizontal_error": 1.23018264770508,
+      "apex_feet_relative_to_target": 0.6801558494567903,
+      "landing_contact_count": 2,
+      "takeoff_horizontal_speed": 4.828556537628189
+    }
+  ],
+  "human_acceptance": false,
+  "full_map_coverage_complete": false,
+  "verification": {
+    "ordinary_python_tests": 164,
+    "new_regressions": 11,
+    "final_profile_matrix_trials": 126,
+    "additional_current_reference_trials": 18,
+    "additional_geometry_control_trials": 12,
+    "production_changed": false,
+    "full_native_suite_repeated": false
+  }
+}
