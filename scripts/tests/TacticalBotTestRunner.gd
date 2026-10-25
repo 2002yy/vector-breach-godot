@@ -44,6 +44,7 @@ func _ready() -> void:
 	await _run_test("bot_applies_recoil_compensation_during_spray", _test_bot_applies_recoil_compensation_during_spray)
 	await _run_test("local_character_rig_and_fallback", _test_character_rig)
 	await _run_test("visual_actor_keeps_collision_and_hit_model_independent", _test_visual_actor_keeps_collision_and_hit_model_independent)
+	await _run_test("bot_motion_pace_and_bounded_combat_shuffle", _test_motion_pace)
 	if _failures.is_empty():
 		print("[TacticalBotTests] PASS (%d tests)" % _passes)
 		get_tree().quit(0)
@@ -55,6 +56,9 @@ func _ready() -> void:
 
 func _test_prepared_navigation() -> void:
 	preload("res://scripts/tests/PreparedNavigationFixtures.gd").run(self)
+
+func _test_motion_pace() -> void:
+	await preload("res://scripts/tests/BotMotionFixtures.gd").run(self)
 
 func _test_dense_native_navigation() -> void:
 	var model := BotNavigationModel.new()
@@ -643,6 +647,7 @@ func _test_bot_dodges_and_crouches_during_combat() -> void:
 		"name": "交火身法测试敌人", "team": "enemy", "aiEnabled": true,
 		"aiReactionTime": 0.05, "aiAimAcquisitionTime": 0.05, "aiDamage": 8, "aiCrouchChance": 1.0,
 	})
+	GameState.player_health = 100000 # Keep the stationary observation target alive.
 	RoundManager.set_live()
 	for _frame in range(240):
 		await get_tree().physics_frame
@@ -732,6 +737,7 @@ func _test_bot_strafes_without_orbiting_target() -> void:
 		"name": "绕圈回归测试敌人", "team": "enemy", "aiEnabled": true,
 		"aiReactionTime": 0.05, "aiAimAcquisitionTime": 0.05, "aiDamage": 8,
 	})
+	GameState.player_health = 100000 # Observe the full strafe window, not target death.
 	RoundManager.set_live()
 	var previous_angle := INF
 	var total_turn := 0.0

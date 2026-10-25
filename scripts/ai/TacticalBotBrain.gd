@@ -77,7 +77,7 @@ const WEAPON_PROFILES := {
 var actor: CharacterBody3D
 var enabled: bool = false
 var state: State = State.HOLD
-var move_speed: float = 4.35
+var move_speed: float = 5.4
 var view_distance: float = 34.0
 var field_of_view_degrees: float = 110.0
 var reaction_time: float = 0.34
@@ -96,7 +96,7 @@ var secondary_weapon_id: String = "pistol"
 var has_knife: bool = true
 var retreat_health_ratio: float = 0.35
 var hold_angle_seconds: float = 1.25
-var dodge_interval: float = 0.9
+var dodge_interval: float = 1.8
 var dodge_duration: float = 0.22
 var crouch_during_combat_chance: float = 0.34
 var tap_range_meters: float = 22.0
@@ -559,7 +559,7 @@ func _reset_runtime() -> void:
 	_equip_seconds = 0.0
 	_burst_size = 3
 	_spray_decision = "burst"
-	_dodge_timer = 0.0
+	_dodge_timer = _rng.randf_range(dodge_interval * 0.5, dodge_interval)
 	_dodge_active = 0.0
 	_dodge_direction = Vector3.ZERO
 	_dodge_count = 0
@@ -1332,7 +1332,7 @@ func _strafe_dodge(delta: float) -> void:
 		_dodge_active = 0.0
 		_stop(delta)
 		return
-	actor.call("apply_ai_navigation", _dodge_direction, move_speed * 0.58, actor.global_position.y, delta)
+	actor.call("apply_ai_navigation", _dodge_direction, minf(move_speed * 0.58, 2.6), actor.global_position.y, delta)
 
 func _update_weapon_selection(distance: float) -> void:
 	var desired := primary_weapon_id
@@ -1559,11 +1559,16 @@ func _move_toward(destination: Vector3, delta: float) -> void:
 			direction = right
 	var precise := bool(_active_navigation_link.get("precise", false))
 	var crouch := bool(_active_navigation_link.get("crouch", false))
-	var movement_scale := 0.54 if crouch else (0.72 if precise else 1.0)
+	var speed := move_speed
+	if crouch:
+		speed = minf(move_speed * 0.54, 2.2)
+	elif precise:
+		# Imported navmesh edges are all precise for arrival, including open ground.
+		speed = minf(move_speed * 0.72, 4.0)
 	actor.call("set_ai_crouching", crouch)
 	_aim_at(actor.global_position + direction, delta, 0.18)
 	_watch_yaw = actor.rotation.y
-	actor.call("apply_ai_navigation", direction, move_speed * movement_scale, steering_target.y, delta)
+	actor.call("apply_ai_navigation", direction, speed, steering_target.y, delta)
 
 func _stop(delta: float) -> void:
 	if actor != null and actor.has_method("set_ai_crouching"):
