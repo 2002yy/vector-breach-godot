@@ -1,0 +1,1090 @@
+{
+  "measurement_complete": true,
+  "shared_route_pass": false,
+  "frequency_outcome_changes": [
+    {
+      "map": "inferno",
+      "case": "run_up",
+      "scheme": "modern_cs",
+      "hz60": "wrong_elevation",
+      "hz120": "outside_target"
+    }
+  ],
+  "frequency_pass_changes": [],
+  "maps": {
+    "dust2": {
+      "frozen_manifest_sha256": "b5a60ec7dbc7ba5fbdbc229c039a09c0b167fa44b1874f9ebe5d9d13e8c2ffce",
+      "collision_sha256": "fa5aa46d6f283de8f9afe2345b9681b2b3c27fe5126761a2b2cfc79b5e09cad8",
+      "counts": {
+        "60": {
+          "reached": 11,
+          "outside_target": 1,
+          "wrong_elevation": 3
+        },
+        "120": {
+          "reached": 11,
+          "outside_target": 1,
+          "wrong_elevation": 3
+        }
+      }
+    },
+    "mirage": {
+      "frozen_manifest_sha256": "a79fae49c128524812e560942a4f9904be19311d894a62e235319411f148d975",
+      "collision_sha256": "5c6411b64b4427f67ce53f3b92a1e46e482177fa23be034ec956932ddb9c8c2e",
+      "counts": {
+        "60": {
+          "reached": 7,
+          "outside_target": 8
+        },
+        "120": {
+          "reached": 7,
+          "outside_target": 8
+        }
+      }
+    },
+    "inferno": {
+      "frozen_manifest_sha256": "f48351cab077bd9cd2c222a22bdc0b9033332801596964d5879941bcb27829de",
+      "collision_sha256": "c7ac5a0fce623e0ad1fef0417ea016c53f5c555aff702666b30c04d9aa74e261",
+      "counts": {
+        "60": {
+          "reached": 8,
+          "outside_target": 2,
+          "wrong_elevation": 5
+        },
+        "120": {
+          "reached": 8,
+          "outside_target": 3,
+          "wrong_elevation": 4
+        }
+      }
+    }
+  },
+  "results": [
+    {
+      "map": "dust2",
+      "rate": 60,
+      "case": "ordinary",
+      "scheme": "current",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.0,
+      "landing_height_error_m": 0.00120353698730469
+    },
+    {
+      "map": "dust2",
+      "rate": 60,
+      "case": "ordinary",
+      "scheme": "legacy_16",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.0,
+      "landing_height_error_m": 0.00153112411499023
+    },
+    {
+      "map": "dust2",
+      "rate": 60,
+      "case": "ordinary",
+      "scheme": "modern_cs",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.0,
+      "landing_height_error_m": 0.00153160095214844
+    },
+    {
+      "map": "dust2",
+      "rate": 60,
+      "case": "critical_landing",
+      "scheme": "current",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 1.42583084106445,
+      "landing_height_error_m": 0.0236880779266357
+    },
+    {
+      "map": "dust2",
+      "rate": 60,
+      "case": "critical_landing",
+      "scheme": "legacy_16",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.713211059570313,
+      "landing_height_error_m": 0.0154931545257568
+    },
+    {
+      "map": "dust2",
+      "rate": 60,
+      "case": "critical_landing",
+      "scheme": "modern_cs",
+      "reason": "outside_target",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.31357955932617,
+      "landing_height_error_m": 0.0268261432647705
+    },
+    {
+      "map": "dust2",
+      "rate": 60,
+      "case": "edge",
+      "scheme": "current",
+      "reason": "wrong_elevation",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.7818431854248,
+      "landing_height_error_m": 1.01543986797333
+    },
+    {
+      "map": "dust2",
+      "rate": 60,
+      "case": "edge",
+      "scheme": "legacy_16",
+      "reason": "wrong_elevation",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.78164386749268,
+      "landing_height_error_m": 1.01548075675964
+    },
+    {
+      "map": "dust2",
+      "rate": 60,
+      "case": "edge",
+      "scheme": "modern_cs",
+      "reason": "wrong_elevation",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.78164291381836,
+      "landing_height_error_m": 1.01548111438751
+    },
+    {
+      "map": "dust2",
+      "rate": 60,
+      "case": "run_up",
+      "scheme": "current",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.576133906841278,
+      "landing_height_error_m": 0.000877857208251953
+    },
+    {
+      "map": "dust2",
+      "rate": 60,
+      "case": "run_up",
+      "scheme": "legacy_16",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.939691543579102,
+      "landing_height_error_m": 0.0225005149841309
+    },
+    {
+      "map": "dust2",
+      "rate": 60,
+      "case": "run_up",
+      "scheme": "modern_cs",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.47320556640625,
+      "landing_height_error_m": 0.000870704650878906
+    },
+    {
+      "map": "dust2",
+      "rate": 60,
+      "case": "crouch_jump",
+      "scheme": "current",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.324540913105011,
+      "landing_height_error_m": 0.000877618789672852
+    },
+    {
+      "map": "dust2",
+      "rate": 60,
+      "case": "crouch_jump",
+      "scheme": "legacy_16",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 1.04032135009766,
+      "landing_height_error_m": 0.0487263202667236
+    },
+    {
+      "map": "dust2",
+      "rate": 60,
+      "case": "crouch_jump",
+      "scheme": "modern_cs",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 1.10394287109375,
+      "landing_height_error_m": 0.0911133289337158
+    },
+    {
+      "map": "dust2",
+      "rate": 120,
+      "case": "ordinary",
+      "scheme": "current",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.0,
+      "landing_height_error_m": 0.00120353698730469
+    },
+    {
+      "map": "dust2",
+      "rate": 120,
+      "case": "ordinary",
+      "scheme": "legacy_16",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.0,
+      "landing_height_error_m": 0.00117874145507813
+    },
+    {
+      "map": "dust2",
+      "rate": 120,
+      "case": "ordinary",
+      "scheme": "modern_cs",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.0,
+      "landing_height_error_m": 0.00117874145507813
+    },
+    {
+      "map": "dust2",
+      "rate": 120,
+      "case": "critical_landing",
+      "scheme": "current",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 1.24524688720703,
+      "landing_height_error_m": 0.0229613780975342
+    },
+    {
+      "map": "dust2",
+      "rate": 120,
+      "case": "critical_landing",
+      "scheme": "legacy_16",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.920402526855469,
+      "landing_height_error_m": 0.00956559181213379
+    },
+    {
+      "map": "dust2",
+      "rate": 120,
+      "case": "critical_landing",
+      "scheme": "modern_cs",
+      "reason": "outside_target",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.42873001098633,
+      "landing_height_error_m": 0.027209997177124
+    },
+    {
+      "map": "dust2",
+      "rate": 120,
+      "case": "edge",
+      "scheme": "current",
+      "reason": "wrong_elevation",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.78192615509033,
+      "landing_height_error_m": 1.01563668251038
+    },
+    {
+      "map": "dust2",
+      "rate": 120,
+      "case": "edge",
+      "scheme": "legacy_16",
+      "reason": "wrong_elevation",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.78141975402832,
+      "landing_height_error_m": 1.01544058322906
+    },
+    {
+      "map": "dust2",
+      "rate": 120,
+      "case": "edge",
+      "scheme": "modern_cs",
+      "reason": "wrong_elevation",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.78165626525879,
+      "landing_height_error_m": 1.01554119586945
+    },
+    {
+      "map": "dust2",
+      "rate": 120,
+      "case": "run_up",
+      "scheme": "current",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.612535655498505,
+      "landing_height_error_m": 0.000781536102294922
+    },
+    {
+      "map": "dust2",
+      "rate": 120,
+      "case": "run_up",
+      "scheme": "legacy_16",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.946758389472961,
+      "landing_height_error_m": 0.0244922637939453
+    },
+    {
+      "map": "dust2",
+      "rate": 120,
+      "case": "run_up",
+      "scheme": "modern_cs",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.0667253360152245,
+      "landing_height_error_m": 0.000148773193359375
+    },
+    {
+      "map": "dust2",
+      "rate": 120,
+      "case": "crouch_jump",
+      "scheme": "current",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.3739073574543,
+      "landing_height_error_m": 0.000970125198364258
+    },
+    {
+      "map": "dust2",
+      "rate": 120,
+      "case": "crouch_jump",
+      "scheme": "legacy_16",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 1.10774230957031,
+      "landing_height_error_m": 0.0937502384185791
+    },
+    {
+      "map": "dust2",
+      "rate": 120,
+      "case": "crouch_jump",
+      "scheme": "modern_cs",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 1.12310791015625,
+      "landing_height_error_m": 0.107403039932251
+    },
+    {
+      "map": "mirage",
+      "rate": 60,
+      "case": "ordinary",
+      "scheme": "current",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.0,
+      "landing_height_error_m": 0.0
+    },
+    {
+      "map": "mirage",
+      "rate": 60,
+      "case": "ordinary",
+      "scheme": "legacy_16",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.0,
+      "landing_height_error_m": 1.19209289550781e-07
+    },
+    {
+      "map": "mirage",
+      "rate": 60,
+      "case": "ordinary",
+      "scheme": "modern_cs",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.0,
+      "landing_height_error_m": 1.19209289550781e-07
+    },
+    {
+      "map": "mirage",
+      "rate": 60,
+      "case": "critical_landing",
+      "scheme": "current",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 1.42830085754395,
+      "landing_height_error_m": 0.000874519348144531
+    },
+    {
+      "map": "mirage",
+      "rate": 60,
+      "case": "critical_landing",
+      "scheme": "legacy_16",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.787919998168945,
+      "landing_height_error_m": 0.000871360301971436
+    },
+    {
+      "map": "mirage",
+      "rate": 60,
+      "case": "critical_landing",
+      "scheme": "modern_cs",
+      "reason": "outside_target",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 3.18936920166016,
+      "landing_height_error_m": 0.00093543529510498
+    },
+    {
+      "map": "mirage",
+      "rate": 60,
+      "case": "edge",
+      "scheme": "current",
+      "reason": "outside_target",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 3.39879560470581,
+      "landing_height_error_m": 0.059434175491333
+    },
+    {
+      "map": "mirage",
+      "rate": 60,
+      "case": "edge",
+      "scheme": "legacy_16",
+      "reason": "outside_target",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.18847465515137,
+      "landing_height_error_m": 0.00596785545349121
+    },
+    {
+      "map": "mirage",
+      "rate": 60,
+      "case": "edge",
+      "scheme": "modern_cs",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.335819244384766,
+      "landing_height_error_m": 0.00251126289367676
+    },
+    {
+      "map": "mirage",
+      "rate": 60,
+      "case": "run_up",
+      "scheme": "current",
+      "reason": "outside_target",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.0431022644043,
+      "landing_height_error_m": 0.102148652076721
+    },
+    {
+      "map": "mirage",
+      "rate": 60,
+      "case": "run_up",
+      "scheme": "legacy_16",
+      "reason": "outside_target",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.34411454200745,
+      "landing_height_error_m": 0.0418545007705688
+    },
+    {
+      "map": "mirage",
+      "rate": 60,
+      "case": "run_up",
+      "scheme": "modern_cs",
+      "reason": "outside_target",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.23666954040527,
+      "landing_height_error_m": 0.0884315967559814
+    },
+    {
+      "map": "mirage",
+      "rate": 60,
+      "case": "crouch_jump",
+      "scheme": "current",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 1.1606502532959,
+      "landing_height_error_m": 0.000877976417541504
+    },
+    {
+      "map": "mirage",
+      "rate": 60,
+      "case": "crouch_jump",
+      "scheme": "legacy_16",
+      "reason": "outside_target",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.336669921875,
+      "landing_height_error_m": 0.000935077667236328
+    },
+    {
+      "map": "mirage",
+      "rate": 60,
+      "case": "crouch_jump",
+      "scheme": "modern_cs",
+      "reason": "outside_target",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.4620361328125,
+      "landing_height_error_m": 0.0112377405166626
+    },
+    {
+      "map": "mirage",
+      "rate": 120,
+      "case": "ordinary",
+      "scheme": "current",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.0,
+      "landing_height_error_m": 1.19209289550781e-07
+    },
+    {
+      "map": "mirage",
+      "rate": 120,
+      "case": "ordinary",
+      "scheme": "legacy_16",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.0,
+      "landing_height_error_m": 1.19209289550781e-07
+    },
+    {
+      "map": "mirage",
+      "rate": 120,
+      "case": "ordinary",
+      "scheme": "modern_cs",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.0,
+      "landing_height_error_m": 1.19209289550781e-07
+    },
+    {
+      "map": "mirage",
+      "rate": 120,
+      "case": "critical_landing",
+      "scheme": "current",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 1.24774932861328,
+      "landing_height_error_m": 0.000782310962677002
+    },
+    {
+      "map": "mirage",
+      "rate": 120,
+      "case": "critical_landing",
+      "scheme": "legacy_16",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.955742835998535,
+      "landing_height_error_m": 0.000187397003173828
+    },
+    {
+      "map": "mirage",
+      "rate": 120,
+      "case": "critical_landing",
+      "scheme": "modern_cs",
+      "reason": "outside_target",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 3.26025772094727,
+      "landing_height_error_m": 0.000114738941192627
+    },
+    {
+      "map": "mirage",
+      "rate": 120,
+      "case": "edge",
+      "scheme": "current",
+      "reason": "outside_target",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 3.31171584129334,
+      "landing_height_error_m": 0.0541794300079346
+    },
+    {
+      "map": "mirage",
+      "rate": 120,
+      "case": "edge",
+      "scheme": "legacy_16",
+      "reason": "outside_target",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.04626846313477,
+      "landing_height_error_m": 0.0046851634979248
+    },
+    {
+      "map": "mirage",
+      "rate": 120,
+      "case": "edge",
+      "scheme": "modern_cs",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.192981719970703,
+      "landing_height_error_m": 0.000806570053100586
+    },
+    {
+      "map": "mirage",
+      "rate": 120,
+      "case": "run_up",
+      "scheme": "current",
+      "reason": "outside_target",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.09602785110474,
+      "landing_height_error_m": 0.102049469947815
+    },
+    {
+      "map": "mirage",
+      "rate": 120,
+      "case": "run_up",
+      "scheme": "legacy_16",
+      "reason": "outside_target",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.40116214752197,
+      "landing_height_error_m": 0.000274419784545898
+    },
+    {
+      "map": "mirage",
+      "rate": 120,
+      "case": "run_up",
+      "scheme": "modern_cs",
+      "reason": "outside_target",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.24174618721008,
+      "landing_height_error_m": 0.0867431163787842
+    },
+    {
+      "map": "mirage",
+      "rate": 120,
+      "case": "crouch_jump",
+      "scheme": "current",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 1.1562614440918,
+      "landing_height_error_m": 0.00078117847442627
+    },
+    {
+      "map": "mirage",
+      "rate": 120,
+      "case": "crouch_jump",
+      "scheme": "legacy_16",
+      "reason": "outside_target",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.3980655670166,
+      "landing_height_error_m": 0.0010606050491333
+    },
+    {
+      "map": "mirage",
+      "rate": 120,
+      "case": "crouch_jump",
+      "scheme": "modern_cs",
+      "reason": "outside_target",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.48111534118652,
+      "landing_height_error_m": 0.0159990787506104
+    },
+    {
+      "map": "inferno",
+      "rate": 60,
+      "case": "ordinary",
+      "scheme": "current",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.0,
+      "landing_height_error_m": 1.19209289550781e-07
+    },
+    {
+      "map": "inferno",
+      "rate": 60,
+      "case": "ordinary",
+      "scheme": "legacy_16",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.0,
+      "landing_height_error_m": 1.19209289550781e-07
+    },
+    {
+      "map": "inferno",
+      "rate": 60,
+      "case": "ordinary",
+      "scheme": "modern_cs",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.0,
+      "landing_height_error_m": 4.76837158203125e-07
+    },
+    {
+      "map": "inferno",
+      "rate": 60,
+      "case": "critical_landing",
+      "scheme": "current",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 1.42829895019531,
+      "landing_height_error_m": 0.00169563293457031
+    },
+    {
+      "map": "inferno",
+      "rate": 60,
+      "case": "critical_landing",
+      "scheme": "legacy_16",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.787918090820313,
+      "landing_height_error_m": 0.000872135162353516
+    },
+    {
+      "map": "inferno",
+      "rate": 60,
+      "case": "critical_landing",
+      "scheme": "modern_cs",
+      "reason": "outside_target",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.31176376342773,
+      "landing_height_error_m": 0.000895023345947266
+    },
+    {
+      "map": "inferno",
+      "rate": 60,
+      "case": "edge",
+      "scheme": "current",
+      "reason": "wrong_elevation",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 1.33125305175781,
+      "landing_height_error_m": 1.42165160179138
+    },
+    {
+      "map": "inferno",
+      "rate": 60,
+      "case": "edge",
+      "scheme": "legacy_16",
+      "reason": "wrong_elevation",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 1.33104705810547,
+      "landing_height_error_m": 1.42169499397278
+    },
+    {
+      "map": "inferno",
+      "rate": 60,
+      "case": "edge",
+      "scheme": "modern_cs",
+      "reason": "wrong_elevation",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 1.33104705810547,
+      "landing_height_error_m": 1.4216947555542
+    },
+    {
+      "map": "inferno",
+      "rate": 60,
+      "case": "run_up",
+      "scheme": "current",
+      "reason": "wrong_elevation",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.89322400093079,
+      "landing_height_error_m": 1.01865637302399
+    },
+    {
+      "map": "inferno",
+      "rate": 60,
+      "case": "run_up",
+      "scheme": "legacy_16",
+      "reason": "outside_target",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.90868973731995,
+      "landing_height_error_m": 0.149564146995544
+    },
+    {
+      "map": "inferno",
+      "rate": 60,
+      "case": "run_up",
+      "scheme": "modern_cs",
+      "reason": "wrong_elevation",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.92996883392334,
+      "landing_height_error_m": 0.202308773994446
+    },
+    {
+      "map": "inferno",
+      "rate": 60,
+      "case": "crouch_jump",
+      "scheme": "current",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.184791564941406,
+      "landing_height_error_m": 0.000877857208251953
+    },
+    {
+      "map": "inferno",
+      "rate": 60,
+      "case": "crouch_jump",
+      "scheme": "legacy_16",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.987899780273438,
+      "landing_height_error_m": 0.000934600830078125
+    },
+    {
+      "map": "inferno",
+      "rate": 60,
+      "case": "crouch_jump",
+      "scheme": "modern_cs",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 1.06010818481445,
+      "landing_height_error_m": 0.000914096832275391
+    },
+    {
+      "map": "inferno",
+      "rate": 120,
+      "case": "ordinary",
+      "scheme": "current",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.0,
+      "landing_height_error_m": 1.19209289550781e-07
+    },
+    {
+      "map": "inferno",
+      "rate": 120,
+      "case": "ordinary",
+      "scheme": "legacy_16",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.0,
+      "landing_height_error_m": 1.19209289550781e-07
+    },
+    {
+      "map": "inferno",
+      "rate": 120,
+      "case": "ordinary",
+      "scheme": "modern_cs",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.0,
+      "landing_height_error_m": 5.96046447753906e-07
+    },
+    {
+      "map": "inferno",
+      "rate": 120,
+      "case": "critical_landing",
+      "scheme": "current",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 1.24761199951172,
+      "landing_height_error_m": 0.00275897979736328
+    },
+    {
+      "map": "inferno",
+      "rate": 120,
+      "case": "critical_landing",
+      "scheme": "legacy_16",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.955795288085938,
+      "landing_height_error_m": 0.000187397003173828
+    },
+    {
+      "map": "inferno",
+      "rate": 120,
+      "case": "critical_landing",
+      "scheme": "modern_cs",
+      "reason": "outside_target",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.42727279663086,
+      "landing_height_error_m": 0.000145435333251953
+    },
+    {
+      "map": "inferno",
+      "rate": 120,
+      "case": "edge",
+      "scheme": "current",
+      "reason": "wrong_elevation",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 1.33085250854492,
+      "landing_height_error_m": 1.42185819149017
+    },
+    {
+      "map": "inferno",
+      "rate": 120,
+      "case": "edge",
+      "scheme": "legacy_16",
+      "reason": "wrong_elevation",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 1.3308219909668,
+      "landing_height_error_m": 1.42165493965149
+    },
+    {
+      "map": "inferno",
+      "rate": 120,
+      "case": "edge",
+      "scheme": "modern_cs",
+      "reason": "wrong_elevation",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 1.33105850219727,
+      "landing_height_error_m": 1.42175626754761
+    },
+    {
+      "map": "inferno",
+      "rate": 120,
+      "case": "run_up",
+      "scheme": "current",
+      "reason": "wrong_elevation",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.89269542694092,
+      "landing_height_error_m": 1.01854848861694
+    },
+    {
+      "map": "inferno",
+      "rate": 120,
+      "case": "run_up",
+      "scheme": "legacy_16",
+      "reason": "outside_target",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.91102766990662,
+      "landing_height_error_m": 0.163222908973694
+    },
+    {
+      "map": "inferno",
+      "rate": 120,
+      "case": "run_up",
+      "scheme": "modern_cs",
+      "reason": "outside_target",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 2.90978670120239,
+      "landing_height_error_m": 0.156279683113098
+    },
+    {
+      "map": "inferno",
+      "rate": 120,
+      "case": "crouch_jump",
+      "scheme": "current",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 0.155994415283203,
+      "landing_height_error_m": 0.000781059265136719
+    },
+    {
+      "map": "inferno",
+      "rate": 120,
+      "case": "crouch_jump",
+      "scheme": "legacy_16",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 1.00606918334961,
+      "landing_height_error_m": 0.000125885009765625
+    },
+    {
+      "map": "inferno",
+      "rate": 120,
+      "case": "crouch_jump",
+      "scheme": "modern_cs",
+      "reason": "reached",
+      "start_valid": true,
+      "airborne": true,
+      "landing_distance_error_m": 1.08082962036133,
+      "landing_height_error_m": 0.00379514694213867
+    }
+  ],
+  "point_qualification": {
+    "complete": false,
+    "method": "Vulkan first-person and overview inspection plus contact traces",
+    "flags": [
+      {
+        "map": "dust2",
+        "case": "edge",
+        "status": "blocked_direct_route",
+        "note": "Facing wall; lower surface ray alone does not establish a jump corridor."
+      },
+      {
+        "map": "inferno",
+        "case": "edge",
+        "status": "blocked_direct_route",
+        "note": "Facing wall; reject direct traversal interpretation."
+      },
+      {
+        "map": "mirage",
+        "case": "run_up",
+        "status": "needs_no_jump_control",
+        "note": "Stairs/corner visible; necessity of jump not established."
+      }
+    ]
+  },
+  "release_ready": false,
+  "verification": {
+    "real_trials": 90,
+    "vulkan_sessions": 3,
+    "final_pngs": 30,
+    "mirage_60_repeat_trials_exact": 15,
+    "stale_identity_rejected": true,
+    "qualification_gate_rejected": true,
+    "production_code_unchanged": true,
+    "original_assets_unchanged": true,
+    "existing_dirty_imports_and_settings_preserved": true
+  }
+}
