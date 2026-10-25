@@ -36,6 +36,9 @@ func _run() -> void:
 		assert(not _host.runtime.configured and _host.runtime._pending.is_empty())
 		assert(_host._bound.is_empty(), "cards cannot bind characters or upload inputs")
 		await _capture("selected-" + id)
+	assert(
+		get_node("/root/SceneReader").submitted_count == 0, "cards cannot start background reads"
+	)
 	_checks["boot_and_cards_loads"] = 0
 	_checks["boot_and_cards_no_candidate_upload"] = true
 	_game.call("_on_map_selected", _game.call("find_level_option_index", _level_id))
@@ -49,8 +52,16 @@ func _run() -> void:
 	assert(_game._starting and level.load_count == 0)
 	assert(_game.get_node("StartMenu").start_button.disabled)
 	assert(get_viewport().get_texture().get_image().save_png(_out.path_join("loading.png")) == OK)
+	var staged_frames := 0
 	while _game._starting:
+		var sandbox := _game.get_node("CombatSandbox")
+		if sandbox.get_child_count() > 0 and sandbox.last_load_timings.actor_count == 0:
+			staged_frames += 1
+			assert(not _game.game_started)
+			for actor in sandbox.get_children():
+				assert(actor.process_mode == Node.PROCESS_MODE_DISABLED)
 		await get_tree().process_frame
+	assert(staged_frames >= 9, "classic start presents at least one frame per AI actor")
 	await _settle()
 	assert(level.load_count == 1, "double Start must load only the final map once")
 	assert(_host.runtime.configured and _host.runtime.level_id == _level_id)
@@ -190,6 +201,8 @@ func _appearance_and_roster() -> void:
 			old.append(member.get_native_character().get_instance_id())
 	var bound_count: int = _host._bound.size()
 	sandbox.call("load_for_level", _game.get_node("Level").get_current_level_data())
+	assert(sandbox.last_load_timings.retained_scene_count > 0)
+	_checks["round_source_scene_bridge_count"] = sandbox.last_load_timings.retained_scene_count
 	print("CONTROLLED_STEP roster installed")
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -355,14 +368,21 @@ func _map_exit() -> void:
 	assert(level.load_count == before + 1 and level.get_current_level_data().id == "gatehouse")
 	assert(not _host.runtime.configured and _host._bound.is_empty())
 	await _capture("map-fallback")
-	_game.get_node("Level").call("load_level", _level_id)
-	for frame in range(2):
-		await get_tree().physics_frame
+	var canceled: Array[bool] = []
+	# Observe the upload within the prepared emission: a frame poll can miss it entirely.
+	var cancel_upload := func(data: Dictionary) -> void:
+		if data.get("id") != _level_id:
+			return
+		assert(not _host.runtime._pending.is_empty(), "prepared map starts candidate upload")
+		canceled.append(true)
+		level.call("load_level", "gatehouse")
+	_game.level_prepared.connect(cancel_upload)
+	level.call("load_level", _level_id)
 	var deadline := Time.get_ticks_msec() + 120000
-	while _host.runtime._pending.is_empty():
+	while canceled.is_empty():
 		assert(Time.get_ticks_msec() < deadline)
 		await get_tree().process_frame
-	_game.get_node("Level").call("load_level", "gatehouse")
+	_game.level_prepared.disconnect(cancel_upload)
 	await _settle()
 	assert(not _host.runtime.configured and _host._bound.is_empty())
 	_checks["map_fallback_and_old_upload_canceled"] = true
@@ -378,6 +398,8 @@ func _failed_start() -> void:
 	assert(not _host.runtime.configured and _host._bound.is_empty())
 	assert(_host.candidate_state == "地图加载失败，保留原材质")
 	assert(not _game.get_node("StartMenu").start_button.disabled)
+	assert(_game.get_node("StartMenu").loading_status.state == "failed")
+	assert(_game.get_node("StartMenu").start_button.text == "重试对局")
 	_checks["failed_start_releases_candidate_and_allows_retry"] = true
 	await _capture("failed-start")
 

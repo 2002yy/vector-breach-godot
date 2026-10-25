@@ -5,6 +5,7 @@ const LocalClassicMaps = preload("res://scripts/level/LocalClassicMaps.gd")
 const HelpPanel = preload("res://scripts/ui/PlayerHelpPanel.gd")
 const LobbyView = preload("res://scripts/ui/LobbyMenuView.gd")
 const MenuStyle = preload("res://scripts/ui/TacticalMenuStyle.gd")
+var loading_status: PanelContainer
 var _appearance_choices: Dictionary = {}
 
 const PlayerGuide = preload("res://scripts/ui/PlayerGuide.gd")
@@ -21,6 +22,7 @@ var _preview_camera: Camera3D
 var _static_background: TextureRect
 var _friendly_fire_toggle: CheckButton
 var _friendly_rule_note: Label
+var _loading_active := false
 
 @onready var title_label: Label = $MenuPanel/Margin/VBox/Title
 @onready var preview_rect: TextureRect = $MenuPanel/Margin/VBox/Preview
@@ -88,6 +90,9 @@ func _ready() -> void:
 	dynamic_crosshair_toggle.toggled.connect(func(_enabled: bool) -> void: _emit_settings())
 	radar_rotates_toggle.toggled.connect(func(_enabled: bool) -> void: _emit_settings())
 	_lobby.build(self)
+	loading_status = preload("res://scripts/ui/LoadingStatus.gd").new()
+	$MenuPanel/Margin/VBox.add_child(loading_status)
+	$MenuPanel/Margin/VBox.move_child(loading_status, start_button.get_parent().get_index() + 1)
 	_static_background = TextureRect.new()
 	_static_background.name = "MapBackground"
 	_static_background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -260,6 +265,8 @@ func select_team(team: String) -> void:
 	_lobby.select_team(team)
 
 func set_map_details(option: Dictionary, can_resume: bool) -> void:
+	if not _loading_active:
+		loading_status.clear()
 	_show_archive = _is_test_map(String(option["id"]))
 	$MenuPanel/Margin/VBox/Controls/ArchiveToggle.set_pressed_no_signal(_show_archive)
 	for index in range(_map_options.size()):
@@ -301,6 +308,7 @@ func set_map_details(option: Dictionary, can_resume: bool) -> void:
 	MenuStyle.button(resume_button, can_resume)
 
 func set_loading(active: bool) -> void:
+	_loading_active = active
 	start_button.disabled = active
 	resume_button.disabled = active
 	_return_to_maps_button.disabled = active
@@ -308,10 +316,20 @@ func set_loading(active: bool) -> void:
 	for button in _lobby.team_buttons.values():
 		button.disabled = active or resume_button.visible
 	if active:
+		_lobby.show_picker(false)
+		loading_status.update_stage("map")
 		start_button.text = "正在准备对局…"
 		hint_label.text = "正在加载所选地图，请稍候"
 	elif not _map_options.is_empty():
 		set_map_details(_map_options[_selected_map_index], resume_button.visible)
+
+func set_loading_stage(stage: String, completed: int = 0, total: int = 0) -> void:
+	if _loading_active:
+		loading_status.update_stage(stage, completed, total)
+
+func show_loading_error(reason: String) -> void:
+	loading_status.show_failure(reason)
+	start_button.text = "重试对局"
 
 func set_match_summary(snapshot: Dictionary, record_path: String) -> void:
 	description_label.show()

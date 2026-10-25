@@ -2,6 +2,7 @@ extends Node
 
 const C4_SCENE := preload("res://scenes/objective/C4Device.tscn")
 const C4_RUNTIME_PATH := "res://assets/models/objectives/c4_device.glb"
+const HUD_SCENE := preload("res://scenes/ui/CombatHud.tscn")
 
 var _failures: PackedStringArray = []
 var _passes: int = 0
@@ -13,6 +14,12 @@ func _ready() -> void:
 	await _run_test("armed_urgency_audio_light_contract", _test_armed_urgency_audio_light_contract)
 	await _run_test("armed_feedback_resets_between_states", _test_armed_feedback_resets_between_states)
 	await _run_test("frozen_gameplay_constants", _test_frozen_gameplay_constants)
+	await _run_test(
+		"plant_announcement_cancel_and_lifecycle", _test_plant_announcement_cancel_and_lifecycle
+	)
+	await _run_test(
+		"plant_announcement_team_and_spectator", _test_plant_announcement_team_and_spectator
+	)
 	if _failures.is_empty():
 		print("[C4DeviceTests] PASS (%d tests)" % _passes)
 		get_tree().quit(0)
@@ -162,3 +169,90 @@ func _test_frozen_gameplay_constants() -> void:
 	_assert_near(float(device.get("explosion_radius")), 22.0, 0.0001, "Step 16 must not change explosion radius")
 	_assert_near(float(device.get("lethal_radius")), 5.5, 0.0001, "Step 16 must not change lethal radius")
 	await _cleanup_device(device)
+
+
+func _test_plant_announcement_cancel_and_lifecycle() -> void:
+	var hud := HUD_SCENE.instantiate()
+	add_child(hud)
+	var banner: PanelContainer = hud.get_node("HudRoot/ObjectiveAnnouncement")
+	banner.set_process(false)
+	var events: Array = []
+	var listener := func(site: String, serial: int) -> void: events.append([site, serial])
+	RoundManager.bomb_planted.connect(listener)
+	RoundManager.start_round()
+	RoundManager.set_live()
+	_assert_true(RoundManager.begin_plant("A", "T"), "begin real player plant")
+	RoundManager.tick_objective_interaction(1.0, true)
+	_assert_true(not banner.visible and events.is_empty(), "incomplete plant never announces")
+	RoundManager.tick_objective_interaction(3.2, false)
+	_assert_true(not banner.visible and events.is_empty(), "canceled plant never announces")
+	RoundManager.begin_plant("B", "T", "ai")
+	_assert_true(
+		RoundManager.tick_objective_interaction(3.2, true), "AI completion uses real plant"
+	)
+	_assert_equal(
+		events, [["B", RoundManager.round_serial]], "one committed event with site and round"
+	)
+	_assert_true(banner.visible, "completed plant shows announcement")
+	banner.call("_process", 1.0)
+	var left := float(banner.get("remaining"))
+	RoundManager.set_paused_menu()
+	banner.call("_process", 10.0)
+	RoundManager.resume_round()
+	_assert_near(
+		float(banner.get("remaining")), left, 0.001, "pause/resume neither expires nor replays"
+	)
+	_assert_true(not RoundManager.plant_bomb("A"), "duplicate committed plant is rejected")
+	_assert_equal(events.size(), 1, "resume and rejected plant produce no extra event")
+	banner.call("_process", 5.0)
+	_assert_true(not banner.visible, "announcement expires while persistent bomb state remains")
+	_assert_equal(
+		RoundManager.state, RoundManager.RoundState.BOMB_PLANTED, "expiry leaves bomb active"
+	)
+	RoundManager.start_round()
+	RoundManager.set_live()
+	RoundManager.plant_bomb("A")
+	_assert_true(banner.visible, "next round may announce again")
+	RoundManager.defuse_bomb()
+	_assert_true(not banner.visible, "round settlement removes stale success banner")
+	RoundManager.start_round()
+	RoundManager.set_live()
+	RoundManager.plant_bomb("B")
+	RoundManager.set_warmup()
+	_assert_true(not banner.visible, "return to lobby clears banner")
+	RoundManager.bomb_planted.disconnect(listener)
+	hud.queue_free()
+	await get_tree().process_frame
+
+
+func _test_plant_announcement_team_and_spectator() -> void:
+	var previous_team := GameState.player_team
+	var hud := HUD_SCENE.instantiate()
+	add_child(hud)
+	var banner: PanelContainer = hud.get_node("HudRoot/ObjectiveAnnouncement")
+	for team in ["T", "CT"]:
+		GameState.player_team = team
+		for dead in [false, true]:
+			RoundManager.start_round()
+			RoundManager.set_live()
+			hud.call(
+				"update_display",
+				{
+					"game_started": true,
+					"menu_open": false,
+					"spectator": {"active": dead, "has_target": false}
+				}
+			)
+			RoundManager.begin_plant("A", "T", "player")
+			RoundManager.tick_objective_interaction(3.2, true)
+			_assert_true(banner.is_visible_in_tree(), "%s dead=%s sees success" % [team, dead])
+			var detail: Label = banner.get("detail")
+			_assert_true(
+				detail.text.contains("保护" if team == "T" else "拆除"), "team-specific action"
+			)
+			hud.call("update_display", {"game_started": true, "menu_open": true})
+			_assert_true(not banner.is_visible_in_tree(), "menu hides banner with HUD")
+	RoundManager.set_warmup()
+	GameState.player_team = previous_team
+	hud.queue_free()
+	await get_tree().process_frame

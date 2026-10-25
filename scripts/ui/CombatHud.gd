@@ -76,6 +76,9 @@ func _ready() -> void:
 	_messages.name = "CombatMessages"
 	add_child(_messages)
 	_messages.build(hud_root, kill_feed)
+	var announcement := preload("res://scripts/ui/ObjectiveAnnouncement.gd").new()
+	announcement.name = "ObjectiveAnnouncement"
+	hud_root.add_child(announcement)
 	_scope = preload("res://scripts/ui/ScopeOverlay.gd").new()
 	_scope.name = "ScopeOverlay"
 	hud_root.add_child(_scope)
@@ -196,6 +199,7 @@ func show_training_panel(enabled: bool) -> void:
 
 func reset_transients() -> void:
 	_messages.clear()
+	$HudRoot/ObjectiveAnnouncement.clear()
 	for child in kill_feed.get_children():
 		kill_feed.remove_child(child)
 		child.queue_free()

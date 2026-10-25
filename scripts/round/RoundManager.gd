@@ -5,6 +5,7 @@ signal round_ended(winner: String, reason: String)
 signal restart_requested
 signal objective_interaction_changed(snapshot: Dictionary)
 signal bomb_exploded(site_label: String)
+signal bomb_planted(site_label: String, serial: int)
 
 enum RoundState {
 	WARMUP,
@@ -101,6 +102,7 @@ func plant_bomb(site_label: String) -> bool:
 	time_remaining = bomb_duration
 	_set_state(RoundState.BOMB_PLANTED)
 	cancel_objective_interaction()
+	bomb_planted.emit(site_label, round_serial)
 	return true
 
 func defuse_bomb() -> bool:

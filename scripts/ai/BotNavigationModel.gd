@@ -6,14 +6,45 @@ var links: Array = []
 var link_count: int = 0
 var _uniform_search: AStar3D
 var _blocked_points: Dictionary = {}
+var _uniform_eligible := false
+var _prepared := false
+
+
+static func prepare(graph_variant: Variant) -> BotNavigationModel:
+	var prepared := BotNavigationModel.new()
+	prepared._parse_topology(graph_variant)
+	for neighbors in prepared.links:
+		for link in neighbors:
+			link.make_read_only()
+		neighbors.make_read_only()
+	prepared.points.make_read_only()
+	prepared.links.make_read_only()
+	prepared._prepared = true
+	return prepared
 
 
 func configure(graph_variant: Variant) -> void:
-	points.clear()
-	links.clear()
+	# Drop our references; a previous topology may be shared and read-only.
+	points = []
+	links = []
 	link_count = 0
 	_uniform_search = null
+	_uniform_eligible = false
+	_prepared = false
 	_blocked_points.clear()
+	if graph_variant is BotNavigationModel:
+		var prepared := graph_variant as BotNavigationModel
+		if prepared._prepared:
+			points = prepared.points
+			links = prepared.links
+			link_count = prepared.link_count
+			_uniform_eligible = prepared._uniform_eligible
+	else:
+		_parse_topology(graph_variant)
+	_build_uniform_search()
+
+
+func _parse_topology(graph_variant: Variant) -> void:
 	if not graph_variant is Dictionary:
 		return
 	var graph := graph_variant as Dictionary
@@ -49,10 +80,14 @@ func configure(graph_variant: Variant) -> void:
 		links[from_index].append(_normalize_link(to_index, attributes))
 		links[to_index].append(_normalize_link(from_index, attributes))
 		link_count += 1
+	_uniform_eligible = points.size() >= 256 and _has_uniform_edges()
+
+
+func _build_uniform_search() -> void:
 	# Dense authored classic graphs have ordinary Euclidean edges. Use the
 	# engine's native search for this exact cost model; retain weighted tactical
 	# search whenever cover, traversal costs or live danger changes that model.
-	if points.size() >= 256 and _has_uniform_edges():
+	if _uniform_eligible:
 		_uniform_search = AStar3D.new()
 		for index in range(points.size()):
 			_uniform_search.add_point(index, points[index])
