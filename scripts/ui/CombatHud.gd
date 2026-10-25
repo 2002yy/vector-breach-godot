@@ -18,7 +18,6 @@ const AMMO_WARNING_COLOR := Color(1.0, 0.38, 0.3, 1.0)
 var _frame_rate_since_usec := Time.get_ticks_usec()
 var _frame_rate_count := 0
 var _spectator_panel: PanelContainer
-var _spectator_text: Label
 var _scope: Control
 var _messages: Node
 
@@ -84,18 +83,8 @@ func _ready() -> void:
 	hud_root.add_child(_scope)
 	hud_root.move_child(_scope, 0)
 	_scope.hide()
-	_spectator_panel = PanelContainer.new()
+	_spectator_panel = preload("res://scripts/ui/SpectatorPanel.gd").new()
 	_spectator_panel.name = "SpectatorPanel"
-	_spectator_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	_spectator_panel.offset_left = -430
-	_spectator_panel.offset_right = 430
-	_spectator_panel.offset_top = -218
-	_spectator_panel.offset_bottom = -115
-	_spectator_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_spectator_text = Label.new()
-	_spectator_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_spectator_text.add_theme_font_size_override("font_size", 19)
-	_spectator_panel.add_child(_spectator_text)
 	hud_root.add_child(_spectator_panel)
 	_spectator_panel.hide()
 	_objective_hint = Label.new()
@@ -157,10 +146,6 @@ func _process(_delta: float) -> void:
 
 func toggle_training_telemetry() -> void:
 	_telemetry_visible = not _telemetry_visible
-
-func _weapon_name(weapon_id: String) -> String:
-	return String({"rifle": "步枪", "pistol": "手枪", "knife": "战术刀",
-		"sniper": "狙击枪", "smg": "冲锋枪", "shotgun": "霰弹枪"}.get(weapon_id, weapon_id))
 
 func toggle_player_help() -> void:
 	if buy_menu.visible and buy_menu.has_method("toggle_help"):
@@ -225,25 +210,13 @@ func update_display(snapshot: Dictionary) -> void:
 		not _scope.visible and not bool(snapshot.get("spectator", {}).get("active", false))
 	)
 	var watching: Dictionary = snapshot.get("spectator", {})
-	_spectator_panel.visible = bool(watching.get("active", false))
+	_spectator_panel.call("update_view", watching, snapshot)
 	$HudRoot/BottomLeft.visible = not _spectator_panel.visible
 	$HudRoot/BottomRight.visible = not _spectator_panel.visible
-	if _spectator_panel.visible:
-		if bool(watching.get("has_target", false)):
-			var mode := "队友眼位" if bool(watching.get("first_person", false)) else "第三人称"
-			_spectator_text.text = (
-				"你已阵亡 · 正在观战 %s · %s\n生命 %d  护甲 %d · %s · 弹药 %d / %d%s\n"
-				+ "左键 / ] 下一位 · 右键 / [ 上一位 · 空格 切换视角 · Esc 暂停"
-			) % [
-				watching.name, mode, watching.health, watching.armor,
-				_weapon_name(String(watching.weapon)), watching.ammo, watching.reserve,
-				" · 携带 C4" if bool(watching.c4) else "",
-			]
-		else:
-			_spectator_text.text = "你已阵亡 · 已无存活队友\n等待炸弹或回合结算 · Esc 暂停"
-
 	_objective_hint.text = String(snapshot.get("objective_hint", ""))
-	_objective_hint.visible = not _objective_hint.text.is_empty() and not buy_menu.visible
+	_objective_hint.visible = (
+		not _objective_hint.text.is_empty() and not buy_menu.visible and not _spectator_panel.visible
+	)
 	_controls_hint.visible = not buy_menu.visible
 	if _spectator_panel.visible:
 		_controls_hint.visible = false
@@ -321,6 +294,10 @@ func update_display(snapshot: Dictionary) -> void:
 	var result_text := String(snapshot.get("round_result_text", ""))
 	var debrief: Dictionary = snapshot.get("training_debrief", {}) as Dictionary
 	training_result.text = result_text if not result_text.is_empty() else "回合训练完成"
+	var match_complete := String(snapshot.get("match", {}).get("phase", "")) == "complete"
+	$HudRoot/TrainingEnd/Margin/Stack/Hint.text = (
+		"本场比赛已结束 · 即将进入赛果" if match_complete else "下一回合自动开始  ·  F4 查看详细数据"
+	)
 	training_shots.text = "射击  %d 发       命中  %d 发       爆头  %d" % [
 		int(debrief.get("shots", 0)), int(debrief.get("hits", 0)), int(debrief.get("headshots", 0))
 	]
@@ -361,7 +338,9 @@ func show_radio_report(caller: String, message: String) -> void:
 func set_buy_menu_visible(visible_state: bool) -> void:
 	buy_menu.visible = visible_state and _game_started and not _menu_open
 	_controls_hint.visible = not buy_menu.visible
-	_objective_hint.visible = not buy_menu.visible and not _objective_hint.text.is_empty()
+	_objective_hint.visible = (
+		not buy_menu.visible and not _objective_hint.text.is_empty() and not _spectator_panel.visible
+	)
 	if visible_state:
 		buy_result.text = ""
 

@@ -422,6 +422,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	if game_started and not menu_open and bool(player.get("is_dead")):
+		if _help_is_open():
+			get_viewport().set_input_as_handled()
+			return
 		var direction := 0
 		if event is InputEventMouseButton and event.pressed:
 			if event.button_index in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_WHEEL_DOWN]:
@@ -431,6 +434,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event is InputEventKey and event.pressed and not event.echo:
 			if event.keycode == KEY_SPACE:
 				spectator.call("toggle_mode")
+			elif event.keycode in [KEY_1, KEY_2, KEY_3, KEY_4]:
+				spectator.call("select_index", event.keycode - KEY_1)
 			elif event.keycode in [KEY_BRACKETLEFT, KEY_BRACKETRIGHT]:
 				direction = -1 if event.keycode == KEY_BRACKETLEFT else 1
 		if direction != 0:

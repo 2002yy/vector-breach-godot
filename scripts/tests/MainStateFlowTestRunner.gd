@@ -5,6 +5,7 @@ const ACTOR_SCENE = preload("res://scenes/combat/TacticalActor.tscn")
 const MatchExperience = preload("res://scripts/tests/MatchExperienceFixtures.gd")
 const LazyLoad = preload("res://scripts/tests/LazyLoadFixtures.gd")
 const C4ExplosionTests = preload("res://scripts/tests/C4ExplosionFixtures.gd")
+const SpectatorPanelTests = preload("res://scripts/tests/SpectatorPanelFixtures.gd")
 
 var _failures: PackedStringArray = []
 var _passes: int = 0
@@ -213,6 +214,7 @@ func _run_all_tests() -> void:
 	await _run_test("player_damage_tags_and_death_ends_round", _test_player_damage_tags_and_death_ends_round)
 	await _run_test("buy_plant_defuse_round_loop", _test_buy_plant_defuse_round_loop)
 	await _run_test("c4_blast_damage_precedes_terminal_record_and_result", _test_c4_explosion)
+	await _run_test("spectator_roster_number_keys_clutch_and_terminal_ui", _test_spectator_panel)
 
 func _run_test(test_name: String, callable: Callable) -> void:
 	var failed_before: int = _failures.size()
@@ -252,6 +254,9 @@ func _test_lazy_loading() -> void:
 
 func _test_c4_explosion() -> void:
 	await C4ExplosionTests.run(self)
+
+func _test_spectator_panel() -> void:
+	await SpectatorPanelTests.run(self)
 
 func _instantiate_main(with_level := true) -> Node3D:
 	GameState.reset_runtime_state()
