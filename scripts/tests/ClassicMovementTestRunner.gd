@@ -18,7 +18,9 @@ func _ready() -> void:
 	Engine.physics_ticks_per_second = rate
 	_test_speed_contract()
 	_test_air_projection()
+	_test_modern_acceleration_reference()
 	await _test_actual_weapon_transitions()
+	await _test_modern_pose_ground_speed()
 	for scheme in Rules.SCHEMES:
 		for release in [false, true]:
 			await _test_timeline(scheme, release)
@@ -30,13 +32,98 @@ func _ready() -> void:
 	for failure in failures:
 		push_error(failure)
 	if failures.is_empty():
-		print("CLASSIC_MOVEMENT_OK rate=%d groups=13" % rate)
+		print("CLASSIC_MOVEMENT_OK rate=%d groups=15" % rate)
 	get_tree().quit(0 if failures.is_empty() else 1)
 
 
 func _check(ok: bool, message: String) -> void:
 	if not ok:
 		failures.append(message)
+
+
+func _test_modern_acceleration_reference() -> void:
+	var config := Rules.parameters("modern_cs")
+	var weapon := 215.0 * Rules.UNIT
+	var limit := weapon * 0.34
+	var old := Vector3.ZERO
+	var repaired := Vector3.ZERO
+	for tick in range(rate):
+		old = Rules.ground_step(old, Vector3.RIGHT, limit, config, 1.0 / rate, limit)
+		repaired = Rules.ground_step(repaired, Vector3.RIGHT, limit, config, 1.0 / rate, weapon)
+		_check(
+			repaired.length() <= limit + 0.0001,
+			"acceleration reference must not raise pose speed cap"
+		)
+	_check(old.length() < limit * 0.2, "counterexample must reproduce pose/friction stall")
+	_check(
+		repaired.length() > limit * 0.99, "weapon acceleration reference must escape friction floor"
+	)
+	var state := {
+		"weapon_id": "sniper",
+		"slot": 0,
+		"scoped": true,
+		"crouching": true,
+		"walking": false,
+		"tagging": 0.48,
+		"water": 0.52
+	}
+	var current := {"run": 6.2, "walk": 3.2, "crouch": 2.2}
+	_check(
+		is_equal_approx(Rules.weapon_speed("modern_cs", state, current), 2.54),
+		"acceleration still follows scoped weapon"
+	)
+	_check(
+		is_equal_approx(Rules.speed_limit("modern_cs", state, current), 2.54 * 0.34 * 0.48 * 0.52),
+		"tag/water/pose caps remain composed"
+	)
+
+
+func _test_modern_pose_ground_speed() -> void:
+	for spec in [
+		["rifle", false, false],
+		["rifle", false, true],
+		["sniper", true, false],
+		["sniper", true, true],
+		["pistol", false, false],
+		["shotgun", false, false]
+	]:
+		var world := _fixture(true)
+		var player = world.get_node("Player")
+		var weapons = world.get_node("WeaponSystem")
+		player.set_movement_scheme("modern_cs")
+		weapons.purchase_weapon(spec[0])
+		if spec[1]:
+			weapons.toggle_scope(player)
+		for tick in range(rate / 2):
+			await get_tree().physics_frame
+		var timeline: Array[Dictionary] = [
+			{"at": 0.0, "direction": Vector2(0, -1), "crouch": not spec[2], "walk": spec[2]}
+		]
+		player.timeline = timeline
+		player.active = true
+		player.set_controls_enabled(true)
+		for tick in range(rate):
+			await get_tree().physics_frame
+		var limit: float = player.resolve_final_move_speed(spec[2])
+		var measured := Vector2(player.velocity.x, player.velocity.z).length()
+		_check(
+			measured > limit * 0.98 and measured <= limit + 0.001,
+			"actual modern pose must reach its cap %s: %s/%s" % [str(spec), measured, limit]
+		)
+		player.velocity = Vector3.ZERO
+		player.apply_hitscan_damage(1, player.global_position, 1.0)
+		for tick in range(2):
+			await get_tree().physics_frame
+		_check(
+			player.resolve_final_move_speed(spec[2]) < limit * 0.8,
+			"movement must not clear existing tagging"
+		)
+		_check(
+			Vector2(player.velocity.x, player.velocity.z).length() > 0.05,
+			"tagged scoped crouch must not stall"
+		)
+		world.queue_free()
+		await get_tree().process_frame
 
 
 func _test_speed_contract() -> void:
