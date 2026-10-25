@@ -15,17 +15,17 @@ func _initialize() -> void:
 
 func _run() -> void:
 	var args := OS.get_cmdline_user_args()
-	if args.size() < 3 or args[0] not in ["discover", "verify"]:
+	if args.size() < 3 or args[0] not in ["discover", "verify", "qualify"]:
 		push_error("Usage: discover level output.json OR verify manifest.json output.json [rate]")
 		quit(1)
 		return
 	var manifest: Dictionary
-	if args[0] == "verify":
+	if args[0] != "discover":
 		manifest = JSON.parse_string(FileAccess.get_file_as_string(args[1]))
 		rate = int(args[3]) if args.size() > 3 else 60
 	Engine.physics_ticks_per_second = rate
 	assert(rate in [60, 120])
-	var level: String = manifest.level if args[0] == "verify" else args[1]
+	var level: String = manifest.level if args[0] != "discover" else args[1]
 	var data: Dictionary = preload("res://scripts/level/LevelDataLoader.gd").load_level(level)
 	assert(not data.is_empty())
 	var source := String(data.runtime_collision_scene)
@@ -48,7 +48,7 @@ func _run() -> void:
 		push_error("Installed authored layout does not match level/collision identity")
 		quit(1)
 		return
-	if args[0] == "verify" and manifest.identity != identity:
+	if args[0] != "discover" and manifest.identity != identity:
 		push_error("Frozen collision/level/layout identity changed; refusing stale jump points")
 		quit(1)
 		return
@@ -87,6 +87,32 @@ func _run() -> void:
 			" drops=",
 			survey.drops.size()
 		)
+	elif args[0] == "qualify":
+		output = {
+			"schema": 1,
+			"kind": "map_jump_qualification_evidence_v1",
+			"level": level,
+			"identity": identity,
+			"physics_hz": rate,
+			"manifest_sha256": FileAccess.get_sha256(args[1]),
+			"points": []
+		}
+		for point in manifest.cases:
+			var feet := Survey.vector(point.start) - Vector3.UP * 0.9
+			var corridor := Survey.body_corridor(
+				space, feet, Survey.vector(point.target_feet), point.kind == "crouch_jump"
+			)
+			var controls: Array[Dictionary] = []
+			for mode in ["no_jump", "walk"]:
+				controls.append(await _trial(point, "current", mode))
+			if point.id == "run_up" and level == "mirage-classic-local":
+				for scheme in ["current", "legacy_16", "modern_cs"]:
+					for mode in ["jump_early", "jump_late"]:
+						controls.append(await _trial(point, scheme, mode))
+					if scheme != "current":
+						for mode in ["no_jump", "walk"]:
+							controls.append(await _trial(point, scheme, mode))
+			output.points.append({"case": point.id, "corridor": corridor, "controls": controls})
 	else:
 		output = {
 			"schema": 1,
@@ -135,7 +161,7 @@ func _record(sample: Dictionary) -> void:
 	)
 
 
-func _trial(point: Dictionary, scheme: String) -> Dictionary:
+func _trial(point: Dictionary, scheme: String, mode := "jump") -> Dictionary:
 	var state: Node = root.get_node("GameState")
 	state.call("reset_runtime_state")
 	state.set("player_spawn", Survey.vector(point.start))
@@ -155,6 +181,11 @@ func _trial(point: Dictionary, scheme: String) -> Dictionary:
 	var timeline: Array[Dictionary] = []
 	for event in point.timeline:
 		var row: Dictionary = event.duplicate()
+		if mode in ["no_jump", "walk"]:
+			row["jump"] = false
+			row["walk"] = mode == "walk"
+		elif mode in ["jump_early", "jump_late"] and row.has("jump"):
+			row.at = (0.15 if mode == "jump_early" else 0.55) + (0.0 if row.jump else 0.1)
 		if row.has("direction"):
 			row.direction = Vector2(row.direction[0], row.direction[1])
 		timeline.append(row)
@@ -173,12 +204,24 @@ func _trial(point: Dictionary, scheme: String) -> Dictionary:
 	var apex := -INF
 	var collisions := 0
 	var support: Array[Dictionary] = []
+	var target_entry := {}
 	for row in samples:
 		apex = maxf(apex, float(row.position[1]))
 		jumped = jumped or bool(row.jumped)
 		airborne = airborne or (jumped and not row.grounded_after)
 		if airborne and row.grounded_after and landing.is_empty():
 			landing = row
+		if row.grounded_after and target_entry.is_empty():
+			var feet_at := Survey.vector(row.position) - Vector3.UP * 0.9
+			var target := Survey.vector(point.target_feet)
+			if (
+				Vector2(feet_at.x - target.x, feet_at.z - target.z).length() <= point.target_radius
+				and absf(feet_at.y - target.y) <= point.target_height_tolerance
+			):
+				target_entry = row
+	var control_mode := mode in ["no_jump", "walk"]
+	if control_mode:
+		landing = target_entry
 	var distance := INF
 	var height_error := INF
 	if not landing.is_empty():
@@ -214,8 +257,7 @@ func _trial(point: Dictionary, scheme: String) -> Dictionary:
 		collisions = support.size()
 	var reached: bool = (
 		start_ok
-		and jumped
-		and airborne
+		and (not jumped if control_mode else jumped and airborne)
 		and collisions > 0
 		and distance <= point.target_radius
 		and height_error <= point.target_height_tolerance
@@ -223,7 +265,7 @@ func _trial(point: Dictionary, scheme: String) -> Dictionary:
 	var reason := "reached"
 	if not start_ok:
 		reason = "invalid_start"
-	elif not jumped or not airborne:
+	elif not control_mode and (not jumped or not airborne):
 		reason = "no_takeoff"
 	elif landing.is_empty() or collisions == 0:
 		reason = "no_supported_landing"
@@ -232,6 +274,9 @@ func _trial(point: Dictionary, scheme: String) -> Dictionary:
 	elif distance > point.target_radius:
 		reason = "outside_target"
 	var result := {
+		"mode": mode,
+		"applied_timeline": timeline,
+		"target_entry": target_entry,
 		"reason": reason,
 		"airborne": airborne,
 		"id": point.id,
@@ -249,6 +294,13 @@ func _trial(point: Dictionary, scheme: String) -> Dictionary:
 		"landing": landing,
 		"trace": samples.duplicate(true)
 	}
+	var exported_timeline: Array[Dictionary] = []
+	for event in timeline:
+		var exported := event.duplicate(true)
+		if exported.get("direction") is Vector2:
+			exported.direction = [exported.direction.x, exported.direction.y]
+		exported_timeline.append(exported)
+	result.applied_timeline = exported_timeline
 	player.queue_free()
 	await process_frame
 	return result

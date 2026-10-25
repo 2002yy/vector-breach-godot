@@ -29,6 +29,78 @@ static func capsule_clear(space: PhysicsDirectSpaceState3D, feet: Vector3, heigh
 	return space.intersect_shape(query, 1).is_empty()
 
 
+static func body_corridor(
+	space: PhysicsDirectSpaceState3D, start: Vector3, goal: Vector3, crouched := false
+) -> Dictionary:
+	var shape := CapsuleShape3D.new()
+	shape.radius = 0.4
+	shape.height = 1.2 if crouched else 1.8
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.shape = shape
+	query.collision_mask = 1
+	query.margin = 0.001
+	var arcs: Array[Dictionary] = []
+	var clear_count := 0
+	var wall_count := 0
+	for lift in [0.0, 0.8, 1.2, 1.7]:
+		var segments: Array[Dictionary] = []
+		var clear := true
+		var wall := false
+		var steps := maxi(32, int(ceil(start.distance_to(goal) / 0.05)))
+		for step in range(steps):
+			var t0 := float(step) / steps
+			var t1 := float(step + 1) / steps
+			var a: Vector3 = (
+				start.lerp(goal, t0)
+				+ Vector3.UP * (shape.height * 0.5 + 0.04 + 4.0 * lift * t0 * (1.0 - t0))
+			)
+			var b: Vector3 = (
+				start.lerp(goal, t1)
+				+ Vector3.UP * (shape.height * 0.5 + 0.04 + 4.0 * lift * t1 * (1.0 - t1))
+			)
+			query.transform.origin = a
+			query.motion = b - a
+			var initial_clear := space.intersect_shape(query, 1).is_empty()
+			var fractions := space.cast_motion(query)
+			var fraction: float = fractions[0]
+			var row := {
+				"from": array(a),
+				"to": array(b),
+				"initial_clear": initial_clear,
+				"free_fraction": fraction,
+				"normal": [0, 0, 0]
+			}
+			if not initial_clear or fraction < 0.999:
+				query.transform.origin = a + (b - a) * minf(1.0, float(fractions[1]) + 0.02)
+				var rest := space.get_rest_info(query)
+				if not rest.is_empty():
+					row.normal = array(rest.normal)
+					var horizontal := (goal - start).normalized()
+					wall = absf(rest.normal.y) < 0.3 and rest.normal.dot(horizontal) < -0.1
+				clear = false
+			segments.append(row)
+			if not clear:
+				break
+		clear_count += 1 if clear else 0
+		wall_count += 1 if wall and lift > 0.0 else 0
+		arcs.append(
+			{"lift": lift, "clear": clear, "wall": wall, "steps": steps, "segments": segments}
+		)
+	return {
+		"capsule_radius": 0.4,
+		"capsule_height": shape.height,
+		"foot_clearance": 0.04,
+		"clear_arcs": clear_count,
+		"arcs": arcs,
+		"status":
+		(
+			"geometric_corridor_found"
+			if clear_count > 0
+			else ("blocked_direct_route" if wall_count == 3 else "route_unproven")
+		)
+	}
+
+
 static func _edge(
 	space: PhysicsDirectSpaceState3D, feet: Vector3, direction: Vector3, index: int, distance: float
 ) -> Dictionary:
@@ -40,13 +112,17 @@ static func _edge(
 		return {}
 	if absf(far.position.y - near.position.y) > 0.15 or not capsule_clear(space, far.position):
 		return {}
+	if absf(near.position.y - feet.y) < 0.5 or absf(near.position.y - feet.y) > 2.0:
+		return {}
+	var corridor := body_corridor(space, feet, far.position)
 	return {
 		"node": index,
 		"feet": array(feet),
 		"direction": array(direction),
 		"target_feet": array(far.position),
 		"height_change": near.position.y - feet.y,
-		"near_feet": array(near.position)
+		"near_feet": array(near.position),
+		"corridor": corridor
 	}
 
 
@@ -55,6 +131,7 @@ static func discover(space: PhysicsDirectSpaceState3D, layout: Dictionary) -> Di
 	var flat: Array[Dictionary] = []
 	var rises: Array[Dictionary] = []
 	var drops: Array[Dictionary] = []
+	var rejected: Array[Dictionary] = []
 	# Deterministic geometry-only selection, before any scheme is executed.
 	for index in range(0, points.size(), 3):
 		var origin := vector(points[index])
@@ -72,6 +149,12 @@ static func discover(space: PhysicsDirectSpaceState3D, layout: Dictionary) -> Di
 				if record.is_empty():
 					continue
 				var change: float = record.height_change
+				if absf(change) < 0.5 or absf(change) > 2.0:
+					continue
+				if record.corridor.clear_arcs == 0:
+					if rejected.size() < 100:
+						rejected.append(record)
+					continue
 				if change >= 0.5 and change <= 1.45 and rises.size() < 100:
 					rises.append(record)
 				elif change <= -0.5 and change >= -2.0 and drops.size() < 100:
@@ -105,6 +188,11 @@ static func discover(space: PhysicsDirectSpaceState3D, layout: Dictionary) -> Di
 					clear = false
 					break
 			if clear:
+				var corridor := body_corridor(
+					space, ground.position - direction * 4.0, ground.position
+				)
+				if corridor.clear_arcs == 0:
+					continue
 				critical.append(
 					{
 						"node": nearest,
@@ -115,7 +203,9 @@ static func discover(space: PhysicsDirectSpaceState3D, layout: Dictionary) -> Di
 					}
 				)
 				break
-	return {"flat": flat, "rises": rises, "drops": drops, "critical": critical}
+	return {
+		"flat": flat, "rises": rises, "drops": drops, "critical": critical, "rejected": rejected
+	}
 
 
 static func make_case(kind: String, record: Dictionary) -> Dictionary:
