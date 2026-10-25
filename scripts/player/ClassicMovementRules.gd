@@ -58,9 +58,7 @@ static func speed_limit(scheme: String, state: Dictionary, current: Dictionary) 
 		var slot := int(state.slot)
 		base *= 0.94 if slot == 0 else (1.04 if slot == 2 else 1.0)
 	else:
-		var table: Dictionary = LEGACY_SPEEDS if scheme == "legacy_16" else MODERN_SPEEDS
-		var pair: Array = table.get(state.weapon_id, [250.0, 250.0])
-		base = float(pair[1 if state.scoped else 0]) * UNIT
+		base = weapon_speed(scheme, state, current)
 		var config := parameters(scheme)
 		if state.crouching:
 			base *= float(config.crouch_ratio)
@@ -70,15 +68,32 @@ static func speed_limit(scheme: String, state: Dictionary, current: Dictionary) 
 	return base * clampf(state.tagging, 0.0, 1.0) * maxf(state.water, 0.0)
 
 
+static func weapon_speed(scheme: String, state: Dictionary, current: Dictionary) -> float:
+	if scheme == "current":
+		var slot := int(state.slot)
+		return current.run * (0.94 if slot == 0 else (1.04 if slot == 2 else 1.0))
+	var table: Dictionary = LEGACY_SPEEDS if scheme == "legacy_16" else MODERN_SPEEDS
+	var pair: Array = table.get(state.weapon_id, [250.0, 250.0])
+	return float(pair[1 if state.scoped else 0]) * UNIT
+
+
 static func ground_step(
-	velocity: Vector3, direction: Vector3, wish_speed: float, config: Dictionary, delta: float
+	velocity: Vector3,
+	direction: Vector3,
+	wish_speed: float,
+	config: Dictionary,
+	delta: float,
+	acceleration_reference: float
 ) -> Vector3:
 	var horizontal := Vector3(velocity.x, 0.0, velocity.z)
 	var speed := horizontal.length()
 	if speed > 0.00001:
 		var next := maxf(0.0, speed - maxf(speed, config.stop_speed) * config.friction * delta)
 		horizontal *= next / speed
-	return _accelerate(horizontal, direction, wish_speed, wish_speed, config.acceleration, delta)
+	# Pose/tag/water limit speed, independently of the weapon acceleration reference.
+	return _accelerate(
+		horizontal, direction, wish_speed, acceleration_reference, config.acceleration, delta
+	)
 
 
 static func air_step(

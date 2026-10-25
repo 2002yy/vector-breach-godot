@@ -140,12 +140,16 @@ func _physics_process(delta: float) -> void:
 	var move_dir: Vector3 = get_world_move_direction(input_vector)
 
 	var speed := resolve_final_move_speed(movement_input.walk)
+	var acceleration_reference := speed
+	if movement_scheme == "modern_cs":
+		acceleration_reference = resolve_final_move_speed(false, true)
 	var horizontal := simulate_tactical_horizontal_velocity(
 		Vector3(velocity.x, 0.0, velocity.z),
 		move_dir,
 		speed,
 		was_on_floor and not jumped,
-		delta
+		delta,
+		acceleration_reference
 	)
 	velocity.x = horizontal.x
 	velocity.z = horizontal.z
@@ -203,7 +207,7 @@ func _movement_jump_impulse() -> float:
 		return crouch_jump_velocity if is_crouching else jump_velocity
 	return float(MovementRules.parameters(movement_scheme).jump)
 
-func resolve_final_move_speed(quiet_walk_held: bool) -> float:
+func resolve_final_move_speed(quiet_walk_held: bool, for_acceleration: bool = false) -> float:
 	var slot := GameState.current_weapon_slot
 	var fallback := "equipment"
 	if slot in [0, 1, 2]:
@@ -214,6 +218,9 @@ func resolve_final_move_speed(quiet_walk_held: bool) -> float:
 		context = weapons.call("get_movement_context")
 	context.merge({"crouching": is_crouching, "walking": quiet_walk_held,
 		"tagging": _tagging_multiplier, "water": resolve_water_speed_multiplier()})
+	if for_acceleration:
+		return MovementRules.weapon_speed(movement_scheme, context,
+			{"run": run_speed, "walk": quiet_walk_speed, "crouch": crouch_speed})
 	return MovementRules.speed_limit(movement_scheme, context,
 		{"run": run_speed, "walk": quiet_walk_speed, "crouch": crouch_speed})
 
@@ -265,12 +272,16 @@ func simulate_tactical_horizontal_velocity(
 	wish_direction: Vector3,
 	wish_speed: float,
 	grounded: bool,
-	delta: float
+	delta: float,
+	acceleration_reference: float = -1.0
 ) -> Vector3:
 	if movement_scheme != "current":
 		var config := MovementRules.parameters(movement_scheme)
 		if grounded:
-			return MovementRules.ground_step(current_velocity, wish_direction, wish_speed, config, delta)
+			var reference := wish_speed if acceleration_reference < 0.0 else acceleration_reference
+			return MovementRules.ground_step(
+				current_velocity, wish_direction, wish_speed, config, delta, reference
+			)
 		return MovementRules.air_step(current_velocity, wish_direction, wish_speed, config, delta)
 	var horizontal := Vector3(current_velocity.x, 0.0, current_velocity.z)
 	if grounded:
