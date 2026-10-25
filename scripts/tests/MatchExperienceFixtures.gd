@@ -54,6 +54,11 @@ static func spectator_boundaries(host: Node) -> void:
 	var last: Node = watch.get("target")
 	last.queue_free()
 	host.call(
+		"_assert_true",
+		watch.get_snapshot().teammates.is_empty(),
+		"roster excludes retiring and foreign allies"
+	)
+	host.call(
 		"_assert_true", not watch.get_snapshot().has_target, "retiring teammate is not sampled"
 	)
 	watch.call("tick")
