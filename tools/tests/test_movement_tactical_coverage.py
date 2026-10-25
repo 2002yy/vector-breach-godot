@@ -10,7 +10,15 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from build_native_route_study import sha
 from native_jump_candidates import RUNTIME
-from tactical_jump_coverage import classify, inventory, manifest_payload
+from validate_mirage_input_study import PHYSICS_FIELDS
+from tactical_jump_coverage import (
+    approach_payload,
+    classify,
+    inventory,
+    manifest_payload,
+    matrix_payload,
+    require_unchanged_current,
+)
 
 
 class TacticalCoverageTests(unittest.TestCase):
@@ -159,6 +167,133 @@ class TacticalCoverageTests(unittest.TestCase):
         (self.root / "tools/authoring/survey_tactical_jumps.gd").write_text("new code")
         with self.assertRaises(ValueError):
             manifest_payload(self.parent, self.survey, self.root)
+
+    def source_manifest(self):
+        source = self.root / "current-source.json"
+        payload = manifest_payload(self.parent, self.survey, self.root)
+        for point in payload["cases"]:
+            point["geometry"] = {"direction": [0, 0, -1]}
+            point["corridor"] = {"old": True}
+        source.write_text(json.dumps(payload))
+        return source, payload
+
+    def test_matrix_covers_three_profiles_and_all_controls(self):
+        source, _ = self.source_manifest()
+        matrix = matrix_payload(source)
+        self.assertEqual(len(matrix["cases"]), 9)
+        self.assertEqual(
+            {(p["scheme"], p["trial_mode"]) for p in matrix["cases"]},
+            {
+                (s, m)
+                for s in ("current", "legacy_16", "modern_cs")
+                for m in ("jump", "no_jump", "walk")
+            },
+        )
+        self.assertEqual(matrix["source_manifest_sha256"], sha(source))
+
+    def test_matrix_changes_only_identity_and_profile(self):
+        source, payload = self.source_manifest()
+        originals = {p["id"]: p for p in payload["cases"]}
+        for point in matrix_payload(source)["cases"]:
+            original = originals[point["id"].removeprefix(point["scheme"] + "__")]
+            self.assertEqual(
+                {k: v for k, v in point.items() if k not in ("id", "scheme")},
+                {k: v for k, v in original.items() if k not in ("id", "scheme")},
+            )
+
+    def test_mixed_profile_source_rejected(self):
+        source, payload = self.source_manifest()
+        payload["cases"][0]["scheme"] = "modern_cs"
+        source.write_text(json.dumps(payload))
+        with self.assertRaises(ValueError):
+            matrix_payload(source)
+
+    def test_missing_control_rejected(self):
+        source, payload = self.source_manifest()
+        payload["cases"].pop()
+        source.write_text(json.dumps(payload))
+        with self.assertRaises(ValueError):
+            matrix_payload(source)
+
+    def test_duplicate_source_identifier_rejected(self):
+        source, payload = self.source_manifest()
+        payload["cases"][1]["id"] = payload["cases"][0]["id"]
+        source.write_text(json.dumps(payload))
+        with self.assertRaises(ValueError):
+            matrix_payload(source)
+
+    def test_matrix_cannot_gain_formal_authority(self):
+        source, payload = self.source_manifest()
+        payload["formal_qualification"] = True
+        source.write_text(json.dumps(payload))
+        with self.assertRaises(ValueError):
+            matrix_payload(source)
+
+    def test_new_approach_drops_stale_corridor_and_preserves_goal(self):
+        source, payload = self.source_manifest()
+        for point in approach_payload(source)["cases"]:
+            self.assertNotIn("corridor", point)
+            self.assertAlmostEqual(
+                point["start"][2], payload["cases"][0]["start"][2] + 1.2
+            )
+            for key in (
+                "target_feet",
+                "target_radius",
+                "target_height_tolerance",
+                "yaw",
+                "duration",
+            ):
+                self.assertEqual(point[key], payload["cases"][0][key])
+
+    def test_approach_walking_control_never_jumps_or_crouches(self):
+        source, _ = self.source_manifest()
+        for point in approach_payload(source)["cases"]:
+            if point["trial_mode"] == "walk":
+                self.assertTrue(
+                    all(
+                        "Shift" in e["keys"]
+                        and "Space" not in e["keys"]
+                        and "Ctrl" not in e["keys"]
+                        for e in point["native_timeline"]
+                    )
+                )
+
+    def test_generation_does_not_rewrite_source(self):
+        source, _ = self.source_manifest()
+        before = source.read_bytes()
+        matrix_payload(source)
+        approach_payload(source)
+        self.assertEqual(source.read_bytes(), before)
+
+    def test_current_yaw_drift_rejected(self):
+        before = {
+            "trace": [
+                {
+                    **{k: 0 for k in PHYSICS_FIELDS},
+                    "yaw": 0.0,
+                    "native_command": {"keys": ["W"]},
+                }
+            ]
+        }
+        after = copy.deepcopy(before)
+        after["trace"][0]["yaw"] = 0.01
+        with self.assertRaises(ValueError):
+            require_unchanged_current(before, after)
+
+    def test_current_key_drift_rejected(self):
+        before = {
+            "trace": [
+                {
+                    **{k: 0 for k in PHYSICS_FIELDS},
+                    "yaw": 0.0,
+                    "native_command": {"keys": ["W"]},
+                }
+            ]
+        }
+        after = copy.deepcopy(before)
+        after["trace"][0]["native_command"]["keys"] = ["A"]
+        with self.assertRaises(ValueError):
+            require_unchanged_current(before, after)
 
 
 if __name__ == "__main__":
