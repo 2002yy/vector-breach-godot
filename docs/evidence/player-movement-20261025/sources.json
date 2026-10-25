@@ -1,0 +1,133 @@
+{
+  "regamedll": {
+    "repo": "rehlds/ReGameDLL_CS",
+    "sha": "4a50c42e85fd3778c2b7d24731c7d30c83bbab01",
+    "date": "2026-09-17T08:29:36Z",
+    "files": [
+      {
+        "path": "regamedll/pm_shared/pm_shared.cpp",
+        "local": "regamedll-pm_shared.cpp",
+        "sha256": "c2ed74461ee309947292f252ae2192f5da36d92c41e709d88b0c4f72675d6815",
+        "url": "https://github.com/rehlds/ReGameDLL_CS/blob/4a50c42e85fd3778c2b7d24731c7d30c83bbab01/regamedll/pm_shared/pm_shared.cpp"
+      },
+      {
+        "path": "regamedll/pm_shared/pm_shared.h",
+        "local": "regamedll-pm_shared.h",
+        "sha256": "9c6cdf69776bd619c3120c8253fa72246edb172223ce1c6fd878549aa8d21b61",
+        "url": "https://github.com/rehlds/ReGameDLL_CS/blob/4a50c42e85fd3778c2b7d24731c7d30c83bbab01/regamedll/pm_shared/pm_shared.h"
+      },
+      {
+        "path": "regamedll/dlls/player.cpp",
+        "local": "regamedll-player.cpp",
+        "sha256": "6afaca6ed7fd31c270e2bc64fe342e2609e7880a9389ae2b62ab7be1151d85aa",
+        "url": "https://github.com/rehlds/ReGameDLL_CS/blob/4a50c42e85fd3778c2b7d24731c7d30c83bbab01/regamedll/dlls/player.cpp"
+      },
+      {
+        "path": "regamedll/dlls/wpn_shared/wpn_ak47.cpp",
+        "local": "regamedll-wpn_ak47.cpp",
+        "sha256": "1b0f64688da8c2a1e6cf88c735885a39dc13722c41fc36630ee5fc7f9d7cee6e",
+        "url": "https://github.com/rehlds/ReGameDLL_CS/blob/4a50c42e85fd3778c2b7d24731c7d30c83bbab01/regamedll/dlls/wpn_shared/wpn_ak47.cpp"
+      },
+      {
+        "path": "regamedll/dlls/wpn_shared/wpn_awp.cpp",
+        "local": "regamedll-wpn_awp.cpp",
+        "sha256": "1e5eb1f5a12bd18f7e2020987179fef5899098fe47b3d3c510d791f478402189",
+        "url": "https://github.com/rehlds/ReGameDLL_CS/blob/4a50c42e85fd3778c2b7d24731c7d30c83bbab01/regamedll/dlls/wpn_shared/wpn_awp.cpp"
+      },
+      {
+        "path": "regamedll/dlls/weapons.h",
+        "local": "regamedll-weapons.h",
+        "sha256": "b266455df20267bebf7ccb9b449a005912c00464c566a45374d41629d9af7c7f",
+        "url": "https://github.com/rehlds/ReGameDLL_CS/blob/4a50c42e85fd3778c2b7d24731c7d30c83bbab01/regamedll/dlls/weapons.h"
+      }
+    ]
+  },
+  "goldsrc": {
+    "repo": "ValveSoftware/halflife",
+    "sha": "b1b5cf5892918535619b2937bb927e46cb097ba1",
+    "date": "2024-10-02T21:42:17Z",
+    "files": [
+      {
+        "path": "pm_shared/pm_shared.c",
+        "local": "goldsrc-pm_shared.c",
+        "sha256": "e7300da9d81fd7cf265d62b44ad3940b2ac177696d4f154cb98b511f3097ee06",
+        "url": "https://github.com/ValveSoftware/halflife/blob/b1b5cf5892918535619b2937bb927e46cb097ba1/pm_shared/pm_shared.c"
+      }
+    ]
+  },
+  "cs2": {
+    "repo": "SteamDatabase/GameTracking-CS2",
+    "sha": "04d3e4a67ac60168d0e79594c69a2116bb3b7278",
+    "date": "2026-10-22T22:56:41Z",
+    "files": [
+      {
+        "path": "DumpSource2/convars.txt",
+        "local": "cs2-convars.txt",
+        "sha256": "8501713af5fde2008a02e77317f98ed4b40c9f3bea17df0224eac9763551fb07",
+        "url": "https://github.com/SteamDatabase/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/DumpSource2/convars.txt"
+      },
+      {
+        "path": "game/csgo/pak01_dir/scripts/weapons.vdata",
+        "local": "cs2-weapons.vdata",
+        "sha256": "cc04aa26fd8d4a34119df7c4b7f4f29c7ebe0c7862ce78e0a2a753642502ba0a",
+        "url": "https://github.com/SteamDatabase/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/game/csgo/pak01_dir/scripts/weapons.vdata"
+      },
+      {
+        "path": "game/csgo/pak01_dir/scripts/nav_hulls.vdata",
+        "local": "cs2-nav_hulls.vdata",
+        "sha256": "241612f42eaa75225706fcb124313e0f210ea11d6bc43067836818cb4b6be81d",
+        "url": "https://github.com/SteamDatabase/GameTracking-CS2/blob/04d3e4a67ac60168d0e79594c69a2116bb3b7278/game/csgo/pak01_dir/scripts/nav_hulls.vdata"
+      }
+    ]
+  },
+  "source_sdk": {
+    "repo": "ValveSoftware/source-sdk-2013",
+    "sha": "be57e3d01ac7d7aa6a2cacbfef187c0b46616db0",
+    "date": "2026-10-10T03:57:29Z",
+    "files": [
+      {
+        "path": "src/game/shared/gamemovement.cpp",
+        "local": "source_sdk-gamemovement.cpp",
+        "sha256": "d192edad0dda43e7be8761f113450300d5d313a6cdbf42044f4d6019e5ff5b20",
+        "url": "https://github.com/ValveSoftware/source-sdk-2013/blob/be57e3d01ac7d7aa6a2cacbfef187c0b46616db0/src/game/shared/gamemovement.cpp"
+      }
+    ]
+  },
+  "csgo_legacy": {
+    "repo": "SteamDatabase/GameTracking-CS2",
+    "sha": "e25a5a3d872f0a52a33a9c0d116a597b9df6d846",
+    "date": "2023-01-26T00:13:12Z",
+    "files": [
+      {
+        "path": "csgo/scripts/weapon_ak47.txt",
+        "local": "csgo_legacy-weapon_ak47.txt",
+        "sha256": "c32a2aaa7d4c0e89ab830920eee0b48946a694c408aa8cf697f83990fc088038",
+        "url": "https://github.com/SteamDatabase/GameTracking-CS2/blob/e25a5a3d872f0a52a33a9c0d116a597b9df6d846/csgo/scripts/weapon_ak47.txt"
+      },
+      {
+        "path": "csgo/scripts/weapon_awp.txt",
+        "local": "csgo_legacy-weapon_awp.txt",
+        "sha256": "058d5480a7b6ab8ca364db1540448e07b095198dbef0ac47265551263be6169a",
+        "url": "https://github.com/SteamDatabase/GameTracking-CS2/blob/e25a5a3d872f0a52a33a9c0d116a597b9df6d846/csgo/scripts/weapon_awp.txt"
+      },
+      {
+        "path": "csgo/scripts/weapon_mp9.txt",
+        "local": "csgo_legacy-weapon_mp9.txt",
+        "sha256": "0a923f89b29c66dbc069eb61024e5e40966d7a9720a4be9226e79d80572e4185",
+        "url": "https://github.com/SteamDatabase/GameTracking-CS2/blob/e25a5a3d872f0a52a33a9c0d116a597b9df6d846/csgo/scripts/weapon_mp9.txt"
+      },
+      {
+        "path": "csgo/scripts/weapon_knife.txt",
+        "local": "csgo_legacy-weapon_knife.txt",
+        "sha256": "96662d963601f9d7c976aab232a1d49c7390c384d5a8c395f04b2cc1e8a47783",
+        "url": "https://github.com/SteamDatabase/GameTracking-CS2/blob/e25a5a3d872f0a52a33a9c0d116a597b9df6d846/csgo/scripts/weapon_knife.txt"
+      },
+      {
+        "path": "csgo/cfg/gamemode_competitive.cfg",
+        "local": "csgo_legacy-gamemode_competitive.cfg",
+        "sha256": "5b7cd9b547bae828c7b6642b01425ccb0439680ced14241cd531c436c6d467bc",
+        "url": "https://github.com/SteamDatabase/GameTracking-CS2/blob/e25a5a3d872f0a52a33a9c0d116a597b9df6d846/csgo/cfg/gamemode_competitive.cfg"
+      }
+    ]
+  }
+}
