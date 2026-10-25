@@ -1,0 +1,1159 @@
+{
+  "formal_release_ready": false,
+  "selection_hz": 60,
+  "holdout_hz": 120,
+  "input_kind": "synthetic InputMap keys; not OS/human",
+  "results": [
+    {
+      "map": "dust2",
+      "case": "run_up",
+      "scheme": "current",
+      "variant": "original",
+      "mode": "jump",
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.916666666666667,
+      "arrival_time": 0.916666666666667,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "dust2",
+      "case": "run_up",
+      "scheme": "current",
+      "variant": "original",
+      "mode": "no_jump",
+      "physics_hz": 60,
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": null,
+      "arrival_time": null,
+      "jump_delays": []
+    },
+    {
+      "map": "dust2",
+      "case": "run_up",
+      "scheme": "legacy_16",
+      "variant": "original",
+      "mode": "jump",
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.833333333333333,
+      "arrival_time": 0.833333333333333,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "dust2",
+      "case": "run_up",
+      "scheme": "legacy_16",
+      "variant": "original",
+      "mode": "no_jump",
+      "physics_hz": 60,
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": null,
+      "arrival_time": null,
+      "jump_delays": []
+    },
+    {
+      "map": "dust2",
+      "case": "run_up",
+      "scheme": "modern_cs",
+      "variant": "original",
+      "mode": "jump",
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.966666666666667,
+      "arrival_time": 0.966666666666667,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "dust2",
+      "case": "run_up",
+      "scheme": "modern_cs",
+      "variant": "original",
+      "mode": "no_jump",
+      "physics_hz": 60,
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": null,
+      "arrival_time": null,
+      "jump_delays": []
+    },
+    {
+      "map": "dust2",
+      "case": "crouch_jump",
+      "scheme": "current",
+      "variant": "original",
+      "mode": "jump",
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.85,
+      "arrival_time": 0.85,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "dust2",
+      "case": "crouch_jump",
+      "scheme": "current",
+      "variant": "original",
+      "mode": "no_jump",
+      "physics_hz": 60,
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": null,
+      "arrival_time": null,
+      "jump_delays": []
+    },
+    {
+      "map": "dust2",
+      "case": "crouch_jump",
+      "scheme": "legacy_16",
+      "variant": "original",
+      "mode": "jump",
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.583333333333333,
+      "arrival_time": 0.583333333333333,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "dust2",
+      "case": "crouch_jump",
+      "scheme": "legacy_16",
+      "variant": "original",
+      "mode": "no_jump",
+      "physics_hz": 60,
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": null,
+      "arrival_time": null,
+      "jump_delays": []
+    },
+    {
+      "map": "dust2",
+      "case": "crouch_jump",
+      "scheme": "modern_cs",
+      "variant": "original",
+      "mode": "jump",
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.7,
+      "arrival_time": 0.7,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "dust2",
+      "case": "crouch_jump",
+      "scheme": "modern_cs",
+      "variant": "original",
+      "mode": "no_jump",
+      "physics_hz": 60,
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": null,
+      "arrival_time": null,
+      "jump_delays": []
+    },
+    {
+      "map": "dust2",
+      "case": "run_up",
+      "scheme": "current",
+      "variant": "original",
+      "mode": "jump",
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.891666666666667,
+      "arrival_time": 0.891666666666667,
+      "jump_delays": [
+        0.00833333333333336
+      ]
+    },
+    {
+      "map": "dust2",
+      "case": "run_up",
+      "scheme": "current",
+      "variant": "original",
+      "mode": "no_jump",
+      "physics_hz": 120,
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": null,
+      "arrival_time": null,
+      "jump_delays": []
+    },
+    {
+      "map": "dust2",
+      "case": "run_up",
+      "scheme": "legacy_16",
+      "variant": "original",
+      "mode": "jump",
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.816666666666667,
+      "arrival_time": 0.816666666666667,
+      "jump_delays": [
+        0.00833333333333336
+      ]
+    },
+    {
+      "map": "dust2",
+      "case": "run_up",
+      "scheme": "legacy_16",
+      "variant": "original",
+      "mode": "no_jump",
+      "physics_hz": 120,
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": null,
+      "arrival_time": null,
+      "jump_delays": []
+    },
+    {
+      "map": "dust2",
+      "case": "run_up",
+      "scheme": "modern_cs",
+      "variant": "original",
+      "mode": "jump",
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.8,
+      "arrival_time": 0.8,
+      "jump_delays": [
+        0.00833333333333336
+      ]
+    },
+    {
+      "map": "dust2",
+      "case": "run_up",
+      "scheme": "modern_cs",
+      "variant": "original",
+      "mode": "no_jump",
+      "physics_hz": 120,
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": null,
+      "arrival_time": null,
+      "jump_delays": []
+    },
+    {
+      "map": "dust2",
+      "case": "crouch_jump",
+      "scheme": "current",
+      "variant": "original",
+      "mode": "jump",
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.816666666666667,
+      "arrival_time": 0.816666666666667,
+      "jump_delays": [
+        0.008333333333333331
+      ]
+    },
+    {
+      "map": "dust2",
+      "case": "crouch_jump",
+      "scheme": "current",
+      "variant": "original",
+      "mode": "no_jump",
+      "physics_hz": 120,
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": null,
+      "arrival_time": null,
+      "jump_delays": []
+    },
+    {
+      "map": "dust2",
+      "case": "crouch_jump",
+      "scheme": "legacy_16",
+      "variant": "original",
+      "mode": "jump",
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.566666666666667,
+      "arrival_time": 0.566666666666667,
+      "jump_delays": [
+        0.008333333333333331
+      ]
+    },
+    {
+      "map": "dust2",
+      "case": "crouch_jump",
+      "scheme": "legacy_16",
+      "variant": "original",
+      "mode": "no_jump",
+      "physics_hz": 120,
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": null,
+      "arrival_time": null,
+      "jump_delays": []
+    },
+    {
+      "map": "dust2",
+      "case": "crouch_jump",
+      "scheme": "modern_cs",
+      "variant": "original",
+      "mode": "jump",
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.5,
+      "arrival_time": 0.5,
+      "jump_delays": [
+        0.008333333333333331
+      ]
+    },
+    {
+      "map": "dust2",
+      "case": "crouch_jump",
+      "scheme": "modern_cs",
+      "variant": "original",
+      "mode": "no_jump",
+      "physics_hz": 120,
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": null,
+      "arrival_time": null,
+      "jump_delays": []
+    },
+    {
+      "map": "mirage",
+      "case": "crouch_jump",
+      "scheme": "current",
+      "variant": "back150_run200",
+      "mode": "jump",
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 1.16666666666667,
+      "arrival_time": 1.16666666666667,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "mirage",
+      "case": "crouch_jump",
+      "scheme": "current",
+      "variant": "back150_run200",
+      "mode": "no_jump",
+      "physics_hz": 60,
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": null,
+      "arrival_time": null,
+      "jump_delays": []
+    },
+    {
+      "map": "mirage",
+      "case": "crouch_jump",
+      "scheme": "legacy_16",
+      "variant": "back150_run200",
+      "mode": "jump",
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.85,
+      "arrival_time": 0.85,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "mirage",
+      "case": "crouch_jump",
+      "scheme": "legacy_16",
+      "variant": "back150_run200",
+      "mode": "no_jump",
+      "physics_hz": 60,
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": null,
+      "arrival_time": null,
+      "jump_delays": []
+    },
+    {
+      "map": "mirage",
+      "case": "crouch_jump",
+      "scheme": "modern_cs",
+      "variant": "back150_run200",
+      "mode": "jump",
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.983333333333333,
+      "arrival_time": 0.983333333333333,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "mirage",
+      "case": "crouch_jump",
+      "scheme": "modern_cs",
+      "variant": "back150_run200",
+      "mode": "no_jump",
+      "physics_hz": 60,
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": null,
+      "arrival_time": null,
+      "jump_delays": []
+    },
+    {
+      "map": "mirage",
+      "case": "crouch_jump",
+      "scheme": "current",
+      "variant": "back150_run200",
+      "mode": "jump",
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 1.13333333333333,
+      "arrival_time": 1.13333333333333,
+      "jump_delays": [
+        0.00833333333333336
+      ]
+    },
+    {
+      "map": "mirage",
+      "case": "crouch_jump",
+      "scheme": "current",
+      "variant": "back150_run200",
+      "mode": "no_jump",
+      "physics_hz": 120,
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": null,
+      "arrival_time": null,
+      "jump_delays": []
+    },
+    {
+      "map": "mirage",
+      "case": "crouch_jump",
+      "scheme": "legacy_16",
+      "variant": "back150_run200",
+      "mode": "jump",
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.816666666666667,
+      "arrival_time": 0.816666666666667,
+      "jump_delays": [
+        0.00833333333333336
+      ]
+    },
+    {
+      "map": "mirage",
+      "case": "crouch_jump",
+      "scheme": "legacy_16",
+      "variant": "back150_run200",
+      "mode": "no_jump",
+      "physics_hz": 120,
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": null,
+      "arrival_time": null,
+      "jump_delays": []
+    },
+    {
+      "map": "mirage",
+      "case": "crouch_jump",
+      "scheme": "modern_cs",
+      "variant": "back150_run200",
+      "mode": "jump",
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.95,
+      "arrival_time": 0.95,
+      "jump_delays": [
+        0.00833333333333336
+      ]
+    },
+    {
+      "map": "mirage",
+      "case": "crouch_jump",
+      "scheme": "modern_cs",
+      "variant": "back150_run200",
+      "mode": "no_jump",
+      "physics_hz": 120,
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": null,
+      "arrival_time": null,
+      "jump_delays": []
+    },
+    {
+      "map": "inferno",
+      "case": "crouch_jump",
+      "scheme": "current",
+      "variant": "original",
+      "mode": "jump",
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 1.05,
+      "arrival_time": 1.05,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "inferno",
+      "case": "crouch_jump",
+      "scheme": "current",
+      "variant": "original",
+      "mode": "no_jump",
+      "physics_hz": 60,
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": null,
+      "arrival_time": null,
+      "jump_delays": []
+    },
+    {
+      "map": "inferno",
+      "case": "crouch_jump",
+      "scheme": "legacy_16",
+      "variant": "original",
+      "mode": "jump",
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.6,
+      "arrival_time": 0.6,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "inferno",
+      "case": "crouch_jump",
+      "scheme": "legacy_16",
+      "variant": "original",
+      "mode": "no_jump",
+      "physics_hz": 60,
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": null,
+      "arrival_time": null,
+      "jump_delays": []
+    },
+    {
+      "map": "inferno",
+      "case": "crouch_jump",
+      "scheme": "modern_cs",
+      "variant": "original",
+      "mode": "jump",
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.733333333333333,
+      "arrival_time": 0.733333333333333,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "inferno",
+      "case": "crouch_jump",
+      "scheme": "modern_cs",
+      "variant": "original",
+      "mode": "no_jump",
+      "physics_hz": 60,
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": null,
+      "arrival_time": null,
+      "jump_delays": []
+    },
+    {
+      "map": "inferno",
+      "case": "crouch_jump",
+      "scheme": "current",
+      "variant": "original",
+      "mode": "jump",
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 1.025,
+      "arrival_time": 1.025,
+      "jump_delays": [
+        0.008333333333333331
+      ]
+    },
+    {
+      "map": "inferno",
+      "case": "crouch_jump",
+      "scheme": "current",
+      "variant": "original",
+      "mode": "no_jump",
+      "physics_hz": 120,
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": null,
+      "arrival_time": null,
+      "jump_delays": []
+    },
+    {
+      "map": "inferno",
+      "case": "crouch_jump",
+      "scheme": "legacy_16",
+      "variant": "original",
+      "mode": "jump",
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.625,
+      "arrival_time": 0.625,
+      "jump_delays": [
+        0.008333333333333331
+      ]
+    },
+    {
+      "map": "inferno",
+      "case": "crouch_jump",
+      "scheme": "legacy_16",
+      "variant": "original",
+      "mode": "no_jump",
+      "physics_hz": 120,
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": null,
+      "arrival_time": null,
+      "jump_delays": []
+    },
+    {
+      "map": "inferno",
+      "case": "crouch_jump",
+      "scheme": "modern_cs",
+      "variant": "original",
+      "mode": "jump",
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.708333333333333,
+      "arrival_time": 0.708333333333333,
+      "jump_delays": [
+        0.008333333333333331
+      ]
+    },
+    {
+      "map": "inferno",
+      "case": "crouch_jump",
+      "scheme": "modern_cs",
+      "variant": "original",
+      "mode": "no_jump",
+      "physics_hz": 120,
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": null,
+      "arrival_time": null,
+      "jump_delays": []
+    }
+  ],
+  "unselected": [],
+  "grid_trials": 66,
+  "replay_trials": 48,
+  "first_landing_passes": 24,
+  "negative_controls": 24,
+  "exploration": [
+    {
+      "map": "dust2",
+      "revision": "v1",
+      "scheme": "current",
+      "variant": "original",
+      "case": "run_up",
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.916666666666667,
+      "arrival_time": 0.916666666666667,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "dust2",
+      "revision": "v1",
+      "scheme": "legacy_16",
+      "variant": "original",
+      "case": "run_up",
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.833333333333333,
+      "arrival_time": 0.833333333333333,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "dust2",
+      "revision": "v1",
+      "scheme": "modern_cs",
+      "variant": "original",
+      "case": "run_up",
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.966666666666667,
+      "arrival_time": 0.966666666666667,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "dust2",
+      "revision": "v1",
+      "scheme": "current",
+      "variant": "original",
+      "case": "crouch_jump",
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.85,
+      "arrival_time": 0.85,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "dust2",
+      "revision": "v1",
+      "scheme": "legacy_16",
+      "variant": "original",
+      "case": "crouch_jump",
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.583333333333333,
+      "arrival_time": 0.583333333333333,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "dust2",
+      "revision": "v1",
+      "scheme": "modern_cs",
+      "variant": "original",
+      "case": "crouch_jump",
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.7,
+      "arrival_time": 0.7,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "mirage",
+      "revision": "v2",
+      "scheme": "current",
+      "variant": "back150_run200",
+      "case": "crouch_jump",
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 1.16666666666667,
+      "arrival_time": 1.16666666666667,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "mirage",
+      "revision": "v2",
+      "scheme": "current",
+      "variant": "back250_run300",
+      "case": "crouch_jump",
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 1.36666666666667,
+      "arrival_time": 1.36666666666667,
+      "jump_delays": [
+        0.016666666666666607
+      ]
+    },
+    {
+      "map": "mirage",
+      "revision": "v2",
+      "scheme": "legacy_16",
+      "variant": "back150_run200",
+      "case": "crouch_jump",
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.85,
+      "arrival_time": 0.85,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "mirage",
+      "revision": "v2",
+      "scheme": "legacy_16",
+      "variant": "back250_run300",
+      "case": "crouch_jump",
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 1.05,
+      "arrival_time": 1.05,
+      "jump_delays": [
+        0.016666666666666607
+      ]
+    },
+    {
+      "map": "mirage",
+      "revision": "v2",
+      "scheme": "modern_cs",
+      "variant": "back150_run200",
+      "case": "crouch_jump",
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.983333333333333,
+      "arrival_time": 0.983333333333333,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "mirage",
+      "revision": "v2",
+      "scheme": "modern_cs",
+      "variant": "back250_run300",
+      "case": "crouch_jump",
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 1.18333333333333,
+      "arrival_time": 1.18333333333333,
+      "jump_delays": [
+        0.016666666666666607
+      ]
+    },
+    {
+      "map": "inferno",
+      "revision": "v1",
+      "scheme": "current",
+      "variant": "original",
+      "case": "crouch_jump",
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 1.05,
+      "arrival_time": 1.05,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "inferno",
+      "revision": "v1",
+      "scheme": "legacy_16",
+      "variant": "original",
+      "case": "crouch_jump",
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.6,
+      "arrival_time": 0.6,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "inferno",
+      "revision": "v1",
+      "scheme": "modern_cs",
+      "variant": "original",
+      "case": "crouch_jump",
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.733333333333333,
+      "arrival_time": 0.733333333333333,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "mirage",
+      "revision": "v1",
+      "scheme": "current",
+      "variant": "precrouch_010",
+      "case": "crouch_jump",
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 1.05,
+      "arrival_time": 1.05,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "mirage",
+      "revision": "v1",
+      "scheme": "current",
+      "variant": "precrouch_025",
+      "case": "crouch_jump",
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 1.2,
+      "arrival_time": 1.2,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "mirage",
+      "revision": "v1",
+      "scheme": "current",
+      "variant": "precrouch_040",
+      "case": "crouch_jump",
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 1.35,
+      "arrival_time": 1.35,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "mirage",
+      "revision": "v1",
+      "scheme": "current",
+      "variant": "precrouch_055",
+      "case": "crouch_jump",
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 1.5,
+      "arrival_time": 1.5,
+      "jump_delays": [
+        0.016666666666666607
+      ]
+    },
+    {
+      "map": "mirage",
+      "revision": "v1",
+      "scheme": "current",
+      "variant": "aircrouch_010",
+      "case": "crouch_jump",
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.916666666666667,
+      "arrival_time": 0.916666666666667,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "mirage",
+      "revision": "v1",
+      "scheme": "current",
+      "variant": "aircrouch_025",
+      "case": "crouch_jump",
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 1.06666666666667,
+      "arrival_time": 1.06666666666667,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "mirage",
+      "revision": "v1",
+      "scheme": "legacy_16",
+      "variant": "precrouch_010",
+      "case": "crouch_jump",
+      "first_landing": false,
+      "supported_arrival": true,
+      "landing_time": 0.6,
+      "arrival_time": 1.01666666666667,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "mirage",
+      "revision": "v1",
+      "scheme": "legacy_16",
+      "variant": "precrouch_025",
+      "case": "crouch_jump",
+      "first_landing": false,
+      "supported_arrival": true,
+      "landing_time": 0.85,
+      "arrival_time": 1.28333333333333,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "mirage",
+      "revision": "v1",
+      "scheme": "legacy_16",
+      "variant": "precrouch_040",
+      "case": "crouch_jump",
+      "first_landing": false,
+      "supported_arrival": true,
+      "landing_time": 1.0,
+      "arrival_time": 1.43333333333333,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "mirage",
+      "revision": "v1",
+      "scheme": "legacy_16",
+      "variant": "precrouch_055",
+      "case": "crouch_jump",
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": 1.15,
+      "arrival_time": null,
+      "jump_delays": [
+        0.016666666666666607
+      ]
+    },
+    {
+      "map": "mirage",
+      "revision": "v1",
+      "scheme": "legacy_16",
+      "variant": "aircrouch_010",
+      "case": "crouch_jump",
+      "first_landing": false,
+      "supported_arrival": true,
+      "landing_time": 0.7,
+      "arrival_time": 1.13333333333333,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "mirage",
+      "revision": "v1",
+      "scheme": "legacy_16",
+      "variant": "aircrouch_025",
+      "case": "crouch_jump",
+      "first_landing": false,
+      "supported_arrival": true,
+      "landing_time": 0.85,
+      "arrival_time": 1.28333333333333,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "mirage",
+      "revision": "v1",
+      "scheme": "modern_cs",
+      "variant": "precrouch_010",
+      "case": "crouch_jump",
+      "first_landing": false,
+      "supported_arrival": true,
+      "landing_time": 0.733333333333333,
+      "arrival_time": 0.783333333333333,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "mirage",
+      "revision": "v1",
+      "scheme": "modern_cs",
+      "variant": "precrouch_025",
+      "case": "crouch_jump",
+      "first_landing": false,
+      "supported_arrival": true,
+      "landing_time": 0.883333333333333,
+      "arrival_time": 1.28333333333333,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "mirage",
+      "revision": "v1",
+      "scheme": "modern_cs",
+      "variant": "precrouch_040",
+      "case": "crouch_jump",
+      "first_landing": false,
+      "supported_arrival": true,
+      "landing_time": 1.03333333333333,
+      "arrival_time": 1.43333333333333,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "mirage",
+      "revision": "v1",
+      "scheme": "modern_cs",
+      "variant": "precrouch_055",
+      "case": "crouch_jump",
+      "first_landing": false,
+      "supported_arrival": false,
+      "landing_time": 1.18333333333333,
+      "arrival_time": null,
+      "jump_delays": [
+        0.016666666666666607
+      ]
+    },
+    {
+      "map": "mirage",
+      "revision": "v1",
+      "scheme": "modern_cs",
+      "variant": "aircrouch_010",
+      "case": "crouch_jump",
+      "first_landing": false,
+      "supported_arrival": true,
+      "landing_time": 0.733333333333333,
+      "arrival_time": 1.13333333333333,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "map": "mirage",
+      "revision": "v1",
+      "scheme": "modern_cs",
+      "variant": "aircrouch_025",
+      "case": "crouch_jump",
+      "first_landing": false,
+      "supported_arrival": true,
+      "landing_time": 0.883333333333333,
+      "arrival_time": 1.28333333333333,
+      "jump_delays": [
+        0.016666666666666663
+      ]
+    }
+  ],
+  "verification": {
+    "ordinary_python_tests": 142,
+    "new_evidence_regressions": 13,
+    "grid_trials": 66,
+    "selected_trials": 48,
+    "qualified_points": 4,
+    "production_changed": false,
+    "original_assets_changed": false,
+    "full_native_suite_repeated": false
+  }
+}

@@ -22,7 +22,14 @@ func _run() -> void:
 			== manifest.identity.level_sha256
 		)
 	)
-	assert(FileAccess.get_sha256(String(data.match_manifest)) == manifest.identity.layout_sha256)
+	assert(
+		(
+			FileAccess.get_sha256(
+				String(data.get("match_manifest", "res://data/levels/match-local/dustline.json"))
+			)
+			== manifest.identity.layout_sha256
+		)
+	)
 	assert(Engine.get_version_info().hash == manifest.identity.engine_hash)
 	stage = Node3D.new()
 	root.add_child(stage)
