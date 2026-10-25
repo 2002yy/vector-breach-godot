@@ -1,0 +1,805 @@
+{
+  "formal_release_ready": false,
+  "production_changed": false,
+  "first_landing_precision_accepted": false,
+  "stage_ablations": {
+    "formal_release_ready": false,
+    "diagnostic_only": true,
+    "production_changed": false,
+    "baseline_traces_unchanged": true,
+    "trials": 48,
+    "results": [
+      {
+        "case": "runup_objective_rise_00",
+        "variant": "baseline",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 1.01666666666667,
+        "arrival_time": 1.01666666666667,
+        "jump_delays": [
+          0.016666666666666663
+        ],
+        "stage_changes": [],
+        "stage_changes_after_first_landing": 5
+      },
+      {
+        "case": "runup_objective_rise_00",
+        "variant": "no_pre",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 1.01666666666667,
+        "arrival_time": 1.01666666666667,
+        "jump_delays": [
+          0.016666666666666663
+        ],
+        "stage_changes": [],
+        "stage_changes_after_first_landing": 5
+      },
+      {
+        "case": "runup_objective_rise_00",
+        "variant": "no_try",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 1.01666666666667,
+        "arrival_time": 1.01666666666667,
+        "jump_delays": [
+          0.016666666666666663
+        ],
+        "stage_changes": [],
+        "stage_changes_after_first_landing": 2
+      },
+      {
+        "case": "runup_objective_rise_00",
+        "variant": "no_snap",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 1.01666666666667,
+        "arrival_time": 1.01666666666667,
+        "jump_delays": [
+          0.016666666666666663
+        ],
+        "stage_changes": [],
+        "stage_changes_after_first_landing": 5
+      },
+      {
+        "case": "runup_objective_rise_01",
+        "variant": "baseline",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.816666666666667,
+        "arrival_time": 0.816666666666667,
+        "jump_delays": [
+          0.016666666666666663
+        ],
+        "stage_changes": [
+          {
+            "time": 0.8,
+            "stage": "snap",
+            "delta_y": -0.4390554428100595,
+            "displacement": 0.4390554428100595,
+            "velocity_change": 3.16669917106628,
+            "grounded_before": false,
+            "grounded_after": false,
+            "velocity_y_before": -3.16669917106628,
+            "velocity_y_after": 0.0
+          }
+        ],
+        "stage_changes_after_first_landing": 2
+      },
+      {
+        "case": "runup_objective_rise_01",
+        "variant": "no_pre",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.816666666666667,
+        "arrival_time": 0.816666666666667,
+        "jump_delays": [
+          0.016666666666666663
+        ],
+        "stage_changes": [
+          {
+            "time": 0.8,
+            "stage": "snap",
+            "delta_y": -0.4390554428100595,
+            "displacement": 0.4390554428100595,
+            "velocity_change": 3.16669917106628,
+            "grounded_before": false,
+            "grounded_after": false,
+            "velocity_y_before": -3.16669917106628,
+            "velocity_y_after": 0.0
+          }
+        ],
+        "stage_changes_after_first_landing": 2
+      },
+      {
+        "case": "runup_objective_rise_01",
+        "variant": "no_try",
+        "physics_hz": 60,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.816666666666667,
+        "arrival_time": 0.816666666666667,
+        "jump_delays": [
+          0.016666666666666663
+        ],
+        "stage_changes": [
+          {
+            "time": 0.8,
+            "stage": "snap",
+            "delta_y": -0.4390554428100595,
+            "displacement": 0.4390554428100595,
+            "velocity_change": 3.16669917106628,
+            "grounded_before": false,
+            "grounded_after": false,
+            "velocity_y_before": -3.16669917106628,
+            "velocity_y_after": 0.0
+          }
+        ],
+        "stage_changes_after_first_landing": 2
+      },
+      {
+        "case": "runup_objective_rise_01",
+        "variant": "no_snap",
+        "physics_hz": 60,
+        "first_landing": false,
+        "supported_arrival": false,
+        "landing_time": 0.95,
+        "arrival_time": null,
+        "jump_delays": [
+          0.016666666666666663
+        ],
+        "stage_changes": [],
+        "stage_changes_after_first_landing": 0
+      },
+      {
+        "case": "runup_objective_rise_00",
+        "variant": "baseline",
+        "physics_hz": 120,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.891666666666667,
+        "arrival_time": 0.891666666666667,
+        "jump_delays": [
+          0.00833333333333336
+        ],
+        "stage_changes": [
+          {
+            "time": 0.883333333333333,
+            "stage": "snap",
+            "delta_y": -0.4464497566223198,
+            "displacement": 0.4464497566223198,
+            "velocity_change": 2.99736881256104,
+            "grounded_before": false,
+            "grounded_after": false,
+            "velocity_y_before": -2.99736881256104,
+            "velocity_y_after": 0.0
+          }
+        ],
+        "stage_changes_after_first_landing": 2
+      },
+      {
+        "case": "runup_objective_rise_00",
+        "variant": "no_pre",
+        "physics_hz": 120,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.891666666666667,
+        "arrival_time": 0.891666666666667,
+        "jump_delays": [
+          0.00833333333333336
+        ],
+        "stage_changes": [
+          {
+            "time": 0.883333333333333,
+            "stage": "snap",
+            "delta_y": -0.4464497566223198,
+            "displacement": 0.4464497566223198,
+            "velocity_change": 2.99736881256104,
+            "grounded_before": false,
+            "grounded_after": false,
+            "velocity_y_before": -2.99736881256104,
+            "velocity_y_after": 0.0
+          }
+        ],
+        "stage_changes_after_first_landing": 2
+      },
+      {
+        "case": "runup_objective_rise_00",
+        "variant": "no_try",
+        "physics_hz": 120,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.891666666666667,
+        "arrival_time": 0.891666666666667,
+        "jump_delays": [
+          0.00833333333333336
+        ],
+        "stage_changes": [
+          {
+            "time": 0.883333333333333,
+            "stage": "snap",
+            "delta_y": -0.4464497566223198,
+            "displacement": 0.4464497566223198,
+            "velocity_change": 2.99736881256104,
+            "grounded_before": false,
+            "grounded_after": false,
+            "velocity_y_before": -2.99736881256104,
+            "velocity_y_after": 0.0
+          }
+        ],
+        "stage_changes_after_first_landing": 2
+      },
+      {
+        "case": "runup_objective_rise_00",
+        "variant": "no_snap",
+        "physics_hz": 120,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.991666666666667,
+        "arrival_time": 0.991666666666667,
+        "jump_delays": [
+          0.00833333333333336
+        ],
+        "stage_changes": [],
+        "stage_changes_after_first_landing": 0
+      },
+      {
+        "case": "runup_objective_rise_01",
+        "variant": "baseline",
+        "physics_hz": 120,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.791666666666667,
+        "arrival_time": 0.791666666666667,
+        "jump_delays": [
+          0.00833333333333336
+        ],
+        "stage_changes": [
+          {
+            "time": 0.783333333333333,
+            "stage": "snap",
+            "delta_y": -0.4464988708496094,
+            "displacement": 0.4464988708496094,
+            "velocity_change": 2.99736881256104,
+            "grounded_before": false,
+            "grounded_after": false,
+            "velocity_y_before": -2.99736881256104,
+            "velocity_y_after": 0.0
+          }
+        ],
+        "stage_changes_after_first_landing": 3
+      },
+      {
+        "case": "runup_objective_rise_01",
+        "variant": "no_pre",
+        "physics_hz": 120,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.791666666666667,
+        "arrival_time": 0.791666666666667,
+        "jump_delays": [
+          0.00833333333333336
+        ],
+        "stage_changes": [
+          {
+            "time": 0.783333333333333,
+            "stage": "snap",
+            "delta_y": -0.4464988708496094,
+            "displacement": 0.4464988708496094,
+            "velocity_change": 2.99736881256104,
+            "grounded_before": false,
+            "grounded_after": false,
+            "velocity_y_before": -2.99736881256104,
+            "velocity_y_after": 0.0
+          }
+        ],
+        "stage_changes_after_first_landing": 3
+      },
+      {
+        "case": "runup_objective_rise_01",
+        "variant": "no_try",
+        "physics_hz": 120,
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.791666666666667,
+        "arrival_time": 0.791666666666667,
+        "jump_delays": [
+          0.00833333333333336
+        ],
+        "stage_changes": [
+          {
+            "time": 0.783333333333333,
+            "stage": "snap",
+            "delta_y": -0.4464988708496094,
+            "displacement": 0.4464988708496094,
+            "velocity_change": 2.99736881256104,
+            "grounded_before": false,
+            "grounded_after": false,
+            "velocity_y_before": -2.99736881256104,
+            "velocity_y_after": 0.0
+          }
+        ],
+        "stage_changes_after_first_landing": 3
+      },
+      {
+        "case": "runup_objective_rise_01",
+        "variant": "no_snap",
+        "physics_hz": 120,
+        "first_landing": false,
+        "supported_arrival": false,
+        "landing_time": 0.933333333333333,
+        "arrival_time": null,
+        "jump_delays": [
+          0.00833333333333336
+        ],
+        "stage_changes": [],
+        "stage_changes_after_first_landing": 0
+      }
+    ],
+    "cross_rate": [
+      {
+        "case": "runup_objective_rise_00",
+        "variant": "baseline",
+        "first_10cm_difference": {
+          "end_time": 0.48333333333333367,
+          "distance": 0.14269127170526416
+        },
+        "landing_position_difference": 1.0217308345283471,
+        "landing_time_difference": 0.1250000000000029
+      },
+      {
+        "case": "runup_objective_rise_00",
+        "variant": "no_pre",
+        "first_10cm_difference": {
+          "end_time": 0.48333333333333367,
+          "distance": 0.14269127170526416
+        },
+        "landing_position_difference": 1.0217308345283471,
+        "landing_time_difference": 0.1250000000000029
+      },
+      {
+        "case": "runup_objective_rise_00",
+        "variant": "no_try",
+        "first_10cm_difference": {
+          "end_time": 0.48333333333333367,
+          "distance": 0.14269127170526416
+        },
+        "landing_position_difference": 1.0217308345283471,
+        "landing_time_difference": 0.1250000000000029
+      },
+      {
+        "case": "runup_objective_rise_00",
+        "variant": "no_snap",
+        "first_10cm_difference": {
+          "end_time": 0.48333333333333367,
+          "distance": 0.14269127170526416
+        },
+        "landing_position_difference": 1.096043977514186,
+        "landing_time_difference": 0.02500000000000291
+      },
+      {
+        "case": "runup_objective_rise_01",
+        "variant": "baseline",
+        "first_10cm_difference": {
+          "end_time": 0.6666666666666667,
+          "distance": 0.10133105609678934
+        },
+        "landing_position_difference": 0.2555739100616422,
+        "landing_time_difference": 0.025000000000000022
+      },
+      {
+        "case": "runup_objective_rise_01",
+        "variant": "no_pre",
+        "first_10cm_difference": {
+          "end_time": 0.6666666666666667,
+          "distance": 0.10133105609678934
+        },
+        "landing_position_difference": 0.2555739100616422,
+        "landing_time_difference": 0.025000000000000022
+      },
+      {
+        "case": "runup_objective_rise_01",
+        "variant": "no_try",
+        "first_10cm_difference": {
+          "end_time": 0.6666666666666667,
+          "distance": 0.10133105609678934
+        },
+        "landing_position_difference": 0.2555739100616422,
+        "landing_time_difference": 0.025000000000000022
+      },
+      {
+        "case": "runup_objective_rise_01",
+        "variant": "no_snap",
+        "first_10cm_difference": {
+          "end_time": 0.6666666666666667,
+          "distance": 0.10133105609678934
+        },
+        "landing_position_difference": 0.23674012587037657,
+        "landing_time_difference": 0.01666666666666694
+      }
+    ]
+  },
+  "pre_post_first_landing_checks": [
+    {
+      "case": "modern_cs__runup_objective_rise_00__jump",
+      "variant": "no_pre",
+      "physics_hz": 60,
+      "first_landing_unchanged": true,
+      "first_later_physics_change": 1.03333333333333
+    },
+    {
+      "case": "modern_cs__runup_objective_rise_00__jump",
+      "variant": "no_try",
+      "physics_hz": 60,
+      "first_landing_unchanged": true,
+      "first_later_physics_change": 1.06666666666667
+    },
+    {
+      "case": "modern_cs__runup_objective_rise_01__jump",
+      "variant": "no_pre",
+      "physics_hz": 60,
+      "first_landing_unchanged": true,
+      "first_later_physics_change": null
+    },
+    {
+      "case": "modern_cs__runup_objective_rise_01__jump",
+      "variant": "no_try",
+      "physics_hz": 60,
+      "first_landing_unchanged": true,
+      "first_later_physics_change": null
+    },
+    {
+      "case": "modern_cs__runup_objective_rise_00__jump",
+      "variant": "no_pre",
+      "physics_hz": 120,
+      "first_landing_unchanged": true,
+      "first_later_physics_change": null
+    },
+    {
+      "case": "modern_cs__runup_objective_rise_00__jump",
+      "variant": "no_try",
+      "physics_hz": 120,
+      "first_landing_unchanged": true,
+      "first_later_physics_change": null
+    },
+    {
+      "case": "modern_cs__runup_objective_rise_01__jump",
+      "variant": "no_pre",
+      "physics_hz": 120,
+      "first_landing_unchanged": true,
+      "first_later_physics_change": null
+    },
+    {
+      "case": "modern_cs__runup_objective_rise_01__jump",
+      "variant": "no_try",
+      "physics_hz": 120,
+      "first_landing_unchanged": true,
+      "first_later_physics_change": null
+    }
+  ],
+  "immediate_jump_counterfactual": {
+    "formal_release_ready": false,
+    "native_acceptance": false,
+    "baseline_traces_unchanged": true,
+    "production_changed": false,
+    "trials": 40,
+    "results": [
+      {
+        "case": "runup_objective_rise_00",
+        "physics_hz": 60,
+        "timing_mode": "native",
+        "jump_times": [
+          0.366666666666667
+        ],
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 1.01666666666667,
+        "arrival_time": 1.01666666666667,
+        "jump_delays": [
+          0.016666666666666663
+        ]
+      },
+      {
+        "case": "runup_objective_rise_00",
+        "physics_hz": 60,
+        "timing_mode": "immediate_jump",
+        "jump_times": [
+          0.35
+        ],
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.9,
+        "arrival_time": 0.9,
+        "jump_delays": [
+          0.0
+        ]
+      },
+      {
+        "case": "runup_objective_rise_01",
+        "physics_hz": 60,
+        "timing_mode": "native",
+        "jump_times": [
+          0.266666666666667
+        ],
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.816666666666667,
+        "arrival_time": 0.816666666666667,
+        "jump_delays": [
+          0.016666666666666663
+        ]
+      },
+      {
+        "case": "runup_objective_rise_01",
+        "physics_hz": 60,
+        "timing_mode": "immediate_jump",
+        "jump_times": [
+          0.25
+        ],
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.8,
+        "arrival_time": 0.8,
+        "jump_delays": [
+          0.0
+        ]
+      },
+      {
+        "case": "runup_objective_rise_00",
+        "physics_hz": 120,
+        "timing_mode": "native",
+        "jump_times": [
+          0.358333333333333
+        ],
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.891666666666667,
+        "arrival_time": 0.891666666666667,
+        "jump_delays": [
+          0.00833333333333336
+        ]
+      },
+      {
+        "case": "runup_objective_rise_00",
+        "physics_hz": 120,
+        "timing_mode": "immediate_jump",
+        "jump_times": [
+          0.35
+        ],
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.883333333333333,
+        "arrival_time": 0.883333333333333,
+        "jump_delays": [
+          0.0
+        ]
+      },
+      {
+        "case": "runup_objective_rise_01",
+        "physics_hz": 120,
+        "timing_mode": "native",
+        "jump_times": [
+          0.258333333333333
+        ],
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.791666666666667,
+        "arrival_time": 0.791666666666667,
+        "jump_delays": [
+          0.00833333333333336
+        ]
+      },
+      {
+        "case": "runup_objective_rise_01",
+        "physics_hz": 120,
+        "timing_mode": "immediate_jump",
+        "jump_times": [
+          0.25
+        ],
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.783333333333333,
+        "arrival_time": 0.783333333333333,
+        "jump_delays": [
+          0.0
+        ]
+      }
+    ],
+    "cross_rate": [
+      {
+        "case": "runup_objective_rise_00",
+        "timing_mode": "native",
+        "landing_position_difference": 1.0217308345283471,
+        "landing_time_difference": 0.1250000000000029
+      },
+      {
+        "case": "runup_objective_rise_00",
+        "timing_mode": "immediate_jump",
+        "landing_position_difference": 0.07042026519776012,
+        "landing_time_difference": 0.01666666666666705
+      },
+      {
+        "case": "runup_objective_rise_01",
+        "timing_mode": "native",
+        "landing_position_difference": 0.2555739100616422,
+        "landing_time_difference": 0.025000000000000022
+      },
+      {
+        "case": "runup_objective_rise_01",
+        "timing_mode": "immediate_jump",
+        "landing_position_difference": 0.17901316351926594,
+        "landing_time_difference": 0.01666666666666705
+      }
+    ]
+  },
+  "queued_native_input": {
+    "formal_release_ready": false,
+    "native_acceptance": false,
+    "baseline_traces_unchanged": true,
+    "production_changed": false,
+    "trials": 40,
+    "results": [
+      {
+        "case": "runup_objective_rise_00",
+        "physics_hz": 60,
+        "timing_mode": "native",
+        "jump_times": [
+          0.366666666666667
+        ],
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 1.01666666666667,
+        "arrival_time": 1.01666666666667,
+        "jump_delays": [
+          0.016666666666666663
+        ]
+      },
+      {
+        "case": "runup_objective_rise_00",
+        "physics_hz": 60,
+        "timing_mode": "queued_input",
+        "jump_times": [
+          0.35
+        ],
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.9,
+        "arrival_time": 0.9,
+        "jump_delays": [
+          0.0
+        ]
+      },
+      {
+        "case": "runup_objective_rise_01",
+        "physics_hz": 60,
+        "timing_mode": "native",
+        "jump_times": [
+          0.266666666666667
+        ],
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.816666666666667,
+        "arrival_time": 0.816666666666667,
+        "jump_delays": [
+          0.016666666666666663
+        ]
+      },
+      {
+        "case": "runup_objective_rise_01",
+        "physics_hz": 60,
+        "timing_mode": "queued_input",
+        "jump_times": [
+          0.25
+        ],
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.8,
+        "arrival_time": 0.8,
+        "jump_delays": [
+          0.0
+        ]
+      },
+      {
+        "case": "runup_objective_rise_00",
+        "physics_hz": 120,
+        "timing_mode": "native",
+        "jump_times": [
+          0.358333333333333
+        ],
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.891666666666667,
+        "arrival_time": 0.891666666666667,
+        "jump_delays": [
+          0.00833333333333336
+        ]
+      },
+      {
+        "case": "runup_objective_rise_00",
+        "physics_hz": 120,
+        "timing_mode": "queued_input",
+        "jump_times": [
+          0.35
+        ],
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.883333333333333,
+        "arrival_time": 0.883333333333333,
+        "jump_delays": [
+          0.0
+        ]
+      },
+      {
+        "case": "runup_objective_rise_01",
+        "physics_hz": 120,
+        "timing_mode": "native",
+        "jump_times": [
+          0.258333333333333
+        ],
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.791666666666667,
+        "arrival_time": 0.791666666666667,
+        "jump_delays": [
+          0.00833333333333336
+        ]
+      },
+      {
+        "case": "runup_objective_rise_01",
+        "physics_hz": 120,
+        "timing_mode": "queued_input",
+        "jump_times": [
+          0.25
+        ],
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.783333333333333,
+        "arrival_time": 0.783333333333333,
+        "jump_delays": [
+          0.0
+        ]
+      }
+    ],
+    "cross_rate": [
+      {
+        "case": "runup_objective_rise_00",
+        "timing_mode": "native",
+        "landing_position_difference": 1.0217308345283471,
+        "landing_time_difference": 0.1250000000000029
+      },
+      {
+        "case": "runup_objective_rise_00",
+        "timing_mode": "queued_input",
+        "landing_position_difference": 0.07042026519776012,
+        "landing_time_difference": 0.01666666666666705
+      },
+      {
+        "case": "runup_objective_rise_01",
+        "timing_mode": "native",
+        "landing_position_difference": 0.2555739100616422,
+        "landing_time_difference": 0.025000000000000022
+      },
+      {
+        "case": "runup_objective_rise_01",
+        "timing_mode": "queued_input",
+        "landing_position_difference": 0.17901316351926594,
+        "landing_time_difference": 0.01666666666666705
+      }
+    ],
+    "native_queued_matches_counterfactual_traces": true
+  },
+  "verification": {
+    "ordinary_python_tests": 196,
+    "new_regressions": 18,
+    "local_physics_trials": 128,
+    "baseline_reference_comparisons": 108,
+    "queued_equals_counterfactual_physical_traces": 4,
+    "full_native_suite_repeated": false
+  }
+}
