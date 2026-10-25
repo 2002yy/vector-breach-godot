@@ -159,6 +159,21 @@ jobs:
       - name: Movement qualification gate regressions
         run: python -X utf8 -m unittest discover -s tools/tests -p 'test_m*.py' -v
 
+      - name: Native keyboard and mouse input regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          for hz in 60 120; do
+            probe_log="$(mktemp)"
+            "./${GODOT_BIN}" --headless --path . --fixed-fps "$hz" --quit-after 480 \
+              -s tools/authoring/test_native_route_input.gd -- "$hz" >"${probe_log}" 2>&1
+            cat "${probe_log}"
+            if grep -Eq 'SCRIPT ERROR:|^ERROR:' "${probe_log}" || \
+               ! grep -q "NATIVE_ROUTE_INPUT_OK rate=$hz" "${probe_log}"; then
+              exit 1
+            fi
+          done
+
       - name: Body corridor counterexamples
         shell: bash
         run: |

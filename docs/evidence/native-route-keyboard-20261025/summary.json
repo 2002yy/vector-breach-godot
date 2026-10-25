@@ -1,0 +1,361 @@
+{
+  "formal_release_ready": false,
+  "input_kind": "synthetic InputMap keys/mouse; not OS/human",
+  "study_sha256": "e1f673a5977376ca6cd64e18552590dfde2dad2e8d2afad333f0c6e6cd6b3c0e",
+  "results": [
+    {
+      "id": "current_route_no_jump",
+      "scheme": "current",
+      "physics_hz": 60,
+      "goal_kind": "supported_arrival",
+      "first_landing_or_control_reached": true,
+      "supported_arrival": true,
+      "arrival_time": 4.41666666666667,
+      "jump_edge_delay_seconds": []
+    },
+    {
+      "id": "current_route_walk",
+      "scheme": "current",
+      "physics_hz": 60,
+      "goal_kind": "supported_arrival",
+      "first_landing_or_control_reached": true,
+      "supported_arrival": true,
+      "arrival_time": 5.25,
+      "jump_edge_delay_seconds": []
+    },
+    {
+      "id": "current_run_up",
+      "scheme": "current",
+      "physics_hz": 60,
+      "goal_kind": "first_landing",
+      "first_landing_or_control_reached": false,
+      "supported_arrival": true,
+      "arrival_time": 1.03333333333333,
+      "jump_edge_delay_seconds": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "id": "current_crouch_jump",
+      "scheme": "current",
+      "physics_hz": 60,
+      "goal_kind": "first_landing",
+      "first_landing_or_control_reached": true,
+      "supported_arrival": true,
+      "arrival_time": 1.05,
+      "jump_edge_delay_seconds": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "id": "current_input_contract",
+      "scheme": "current",
+      "physics_hz": 60,
+      "goal_kind": "input_contract",
+      "first_landing_or_control_reached": true,
+      "supported_arrival": true,
+      "arrival_time": 1.28333333333333,
+      "jump_edge_delay_seconds": [
+        0.01666666666666672
+      ]
+    },
+    {
+      "id": "legacy_16_route_no_jump",
+      "scheme": "legacy_16",
+      "physics_hz": 60,
+      "goal_kind": "supported_arrival",
+      "first_landing_or_control_reached": true,
+      "supported_arrival": true,
+      "arrival_time": 5.96666666666667,
+      "jump_edge_delay_seconds": []
+    },
+    {
+      "id": "legacy_16_route_walk",
+      "scheme": "legacy_16",
+      "physics_hz": 60,
+      "goal_kind": "supported_arrival",
+      "first_landing_or_control_reached": true,
+      "supported_arrival": true,
+      "arrival_time": 5.76666666666667,
+      "jump_edge_delay_seconds": []
+    },
+    {
+      "id": "legacy_16_run_up",
+      "scheme": "legacy_16",
+      "physics_hz": 60,
+      "goal_kind": "first_landing",
+      "first_landing_or_control_reached": false,
+      "supported_arrival": true,
+      "arrival_time": 0.95,
+      "jump_edge_delay_seconds": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "id": "legacy_16_crouch_jump",
+      "scheme": "legacy_16",
+      "physics_hz": 60,
+      "goal_kind": "first_landing",
+      "first_landing_or_control_reached": false,
+      "supported_arrival": true,
+      "arrival_time": 1.01666666666667,
+      "jump_edge_delay_seconds": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "id": "legacy_16_input_contract",
+      "scheme": "legacy_16",
+      "physics_hz": 60,
+      "goal_kind": "input_contract",
+      "first_landing_or_control_reached": false,
+      "supported_arrival": false,
+      "arrival_time": null,
+      "jump_edge_delay_seconds": [
+        0.01666666666666672
+      ]
+    },
+    {
+      "id": "modern_cs_route_no_jump",
+      "scheme": "modern_cs",
+      "physics_hz": 60,
+      "goal_kind": "supported_arrival",
+      "first_landing_or_control_reached": true,
+      "supported_arrival": true,
+      "arrival_time": 5.03333333333333,
+      "jump_edge_delay_seconds": []
+    },
+    {
+      "id": "modern_cs_route_walk",
+      "scheme": "modern_cs",
+      "physics_hz": 60,
+      "goal_kind": "supported_arrival",
+      "first_landing_or_control_reached": true,
+      "supported_arrival": true,
+      "arrival_time": 5.85,
+      "jump_edge_delay_seconds": []
+    },
+    {
+      "id": "modern_cs_run_up",
+      "scheme": "modern_cs",
+      "physics_hz": 60,
+      "goal_kind": "first_landing",
+      "first_landing_or_control_reached": false,
+      "supported_arrival": true,
+      "arrival_time": 1.13333333333333,
+      "jump_edge_delay_seconds": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "id": "modern_cs_crouch_jump",
+      "scheme": "modern_cs",
+      "physics_hz": 60,
+      "goal_kind": "first_landing",
+      "first_landing_or_control_reached": false,
+      "supported_arrival": true,
+      "arrival_time": 0.783333333333333,
+      "jump_edge_delay_seconds": [
+        0.016666666666666663
+      ]
+    },
+    {
+      "id": "modern_cs_input_contract",
+      "scheme": "modern_cs",
+      "physics_hz": 60,
+      "goal_kind": "input_contract",
+      "first_landing_or_control_reached": false,
+      "supported_arrival": false,
+      "arrival_time": null,
+      "jump_edge_delay_seconds": [
+        0.01666666666666672
+      ]
+    },
+    {
+      "id": "current_route_no_jump",
+      "scheme": "current",
+      "physics_hz": 120,
+      "goal_kind": "supported_arrival",
+      "first_landing_or_control_reached": true,
+      "supported_arrival": true,
+      "arrival_time": 4.40833333333333,
+      "jump_edge_delay_seconds": []
+    },
+    {
+      "id": "current_route_walk",
+      "scheme": "current",
+      "physics_hz": 120,
+      "goal_kind": "supported_arrival",
+      "first_landing_or_control_reached": true,
+      "supported_arrival": true,
+      "arrival_time": 5.25,
+      "jump_edge_delay_seconds": []
+    },
+    {
+      "id": "current_run_up",
+      "scheme": "current",
+      "physics_hz": 120,
+      "goal_kind": "first_landing",
+      "first_landing_or_control_reached": false,
+      "supported_arrival": true,
+      "arrival_time": 1.025,
+      "jump_edge_delay_seconds": [
+        0.00833333333333336
+      ]
+    },
+    {
+      "id": "current_crouch_jump",
+      "scheme": "current",
+      "physics_hz": 120,
+      "goal_kind": "first_landing",
+      "first_landing_or_control_reached": true,
+      "supported_arrival": true,
+      "arrival_time": 1.01666666666667,
+      "jump_edge_delay_seconds": [
+        0.008333333333333331
+      ]
+    },
+    {
+      "id": "current_input_contract",
+      "scheme": "current",
+      "physics_hz": 120,
+      "goal_kind": "input_contract",
+      "first_landing_or_control_reached": true,
+      "supported_arrival": true,
+      "arrival_time": 1.29166666666667,
+      "jump_edge_delay_seconds": [
+        0.008333333333333415
+      ]
+    },
+    {
+      "id": "legacy_16_route_no_jump",
+      "scheme": "legacy_16",
+      "physics_hz": 120,
+      "goal_kind": "supported_arrival",
+      "first_landing_or_control_reached": true,
+      "supported_arrival": true,
+      "arrival_time": 6.0,
+      "jump_edge_delay_seconds": []
+    },
+    {
+      "id": "legacy_16_route_walk",
+      "scheme": "legacy_16",
+      "physics_hz": 120,
+      "goal_kind": "supported_arrival",
+      "first_landing_or_control_reached": true,
+      "supported_arrival": true,
+      "arrival_time": 5.775,
+      "jump_edge_delay_seconds": []
+    },
+    {
+      "id": "legacy_16_run_up",
+      "scheme": "legacy_16",
+      "physics_hz": 120,
+      "goal_kind": "first_landing",
+      "first_landing_or_control_reached": false,
+      "supported_arrival": true,
+      "arrival_time": 0.933333333333333,
+      "jump_edge_delay_seconds": [
+        0.00833333333333336
+      ]
+    },
+    {
+      "id": "legacy_16_crouch_jump",
+      "scheme": "legacy_16",
+      "physics_hz": 120,
+      "goal_kind": "first_landing",
+      "first_landing_or_control_reached": false,
+      "supported_arrival": true,
+      "arrival_time": 1.10833333333333,
+      "jump_edge_delay_seconds": [
+        0.008333333333333331
+      ]
+    },
+    {
+      "id": "legacy_16_input_contract",
+      "scheme": "legacy_16",
+      "physics_hz": 120,
+      "goal_kind": "input_contract",
+      "first_landing_or_control_reached": false,
+      "supported_arrival": false,
+      "arrival_time": null,
+      "jump_edge_delay_seconds": [
+        0.008333333333333415
+      ]
+    },
+    {
+      "id": "modern_cs_route_no_jump",
+      "scheme": "modern_cs",
+      "physics_hz": 120,
+      "goal_kind": "supported_arrival",
+      "first_landing_or_control_reached": true,
+      "supported_arrival": true,
+      "arrival_time": 5.03333333333333,
+      "jump_edge_delay_seconds": []
+    },
+    {
+      "id": "modern_cs_route_walk",
+      "scheme": "modern_cs",
+      "physics_hz": 120,
+      "goal_kind": "supported_arrival",
+      "first_landing_or_control_reached": true,
+      "supported_arrival": true,
+      "arrival_time": 5.86666666666667,
+      "jump_edge_delay_seconds": []
+    },
+    {
+      "id": "modern_cs_run_up",
+      "scheme": "modern_cs",
+      "physics_hz": 120,
+      "goal_kind": "first_landing",
+      "first_landing_or_control_reached": false,
+      "supported_arrival": true,
+      "arrival_time": 1.11666666666667,
+      "jump_edge_delay_seconds": [
+        0.00833333333333336
+      ]
+    },
+    {
+      "id": "modern_cs_crouch_jump",
+      "scheme": "modern_cs",
+      "physics_hz": 120,
+      "goal_kind": "first_landing",
+      "first_landing_or_control_reached": false,
+      "supported_arrival": true,
+      "arrival_time": 0.791666666666667,
+      "jump_edge_delay_seconds": [
+        0.008333333333333331
+      ]
+    },
+    {
+      "id": "modern_cs_input_contract",
+      "scheme": "modern_cs",
+      "physics_hz": 120,
+      "goal_kind": "input_contract",
+      "first_landing_or_control_reached": false,
+      "supported_arrival": false,
+      "arrival_time": null,
+      "jump_edge_delay_seconds": [
+        0.008333333333333415
+      ]
+    }
+  ],
+  "route_arrivals": 12,
+  "first_landing_reached": 2,
+  "jump_trials": 12,
+  "input_contract_trials": 6,
+  "repeat_60_exact": true,
+  "verification": {
+    "ordinary_python_tests": 129,
+    "new_evidence_regressions": 15,
+    "public_native_input_hz": [
+      60,
+      120
+    ],
+    "frozen_replays": 30,
+    "repeat_60_trials": 15,
+    "full_native_suite_repeated": false,
+    "production_player_changed": false,
+    "original_assets_changed": false
+  }
+}
