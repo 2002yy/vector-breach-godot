@@ -314,6 +314,15 @@ func switch_to_slot(slot_index: int) -> void:
 	if current_profile != null:
 		weapon_switched.emit(current_profile.display_name, slot_index)
 
+func get_movement_context() -> Dictionary:
+	var profile = _current_profile()
+	var camera = _scoped_camera.get_ref() if _scoped_camera != null else null
+	return {
+		"weapon_id": profile.weapon_id if profile != null else "knife",
+		"slot": _current_weapon_index,
+		"scoped": is_instance_valid(camera),
+	}
+
 func get_runtime_snapshot() -> Dictionary:
 	var current_profile = _current_profile()
 	var current_state: Dictionary = _current_state()
