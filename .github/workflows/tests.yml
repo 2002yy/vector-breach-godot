@@ -157,7 +157,7 @@ jobs:
           "./${GODOT_BIN}" --headless --path . --import
 
       - name: Movement qualification gate regressions
-        run: python -X utf8 -m unittest discover -s tools/tests -p test_map_jump_qualification.py -v
+        run: python -X utf8 -m unittest discover -s tools/tests -p 'test_m*.py' -v
 
       - name: Body corridor counterexamples
         shell: bash

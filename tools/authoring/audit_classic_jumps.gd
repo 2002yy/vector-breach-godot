@@ -125,6 +125,11 @@ func _run() -> void:
 		for point in manifest.cases:
 			for scheme in ["current", "legacy_16", "modern_cs"]:
 				output.results.append(await _trial(point, scheme))
+	output["runtime_sha256"] = {}
+	for script_path in [
+		"res://scripts/player/PlayerController.gd", "res://scripts/player/ClassicMovementRules.gd"
+	]:
+		output.runtime_sha256[script_path] = FileAccess.get_sha256(script_path)
 	var file := FileAccess.open(args[2], FileAccess.WRITE)
 	assert(file != null)
 	file.store_string(JSON.stringify(output, "\t"))
@@ -168,7 +173,7 @@ func _trial(point: Dictionary, scheme: String, mode := "jump") -> Dictionary:
 	state.set("player_spawn_yaw_radians", float(point.yaw))
 	root.get_node("RoundManager").call("set_warmup")
 	var player = load("res://scenes/player/Player.tscn").instantiate()
-	player.set_script(load("res://scripts/tests/MovementTimelinePlayer.gd"))
+	player.set_script(_trial_script())
 	trial_player = player
 	stage.add_child(player)
 	for frame in range(rate / 2):
@@ -191,6 +196,7 @@ func _trial(point: Dictionary, scheme: String, mode := "jump") -> Dictionary:
 		timeline.append(row)
 	player.timeline = timeline
 	player.set_movement_scheme(scheme)
+	_configure_trial_player(player, point, scheme, mode)
 	samples = []
 	player.movement_step.connect(_record)
 	player.active = true
@@ -304,3 +310,13 @@ func _trial(point: Dictionary, scheme: String, mode := "jump") -> Dictionary:
 	player.queue_free()
 	await process_frame
 	return result
+
+
+func _trial_script() -> Script:
+	return load("res://scripts/tests/MovementTimelinePlayer.gd")
+
+
+func _configure_trial_player(
+	_player: CharacterBody3D, _point: Dictionary, _scheme: String, _mode: String
+) -> void:
+	pass
