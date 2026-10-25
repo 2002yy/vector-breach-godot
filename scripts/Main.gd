@@ -88,6 +88,8 @@ var last_start_timings: Dictionary = {}
 var _starting := false
 var _preparation_timings: Dictionary = {}
 
+var _start_failure := "map"
+
 @onready var level: Node3D = $Level
 @onready var player: CharacterBody3D = $Player
 @onready var world_environment: WorldEnvironment = $WorldEnvironment
@@ -232,6 +234,10 @@ func _ready() -> void:
 			break
 	if level.has_signal("level_loaded"):
 		level.connect("level_loaded", _on_level_loaded)
+	if level.has_signal("load_progress"):
+		level.connect("load_progress", _on_loading_progress)
+	if combat_sandbox.has_signal("load_progress"):
+		combat_sandbox.connect("load_progress", _on_loading_progress)
 	if weapon_system.has_signal("shot_resolved"):
 		weapon_system.connect("shot_resolved", _on_shot_resolved)
 	tactical_equipment.connect("equipment_changed", _sync_equipment_view)
@@ -576,6 +582,7 @@ func _on_start_pressed() -> void:
 	if _starting:
 		return
 	_starting = true
+	_start_failure = "map"
 	var began := Time.get_ticks_usec()
 	start_menu.call("set_loading", true)
 	# Give the loading state a complete frame before synchronous engine work.
@@ -593,12 +600,21 @@ func _on_start_pressed() -> void:
 	}
 	_starting = false
 	start_menu.call("set_loading", false)
+	if not game_started:
+		start_menu.call("show_loading_error", _start_failure)
+
+func _on_loading_progress(stage: String, completed: int, total: int) -> void:
+	if _starting:
+		start_menu.call("set_loading_stage", stage, completed, total)
 
 func _start_selected_map() -> void:
 	spectator.call("stop")
 	var option: Dictionary = level_options[selected_level_index]
 	_level_loading = true
 	_level_load_failed = false
+	game_started = false
+	GameState.set_game_started(false)
+	RoundManager.set_warmup()
 	_preparation_timings.clear()
 	_set_world_active(false)
 	combat_hud.call("show_training_panel", false)
@@ -618,7 +634,7 @@ func _start_selected_map() -> void:
 	if is_instance_valid(training_telemetry):
 		training_telemetry.call("begin_round", 1)
 	_clear_round_drops()
-	if not level.call("load_level", option["id"]):
+	if not await level.call("load_level_async", option["id"]):
 		_level_load_failed = true
 		_level_loading = false
 	while _level_loading:
@@ -710,6 +726,8 @@ func _open_menu(initial_open: bool) -> void:
 	_update_ui(true)
 
 func _set_world_active(active: bool) -> void:
+	if not active:
+		c4_device.call("clear_explosion")
 	level.visible = active
 	combat_sandbox.visible = active
 	c4_device.visible = active
@@ -733,18 +751,26 @@ func _on_level_loaded(level_data: Dictionary) -> void:
 	)
 	_level_load_serial += 1
 	var serial := _level_load_serial
+	var level_load_count: int = level.load_count
 	timings["environment_ms"] = (Time.get_ticks_usec() - began) / 1000.0
 	var phase := Time.get_ticks_usec()
 	if LocalClassicMaps.is_classic(String(level_data.get("id", ""))):
 		_level_loading = true
 		for _frame in range(2):
 			await get_tree().physics_frame
-		if serial != _level_load_serial:
+		if serial != _level_load_serial or level_load_count != level.load_count:
 			return
 		timings["physics_settle_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
 		phase = Time.get_ticks_usec()
-		var layout := ClassicMatchLayout.load_authored(level_data)
+		_on_loading_progress("rules", 0, 0)
+		var verified: Dictionary = await get_node("/root/CollisionVerifier").load_layout(level_data)
+		if serial != _level_load_serial or level_load_count != level.load_count:
+			return
+		var layout: Dictionary = verified.get("layout", {})
+		verified.erase("layout")
+		timings["layout_verification"] = verified
 		if layout.is_empty():
+			_start_failure = "layout"
 			_level_load_failed = true
 			_level_loading = false
 			push_error("经典地图缺少有效的本机冻结路网 JSON，或碰撞/关卡资源已变更。请显式重建并审计本机基线。")
@@ -759,8 +785,11 @@ func _on_level_loaded(level_data: Dictionary) -> void:
 			GameState.player_spawn_yaw_radians = deg_to_rad(float(spawn_yaws.get(GameState.player_team, 0.0)))
 		timings["layout_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
 	phase = Time.get_ticks_usec()
+	_on_loading_progress("team", 0, 0)
 	if combat_sandbox.has_method("load_for_level"):
-		combat_sandbox.call("load_for_level", level_data)
+		await combat_sandbox.call("load_for_level", level_data, _starting)
+	if serial != _level_load_serial or level_load_count != level.load_count:
+		return
 	timings["actors_ms"] = (Time.get_ticks_usec() - phase) / 1000.0
 	timings["actor_phases"] = combat_sandbox.last_load_timings.duplicate(true)
 	timings["prepare_ms"] = (Time.get_ticks_usec() - began) / 1000.0
@@ -1291,19 +1320,30 @@ func _update_objective_interaction(delta: float) -> void:
 		c4_device.call("set_carried", "CT")
 
 func _on_bomb_exploded(_site_label: String) -> void:
+	if not bool(c4_device.call("detonate")):
+		return
+	_apply_c4_damage(player)
+	for actor in combat_sandbox.get_children():
+		if actor is CharacterBody3D:
+			_apply_c4_damage(actor)
+
+
+func _apply_c4_damage(target: CharacterBody3D) -> void:
+	if bool(target.get("is_dead")):
+		return
 	var damage := int(
 		c4_device.call(
 			"calculate_explosion_damage",
-			player.global_position,
+			target.global_position,
 			get_world_3d().direct_space_state,
-			[player.get_rid()]
+			[target.get_rid()]
 		)
 	)
-	if damage > 0 and not bool(player.get("is_dead")):
+	if damage > 0:
 		CombatEvents.apply_damage(
-			player,
+			target,
 			"apply_hitscan_damage",
-			[damage, player.global_position, 0.65, false],
+			[damage, target.global_position, 0.65, false],
 			CombatEvents.actor_source(null, "c4", "objective")
 		)
 
@@ -1416,6 +1456,8 @@ func _update_ui(force: bool) -> void:
 
 func _build_hud_snapshot(snapshot: Dictionary) -> Dictionary:
 	var enriched := snapshot.duplicate(true)
+	if bool(c4_device.call("is_explosion_presenting")):
+		enriched["training_complete"] = false
 	enriched["scoped"] = (
 		bool(weapon_system.call("get_runtime_snapshot").get("scoped", false))
 		and not bool(player.get("is_dead"))

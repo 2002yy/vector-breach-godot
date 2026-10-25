@@ -5,6 +5,7 @@ signal round_ended(winner: String, reason: String)
 signal restart_requested
 signal objective_interaction_changed(snapshot: Dictionary)
 signal bomb_exploded(site_label: String)
+signal bomb_planted(site_label: String, serial: int)
 
 enum RoundState {
 	WARMUP,
@@ -51,7 +52,6 @@ func _process(delta: float) -> void:
 			time_remaining = maxf(0.0, time_remaining - delta)
 			if time_remaining == 0.0:
 				end_round("T", "BOMB EXPLODED")
-				bomb_exploded.emit(bomb_site)
 		RoundState.ROUND_END:
 			time_remaining = maxf(0.0, time_remaining - delta)
 			if time_remaining == 0.0 and not _restart_emitted:
@@ -101,6 +101,7 @@ func plant_bomb(site_label: String) -> bool:
 	time_remaining = bomb_duration
 	_set_state(RoundState.BOMB_PLANTED)
 	cancel_objective_interaction()
+	bomb_planted.emit(site_label, round_serial)
 	return true
 
 func defuse_bomb() -> bool:
@@ -173,7 +174,12 @@ func end_round(winner: String, reason: String) -> void:
 	round_winner = winner
 	round_reason = reason
 	time_remaining = round_end_duration
-	_set_state(RoundState.ROUND_END)
+	var detonated := state == RoundState.BOMB_PLANTED and winner == "T" and reason == "BOMB EXPLODED"
+	# Lock the winner before blast deaths can trigger elimination callbacks.
+	state = RoundState.ROUND_END
+	if detonated:
+		bomb_exploded.emit(bomb_site)
+	phase_changed.emit(get_state_name())
 	round_ended.emit(winner, reason)
 
 func can_player_move() -> bool:
