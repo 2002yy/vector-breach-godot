@@ -17,6 +17,10 @@ config/features=PackedStringArray("4.7")
 
 [autoload]
 
+CollisionVerifier="*res://scripts/autoload/CollisionVerifier.gd"
+
+SceneReader="*res://scripts/autoload/SceneReader.gd"
+
 GameState="*res://scripts/autoload/GameState.gd"
 RoundManager="*res://scripts/round/RoundManager.gd"
 UserSettings="*res://scripts/autoload/UserSettings.gd"

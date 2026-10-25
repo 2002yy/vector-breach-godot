@@ -9,6 +9,8 @@ const Official = preload("res://scripts/player/OfficialEquipment.gd")
 @export var explosion_radius: float = 22.0
 @export var lethal_radius: float = 5.5
 
+var _explosion: Node3D
+
 @onready var mesh_root: Node3D = $MeshRoot
 @onready var status_light: OmniLight3D = $MeshRoot/StatusLight
 @onready var beep_player: AudioStreamPlayer3D = $BeepPlayer
@@ -58,6 +60,7 @@ func _process(delta: float) -> void:
 		status_light.light_energy = move_toward(status_light.light_energy, IDLE_LIGHT_ENERGY, delta * 8.0)
 
 func set_carried(team: String = "T", owner_id: int = 0) -> void:
+	clear_explosion()
 	device_state = "carried"
 	carrier_team = team
 	carrier_id = owner_id
@@ -66,6 +69,7 @@ func set_carried(team: String = "T", owner_id: int = 0) -> void:
 	_reset_armed_feedback()
 
 func drop_at(world_position: Vector3) -> void:
+	clear_explosion()
 	carrier_id = 0
 	device_state = "dropped"
 	global_position = world_position
@@ -74,12 +78,35 @@ func drop_at(world_position: Vector3) -> void:
 	_reset_armed_feedback()
 
 func plant_at(world_position: Vector3, next_site_label: String) -> void:
+	clear_explosion()
 	carrier_id = 0
 	device_state = "planted"
 	global_position = world_position
 	site_label = next_site_label
 	mesh_root.visible = true
 	_reset_armed_feedback()
+
+func detonate() -> bool:
+	if device_state != "planted":
+		return false
+	device_state = "exploded"
+	mesh_root.hide()
+	_reset_armed_feedback()
+	_explosion = preload("res://scripts/objective/C4Explosion.gd").new()
+	_explosion.name = "ExplosionEffect"
+	add_child(_explosion)
+	return true
+
+
+func is_explosion_presenting() -> bool:
+	return is_instance_valid(_explosion) and bool(_explosion.call("is_presenting"))
+
+
+func clear_explosion() -> void:
+	if is_instance_valid(_explosion):
+		_explosion.free()
+	_explosion = null
+
 
 func can_pick_up(player_position: Vector3, player_team: String) -> bool:
 	return device_state == "dropped" and player_team == "T" and global_position.distance_to(player_position) <= 1.8

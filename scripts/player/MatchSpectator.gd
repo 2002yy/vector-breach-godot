@@ -100,6 +100,17 @@ func toggle_mode() -> void:
 		_view_model.visible = first_person
 
 
+func select_index(index: int) -> void:
+	if not active:
+		return
+	var alive := teammates()
+	if index < 0 or index >= alive.size():
+		return
+	_restore_meshes()
+	target = alive[index]
+	_apply_first_person_visibility()
+
+
 func tick() -> void:
 	if not active:
 		return
@@ -144,6 +155,19 @@ func get_snapshot() -> Dictionary:
 	if not active:
 		return {"active": false}
 	var snapshot := {"active": true, "first_person": first_person, "has_target": false}
+	var roster: Array[Dictionary] = []
+	for teammate in teammates():
+		(
+			roster
+			. append(
+				{
+					"name": String(teammate.get("display_name")),
+					"health": int(teammate.get("current_health")),
+					"selected": teammate == target,
+				}
+			)
+		)
+	snapshot["teammates"] = roster
 	if (
 		is_instance_valid(target)
 		and target.is_inside_tree()
