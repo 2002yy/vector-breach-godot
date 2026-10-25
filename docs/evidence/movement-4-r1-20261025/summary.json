@@ -1,0 +1,191 @@
+{
+  "incremental_base": "c65649d067e16c47ae8d390a1d1ad77e24bfca6b",
+  "pr_base": "b0378218b9ee1a8e51b609bf8e200b9f058a5502",
+  "formal_release_ready": false,
+  "point_qualification": {
+    "schema": 2,
+    "validated_points": [
+      {
+        "map": "dust2",
+        "case": "ordinary",
+        "status": "walk_only",
+        "reason": "Reference Current reaches the target without jump at both rates."
+      },
+      {
+        "map": "dust2",
+        "case": "critical_landing",
+        "status": "walk_only",
+        "reason": "Reference Current reaches the target without jump at both rates."
+      },
+      {
+        "map": "dust2",
+        "case": "edge",
+        "status": "blocked_direct_route",
+        "reason": "All bounded body corridors stop at lateral collision; controls fail."
+      },
+      {
+        "map": "dust2",
+        "case": "run_up",
+        "status": "qualified_jump",
+        "reason": "Body corridor and actual reference jump verified; no-jump controls fail."
+      },
+      {
+        "map": "dust2",
+        "case": "crouch_jump",
+        "status": "qualified_jump",
+        "reason": "Body corridor and actual reference jump verified; no-jump controls fail."
+      },
+      {
+        "map": "mirage",
+        "case": "ordinary",
+        "status": "walk_only",
+        "reason": "Reference Current reaches the target without jump at both rates."
+      },
+      {
+        "map": "mirage",
+        "case": "critical_landing",
+        "status": "walk_only",
+        "reason": "Reference Current reaches the target without jump at both rates."
+      },
+      {
+        "map": "mirage",
+        "case": "edge",
+        "status": "walk_only",
+        "reason": "Reference Current reaches the target without jump at both rates."
+      },
+      {
+        "map": "mirage",
+        "case": "run_up",
+        "status": "route_unproven",
+        "reason": "Corridor, reference jump and control evidence do not establish qualification."
+      },
+      {
+        "map": "mirage",
+        "case": "crouch_jump",
+        "status": "qualified_jump",
+        "reason": "Body corridor and actual reference jump verified; no-jump controls fail."
+      },
+      {
+        "map": "inferno",
+        "case": "ordinary",
+        "status": "walk_only",
+        "reason": "Reference Current reaches the target without jump at both rates."
+      },
+      {
+        "map": "inferno",
+        "case": "critical_landing",
+        "status": "walk_only",
+        "reason": "Reference Current reaches the target without jump at both rates."
+      },
+      {
+        "map": "inferno",
+        "case": "edge",
+        "status": "blocked_direct_route",
+        "reason": "All bounded body corridors stop at lateral collision; controls fail."
+      },
+      {
+        "map": "inferno",
+        "case": "run_up",
+        "status": "blocked_direct_route",
+        "reason": "All bounded body corridors stop at lateral collision; controls fail."
+      },
+      {
+        "map": "inferno",
+        "case": "crouch_jump",
+        "status": "qualified_jump",
+        "reason": "Body corridor and actual reference jump verified; no-jump controls fail."
+      }
+    ],
+    "eligible": false
+  },
+  "qualified_replay": {
+    "schema": 2,
+    "trials": 24,
+    "reached": 20,
+    "cases_per_map": {
+      "dust2": 2,
+      "mirage": 1,
+      "inferno": 1
+    },
+    "failures": [
+      {
+        "map": "mirage",
+        "case": "crouch_jump",
+        "scheme": "legacy_16",
+        "rate": 60,
+        "reason": "outside_target"
+      },
+      {
+        "map": "mirage",
+        "case": "crouch_jump",
+        "scheme": "modern_cs",
+        "rate": 60,
+        "reason": "outside_target"
+      },
+      {
+        "map": "mirage",
+        "case": "crouch_jump",
+        "scheme": "legacy_16",
+        "rate": 120,
+        "reason": "outside_target"
+      },
+      {
+        "map": "mirage",
+        "case": "crouch_jump",
+        "scheme": "modern_cs",
+        "rate": 120,
+        "reason": "outside_target"
+      }
+    ],
+    "all_variants_reached": false
+  },
+  "status_counts": {
+    "walk_only": 7,
+    "blocked_direct_route": 3,
+    "qualified_jump": 4,
+    "route_unproven": 1
+  },
+  "qualification_sha256": "90aeb12cf9a440df5c6c4e6c5522c5c8ca59a4fef6955a90b201a9ccfa30daf7",
+  "parent_manifests": {
+    "dust2": "b5a60ec7dbc7ba5fbdbc229c039a09c0b167fa44b1874f9ebe5d9d13e8c2ffce",
+    "mirage": "a79fae49c128524812e560942a4f9904be19311d894a62e235319411f148d975",
+    "inferno": "f48351cab077bd9cd2c222a22bdc0b9033332801596964d5879941bcb27829de"
+  },
+  "channel_artifacts": {
+    "dust2-qualify-60.json": "e4950b5dde21a25c3fe4d580d845ae1527daab73ac8d7924519a867af472b2f0",
+    "dust2-qualify-120.json": "02d6a9c6546951189117ab34e4b6f1343771ad09c0dbdf4441dc49e5951702ad",
+    "mirage-qualify-60.json": "9353290ea47b861dc47acb1fb1eb2d8283e17bf858b4b4e99dd0c53c90aec05f",
+    "mirage-qualify-120.json": "610206a230a264e4b95dd9dc88dcbbb3037e2964d6ff3e41ed3b10b60e14c732",
+    "inferno-qualify-60.json": "c354e951eb0cda59ff99a6eb3a202cbd47b09e8408d66eec98c397f5a4b0eee9",
+    "inferno-qualify-120.json": "dfbfb0f11913d98d62530f83631429e4b5b3e9b1c5324a222b1f6b307b62ffb1"
+  },
+  "verification": {
+    "new_control_trials": 80,
+    "new_qualified_replay_trials": 24,
+    "qualification_regressions": 25,
+    "python_suite": 105,
+    "body_counterexamples": 3,
+    "default_parameters_changed": false,
+    "runtime_code_changed": false
+  },
+  "ci95": [
+    {
+      "conclusion": "success",
+      "databaseId": 40189968302,
+      "event": "pull_request",
+      "headSha": "b0378218b9ee1a8e51b609bf8e200b9f058a5502",
+      "name": "Windows Export",
+      "status": "completed",
+      "url": "https://github.com/2002yy/vector-breach-godot/actions/runs/40189968302"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 40189968249,
+      "event": "pull_request",
+      "headSha": "b0378218b9ee1a8e51b609bf8e200b9f058a5502",
+      "name": "Tests",
+      "status": "completed",
+      "url": "https://github.com/2002yy/vector-breach-godot/actions/runs/40189968249"
+    }
+  ]
+}
