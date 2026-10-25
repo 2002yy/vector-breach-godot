@@ -1,0 +1,4 @@
+[gd_scene load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/tests/PlayerMovementAuditProbe.gd" id="1"]
+[node name="PlayerMovementAuditProbe" type="Node"]
+script = ExtResource("1")

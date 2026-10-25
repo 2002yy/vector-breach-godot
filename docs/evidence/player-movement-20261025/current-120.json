@@ -1,0 +1,320 @@
+{
+	"crouch_jump": {
+		"apex_rise": 1.59553253650665,
+		"command_to_land_s": 1.075,
+		"distance": 0.0,
+		"first_air_speed": 0.0,
+		"first_frames": [
+			{
+				"grounded": true,
+				"height": 0.0,
+				"horizontal_speed": 0.0,
+				"sample": 1,
+				"vertical_speed": 0.0
+			},
+			{
+				"grounded": false,
+				"height": 0.0470864176750183,
+				"horizontal_speed": 0.0,
+				"sample": 2,
+				"vertical_speed": 5.55000019073486
+			},
+			{
+				"grounded": false,
+				"height": 0.0926558971405029,
+				"horizontal_speed": 0.0,
+				"sample": 3,
+				"vertical_speed": 5.46833372116089
+			},
+			{
+				"grounded": false,
+				"height": 0.137544751167297,
+				"horizontal_speed": 0.0,
+				"sample": 4,
+				"vertical_speed": 5.38666725158691
+			},
+			{
+				"grounded": false,
+				"height": 0.181753039360046,
+				"horizontal_speed": 0.0,
+				"sample": 5,
+				"vertical_speed": 5.30500078201294
+			},
+			{
+				"grounded": false,
+				"height": 0.22528088092804,
+				"horizontal_speed": 0.0,
+				"sample": 6,
+				"vertical_speed": 5.22333431243896
+			},
+			{
+				"grounded": false,
+				"height": 0.268128156661987,
+				"horizontal_speed": 0.0,
+				"sample": 7,
+				"vertical_speed": 5.14166784286499
+			},
+			{
+				"grounded": false,
+				"height": 0.31029486656189,
+				"horizontal_speed": 0.0,
+				"sample": 8,
+				"vertical_speed": 5.06000137329102
+			}
+		],
+		"held_jump_rejumped": false,
+		"launch_y": 5.55000019073486
+	},
+	"jump": {
+		"apex_rise": 1.34921228885651,
+		"command_to_land_s": 0.975,
+		"distance": 0.0,
+		"first_air_speed": 0.0,
+		"first_frames": [
+			{
+				"grounded": true,
+				"height": 0.0,
+				"horizontal_speed": 0.0,
+				"sample": 1,
+				"vertical_speed": 0.0
+			},
+			{
+				"grounded": false,
+				"height": 0.0433364510536194,
+				"horizontal_speed": 0.0,
+				"sample": 2,
+				"vertical_speed": 5.09999990463257
+			},
+			{
+				"grounded": false,
+				"height": 0.0851559042930603,
+				"horizontal_speed": 0.0,
+				"sample": 3,
+				"vertical_speed": 5.01833343505859
+			},
+			{
+				"grounded": false,
+				"height": 0.126294851303101,
+				"horizontal_speed": 0.0,
+				"sample": 4,
+				"vertical_speed": 4.93666696548462
+			},
+			{
+				"grounded": false,
+				"height": 0.166753172874451,
+				"horizontal_speed": 0.0,
+				"sample": 5,
+				"vertical_speed": 4.85500049591064
+			},
+			{
+				"grounded": false,
+				"height": 0.206530928611755,
+				"horizontal_speed": 0.0,
+				"sample": 6,
+				"vertical_speed": 4.77333402633667
+			},
+			{
+				"grounded": false,
+				"height": 0.245628118515015,
+				"horizontal_speed": 0.0,
+				"sample": 7,
+				"vertical_speed": 4.6916675567627
+			},
+			{
+				"grounded": false,
+				"height": 0.284044742584229,
+				"horizontal_speed": 0.0,
+				"sample": 8,
+				"vertical_speed": 4.61000108718872
+			}
+		],
+		"held_jump_rejumped": false,
+		"launch_y": 5.09999990463257
+	},
+	"parameters": {
+		"acceleration": 44.0,
+		"air_acceleration": 7.0,
+		"air_speed_cap": 6.5,
+		"crouch_jump_velocity": 5.55,
+		"crouch_speed": 2.2,
+		"deceleration": 34.0,
+		"gravity": 9.8,
+		"ground_friction": 6.2,
+		"jump_velocity": 5.1,
+		"max_step_height": 0.42,
+		"quiet_walk_speed": 3.2,
+		"run_speed": 6.2,
+		"stop_speed": 2.4
+	},
+	"physics_hz": 120,
+	"release_on_jump": {
+		"apex_rise": 1.34875690937042,
+		"command_to_land_s": 0.975,
+		"distance": 5.43944692611694,
+		"first_air_speed": 5.57588338851929,
+		"first_frames": [
+			{
+				"grounded": true,
+				"height": 0.0,
+				"horizontal_speed": 5.87966632843018,
+				"sample": 1,
+				"vertical_speed": 0.0
+			},
+			{
+				"grounded": false,
+				"height": 0.0428810119628906,
+				"horizontal_speed": 5.57588338851929,
+				"sample": 2,
+				"vertical_speed": 5.09999990463257
+			},
+			{
+				"grounded": false,
+				"height": 0.0847004652023315,
+				"horizontal_speed": 5.57588338851929,
+				"sample": 3,
+				"vertical_speed": 5.01833343505859
+			},
+			{
+				"grounded": false,
+				"height": 0.125839352607727,
+				"horizontal_speed": 5.57588338851929,
+				"sample": 4,
+				"vertical_speed": 4.93666696548462
+			},
+			{
+				"grounded": false,
+				"height": 0.166297674179077,
+				"horizontal_speed": 5.57588338851929,
+				"sample": 5,
+				"vertical_speed": 4.85500049591064
+			},
+			{
+				"grounded": false,
+				"height": 0.206075429916382,
+				"horizontal_speed": 5.57588338851929,
+				"sample": 6,
+				"vertical_speed": 4.77333402633667
+			},
+			{
+				"grounded": false,
+				"height": 0.245172619819641,
+				"horizontal_speed": 5.57588338851929,
+				"sample": 7,
+				"vertical_speed": 4.6916675567627
+			},
+			{
+				"grounded": false,
+				"height": 0.283589243888855,
+				"horizontal_speed": 5.57588338851929,
+				"sample": 8,
+				"vertical_speed": 4.61000108718872
+			}
+		],
+		"held_jump_rejumped": false,
+		"launch_y": 5.09999990463257
+	},
+	"running_jump": {
+		"apex_rise": 1.34871351718903,
+		"command_to_land_s": 0.975,
+		"distance": 6.04541397094727,
+		"first_air_speed": 6.19999980926514,
+		"first_frames": [
+			{
+				"grounded": true,
+				"height": 0.0,
+				"horizontal_speed": 6.19999980926514,
+				"sample": 1,
+				"vertical_speed": 0.0
+			},
+			{
+				"grounded": false,
+				"height": 0.0428375601768494,
+				"horizontal_speed": 6.19999980926514,
+				"sample": 2,
+				"vertical_speed": 5.09999990463257
+			},
+			{
+				"grounded": false,
+				"height": 0.0846570134162903,
+				"horizontal_speed": 6.19999980926514,
+				"sample": 3,
+				"vertical_speed": 5.01833343505859
+			},
+			{
+				"grounded": false,
+				"height": 0.125795960426331,
+				"horizontal_speed": 6.19999980926514,
+				"sample": 4,
+				"vertical_speed": 4.93666696548462
+			},
+			{
+				"grounded": false,
+				"height": 0.166254281997681,
+				"horizontal_speed": 6.19999980926514,
+				"sample": 5,
+				"vertical_speed": 4.85500049591064
+			},
+			{
+				"grounded": false,
+				"height": 0.206032037734985,
+				"horizontal_speed": 6.19999980926514,
+				"sample": 6,
+				"vertical_speed": 4.77333402633667
+			},
+			{
+				"grounded": false,
+				"height": 0.245129227638245,
+				"horizontal_speed": 6.19999980926514,
+				"sample": 7,
+				"vertical_speed": 4.6916675567627
+			},
+			{
+				"grounded": false,
+				"height": 0.283545851707459,
+				"horizontal_speed": 6.19999980926514,
+				"sample": 8,
+				"vertical_speed": 4.61000108718872
+			}
+		],
+		"held_jump_rejumped": false,
+		"launch_y": 5.09999990463257
+	},
+	"runs": {
+		"crouch": {
+			"distance_1s": 2.20000600814819,
+			"speed": 2.20000004768372
+		},
+		"diagonal": {
+			"distance_1s": 6.19999694824219,
+			"speed": 6.19999980926514
+		},
+		"knife": {
+			"distance_1s": 6.44799423217773,
+			"speed": 6.44799995422363
+		},
+		"pistol": {
+			"distance_1s": 6.20000267028809,
+			"speed": 6.19999980926514
+		},
+		"primary": {
+			"distance_1s": 5.82800960540771,
+			"speed": 5.82800006866455
+		},
+		"walk": {
+			"distance_1s": 3.19999742507935,
+			"speed": 3.20000004768372
+		}
+	},
+	"solver": {
+		"accelerate_s": 0.3,
+		"air_overspeed_no_input": 8.0,
+		"air_overspeed_side_input": 6.50000047683716,
+		"air_side_first_tick": -0.058333333581686,
+		"counter_s": 0.075,
+		"release_s": 0.308333333333333
+	},
+	"tagging": {
+		"crouching": 2.2,
+		"standing": 2.976
+	}
+}
