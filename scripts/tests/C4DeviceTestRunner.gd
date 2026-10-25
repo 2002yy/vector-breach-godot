@@ -20,6 +20,8 @@ func _ready() -> void:
 	await _run_test(
 		"plant_announcement_team_and_spectator", _test_plant_announcement_team_and_spectator
 	)
+	await _run_test("detonation_feedback_and_reset", _test_detonation_feedback_and_reset)
+	await _run_test("blast_commits_before_settlement", _test_blast_commits_before_settlement)
 	if _failures.is_empty():
 		print("[C4DeviceTests] PASS (%d tests)" % _passes)
 		get_tree().quit(0)
@@ -256,3 +258,91 @@ func _test_plant_announcement_team_and_spectator() -> void:
 	GameState.player_team = previous_team
 	hud.queue_free()
 	await get_tree().process_frame
+
+
+func _test_detonation_feedback_and_reset() -> void:
+	var device := await _make_device()
+	_assert_true(not device.call("detonate"), "carried C4 cannot detonate")
+	device.call("plant_at", Vector3.ZERO, "A")
+	_assert_true(device.call("detonate"), "planted C4 creates feedback")
+	var effect: Node3D = device.get_node("ExplosionEffect")
+	effect.set_process(false)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	_assert_true(not device.get_node("MeshRoot").visible, "consumed bomb mesh is hidden")
+	_assert_true(not device.get_node("BeepPlayer").playing, "blast stops armed beeps")
+	_assert_true(not device.call("detonate"), "duplicate blast is rejected")
+	_assert_equal(
+		device.get_node("ExplosionEffect"), effect, "duplicate cannot spawn another effect"
+	)
+	_assert_true(
+		device.call("is_explosion_presenting"), "initial blast reserves a viewing interval"
+	)
+	var audio: AudioStreamPlayer3D = effect.get("audio")
+	_assert_true(
+		audio.stream is AudioStreamWAV and audio.stream.get_length() > 1.0, "spatial blast tail"
+	)
+	effect.call("_process", 1.3)
+	_assert_true(
+		not device.call("is_explosion_presenting"), "result may appear after the initial blast"
+	)
+	RoundManager.set_paused_menu()
+	var previous_age := float(effect.get("age"))
+	effect.call("_process", 5.0)
+	_assert_near(float(effect.get("age")), previous_age, 0.001, "pause holds visual lifetime")
+	_assert_true(audio.stream_paused, "pause holds blast audio")
+	RoundManager.set_warmup()
+	device.call("set_carried", "T")
+	_assert_true(not is_instance_valid(effect), "new round frees visual and audio together")
+	_assert_true(not device.call("is_explosion_presenting"), "reset cannot suppress next result")
+	device.call("plant_at", Vector3.ZERO, "B")
+	device.call("detonate")
+	device.get_node("ExplosionEffect").set_process(false)
+	device.get_node("ExplosionEffect").call("_process", 2.5)
+	await get_tree().process_frame
+	_assert_true(
+		not device.call("is_explosion_presenting"), "expired effect releases owner reference"
+	)
+	await _cleanup_device(device)
+	# Headless frames can finish before AudioServer retires the stopped WAV playback.
+	await get_tree().create_timer(0.08).timeout
+
+
+func _test_blast_commits_before_settlement() -> void:
+	var events: Array = []
+	var blast := func(_site: String) -> void:
+		events.append("blast")
+		_assert_equal(
+			RoundManager.state, RoundManager.RoundState.ROUND_END, "winner locked before damage"
+		)
+		RoundManager.end_round("CT", "ELIMINATION")
+	var ended := func(winner: String, reason: String) -> void: events.append([winner, reason])
+	RoundManager.bomb_exploded.connect(blast)
+	RoundManager.round_ended.connect(ended)
+	RoundManager.start_round()
+	RoundManager.set_live()
+	RoundManager.plant_bomb("A")
+	RoundManager.time_remaining = 0.01
+	RoundManager.call("_process", 0.02)
+	_assert_equal(
+		events, ["blast", ["T", "BOMB EXPLODED"]], "blast precedes settlement exactly once"
+	)
+	RoundManager.call("_process", 0.01)
+	RoundManager.end_round("T", "BOMB EXPLODED")
+	_assert_equal(
+		events.size(), 2, "repeated ticks and callbacks cannot replay blast or settlement"
+	)
+	for reason in ["BOMB DEFUSED", "ELIMINATION", "TIME"]:
+		events.clear()
+		RoundManager.start_round()
+		RoundManager.set_live()
+		if reason != "TIME":
+			RoundManager.plant_bomb("B")
+		if reason == "BOMB DEFUSED":
+			RoundManager.defuse_bomb()
+		else:
+			RoundManager.end_round("CT", reason)
+		_assert_equal(events, [["CT", reason]], "non-blast victory cannot explode")
+	RoundManager.bomb_exploded.disconnect(blast)
+	RoundManager.round_ended.disconnect(ended)
+	RoundManager.set_warmup()

@@ -726,6 +726,8 @@ func _open_menu(initial_open: bool) -> void:
 	_update_ui(true)
 
 func _set_world_active(active: bool) -> void:
+	if not active:
+		c4_device.call("clear_explosion")
 	level.visible = active
 	combat_sandbox.visible = active
 	c4_device.visible = active
@@ -1318,19 +1320,30 @@ func _update_objective_interaction(delta: float) -> void:
 		c4_device.call("set_carried", "CT")
 
 func _on_bomb_exploded(_site_label: String) -> void:
+	if not bool(c4_device.call("detonate")):
+		return
+	_apply_c4_damage(player)
+	for actor in combat_sandbox.get_children():
+		if actor is CharacterBody3D:
+			_apply_c4_damage(actor)
+
+
+func _apply_c4_damage(target: CharacterBody3D) -> void:
+	if bool(target.get("is_dead")):
+		return
 	var damage := int(
 		c4_device.call(
 			"calculate_explosion_damage",
-			player.global_position,
+			target.global_position,
 			get_world_3d().direct_space_state,
-			[player.get_rid()]
+			[target.get_rid()]
 		)
 	)
-	if damage > 0 and not bool(player.get("is_dead")):
+	if damage > 0:
 		CombatEvents.apply_damage(
-			player,
+			target,
 			"apply_hitscan_damage",
-			[damage, player.global_position, 0.65, false],
+			[damage, target.global_position, 0.65, false],
 			CombatEvents.actor_source(null, "c4", "objective")
 		)
 
@@ -1443,6 +1456,8 @@ func _update_ui(force: bool) -> void:
 
 func _build_hud_snapshot(snapshot: Dictionary) -> Dictionary:
 	var enriched := snapshot.duplicate(true)
+	if bool(c4_device.call("is_explosion_presenting")):
+		enriched["training_complete"] = false
 	enriched["scoped"] = (
 		bool(weapon_system.call("get_runtime_snapshot").get("scoped", false))
 		and not bool(player.get("is_dead"))

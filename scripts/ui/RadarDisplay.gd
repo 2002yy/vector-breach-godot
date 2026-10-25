@@ -148,7 +148,7 @@ func _draw_player(record: Dictionary, player_world: Vector2, center: Vector2, ra
 
 func _draw_c4(record: Dictionary, player_world: Vector2, center: Vector2, radius: float, radar_range: float, yaw: float) -> void:
 	var state := String(record.get("state", ""))
-	if state.is_empty() or state == "carried":
+	if state not in ["dropped", "planted"]:
 		return
 	var position := Vector2(float(record.get("x", 0.0)), float(record.get("z", 0.0)))
 	var delta := position - player_world

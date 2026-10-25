@@ -4,6 +4,7 @@ const MAIN_SCENE = preload("res://scenes/Main.tscn")
 const ACTOR_SCENE = preload("res://scenes/combat/TacticalActor.tscn")
 const MatchExperience = preload("res://scripts/tests/MatchExperienceFixtures.gd")
 const LazyLoad = preload("res://scripts/tests/LazyLoadFixtures.gd")
+const C4ExplosionTests = preload("res://scripts/tests/C4ExplosionFixtures.gd")
 
 var _failures: PackedStringArray = []
 var _passes: int = 0
@@ -211,6 +212,7 @@ func _run_all_tests() -> void:
 	await _run_test("c4_ai_hint_distinguishes_enemy_and_ally", _test_c4_ai_hint)
 	await _run_test("player_damage_tags_and_death_ends_round", _test_player_damage_tags_and_death_ends_round)
 	await _run_test("buy_plant_defuse_round_loop", _test_buy_plant_defuse_round_loop)
+	await _run_test("c4_blast_damage_precedes_terminal_record_and_result", _test_c4_explosion)
 
 func _run_test(test_name: String, callable: Callable) -> void:
 	var failed_before: int = _failures.size()
@@ -247,6 +249,9 @@ func _assert_float_close(actual: float, expected: float, epsilon: float, message
 
 func _test_lazy_loading() -> void:
 	await LazyLoad.run(self)
+
+func _test_c4_explosion() -> void:
+	await C4ExplosionTests.run(self)
 
 func _instantiate_main(with_level := true) -> Node3D:
 	GameState.reset_runtime_state()
