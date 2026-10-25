@@ -1,6 +1,9 @@
 extends CharacterBody3D
 
+signal movement_step(sample: Dictionary)
+
 const DamageModel = preload("res://scripts/combat/DamageModel.gd")
+const MovementRules = preload("res://scripts/player/ClassicMovementRules.gd")
 
 signal footstep_emitted(world_position: Vector3, surface: String, quiet: bool)
 signal landed(world_position: Vector3, surface: String, strength: float)
@@ -37,6 +40,9 @@ signal player_died
 @export var ladder_jump_push: float = 3.0
 @export var shallow_water_speed_multiplier: float = 0.72
 @export var deep_water_speed_multiplier: float = 0.52
+
+var movement_scheme: String = "current"
+var _last_jump_input_usec: int = 0
 
 @onready var camera_pivot: Node3D = $CameraPivot
 @onready var camera: Camera3D = $CameraPivot/Camera3D
@@ -84,6 +90,8 @@ func _ready() -> void:
 func _input(event: InputEvent) -> void:
 	if not controls_enabled:
 		return
+	if event.is_action_pressed("jump"):
+		_last_jump_input_usec = Time.get_ticks_usec()
 
 	if event is InputEventMouseMotion and mouse_capture_enabled:
 		rotate_y(-event.relative.x * mouse_sensitivity)
@@ -104,36 +112,39 @@ func _physics_process(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0.0, deceleration * delta)
 		velocity.z = move_toward(velocity.z, 0.0, deceleration * delta)
 		if not is_on_floor():
-			velocity.y -= gravity * delta
+			velocity.y -= _movement_gravity() * delta
 		move_and_slide()
 		_update_camera_motion(delta, Vector3.ZERO)
 		return
 
 	var was_on_floor: bool = is_on_floor()
+	var movement_input := _sample_movement_input()
+	var velocity_before := velocity
 	_landing_accuracy_penalty = move_toward(_landing_accuracy_penalty, 0.0, delta * 2.8)
 	_tagging_multiplier = move_toward(_tagging_multiplier, 1.0, delta * 1.9)
 	if is_on_ladder:
 		_handle_ladder_movement(delta)
 		return
 	if not is_on_floor():
-		velocity.y -= gravity * resolve_water_gravity_multiplier() * delta
+		velocity.y -= _movement_gravity() * resolve_water_gravity_multiplier() * delta
 	if is_in_water and _water_depth >= 1.2:
 		_apply_deep_water_vertical_control(delta)
 
-	_update_crouch(Input.is_action_pressed("crouch"), delta)
+	_update_crouch(movement_input.crouch, delta)
 
-	if Input.is_action_just_pressed("jump") and is_on_floor():
-		velocity.y = crouch_jump_velocity if is_crouching else jump_velocity
+	var jumped: bool = movement_input.jump and is_on_floor()
+	if jumped:
+		velocity.y = _movement_jump_impulse()
 
-	var input_vector: Vector2 = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
+	var input_vector: Vector2 = movement_input.direction
 	var move_dir: Vector3 = get_world_move_direction(input_vector)
 
-	var speed := resolve_move_speed(Input.is_action_pressed("walk")) * get_equipped_movement_multiplier() * resolve_water_speed_multiplier()
+	var speed := resolve_final_move_speed(movement_input.walk)
 	var horizontal := simulate_tactical_horizontal_velocity(
 		Vector3(velocity.x, 0.0, velocity.z),
 		move_dir,
 		speed,
-		is_on_floor(),
+		was_on_floor and not jumped,
 		delta
 	)
 	velocity.x = horizontal.x
@@ -160,6 +171,51 @@ func _physics_process(delta: float) -> void:
 		landed.emit(global_position, _detect_floor_surface(), clampf(impact_speed / 8.0, 0.35, 1.0))
 	_update_footsteps(delta, move_dir)
 	_update_camera_motion(delta, move_dir)
+	if movement_step.has_connections():
+		movement_step.emit({
+			"frame": Engine.get_physics_frames(), "input": movement_input,
+			"input_event_usec": _last_jump_input_usec, "consumed_usec": Time.get_ticks_usec(),
+			"delta": delta, "jumped": jumped, "grounded_before": was_on_floor,
+			"ground_solver": was_on_floor and not jumped, "grounded_after": is_on_floor(),
+			"position": global_position, "velocity_before": velocity_before, "velocity": velocity,
+		})
+
+func _sample_movement_input() -> Dictionary:
+	return {
+		"direction": Input.get_vector("move_left", "move_right", "move_forward", "move_backward"),
+		"jump": Input.is_action_just_pressed("jump"),
+		"crouch": Input.is_action_pressed("crouch"), "walk": Input.is_action_pressed("walk"),
+	}
+
+func set_movement_scheme(scheme: String) -> bool:
+	if scheme not in MovementRules.SCHEMES:
+		return false
+	movement_scheme = scheme
+	return true
+
+func _movement_gravity() -> float:
+	if movement_scheme == "current":
+		return gravity
+	return float(MovementRules.parameters(movement_scheme).gravity)
+
+func _movement_jump_impulse() -> float:
+	if movement_scheme == "current":
+		return crouch_jump_velocity if is_crouching else jump_velocity
+	return float(MovementRules.parameters(movement_scheme).jump)
+
+func resolve_final_move_speed(quiet_walk_held: bool) -> float:
+	var slot := GameState.current_weapon_slot
+	var fallback := "equipment"
+	if slot in [0, 1, 2]:
+		fallback = ["rifle", "pistol", "knife"][slot]
+	var context := {"weapon_id": fallback, "slot": slot, "scoped": false}
+	var weapons := get_node_or_null("../WeaponSystem")
+	if slot in [0, 1] and weapons != null and weapons.has_method("get_movement_context"):
+		context = weapons.call("get_movement_context")
+	context.merge({"crouching": is_crouching, "walking": quiet_walk_held,
+		"tagging": _tagging_multiplier, "water": resolve_water_speed_multiplier()})
+	return MovementRules.speed_limit(movement_scheme, context,
+		{"run": run_speed, "walk": quiet_walk_speed, "crouch": crouch_speed})
 
 func set_controls_enabled(enabled: bool) -> void:
 	controls_enabled = enabled
@@ -211,6 +267,11 @@ func simulate_tactical_horizontal_velocity(
 	grounded: bool,
 	delta: float
 ) -> Vector3:
+	if movement_scheme != "current":
+		var config := MovementRules.parameters(movement_scheme)
+		if grounded:
+			return MovementRules.ground_step(current_velocity, wish_direction, wish_speed, config, delta)
+		return MovementRules.air_step(current_velocity, wish_direction, wish_speed, config, delta)
 	var horizontal := Vector3(current_velocity.x, 0.0, current_velocity.z)
 	if grounded:
 		horizontal = _apply_ground_friction(horizontal, delta)
@@ -250,7 +311,7 @@ func get_equipped_movement_multiplier() -> float:
 
 func resolve_move_speed(quiet_walk_held: bool) -> float:
 	if is_crouching:
-		return crouch_speed
+		return crouch_speed * _tagging_multiplier
 	return (quiet_walk_speed if quiet_walk_held else run_speed) * _tagging_multiplier
 
 func resolve_water_speed_multiplier() -> float:
