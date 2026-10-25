@@ -1,0 +1,686 @@
+{
+  "formal_release_ready": false,
+  "precision_equivalence_accepted": false,
+  "historical_traces_unchanged": true,
+  "trials": 144,
+  "jump_results": [
+    {
+      "map": "dust2",
+      "case": "objective_rise_00",
+      "scheme": "current",
+      "queued": true,
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.65,
+      "arrival_time": 0.65,
+      "jump_delays": [
+        0.0
+      ]
+    },
+    {
+      "map": "dust2",
+      "case": "objective_rise_00",
+      "scheme": "legacy_16",
+      "queued": true,
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.516666666666667,
+      "arrival_time": 0.516666666666667,
+      "jump_delays": [
+        0.0
+      ]
+    },
+    {
+      "map": "dust2",
+      "case": "objective_rise_00",
+      "scheme": "modern_cs",
+      "queued": true,
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.6,
+      "arrival_time": 0.6,
+      "jump_delays": [
+        0.0
+      ]
+    },
+    {
+      "map": "dust2",
+      "case": "objective_rise_00",
+      "scheme": "current",
+      "queued": true,
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.608333333333333,
+      "arrival_time": 0.608333333333333,
+      "jump_delays": [
+        0.0
+      ]
+    },
+    {
+      "map": "dust2",
+      "case": "objective_rise_00",
+      "scheme": "legacy_16",
+      "queued": true,
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.525,
+      "arrival_time": 0.525,
+      "jump_delays": [
+        0.0
+      ]
+    },
+    {
+      "map": "dust2",
+      "case": "objective_rise_00",
+      "scheme": "modern_cs",
+      "queued": true,
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.591666666666667,
+      "arrival_time": 0.591666666666667,
+      "jump_delays": [
+        0.0
+      ]
+    },
+    {
+      "map": "mirage",
+      "case": "objective_rise_00",
+      "scheme": "current",
+      "queued": true,
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.55,
+      "arrival_time": 0.55,
+      "jump_delays": [
+        0.0
+      ]
+    },
+    {
+      "map": "mirage",
+      "case": "objective_rise_00",
+      "scheme": "legacy_16",
+      "queued": true,
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.566666666666667,
+      "arrival_time": 0.566666666666667,
+      "jump_delays": [
+        0.0
+      ]
+    },
+    {
+      "map": "mirage",
+      "case": "objective_rise_00",
+      "scheme": "modern_cs",
+      "queued": true,
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.583333333333333,
+      "arrival_time": 0.583333333333333,
+      "jump_delays": [
+        0.0
+      ]
+    },
+    {
+      "map": "mirage",
+      "case": "objective_rise_00",
+      "scheme": "current",
+      "queued": true,
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.566666666666667,
+      "arrival_time": 0.566666666666667,
+      "jump_delays": [
+        0.0
+      ]
+    },
+    {
+      "map": "mirage",
+      "case": "objective_rise_00",
+      "scheme": "legacy_16",
+      "queued": true,
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.583333333333333,
+      "arrival_time": 0.583333333333333,
+      "jump_delays": [
+        0.0
+      ]
+    },
+    {
+      "map": "mirage",
+      "case": "objective_rise_00",
+      "scheme": "modern_cs",
+      "queued": true,
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.566666666666667,
+      "arrival_time": 0.566666666666667,
+      "jump_delays": [
+        0.0
+      ]
+    },
+    {
+      "map": "inferno",
+      "case": "objective_rise_00",
+      "scheme": "current",
+      "queued": true,
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.8,
+      "arrival_time": 0.8,
+      "jump_delays": [
+        0.0
+      ]
+    },
+    {
+      "map": "inferno",
+      "case": "objective_rise_00",
+      "scheme": "legacy_16",
+      "queued": true,
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.633333333333333,
+      "arrival_time": 0.633333333333333,
+      "jump_delays": [
+        0.0
+      ]
+    },
+    {
+      "map": "inferno",
+      "case": "objective_rise_00",
+      "scheme": "modern_cs",
+      "queued": true,
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.65,
+      "arrival_time": 0.65,
+      "jump_delays": [
+        0.0
+      ]
+    },
+    {
+      "map": "inferno",
+      "case": "objective_rise_01",
+      "scheme": "current",
+      "queued": true,
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.8,
+      "arrival_time": 0.8,
+      "jump_delays": [
+        0.0
+      ]
+    },
+    {
+      "map": "inferno",
+      "case": "objective_rise_01",
+      "scheme": "legacy_16",
+      "queued": true,
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.633333333333333,
+      "arrival_time": 0.633333333333333,
+      "jump_delays": [
+        0.0
+      ]
+    },
+    {
+      "map": "inferno",
+      "case": "objective_rise_01",
+      "scheme": "modern_cs",
+      "queued": true,
+      "physics_hz": 60,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.65,
+      "arrival_time": 0.65,
+      "jump_delays": [
+        0.0
+      ]
+    },
+    {
+      "map": "inferno",
+      "case": "objective_rise_00",
+      "scheme": "current",
+      "queued": true,
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.766666666666667,
+      "arrival_time": 0.766666666666667,
+      "jump_delays": [
+        0.0
+      ]
+    },
+    {
+      "map": "inferno",
+      "case": "objective_rise_00",
+      "scheme": "legacy_16",
+      "queued": true,
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.625,
+      "arrival_time": 0.625,
+      "jump_delays": [
+        0.0
+      ]
+    },
+    {
+      "map": "inferno",
+      "case": "objective_rise_00",
+      "scheme": "modern_cs",
+      "queued": true,
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.633333333333333,
+      "arrival_time": 0.633333333333333,
+      "jump_delays": [
+        0.0
+      ]
+    },
+    {
+      "map": "inferno",
+      "case": "objective_rise_01",
+      "scheme": "current",
+      "queued": true,
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.766666666666667,
+      "arrival_time": 0.766666666666667,
+      "jump_delays": [
+        0.0
+      ]
+    },
+    {
+      "map": "inferno",
+      "case": "objective_rise_01",
+      "scheme": "legacy_16",
+      "queued": true,
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.625,
+      "arrival_time": 0.625,
+      "jump_delays": [
+        0.0
+      ]
+    },
+    {
+      "map": "inferno",
+      "case": "objective_rise_01",
+      "scheme": "modern_cs",
+      "queued": true,
+      "physics_hz": 120,
+      "first_landing": true,
+      "supported_arrival": true,
+      "landing_time": 0.633333333333333,
+      "arrival_time": 0.633333333333333,
+      "jump_delays": [
+        0.0
+      ]
+    }
+  ],
+  "scores": [
+    {
+      "map": "dust2",
+      "queued": false,
+      "scheme": "current",
+      "jump_passes": 2,
+      "jump_trials": 2,
+      "control_arrivals": 0,
+      "control_trials": 4
+    },
+    {
+      "map": "dust2",
+      "queued": false,
+      "scheme": "legacy_16",
+      "jump_passes": 2,
+      "jump_trials": 2,
+      "control_arrivals": 0,
+      "control_trials": 4
+    },
+    {
+      "map": "dust2",
+      "queued": false,
+      "scheme": "modern_cs",
+      "jump_passes": 2,
+      "jump_trials": 2,
+      "control_arrivals": 0,
+      "control_trials": 4
+    },
+    {
+      "map": "dust2",
+      "queued": true,
+      "scheme": "current",
+      "jump_passes": 2,
+      "jump_trials": 2,
+      "control_arrivals": 0,
+      "control_trials": 4
+    },
+    {
+      "map": "dust2",
+      "queued": true,
+      "scheme": "legacy_16",
+      "jump_passes": 2,
+      "jump_trials": 2,
+      "control_arrivals": 0,
+      "control_trials": 4
+    },
+    {
+      "map": "dust2",
+      "queued": true,
+      "scheme": "modern_cs",
+      "jump_passes": 2,
+      "jump_trials": 2,
+      "control_arrivals": 0,
+      "control_trials": 4
+    },
+    {
+      "map": "mirage",
+      "queued": false,
+      "scheme": "current",
+      "jump_passes": 2,
+      "jump_trials": 2,
+      "control_arrivals": 0,
+      "control_trials": 4
+    },
+    {
+      "map": "mirage",
+      "queued": false,
+      "scheme": "legacy_16",
+      "jump_passes": 2,
+      "jump_trials": 2,
+      "control_arrivals": 0,
+      "control_trials": 4
+    },
+    {
+      "map": "mirage",
+      "queued": false,
+      "scheme": "modern_cs",
+      "jump_passes": 2,
+      "jump_trials": 2,
+      "control_arrivals": 0,
+      "control_trials": 4
+    },
+    {
+      "map": "mirage",
+      "queued": true,
+      "scheme": "current",
+      "jump_passes": 2,
+      "jump_trials": 2,
+      "control_arrivals": 0,
+      "control_trials": 4
+    },
+    {
+      "map": "mirage",
+      "queued": true,
+      "scheme": "legacy_16",
+      "jump_passes": 2,
+      "jump_trials": 2,
+      "control_arrivals": 0,
+      "control_trials": 4
+    },
+    {
+      "map": "mirage",
+      "queued": true,
+      "scheme": "modern_cs",
+      "jump_passes": 2,
+      "jump_trials": 2,
+      "control_arrivals": 0,
+      "control_trials": 4
+    },
+    {
+      "map": "inferno",
+      "queued": false,
+      "scheme": "current",
+      "jump_passes": 4,
+      "jump_trials": 4,
+      "control_arrivals": 0,
+      "control_trials": 8
+    },
+    {
+      "map": "inferno",
+      "queued": false,
+      "scheme": "legacy_16",
+      "jump_passes": 4,
+      "jump_trials": 4,
+      "control_arrivals": 0,
+      "control_trials": 8
+    },
+    {
+      "map": "inferno",
+      "queued": false,
+      "scheme": "modern_cs",
+      "jump_passes": 4,
+      "jump_trials": 4,
+      "control_arrivals": 0,
+      "control_trials": 8
+    },
+    {
+      "map": "inferno",
+      "queued": true,
+      "scheme": "current",
+      "jump_passes": 4,
+      "jump_trials": 4,
+      "control_arrivals": 0,
+      "control_trials": 8
+    },
+    {
+      "map": "inferno",
+      "queued": true,
+      "scheme": "legacy_16",
+      "jump_passes": 4,
+      "jump_trials": 4,
+      "control_arrivals": 0,
+      "control_trials": 8
+    },
+    {
+      "map": "inferno",
+      "queued": true,
+      "scheme": "modern_cs",
+      "jump_passes": 4,
+      "jump_trials": 4,
+      "control_arrivals": 0,
+      "control_trials": 8
+    }
+  ],
+  "cross_rate": [
+    {
+      "map": "dust2",
+      "case": "objective_rise_00",
+      "scheme": "current",
+      "landing_position_difference": 0.10633502640502826,
+      "landing_time_difference": 0.041666666666667074
+    },
+    {
+      "map": "dust2",
+      "case": "objective_rise_00",
+      "scheme": "legacy_16",
+      "landing_position_difference": 0.02966930403703961,
+      "landing_time_difference": 0.00833333333333297
+    },
+    {
+      "map": "dust2",
+      "case": "objective_rise_00",
+      "scheme": "modern_cs",
+      "landing_position_difference": 0.00683642325068031,
+      "landing_time_difference": 0.00833333333333297
+    },
+    {
+      "map": "mirage",
+      "case": "objective_rise_00",
+      "scheme": "current",
+      "landing_position_difference": 0.028243240886130956,
+      "landing_time_difference": 0.01666666666666694
+    },
+    {
+      "map": "mirage",
+      "case": "objective_rise_00",
+      "scheme": "legacy_16",
+      "landing_position_difference": 0.009731081223352377,
+      "landing_time_difference": 0.016666666666666052
+    },
+    {
+      "map": "mirage",
+      "case": "objective_rise_00",
+      "scheme": "modern_cs",
+      "landing_position_difference": 0.017744213218683132,
+      "landing_time_difference": 0.016666666666666052
+    },
+    {
+      "map": "inferno",
+      "case": "objective_rise_00",
+      "scheme": "current",
+      "landing_position_difference": 0.09459500497044467,
+      "landing_time_difference": 0.03333333333333299
+    },
+    {
+      "map": "inferno",
+      "case": "objective_rise_00",
+      "scheme": "legacy_16",
+      "landing_position_difference": 0.009952621253602191,
+      "landing_time_difference": 0.00833333333333297
+    },
+    {
+      "map": "inferno",
+      "case": "objective_rise_00",
+      "scheme": "modern_cs",
+      "landing_position_difference": 0.11768994283284193,
+      "landing_time_difference": 0.01666666666666705
+    },
+    {
+      "map": "inferno",
+      "case": "objective_rise_01",
+      "scheme": "current",
+      "landing_position_difference": 0.07736588265180282,
+      "landing_time_difference": 0.03333333333333299
+    },
+    {
+      "map": "inferno",
+      "case": "objective_rise_01",
+      "scheme": "legacy_16",
+      "landing_position_difference": 0.009896065497921146,
+      "landing_time_difference": 0.00833333333333297
+    },
+    {
+      "map": "inferno",
+      "case": "objective_rise_01",
+      "scheme": "modern_cs",
+      "landing_position_difference": 0.11785268841736433,
+      "landing_time_difference": 0.01666666666666705
+    }
+  ],
+  "boundaries": [
+    {
+      "process_hz": 60,
+      "physics_hz": 60,
+      "supported": true,
+      "observed_process_deltas": [
+        1
+      ],
+      "violation_samples": 0,
+      "native_mouse_events": 2,
+      "recorded_mouse_commands": 2
+    },
+    {
+      "process_hz": 120,
+      "physics_hz": 120,
+      "supported": true,
+      "observed_process_deltas": [
+        1
+      ],
+      "violation_samples": 0,
+      "native_mouse_events": 2,
+      "recorded_mouse_commands": 2
+    },
+    {
+      "process_hz": 30,
+      "physics_hz": 60,
+      "supported": false,
+      "observed_process_deltas": [
+        0,
+        1
+      ],
+      "violation_samples": 30,
+      "native_mouse_events": 2,
+      "recorded_mouse_commands": 2
+    },
+    {
+      "process_hz": 120,
+      "physics_hz": 60,
+      "supported": false,
+      "observed_process_deltas": [
+        2
+      ],
+      "violation_samples": 59,
+      "native_mouse_events": 2,
+      "recorded_mouse_commands": 0
+    },
+    {
+      "process_hz": 60,
+      "physics_hz": 120,
+      "supported": false,
+      "observed_process_deltas": [
+        0,
+        1
+      ],
+      "violation_samples": 59,
+      "native_mouse_events": 2,
+      "recorded_mouse_commands": 2
+    }
+  ],
+  "strict_rejection": {
+    "accepted": false,
+    "observed": {
+      "inline_events": 0,
+      "physics_frame": 38,
+      "prequeued": false,
+      "process_delta": 0,
+      "process_frame": 18,
+      "tick": 2,
+      "violation": true
+    },
+    "probe_sha256": {
+      "res://tools/authoring/LandingStageProbePlayer.gd": "42793cfb0dab9127c81daf656eb604786c06918cd5cadc5a1ad17928e6f5b212",
+      "res://tools/authoring/QueueCadenceProbePlayer.gd": "17c1c85b746fcbfdccf9219f805eb528fe77a39cf8bf3bd54395b43c2cb087d7",
+      "res://tools/authoring/QueuedKeyProbePlayer.gd": "28a2b87d39711e0e5310a04accd6028ff827bd8def78cbf2485e5e0d61ecca8f",
+      "res://tools/authoring/audit_landing_stages.gd": "a97eae16ea8f2e4ff3b4d2d74044923091575d9473ef27d1c71b6ab2f3009173",
+      "res://tools/authoring/audit_queue_cadence.gd": "ab79bd7029ebe9b95c123db2289cc5daec7a0d5b50301affe1b34c0736b02426",
+      "res://tools/authoring/audit_queued_key.gd": "92f60d1082004c28d8856228609dd6d56dd72219f19c035cbae756b67a6235b0"
+    },
+    "reason": "process_physics_cadence_mismatch"
+  },
+  "verification": {
+    "ordinary_python_tests": 208,
+    "new_regressions": 12,
+    "historical_reference_comparisons": 72,
+    "local_map_trials": 144,
+    "flat_cadence_runs": 5,
+    "strict_rejection_runs": 1,
+    "full_native_suite_repeated": false,
+    "production_changed": false,
+    "original_assets_changed": false
+  },
+  "detail_scope": "queued jump outcomes and all cohort score counts; full historical and paired-control rows local"
+}
