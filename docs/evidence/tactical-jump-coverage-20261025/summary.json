@@ -1,0 +1,263 @@
+{
+  "formal_release_ready": false,
+  "all_map_coverage_complete": false,
+  "original_review_sha256": "90aeb12cf9a440df5c6c4e6c5522c5c8ca59a4fef6955a90b201a9ccfa30daf7",
+  "original_inventory": [
+    {
+      "map": "dust2",
+      "category": "ordinary",
+      "original_status": "walk_only",
+      "jump_route_covered": false,
+      "mechanics_or_walk_reference_only": true
+    },
+    {
+      "map": "dust2",
+      "category": "critical_landing",
+      "original_status": "walk_only",
+      "jump_route_covered": false,
+      "mechanics_or_walk_reference_only": true
+    },
+    {
+      "map": "dust2",
+      "category": "edge",
+      "original_status": "blocked_direct_route",
+      "jump_route_covered": false,
+      "mechanics_or_walk_reference_only": false
+    },
+    {
+      "map": "dust2",
+      "category": "run_up",
+      "original_status": "qualified_jump",
+      "jump_route_covered": true,
+      "mechanics_or_walk_reference_only": false
+    },
+    {
+      "map": "dust2",
+      "category": "crouch_jump",
+      "original_status": "qualified_jump",
+      "jump_route_covered": true,
+      "mechanics_or_walk_reference_only": false
+    },
+    {
+      "map": "mirage",
+      "category": "ordinary",
+      "original_status": "walk_only",
+      "jump_route_covered": false,
+      "mechanics_or_walk_reference_only": true
+    },
+    {
+      "map": "mirage",
+      "category": "critical_landing",
+      "original_status": "walk_only",
+      "jump_route_covered": false,
+      "mechanics_or_walk_reference_only": true
+    },
+    {
+      "map": "mirage",
+      "category": "edge",
+      "original_status": "walk_only",
+      "jump_route_covered": false,
+      "mechanics_or_walk_reference_only": true
+    },
+    {
+      "map": "mirage",
+      "category": "run_up",
+      "original_status": "route_unproven",
+      "jump_route_covered": false,
+      "mechanics_or_walk_reference_only": false
+    },
+    {
+      "map": "mirage",
+      "category": "crouch_jump",
+      "original_status": "qualified_jump",
+      "jump_route_covered": true,
+      "mechanics_or_walk_reference_only": false
+    },
+    {
+      "map": "inferno",
+      "category": "ordinary",
+      "original_status": "walk_only",
+      "jump_route_covered": false,
+      "mechanics_or_walk_reference_only": true
+    },
+    {
+      "map": "inferno",
+      "category": "critical_landing",
+      "original_status": "walk_only",
+      "jump_route_covered": false,
+      "mechanics_or_walk_reference_only": true
+    },
+    {
+      "map": "inferno",
+      "category": "edge",
+      "original_status": "blocked_direct_route",
+      "jump_route_covered": false,
+      "mechanics_or_walk_reference_only": false
+    },
+    {
+      "map": "inferno",
+      "category": "run_up",
+      "original_status": "blocked_direct_route",
+      "jump_route_covered": false,
+      "mechanics_or_walk_reference_only": false
+    },
+    {
+      "map": "inferno",
+      "category": "crouch_jump",
+      "original_status": "qualified_jump",
+      "jump_route_covered": true,
+      "mechanics_or_walk_reference_only": false
+    }
+  ],
+  "input_kind": "synthetic InputMap Current reference, not human acceptance",
+  "points": [
+    {
+      "map": "dust2",
+      "case": "objective_rise_00",
+      "role": "objective_rise",
+      "objective_distance": 6.66083002090454,
+      "body_corridor_clear": true,
+      "status": "qualified_jump",
+      "jump_first_landing": {
+        "60": true,
+        "120": true
+      },
+      "walking_arrival": {
+        "60": false,
+        "120": false
+      },
+      "later_jump_arrival": {
+        "60": true,
+        "120": true
+      }
+    },
+    {
+      "map": "mirage",
+      "case": "objective_rise_00",
+      "role": "objective_rise",
+      "objective_distance": 6.44243288040161,
+      "body_corridor_clear": true,
+      "status": "qualified_jump",
+      "jump_first_landing": {
+        "60": true,
+        "120": true
+      },
+      "walking_arrival": {
+        "60": false,
+        "120": false
+      },
+      "later_jump_arrival": {
+        "60": true,
+        "120": true
+      }
+    },
+    {
+      "map": "inferno",
+      "case": "objective_rise_00",
+      "role": "objective_rise",
+      "objective_distance": 3.42196846008301,
+      "body_corridor_clear": true,
+      "status": "qualified_jump",
+      "jump_first_landing": {
+        "60": true,
+        "120": true
+      },
+      "walking_arrival": {
+        "60": false,
+        "120": false
+      },
+      "later_jump_arrival": {
+        "60": true,
+        "120": true
+      }
+    },
+    {
+      "map": "inferno",
+      "case": "objective_rise_01",
+      "role": "objective_rise",
+      "objective_distance": 7.2118444442749,
+      "body_corridor_clear": true,
+      "status": "qualified_jump",
+      "jump_first_landing": {
+        "60": true,
+        "120": true
+      },
+      "walking_arrival": {
+        "60": false,
+        "120": false
+      },
+      "later_jump_arrival": {
+        "60": true,
+        "120": true
+      }
+    }
+  ],
+  "bounded_gap_search": [
+    {
+      "map": "dust2",
+      "nodes_examined": 128,
+      "gap_found": false,
+      "policy": {
+        "directions": 4,
+        "distances": [
+          2.4,
+          3.0,
+          3.6
+        ],
+        "gap_floor_drop": 0.6,
+        "lower_middle_samples_required": 2,
+        "objective_nodes_limit": 128,
+        "objective_rise_radius": 12.0
+      },
+      "whole_map_exhaustive": false
+    },
+    {
+      "map": "mirage",
+      "nodes_examined": 128,
+      "gap_found": false,
+      "policy": {
+        "directions": 4,
+        "distances": [
+          2.4,
+          3.0,
+          3.6
+        ],
+        "gap_floor_drop": 0.6,
+        "lower_middle_samples_required": 2,
+        "objective_nodes_limit": 128,
+        "objective_rise_radius": 12.0
+      },
+      "whole_map_exhaustive": false
+    },
+    {
+      "map": "inferno",
+      "nodes_examined": 128,
+      "gap_found": false,
+      "policy": {
+        "directions": 4,
+        "distances": [
+          2.4,
+          3.0,
+          3.6
+        ],
+        "gap_floor_drop": 0.6,
+        "lower_middle_samples_required": 2,
+        "objective_nodes_limit": 128,
+        "objective_rise_radius": 12.0
+      },
+      "whole_map_exhaustive": false
+    }
+  ],
+  "trial_count": 24,
+  "qualified_new_points": 4,
+  "verification": {
+    "ordinary_python_tests": 153,
+    "new_policy_tests": 11,
+    "frozen_current_reference_trials": 24,
+    "vulkan_render_smoke": true,
+    "window_control_lifecycle_smoke": true,
+    "existing_receipt_overwrite_refused": true,
+    "full_native_suite_repeated": false,
+    "manual_acceptance": false
+  }
+}
