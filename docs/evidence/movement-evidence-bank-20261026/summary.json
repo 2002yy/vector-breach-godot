@@ -1,0 +1,1700 @@
+{
+  "schema": 1,
+  "formal_release_ready": false,
+  "human_acceptance": false,
+  "precision_equivalence_accepted": false,
+  "movement5_frozen": true,
+  "new_native_matrix_trials": 0,
+  "curation_scope": "listed_current_verified_cohorts_not_exhaustive_repository_search",
+  "selection_scope": "known_success_reference_curation_not_independent_validation",
+  "source_rows_revalidated": 528,
+  "sites": [
+    {
+      "map": "dust2",
+      "site": "critical__objective_rise_00",
+      "kind": "critical_landing",
+      "profiles": {
+        "current": {
+          "source_kind": "critical_landing",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": false,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "qualified_jump",
+          "jump_route_passed": true,
+          "extra_approach_margin": null,
+          "source_case": "queued__current__objective_rise_00__jump",
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "source_provider": "critical/dust2",
+          "source_evidence_sha256": {
+            "manifest": "beca9efdf7235a8849980e6f4a1bef1573e84d305868b71759ce931ba76e2ded",
+            "report60": "d78a77d6c5033a82dc7cdaaeb3a98e62302999493c3346fe44dfcd59a490051d",
+            "report120": "1d0a8c197e37f63a10636344a8d58bb5dce6ecf83b68010193ac7bf906531136"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "beca9efdf7235a8849980e6f4a1bef1573e84d305868b71759ce931ba76e2ded",
+            "report60": "d78a77d6c5033a82dc7cdaaeb3a98e62302999493c3346fe44dfcd59a490051d",
+            "report120": "1d0a8c197e37f63a10636344a8d58bb5dce6ecf83b68010193ac7bf906531136"
+          },
+          "controls_provider": "critical/dust2",
+          "control_cases": {
+            "no_jump": "queued__current__objective_rise_00__no_jump",
+            "walk": "queued__current__objective_rise_00__walk"
+          }
+        },
+        "legacy_16": {
+          "source_kind": "critical_landing",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": false,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "qualified_jump",
+          "jump_route_passed": true,
+          "extra_approach_margin": null,
+          "source_case": "queued__legacy_16__objective_rise_00__jump",
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "source_provider": "critical/dust2",
+          "source_evidence_sha256": {
+            "manifest": "beca9efdf7235a8849980e6f4a1bef1573e84d305868b71759ce931ba76e2ded",
+            "report60": "d78a77d6c5033a82dc7cdaaeb3a98e62302999493c3346fe44dfcd59a490051d",
+            "report120": "1d0a8c197e37f63a10636344a8d58bb5dce6ecf83b68010193ac7bf906531136"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "beca9efdf7235a8849980e6f4a1bef1573e84d305868b71759ce931ba76e2ded",
+            "report60": "d78a77d6c5033a82dc7cdaaeb3a98e62302999493c3346fe44dfcd59a490051d",
+            "report120": "1d0a8c197e37f63a10636344a8d58bb5dce6ecf83b68010193ac7bf906531136"
+          },
+          "controls_provider": "critical/dust2",
+          "control_cases": {
+            "no_jump": "queued__legacy_16__objective_rise_00__no_jump",
+            "walk": "queued__legacy_16__objective_rise_00__walk"
+          }
+        },
+        "modern_cs": {
+          "source_kind": "critical_landing",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": false,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "qualified_jump",
+          "jump_route_passed": true,
+          "extra_approach_margin": null,
+          "source_case": "queued__modern_cs__objective_rise_00__jump",
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "source_provider": "critical/dust2",
+          "source_evidence_sha256": {
+            "manifest": "beca9efdf7235a8849980e6f4a1bef1573e84d305868b71759ce931ba76e2ded",
+            "report60": "d78a77d6c5033a82dc7cdaaeb3a98e62302999493c3346fe44dfcd59a490051d",
+            "report120": "1d0a8c197e37f63a10636344a8d58bb5dce6ecf83b68010193ac7bf906531136"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "beca9efdf7235a8849980e6f4a1bef1573e84d305868b71759ce931ba76e2ded",
+            "report60": "d78a77d6c5033a82dc7cdaaeb3a98e62302999493c3346fe44dfcd59a490051d",
+            "report120": "1d0a8c197e37f63a10636344a8d58bb5dce6ecf83b68010193ac7bf906531136"
+          },
+          "controls_provider": "critical/dust2",
+          "control_cases": {
+            "no_jump": "queued__modern_cs__objective_rise_00__no_jump",
+            "walk": "queued__modern_cs__objective_rise_00__walk"
+          }
+        }
+      },
+      "human_review": "pending",
+      "precision_accepted": false,
+      "spawn_connectivity": "unproven"
+    },
+    {
+      "map": "dust2",
+      "site": "ordinary__ordinary",
+      "kind": "ordinary",
+      "profiles": {
+        "current": {
+          "source_kind": "ordinary",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": true,
+          "body_envelope_available": false,
+          "status": "route_unproven",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "ordinary__current__jump",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "source_provider": "ordinary/dust2",
+          "source_evidence_sha256": {
+            "manifest": "d94ecd988bad5342fd074c53498fb8db1ae05a7c26fb52e259dbbafcc78c7bae",
+            "report60": "16e1a3b0d54dac1411d2ade7a88b78824c2534bd4d3544c6a9711203865e0a9b",
+            "report120": "d99ea474e266b83fe9400a538b3a1e02478567e4f151df2021a70b54724b7401"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "d94ecd988bad5342fd074c53498fb8db1ae05a7c26fb52e259dbbafcc78c7bae",
+            "report60": "16e1a3b0d54dac1411d2ade7a88b78824c2534bd4d3544c6a9711203865e0a9b",
+            "report120": "d99ea474e266b83fe9400a538b3a1e02478567e4f151df2021a70b54724b7401"
+          },
+          "controls_provider": "ordinary/dust2",
+          "control_cases": {
+            "no_jump": "ordinary__current__no_jump",
+            "walk": "ordinary__current__walk"
+          }
+        },
+        "legacy_16": {
+          "source_kind": "ordinary",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": true,
+          "body_envelope_available": false,
+          "status": "route_unproven",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "ordinary__legacy_16__jump",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "source_provider": "ordinary/dust2",
+          "source_evidence_sha256": {
+            "manifest": "d94ecd988bad5342fd074c53498fb8db1ae05a7c26fb52e259dbbafcc78c7bae",
+            "report60": "16e1a3b0d54dac1411d2ade7a88b78824c2534bd4d3544c6a9711203865e0a9b",
+            "report120": "d99ea474e266b83fe9400a538b3a1e02478567e4f151df2021a70b54724b7401"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "d94ecd988bad5342fd074c53498fb8db1ae05a7c26fb52e259dbbafcc78c7bae",
+            "report60": "16e1a3b0d54dac1411d2ade7a88b78824c2534bd4d3544c6a9711203865e0a9b",
+            "report120": "d99ea474e266b83fe9400a538b3a1e02478567e4f151df2021a70b54724b7401"
+          },
+          "controls_provider": "ordinary/dust2",
+          "control_cases": {
+            "no_jump": "ordinary__legacy_16__no_jump",
+            "walk": "ordinary__legacy_16__walk"
+          }
+        },
+        "modern_cs": {
+          "source_kind": "ordinary",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": true,
+          "body_envelope_available": false,
+          "status": "route_unproven",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "ordinary__modern_cs__jump",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "source_provider": "ordinary/dust2",
+          "source_evidence_sha256": {
+            "manifest": "d94ecd988bad5342fd074c53498fb8db1ae05a7c26fb52e259dbbafcc78c7bae",
+            "report60": "16e1a3b0d54dac1411d2ade7a88b78824c2534bd4d3544c6a9711203865e0a9b",
+            "report120": "d99ea474e266b83fe9400a538b3a1e02478567e4f151df2021a70b54724b7401"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "d94ecd988bad5342fd074c53498fb8db1ae05a7c26fb52e259dbbafcc78c7bae",
+            "report60": "16e1a3b0d54dac1411d2ade7a88b78824c2534bd4d3544c6a9711203865e0a9b",
+            "report120": "d99ea474e266b83fe9400a538b3a1e02478567e4f151df2021a70b54724b7401"
+          },
+          "controls_provider": "ordinary/dust2",
+          "control_cases": {
+            "no_jump": "ordinary__modern_cs__no_jump",
+            "walk": "ordinary__modern_cs__walk"
+          }
+        }
+      },
+      "human_review": "pending",
+      "precision_accepted": false,
+      "spawn_connectivity": "unproven"
+    },
+    {
+      "map": "dust2",
+      "site": "edge__braking",
+      "kind": "edge",
+      "profiles": {
+        "current": {
+          "source_kind": "edge",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": false,
+          "body_envelope_available": false,
+          "status": "route_unproven",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "current__reverse_hold",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "source_provider": "edge/dust2",
+          "source_evidence_sha256": {
+            "manifest": "20424adaabf871f597deda83e9db26c853fd0c7f6de7c6f2fb07b1d5a8531553",
+            "report60": "1ef7915b824b26c6a9573a9c515f0405c1f7f2d2326016cdaa10fc7af8ebecb5",
+            "report120": "898f08304b79dfbd9282786e2caae8d0c75a4fe806c4aa8c4097434726512c21"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "793301dc2578e1f5de68b358204d9aed1d584925a96eb4cc891ee7bfac1d20de",
+            "report60": "60294bf2ff9627754e21d6696fd39036fe4dcb55c56ffcfa923cc7e44d28d126",
+            "report120": "499a7d13412b318b1656cbdcd721ab060a55e28c23f09598ddb61676ceb40390"
+          },
+          "controls_provider": "walking/dust2",
+          "control_cases": {
+            "no_jump": "control__current__no_jump",
+            "walk": "control__current__walk"
+          }
+        },
+        "legacy_16": {
+          "source_kind": "edge",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": false,
+          "body_envelope_available": false,
+          "status": "route_unproven",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "legacy_16__reverse_010",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "source_provider": "edge/dust2",
+          "source_evidence_sha256": {
+            "manifest": "20424adaabf871f597deda83e9db26c853fd0c7f6de7c6f2fb07b1d5a8531553",
+            "report60": "1ef7915b824b26c6a9573a9c515f0405c1f7f2d2326016cdaa10fc7af8ebecb5",
+            "report120": "898f08304b79dfbd9282786e2caae8d0c75a4fe806c4aa8c4097434726512c21"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "793301dc2578e1f5de68b358204d9aed1d584925a96eb4cc891ee7bfac1d20de",
+            "report60": "60294bf2ff9627754e21d6696fd39036fe4dcb55c56ffcfa923cc7e44d28d126",
+            "report120": "499a7d13412b318b1656cbdcd721ab060a55e28c23f09598ddb61676ceb40390"
+          },
+          "controls_provider": "walking/dust2",
+          "control_cases": {
+            "no_jump": "control__legacy_16__no_jump",
+            "walk": "control__legacy_16__walk"
+          }
+        },
+        "modern_cs": {
+          "source_kind": "edge",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": false,
+          "body_envelope_available": false,
+          "status": "route_unproven",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "modern_cs__brake_2",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "source_provider": "modern/dust2",
+          "source_evidence_sha256": {
+            "manifest": "811bddda78b938a323b5051ebf6511897c5dd6dc3a863e523a8e2fc05f3ccc2d",
+            "report60": "f5f9e040ed1932c4f663319817d5216bff9e6a323136a33a14f1d242bfecf76f",
+            "report120": "bbd22f81f639a8a1e9bb2fc1480e23e6f86481f470f43da8ff65ead8b6d0fccd"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "793301dc2578e1f5de68b358204d9aed1d584925a96eb4cc891ee7bfac1d20de",
+            "report60": "60294bf2ff9627754e21d6696fd39036fe4dcb55c56ffcfa923cc7e44d28d126",
+            "report120": "499a7d13412b318b1656cbdcd721ab060a55e28c23f09598ddb61676ceb40390"
+          },
+          "controls_provider": "walking/dust2",
+          "control_cases": {
+            "no_jump": "control__modern_cs__no_jump",
+            "walk": "control__modern_cs__walk"
+          }
+        }
+      },
+      "human_review": "pending",
+      "precision_accepted": false,
+      "spawn_connectivity": "unproven"
+    },
+    {
+      "map": "mirage",
+      "site": "critical__objective_rise_00",
+      "kind": "critical_landing",
+      "profiles": {
+        "current": {
+          "source_kind": "critical_landing",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": false,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "qualified_jump",
+          "jump_route_passed": true,
+          "extra_approach_margin": null,
+          "source_case": "queued__current__objective_rise_00__jump",
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "source_provider": "critical/mirage",
+          "source_evidence_sha256": {
+            "manifest": "2281292ccc9d70a0e78447a46a2df024d76aaf35c3a6b837ab6018d83c65c1cb",
+            "report60": "66859d31ac6c9eb44f882d233c83daeb0add5841688b64b6d52ead92301fe898",
+            "report120": "0860915a253b3620d94727950fe66e78e621696ad4f9dca7eae1d86027097343"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "2281292ccc9d70a0e78447a46a2df024d76aaf35c3a6b837ab6018d83c65c1cb",
+            "report60": "66859d31ac6c9eb44f882d233c83daeb0add5841688b64b6d52ead92301fe898",
+            "report120": "0860915a253b3620d94727950fe66e78e621696ad4f9dca7eae1d86027097343"
+          },
+          "controls_provider": "critical/mirage",
+          "control_cases": {
+            "no_jump": "queued__current__objective_rise_00__no_jump",
+            "walk": "queued__current__objective_rise_00__walk"
+          }
+        },
+        "legacy_16": {
+          "source_kind": "critical_landing",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": false,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "qualified_jump",
+          "jump_route_passed": true,
+          "extra_approach_margin": null,
+          "source_case": "queued__legacy_16__objective_rise_00__jump",
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "source_provider": "critical/mirage",
+          "source_evidence_sha256": {
+            "manifest": "2281292ccc9d70a0e78447a46a2df024d76aaf35c3a6b837ab6018d83c65c1cb",
+            "report60": "66859d31ac6c9eb44f882d233c83daeb0add5841688b64b6d52ead92301fe898",
+            "report120": "0860915a253b3620d94727950fe66e78e621696ad4f9dca7eae1d86027097343"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "2281292ccc9d70a0e78447a46a2df024d76aaf35c3a6b837ab6018d83c65c1cb",
+            "report60": "66859d31ac6c9eb44f882d233c83daeb0add5841688b64b6d52ead92301fe898",
+            "report120": "0860915a253b3620d94727950fe66e78e621696ad4f9dca7eae1d86027097343"
+          },
+          "controls_provider": "critical/mirage",
+          "control_cases": {
+            "no_jump": "queued__legacy_16__objective_rise_00__no_jump",
+            "walk": "queued__legacy_16__objective_rise_00__walk"
+          }
+        },
+        "modern_cs": {
+          "source_kind": "critical_landing",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": false,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "qualified_jump",
+          "jump_route_passed": true,
+          "extra_approach_margin": null,
+          "source_case": "queued__modern_cs__objective_rise_00__jump",
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "source_provider": "critical/mirage",
+          "source_evidence_sha256": {
+            "manifest": "2281292ccc9d70a0e78447a46a2df024d76aaf35c3a6b837ab6018d83c65c1cb",
+            "report60": "66859d31ac6c9eb44f882d233c83daeb0add5841688b64b6d52ead92301fe898",
+            "report120": "0860915a253b3620d94727950fe66e78e621696ad4f9dca7eae1d86027097343"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "2281292ccc9d70a0e78447a46a2df024d76aaf35c3a6b837ab6018d83c65c1cb",
+            "report60": "66859d31ac6c9eb44f882d233c83daeb0add5841688b64b6d52ead92301fe898",
+            "report120": "0860915a253b3620d94727950fe66e78e621696ad4f9dca7eae1d86027097343"
+          },
+          "controls_provider": "critical/mirage",
+          "control_cases": {
+            "no_jump": "queued__modern_cs__objective_rise_00__no_jump",
+            "walk": "queued__modern_cs__objective_rise_00__walk"
+          }
+        }
+      },
+      "human_review": "pending",
+      "precision_accepted": false,
+      "spawn_connectivity": "unproven"
+    },
+    {
+      "map": "mirage",
+      "site": "ordinary__ordinary",
+      "kind": "ordinary",
+      "profiles": {
+        "current": {
+          "source_kind": "ordinary",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": true,
+          "body_envelope_available": false,
+          "status": "route_unproven",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "ordinary__current__jump",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "source_provider": "ordinary/mirage",
+          "source_evidence_sha256": {
+            "manifest": "d4ccb57cafc7a5bd58c78b5bd1417744061fc731697afa7abbeb89e18bccd1a9",
+            "report60": "22826e0e8d1d7096c8f1b7acd9c86af2e46a5e6ec7bc2977d87476d3ccc78730",
+            "report120": "6857141a936575a8baf4566217acb3e7c0dfa76f0027f4db502d4833866e61d9"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "d4ccb57cafc7a5bd58c78b5bd1417744061fc731697afa7abbeb89e18bccd1a9",
+            "report60": "22826e0e8d1d7096c8f1b7acd9c86af2e46a5e6ec7bc2977d87476d3ccc78730",
+            "report120": "6857141a936575a8baf4566217acb3e7c0dfa76f0027f4db502d4833866e61d9"
+          },
+          "controls_provider": "ordinary/mirage",
+          "control_cases": {
+            "no_jump": "ordinary__current__no_jump",
+            "walk": "ordinary__current__walk"
+          }
+        },
+        "legacy_16": {
+          "source_kind": "ordinary",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": true,
+          "body_envelope_available": false,
+          "status": "route_unproven",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "ordinary__legacy_16__jump",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "source_provider": "ordinary/mirage",
+          "source_evidence_sha256": {
+            "manifest": "d4ccb57cafc7a5bd58c78b5bd1417744061fc731697afa7abbeb89e18bccd1a9",
+            "report60": "22826e0e8d1d7096c8f1b7acd9c86af2e46a5e6ec7bc2977d87476d3ccc78730",
+            "report120": "6857141a936575a8baf4566217acb3e7c0dfa76f0027f4db502d4833866e61d9"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "d4ccb57cafc7a5bd58c78b5bd1417744061fc731697afa7abbeb89e18bccd1a9",
+            "report60": "22826e0e8d1d7096c8f1b7acd9c86af2e46a5e6ec7bc2977d87476d3ccc78730",
+            "report120": "6857141a936575a8baf4566217acb3e7c0dfa76f0027f4db502d4833866e61d9"
+          },
+          "controls_provider": "ordinary/mirage",
+          "control_cases": {
+            "no_jump": "ordinary__legacy_16__no_jump",
+            "walk": "ordinary__legacy_16__walk"
+          }
+        },
+        "modern_cs": {
+          "source_kind": "ordinary",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": true,
+          "body_envelope_available": false,
+          "status": "route_unproven",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "ordinary__modern_cs__jump",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "source_provider": "ordinary/mirage",
+          "source_evidence_sha256": {
+            "manifest": "d4ccb57cafc7a5bd58c78b5bd1417744061fc731697afa7abbeb89e18bccd1a9",
+            "report60": "22826e0e8d1d7096c8f1b7acd9c86af2e46a5e6ec7bc2977d87476d3ccc78730",
+            "report120": "6857141a936575a8baf4566217acb3e7c0dfa76f0027f4db502d4833866e61d9"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "d4ccb57cafc7a5bd58c78b5bd1417744061fc731697afa7abbeb89e18bccd1a9",
+            "report60": "22826e0e8d1d7096c8f1b7acd9c86af2e46a5e6ec7bc2977d87476d3ccc78730",
+            "report120": "6857141a936575a8baf4566217acb3e7c0dfa76f0027f4db502d4833866e61d9"
+          },
+          "controls_provider": "ordinary/mirage",
+          "control_cases": {
+            "no_jump": "ordinary__modern_cs__no_jump",
+            "walk": "ordinary__modern_cs__walk"
+          }
+        }
+      },
+      "human_review": "pending",
+      "precision_accepted": false,
+      "spawn_connectivity": "unproven"
+    },
+    {
+      "map": "mirage",
+      "site": "edge__braking",
+      "kind": "edge",
+      "profiles": {
+        "current": {
+          "source_kind": "edge",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": false,
+          "body_envelope_available": false,
+          "status": "route_unproven",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "current__reverse_hold",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "source_provider": "edge/mirage",
+          "source_evidence_sha256": {
+            "manifest": "a5e838b8556792e2a3190d749edcd3e6694560b23bfce8ac1906fef00f60ff98",
+            "report60": "ea2b361b235dd05d0d3119389de628019d8fe61a8a2fe4b008c2490e2cd855fc",
+            "report120": "ed19ff93af5f83e89c7200ec6477509a3564f44d52dc46ca84b309c1f313101b"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "397d46e1429d1900d696a9e4ea12583592b45a82876fe3bc6a401b2a6fc39dae",
+            "report60": "c3e698077ea5709a5407d2dc6b51b3e132d592afa724484686bc7ba89cb2665d",
+            "report120": "305840a05c62b6c4458422eaf6d2ce262002505c207b909daeef7a72e2183c3e"
+          },
+          "controls_provider": "walking/mirage",
+          "control_cases": {
+            "no_jump": "control__current__no_jump",
+            "walk": "control__current__walk"
+          }
+        },
+        "legacy_16": {
+          "source_kind": "edge",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": false,
+          "body_envelope_available": false,
+          "status": "route_unproven",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "legacy_16__reverse_010",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "source_provider": "edge/mirage",
+          "source_evidence_sha256": {
+            "manifest": "a5e838b8556792e2a3190d749edcd3e6694560b23bfce8ac1906fef00f60ff98",
+            "report60": "ea2b361b235dd05d0d3119389de628019d8fe61a8a2fe4b008c2490e2cd855fc",
+            "report120": "ed19ff93af5f83e89c7200ec6477509a3564f44d52dc46ca84b309c1f313101b"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "397d46e1429d1900d696a9e4ea12583592b45a82876fe3bc6a401b2a6fc39dae",
+            "report60": "c3e698077ea5709a5407d2dc6b51b3e132d592afa724484686bc7ba89cb2665d",
+            "report120": "305840a05c62b6c4458422eaf6d2ce262002505c207b909daeef7a72e2183c3e"
+          },
+          "controls_provider": "walking/mirage",
+          "control_cases": {
+            "no_jump": "control__legacy_16__no_jump",
+            "walk": "control__legacy_16__walk"
+          }
+        },
+        "modern_cs": {
+          "source_kind": "edge",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": false,
+          "body_envelope_available": false,
+          "status": "route_unproven",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "modern_cs__brake_2",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "source_provider": "modern/mirage",
+          "source_evidence_sha256": {
+            "manifest": "753d8614fc6e0227a5013e74df6f5fd3b646ad0c9a61ae735201c8ad0362c786",
+            "report60": "aae64712cc396a7d984e812472d9734efd8d3ca1ac3370fa32c76ae83238dae6",
+            "report120": "8bdc760101b204781530f4d59558da67a446d30f37e28d9a0f03222bf01b9767"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "397d46e1429d1900d696a9e4ea12583592b45a82876fe3bc6a401b2a6fc39dae",
+            "report60": "c3e698077ea5709a5407d2dc6b51b3e132d592afa724484686bc7ba89cb2665d",
+            "report120": "305840a05c62b6c4458422eaf6d2ce262002505c207b909daeef7a72e2183c3e"
+          },
+          "controls_provider": "walking/mirage",
+          "control_cases": {
+            "no_jump": "control__modern_cs__no_jump",
+            "walk": "control__modern_cs__walk"
+          }
+        }
+      },
+      "human_review": "pending",
+      "precision_accepted": false,
+      "spawn_connectivity": "unproven"
+    },
+    {
+      "map": "inferno",
+      "site": "critical__objective_rise_00",
+      "kind": "critical_landing",
+      "profiles": {
+        "current": {
+          "source_kind": "critical_landing",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": false,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "qualified_jump",
+          "jump_route_passed": true,
+          "extra_approach_margin": null,
+          "source_case": "queued__current__objective_rise_00__jump",
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "source_provider": "critical/inferno",
+          "source_evidence_sha256": {
+            "manifest": "718fd119d7f15910740959188e9e14b927b2f7c60d58ad232a82a8bbafb32ded",
+            "report60": "28d0de76b74ac77be9d0dddf8ae35f7a06d7d5a321128eaaf2ad7c473330e8cc",
+            "report120": "a6d870f23c5004a01cfd2d9986bbbbd50bb05e0b523133e4015999d376640cd6"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "718fd119d7f15910740959188e9e14b927b2f7c60d58ad232a82a8bbafb32ded",
+            "report60": "28d0de76b74ac77be9d0dddf8ae35f7a06d7d5a321128eaaf2ad7c473330e8cc",
+            "report120": "a6d870f23c5004a01cfd2d9986bbbbd50bb05e0b523133e4015999d376640cd6"
+          },
+          "controls_provider": "critical/inferno",
+          "control_cases": {
+            "no_jump": "queued__current__objective_rise_00__no_jump",
+            "walk": "queued__current__objective_rise_00__walk"
+          }
+        },
+        "legacy_16": {
+          "source_kind": "critical_landing",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": false,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "qualified_jump",
+          "jump_route_passed": true,
+          "extra_approach_margin": null,
+          "source_case": "queued__legacy_16__objective_rise_00__jump",
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "source_provider": "critical/inferno",
+          "source_evidence_sha256": {
+            "manifest": "718fd119d7f15910740959188e9e14b927b2f7c60d58ad232a82a8bbafb32ded",
+            "report60": "28d0de76b74ac77be9d0dddf8ae35f7a06d7d5a321128eaaf2ad7c473330e8cc",
+            "report120": "a6d870f23c5004a01cfd2d9986bbbbd50bb05e0b523133e4015999d376640cd6"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "718fd119d7f15910740959188e9e14b927b2f7c60d58ad232a82a8bbafb32ded",
+            "report60": "28d0de76b74ac77be9d0dddf8ae35f7a06d7d5a321128eaaf2ad7c473330e8cc",
+            "report120": "a6d870f23c5004a01cfd2d9986bbbbd50bb05e0b523133e4015999d376640cd6"
+          },
+          "controls_provider": "critical/inferno",
+          "control_cases": {
+            "no_jump": "queued__legacy_16__objective_rise_00__no_jump",
+            "walk": "queued__legacy_16__objective_rise_00__walk"
+          }
+        },
+        "modern_cs": {
+          "source_kind": "critical_landing",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": false,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "qualified_jump",
+          "jump_route_passed": true,
+          "extra_approach_margin": null,
+          "source_case": "queued__modern_cs__objective_rise_00__jump",
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "source_provider": "critical/inferno",
+          "source_evidence_sha256": {
+            "manifest": "718fd119d7f15910740959188e9e14b927b2f7c60d58ad232a82a8bbafb32ded",
+            "report60": "28d0de76b74ac77be9d0dddf8ae35f7a06d7d5a321128eaaf2ad7c473330e8cc",
+            "report120": "a6d870f23c5004a01cfd2d9986bbbbd50bb05e0b523133e4015999d376640cd6"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "718fd119d7f15910740959188e9e14b927b2f7c60d58ad232a82a8bbafb32ded",
+            "report60": "28d0de76b74ac77be9d0dddf8ae35f7a06d7d5a321128eaaf2ad7c473330e8cc",
+            "report120": "a6d870f23c5004a01cfd2d9986bbbbd50bb05e0b523133e4015999d376640cd6"
+          },
+          "controls_provider": "critical/inferno",
+          "control_cases": {
+            "no_jump": "queued__modern_cs__objective_rise_00__no_jump",
+            "walk": "queued__modern_cs__objective_rise_00__walk"
+          }
+        }
+      },
+      "human_review": "pending",
+      "precision_accepted": false,
+      "spawn_connectivity": "unproven"
+    },
+    {
+      "map": "inferno",
+      "site": "critical__objective_rise_01",
+      "kind": "critical_landing",
+      "profiles": {
+        "current": {
+          "source_kind": "critical_landing",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": false,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "qualified_jump",
+          "jump_route_passed": true,
+          "extra_approach_margin": null,
+          "source_case": "queued__current__objective_rise_01__jump",
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "source_provider": "critical/inferno",
+          "source_evidence_sha256": {
+            "manifest": "718fd119d7f15910740959188e9e14b927b2f7c60d58ad232a82a8bbafb32ded",
+            "report60": "28d0de76b74ac77be9d0dddf8ae35f7a06d7d5a321128eaaf2ad7c473330e8cc",
+            "report120": "a6d870f23c5004a01cfd2d9986bbbbd50bb05e0b523133e4015999d376640cd6"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "718fd119d7f15910740959188e9e14b927b2f7c60d58ad232a82a8bbafb32ded",
+            "report60": "28d0de76b74ac77be9d0dddf8ae35f7a06d7d5a321128eaaf2ad7c473330e8cc",
+            "report120": "a6d870f23c5004a01cfd2d9986bbbbd50bb05e0b523133e4015999d376640cd6"
+          },
+          "controls_provider": "critical/inferno",
+          "control_cases": {
+            "no_jump": "queued__current__objective_rise_01__no_jump",
+            "walk": "queued__current__objective_rise_01__walk"
+          }
+        },
+        "legacy_16": {
+          "source_kind": "critical_landing",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": false,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "qualified_jump",
+          "jump_route_passed": true,
+          "extra_approach_margin": null,
+          "source_case": "queued__legacy_16__objective_rise_01__jump",
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "source_provider": "critical/inferno",
+          "source_evidence_sha256": {
+            "manifest": "718fd119d7f15910740959188e9e14b927b2f7c60d58ad232a82a8bbafb32ded",
+            "report60": "28d0de76b74ac77be9d0dddf8ae35f7a06d7d5a321128eaaf2ad7c473330e8cc",
+            "report120": "a6d870f23c5004a01cfd2d9986bbbbd50bb05e0b523133e4015999d376640cd6"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "718fd119d7f15910740959188e9e14b927b2f7c60d58ad232a82a8bbafb32ded",
+            "report60": "28d0de76b74ac77be9d0dddf8ae35f7a06d7d5a321128eaaf2ad7c473330e8cc",
+            "report120": "a6d870f23c5004a01cfd2d9986bbbbd50bb05e0b523133e4015999d376640cd6"
+          },
+          "controls_provider": "critical/inferno",
+          "control_cases": {
+            "no_jump": "queued__legacy_16__objective_rise_01__no_jump",
+            "walk": "queued__legacy_16__objective_rise_01__walk"
+          }
+        },
+        "modern_cs": {
+          "source_kind": "critical_landing",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": false,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "qualified_jump",
+          "jump_route_passed": true,
+          "extra_approach_margin": null,
+          "source_case": "queued__modern_cs__objective_rise_01__jump",
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "source_provider": "critical/inferno",
+          "source_evidence_sha256": {
+            "manifest": "718fd119d7f15910740959188e9e14b927b2f7c60d58ad232a82a8bbafb32ded",
+            "report60": "28d0de76b74ac77be9d0dddf8ae35f7a06d7d5a321128eaaf2ad7c473330e8cc",
+            "report120": "a6d870f23c5004a01cfd2d9986bbbbd50bb05e0b523133e4015999d376640cd6"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "718fd119d7f15910740959188e9e14b927b2f7c60d58ad232a82a8bbafb32ded",
+            "report60": "28d0de76b74ac77be9d0dddf8ae35f7a06d7d5a321128eaaf2ad7c473330e8cc",
+            "report120": "a6d870f23c5004a01cfd2d9986bbbbd50bb05e0b523133e4015999d376640cd6"
+          },
+          "controls_provider": "critical/inferno",
+          "control_cases": {
+            "no_jump": "queued__modern_cs__objective_rise_01__no_jump",
+            "walk": "queued__modern_cs__objective_rise_01__walk"
+          }
+        }
+      },
+      "human_review": "pending",
+      "precision_accepted": false,
+      "spawn_connectivity": "unproven"
+    },
+    {
+      "map": "inferno",
+      "site": "ordinary__ordinary",
+      "kind": "ordinary",
+      "profiles": {
+        "current": {
+          "source_kind": "ordinary",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": true,
+          "body_envelope_available": false,
+          "status": "route_unproven",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "ordinary__current__jump",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "source_provider": "ordinary/inferno",
+          "source_evidence_sha256": {
+            "manifest": "2c14f924605c01883b8ce36db667e6574e1b867d011c72b451002564b009e71d",
+            "report60": "582717b9311cd91bd137a43534ccb951542ae5eb02d6f1b587b591d97e3eacf5",
+            "report120": "2a95a75b2a13fdf28dc62d403bd3d887998b2a613b1260c0c4347712fd3fdafa"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "2c14f924605c01883b8ce36db667e6574e1b867d011c72b451002564b009e71d",
+            "report60": "582717b9311cd91bd137a43534ccb951542ae5eb02d6f1b587b591d97e3eacf5",
+            "report120": "2a95a75b2a13fdf28dc62d403bd3d887998b2a613b1260c0c4347712fd3fdafa"
+          },
+          "controls_provider": "ordinary/inferno",
+          "control_cases": {
+            "no_jump": "ordinary__current__no_jump",
+            "walk": "ordinary__current__walk"
+          }
+        },
+        "legacy_16": {
+          "source_kind": "ordinary",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": true,
+          "body_envelope_available": false,
+          "status": "route_unproven",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "ordinary__legacy_16__jump",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "source_provider": "ordinary/inferno",
+          "source_evidence_sha256": {
+            "manifest": "2c14f924605c01883b8ce36db667e6574e1b867d011c72b451002564b009e71d",
+            "report60": "582717b9311cd91bd137a43534ccb951542ae5eb02d6f1b587b591d97e3eacf5",
+            "report120": "2a95a75b2a13fdf28dc62d403bd3d887998b2a613b1260c0c4347712fd3fdafa"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "2c14f924605c01883b8ce36db667e6574e1b867d011c72b451002564b009e71d",
+            "report60": "582717b9311cd91bd137a43534ccb951542ae5eb02d6f1b587b591d97e3eacf5",
+            "report120": "2a95a75b2a13fdf28dc62d403bd3d887998b2a613b1260c0c4347712fd3fdafa"
+          },
+          "controls_provider": "ordinary/inferno",
+          "control_cases": {
+            "no_jump": "ordinary__legacy_16__no_jump",
+            "walk": "ordinary__legacy_16__walk"
+          }
+        },
+        "modern_cs": {
+          "source_kind": "ordinary",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": true,
+          "body_envelope_available": false,
+          "status": "route_unproven",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "ordinary__modern_cs__jump",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "source_provider": "ordinary/inferno",
+          "source_evidence_sha256": {
+            "manifest": "2c14f924605c01883b8ce36db667e6574e1b867d011c72b451002564b009e71d",
+            "report60": "582717b9311cd91bd137a43534ccb951542ae5eb02d6f1b587b591d97e3eacf5",
+            "report120": "2a95a75b2a13fdf28dc62d403bd3d887998b2a613b1260c0c4347712fd3fdafa"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "2c14f924605c01883b8ce36db667e6574e1b867d011c72b451002564b009e71d",
+            "report60": "582717b9311cd91bd137a43534ccb951542ae5eb02d6f1b587b591d97e3eacf5",
+            "report120": "2a95a75b2a13fdf28dc62d403bd3d887998b2a613b1260c0c4347712fd3fdafa"
+          },
+          "controls_provider": "ordinary/inferno",
+          "control_cases": {
+            "no_jump": "ordinary__modern_cs__no_jump",
+            "walk": "ordinary__modern_cs__walk"
+          }
+        }
+      },
+      "human_review": "pending",
+      "precision_accepted": false,
+      "spawn_connectivity": "unproven"
+    },
+    {
+      "map": "inferno",
+      "site": "edge__braking",
+      "kind": "edge",
+      "profiles": {
+        "current": {
+          "source_kind": "edge",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": false,
+          "body_envelope_available": false,
+          "status": "route_unproven",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "current__reverse_hold",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "source_provider": "edge/inferno",
+          "source_evidence_sha256": {
+            "manifest": "5b622e87a270dd89f2b362f47cc4019de5010c9b0e1a1119eac2578473ead48d",
+            "report60": "85fa47df5d2eddc96671064be1f28d0b49609f1f4a7e9ac9ff2cad937f8ad3f6",
+            "report120": "013ccd3722591c99f3376eda2929b808a82a78088d855cf0c5710f0c33995aa3"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "5b537cc48caf7dfdc5374c1fc53253434a2d9cc1191b5b6158e4bd5d6d3c5008",
+            "report60": "000519029b44857ba8e545391b0a4c7678085d3ca61cbf2ac329a6aab5d98beb",
+            "report120": "c895d3fe46f28066dffd46d658f9cdbd060ea3c406e78e9fde9ed035cdde733b"
+          },
+          "controls_provider": "walking/inferno",
+          "control_cases": {
+            "no_jump": "control__current__no_jump",
+            "walk": "control__current__walk"
+          }
+        },
+        "legacy_16": {
+          "source_kind": "edge",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": false,
+          "body_envelope_available": false,
+          "status": "route_unproven",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "legacy_16__reverse_010",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "source_provider": "edge/inferno",
+          "source_evidence_sha256": {
+            "manifest": "5b622e87a270dd89f2b362f47cc4019de5010c9b0e1a1119eac2578473ead48d",
+            "report60": "85fa47df5d2eddc96671064be1f28d0b49609f1f4a7e9ac9ff2cad937f8ad3f6",
+            "report120": "013ccd3722591c99f3376eda2929b808a82a78088d855cf0c5710f0c33995aa3"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "5b537cc48caf7dfdc5374c1fc53253434a2d9cc1191b5b6158e4bd5d6d3c5008",
+            "report60": "000519029b44857ba8e545391b0a4c7678085d3ca61cbf2ac329a6aab5d98beb",
+            "report120": "c895d3fe46f28066dffd46d658f9cdbd060ea3c406e78e9fde9ed035cdde733b"
+          },
+          "controls_provider": "walking/inferno",
+          "control_cases": {
+            "no_jump": "control__legacy_16__no_jump",
+            "walk": "control__legacy_16__walk"
+          }
+        },
+        "modern_cs": {
+          "source_kind": "edge",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": false,
+          "body_envelope_available": false,
+          "status": "route_unproven",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "modern_cs__brake_2",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "source_provider": "modern/inferno",
+          "source_evidence_sha256": {
+            "manifest": "65bf206a0f42c19bc62de648b2b324457816d5490b306cf2854231ba426146e9",
+            "report60": "884ebf528297dd231163142fd4379fc75cfc5d9984804b1afb830884ed270f33",
+            "report120": "1c65131f7318cbfc5d5553c667e7e94c29c1c551370b03369173471f0d3f89a2"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "5b537cc48caf7dfdc5374c1fc53253434a2d9cc1191b5b6158e4bd5d6d3c5008",
+            "report60": "000519029b44857ba8e545391b0a4c7678085d3ca61cbf2ac329a6aab5d98beb",
+            "report120": "c895d3fe46f28066dffd46d658f9cdbd060ea3c406e78e9fde9ed035cdde733b"
+          },
+          "controls_provider": "walking/inferno",
+          "control_cases": {
+            "no_jump": "control__modern_cs__no_jump",
+            "walk": "control__modern_cs__walk"
+          }
+        }
+      },
+      "human_review": "pending",
+      "precision_accepted": false,
+      "spawn_connectivity": "unproven"
+    },
+    {
+      "map": "dust2",
+      "site": "run_up__navigation_ingress",
+      "kind": "run_up",
+      "profiles": {
+        "current": {
+          "source_kind": "run_up",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": false,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "qualified_jump",
+          "jump_route_passed": true,
+          "extra_approach_margin": {
+            "60": true,
+            "120": true
+          },
+          "source_case": "current__jump350_travel150__jump",
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "source_provider": "run_up/dust2",
+          "source_evidence_sha256": {
+            "manifest": "8ff6be90c120c468416fbb75b082c0cd1bb211c74e4591775f80b71354af38ec",
+            "report60": "f94bec907491699cd12b55931e500e4ce9e7a7461d9e59519245dde124b760fd",
+            "report120": "8b59eb4c4d129e347607f0ccaee3b4cbf51ee881c5376674edd440149bab8f35"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "8ff6be90c120c468416fbb75b082c0cd1bb211c74e4591775f80b71354af38ec",
+            "report60": "f94bec907491699cd12b55931e500e4ce9e7a7461d9e59519245dde124b760fd",
+            "report120": "8b59eb4c4d129e347607f0ccaee3b4cbf51ee881c5376674edd440149bab8f35"
+          },
+          "controls_provider": "run_up/dust2",
+          "control_cases": {
+            "no_jump": "current__jump350_travel150__no_jump",
+            "walk": "current__jump350_travel150__walk"
+          }
+        },
+        "legacy_16": {
+          "source_kind": "run_up",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": false,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "qualified_jump",
+          "jump_route_passed": true,
+          "extra_approach_margin": {
+            "60": true,
+            "120": true
+          },
+          "source_case": "legacy_16__jump300_travel150__jump",
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "source_provider": "run_up/dust2",
+          "source_evidence_sha256": {
+            "manifest": "8ff6be90c120c468416fbb75b082c0cd1bb211c74e4591775f80b71354af38ec",
+            "report60": "f94bec907491699cd12b55931e500e4ce9e7a7461d9e59519245dde124b760fd",
+            "report120": "8b59eb4c4d129e347607f0ccaee3b4cbf51ee881c5376674edd440149bab8f35"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "8ff6be90c120c468416fbb75b082c0cd1bb211c74e4591775f80b71354af38ec",
+            "report60": "f94bec907491699cd12b55931e500e4ce9e7a7461d9e59519245dde124b760fd",
+            "report120": "8b59eb4c4d129e347607f0ccaee3b4cbf51ee881c5376674edd440149bab8f35"
+          },
+          "controls_provider": "run_up/dust2",
+          "control_cases": {
+            "no_jump": "legacy_16__jump300_travel150__no_jump",
+            "walk": "legacy_16__jump300_travel150__walk"
+          }
+        },
+        "modern_cs": {
+          "source_kind": "run_up",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": false,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "qualified_jump",
+          "jump_route_passed": true,
+          "extra_approach_margin": {
+            "60": true,
+            "120": true
+          },
+          "source_case": "modern_cs__jump400_travel150__jump",
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "source_provider": "run_up/dust2",
+          "source_evidence_sha256": {
+            "manifest": "8ff6be90c120c468416fbb75b082c0cd1bb211c74e4591775f80b71354af38ec",
+            "report60": "f94bec907491699cd12b55931e500e4ce9e7a7461d9e59519245dde124b760fd",
+            "report120": "8b59eb4c4d129e347607f0ccaee3b4cbf51ee881c5376674edd440149bab8f35"
+          },
+          "controls_evidence_sha256": {
+            "manifest": "8ff6be90c120c468416fbb75b082c0cd1bb211c74e4591775f80b71354af38ec",
+            "report60": "f94bec907491699cd12b55931e500e4ce9e7a7461d9e59519245dde124b760fd",
+            "report120": "8b59eb4c4d129e347607f0ccaee3b4cbf51ee881c5376674edd440149bab8f35"
+          },
+          "controls_provider": "run_up/dust2",
+          "control_cases": {
+            "no_jump": "modern_cs__jump400_travel150__no_jump",
+            "walk": "modern_cs__jump400_travel150__walk"
+          }
+        }
+      },
+      "human_review": "pending",
+      "precision_accepted": false,
+      "spawn_connectivity": "unproven"
+    }
+  ],
+  "category_coverage": [
+    {
+      "map": "dust2",
+      "kind": "critical_landing",
+      "action_covered": true,
+      "jump_route_covered": true
+    },
+    {
+      "map": "dust2",
+      "kind": "crouch_jump",
+      "action_covered": false,
+      "jump_route_covered": false
+    },
+    {
+      "map": "dust2",
+      "kind": "edge",
+      "action_covered": true,
+      "jump_route_covered": false
+    },
+    {
+      "map": "dust2",
+      "kind": "ordinary",
+      "action_covered": true,
+      "jump_route_covered": false
+    },
+    {
+      "map": "dust2",
+      "kind": "run_up",
+      "action_covered": true,
+      "jump_route_covered": true
+    },
+    {
+      "map": "mirage",
+      "kind": "critical_landing",
+      "action_covered": true,
+      "jump_route_covered": true
+    },
+    {
+      "map": "mirage",
+      "kind": "crouch_jump",
+      "action_covered": false,
+      "jump_route_covered": false
+    },
+    {
+      "map": "mirage",
+      "kind": "edge",
+      "action_covered": true,
+      "jump_route_covered": false
+    },
+    {
+      "map": "mirage",
+      "kind": "ordinary",
+      "action_covered": true,
+      "jump_route_covered": false
+    },
+    {
+      "map": "mirage",
+      "kind": "run_up",
+      "action_covered": false,
+      "jump_route_covered": false
+    },
+    {
+      "map": "inferno",
+      "kind": "critical_landing",
+      "action_covered": true,
+      "jump_route_covered": true
+    },
+    {
+      "map": "inferno",
+      "kind": "crouch_jump",
+      "action_covered": false,
+      "jump_route_covered": false
+    },
+    {
+      "map": "inferno",
+      "kind": "edge",
+      "action_covered": true,
+      "jump_route_covered": false
+    },
+    {
+      "map": "inferno",
+      "kind": "ordinary",
+      "action_covered": true,
+      "jump_route_covered": false
+    },
+    {
+      "map": "inferno",
+      "kind": "run_up",
+      "action_covered": false,
+      "jump_route_covered": false
+    }
+  ],
+  "action_categories": 10,
+  "jump_route_categories": 4,
+  "checker_sha256": "ce44247df1f5bdb913bffceea144835e47134fd4792d291caf87b4f60f81a345",
+  "source_lock_sha256": "f753e177035bb3c7fdbc0a64875b58ea8c9b991b63a91d37144aab6a7b4cc7a7",
+  "manual_plan_sha256": "a95357dbcb41c0e0e9d298729305b44c841ea15691d294130e5a98c859593671",
+  "phase": "Movement-4 R20 current evidence coverage and manual observation preparation",
+  "ordinary_python_tests": 338,
+  "new_regressions": 13,
+  "native_logic_sessions": 3,
+  "native_render_sessions": 1,
+  "sessions": {
+    "dust2": {
+      "mode": "headless_collision_logic_smoke",
+      "samples": 34,
+      "attempts": 4,
+      "human_review": "pending",
+      "formal_release_ready": false,
+      "receipt_sha256": "9d413e2478c3cde87351d9fdf2269304fd750550497e5302ce85ba777d32e28b",
+      "saw_crouch": true,
+      "saw_walk": true,
+      "capsule_heights": [
+        1.20000004768372,
+        1.79999995231628
+      ]
+    },
+    "mirage": {
+      "mode": "headless_collision_logic_smoke",
+      "samples": 34,
+      "attempts": 4,
+      "human_review": "pending",
+      "formal_release_ready": false,
+      "receipt_sha256": "57181b7da5cebe1f6b8e5fb09cdabde094024db43069cb35c718cd16cd6769b6",
+      "saw_crouch": true,
+      "saw_walk": true,
+      "capsule_heights": [
+        1.20000004768372,
+        1.79999995231628
+      ]
+    },
+    "inferno": {
+      "mode": "headless_collision_logic_smoke",
+      "samples": 34,
+      "attempts": 4,
+      "human_review": "pending",
+      "formal_release_ready": false,
+      "receipt_sha256": "008ef5d7788e36faaf779b85e7efc3a88fd1fb181b94be647dbd0c7d398545ea",
+      "saw_crouch": true,
+      "saw_walk": true,
+      "capsule_heights": [
+        1.20000004768372,
+        1.79999995231628
+      ]
+    },
+    "mirage_render": {
+      "mode": "windowed_automated_render_smoke",
+      "samples": 34,
+      "attempts": 4,
+      "human_review": "pending",
+      "formal_release_ready": false,
+      "receipt_sha256": "65fdcf37f50e71dda4076143d42db2ace6d1d9c948e353267f81050615245c4e",
+      "saw_crouch": true,
+      "saw_walk": true,
+      "capsule_heights": [
+        1.20000004768372,
+        1.79999995231628
+      ]
+    }
+  },
+  "observer_sampling_fields": [
+    "crouch_requested",
+    "walk_requested",
+    "grounded_before",
+    "capsule_height"
+  ],
+  "source_imports_settings_and_playable_preserved": true,
+  "full_native_suite_repeated": false,
+  "package_updated": false,
+  "manual_bank_revision": "v2",
+  "validation": {
+    "format_lint_compile": "passed",
+    "pyright_errors": 0,
+    "render_screenshot_inspected": true
+  },
+  "limits": [
+    "Curated evidence covers 10/15 action categories and 4/15 jump-route categories, not all Movement-4 requirements.",
+    "Ordinary and edge sites lack the required body envelope in these cohorts; edge braking inputs also lack paired nonjump controls.",
+    "Walk arrivals observed on edge goals do not qualify jump-required traversal.",
+    "All automatic sessions and human ratings remain pending; scoped weapons/AI/matches are outside the observer.",
+    "Original-client, precision, variable cadence, full spawn routes, matches and FPS remain pending."
+  ]
+}
