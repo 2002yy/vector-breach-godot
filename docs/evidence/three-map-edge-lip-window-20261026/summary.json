@@ -1,0 +1,2255 @@
+{
+  "formal_release_ready": false,
+  "human_acceptance": false,
+  "edge_lip_timing_accepted": false,
+  "precision_equivalence_accepted": false,
+  "route_status": "not_requalified",
+  "spawn_connectivity": "unproven",
+  "trials": 126,
+  "control_traces60_match_source": 18,
+  "groups": [
+    {
+      "map": "dust2",
+      "scheme": "current",
+      "physics_hz": 60,
+      "original_anchor_seconds": 0.18333333333333332,
+      "observed_control_loss": 0.183333333333333,
+      "bracket": {
+        "found": true,
+        "latest_sampled_takeoff": 0.183333333333333,
+        "earliest_sampled_rejection": 0.2,
+        "interval_seconds": 0.016666666666667024
+      },
+      "controls": {
+        "no_jump": {
+          "physical_first_contact": {
+            "time": 0.416666666666667,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.416666666666667,
+          "arrival_time": 0.416666666666667
+        },
+        "walk": {
+          "physical_first_contact": {
+            "time": 0.533333333333333,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.533333333333333,
+          "arrival_time": 0.533333333333333
+        }
+      },
+      "samples": [
+        {
+          "offset_ticks60": -2,
+          "request_time": 0.15,
+          "actual_control_offset_ticks": -2,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.11666666666667,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.11666666666667,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": -1,
+          "request_time": 0.166666666666667,
+          "actual_control_offset_ticks": -1,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.13333333333333,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.13333333333333,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 0,
+          "request_time": 0.183333333333333,
+          "actual_control_offset_ticks": 0,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.13333333333333,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.13333333333333,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 1,
+          "request_time": 0.2,
+          "actual_control_offset_ticks": 1,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.416666666666667,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.416666666666667
+        },
+        {
+          "offset_ticks60": 2,
+          "request_time": 0.216666666666667,
+          "actual_control_offset_ticks": 2,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.416666666666667,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.416666666666667
+        }
+      ]
+    },
+    {
+      "map": "dust2",
+      "scheme": "legacy_16",
+      "physics_hz": 60,
+      "original_anchor_seconds": 0.15,
+      "observed_control_loss": 0.15,
+      "bracket": {
+        "found": true,
+        "latest_sampled_takeoff": 0.15,
+        "earliest_sampled_rejection": 0.166666666666667,
+        "interval_seconds": 0.016666666666666996
+      },
+      "controls": {
+        "no_jump": {
+          "physical_first_contact": {
+            "time": 0.316666666666667,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.316666666666667,
+          "arrival_time": 0.316666666666667
+        },
+        "walk": {
+          "physical_first_contact": {
+            "time": 0.4,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.4,
+          "arrival_time": 0.4
+        }
+      },
+      "samples": [
+        {
+          "offset_ticks60": -2,
+          "request_time": 0.116666666666667,
+          "actual_control_offset_ticks": -2,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.85,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.85,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": -1,
+          "request_time": 0.133333333333333,
+          "actual_control_offset_ticks": -1,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.866666666666667,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.866666666666667,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 0,
+          "request_time": 0.15,
+          "actual_control_offset_ticks": 0,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.866666666666667,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.866666666666667,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 1,
+          "request_time": 0.166666666666667,
+          "actual_control_offset_ticks": 1,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.316666666666667,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.316666666666667
+        },
+        {
+          "offset_ticks60": 2,
+          "request_time": 0.183333333333333,
+          "actual_control_offset_ticks": 2,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.316666666666667,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.316666666666667
+        }
+      ]
+    },
+    {
+      "map": "dust2",
+      "scheme": "modern_cs",
+      "physics_hz": 60,
+      "original_anchor_seconds": 0.21666666666666667,
+      "observed_control_loss": 0.216666666666667,
+      "bracket": {
+        "found": true,
+        "latest_sampled_takeoff": 0.216666666666667,
+        "earliest_sampled_rejection": 0.233333333333333,
+        "interval_seconds": 0.016666666666665997
+      },
+      "controls": {
+        "no_jump": {
+          "physical_first_contact": {
+            "time": 0.383333333333333,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.383333333333333,
+          "arrival_time": 0.383333333333333
+        },
+        "walk": {
+          "physical_first_contact": {
+            "time": 0.4,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.4,
+          "arrival_time": 0.4
+        }
+      },
+      "samples": [
+        {
+          "offset_ticks60": -2,
+          "request_time": 0.183333333333333,
+          "actual_control_offset_ticks": -2,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.0,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.0,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": -1,
+          "request_time": 0.2,
+          "actual_control_offset_ticks": -1,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.01666666666667,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.01666666666667,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 0,
+          "request_time": 0.216666666666667,
+          "actual_control_offset_ticks": 0,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.03333333333333,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.03333333333333,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 1,
+          "request_time": 0.233333333333333,
+          "actual_control_offset_ticks": 1,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.383333333333333,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.383333333333333
+        },
+        {
+          "offset_ticks60": 2,
+          "request_time": 0.25,
+          "actual_control_offset_ticks": 2,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.383333333333333,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.383333333333333
+        }
+      ]
+    },
+    {
+      "map": "dust2",
+      "scheme": "current",
+      "physics_hz": 120,
+      "original_anchor_seconds": 0.18333333333333332,
+      "observed_control_loss": 0.191666666666667,
+      "bracket": {
+        "found": true,
+        "latest_sampled_takeoff": 0.183333333333333,
+        "earliest_sampled_rejection": 0.2,
+        "interval_seconds": 0.016666666666667024
+      },
+      "controls": {
+        "no_jump": {
+          "physical_first_contact": {
+            "time": 0.425,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.425,
+          "arrival_time": 0.425
+        },
+        "walk": {
+          "physical_first_contact": {
+            "time": 0.541666666666667,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.541666666666667,
+          "arrival_time": 0.541666666666667
+        }
+      },
+      "samples": [
+        {
+          "offset_ticks60": -2,
+          "request_time": 0.15,
+          "actual_control_offset_ticks": -5,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.10833333333333,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.10833333333333,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": -1,
+          "request_time": 0.166666666666667,
+          "actual_control_offset_ticks": -3,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.11666666666667,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.11666666666667,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 0,
+          "request_time": 0.183333333333333,
+          "actual_control_offset_ticks": -1,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.125,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.125,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 1,
+          "request_time": 0.2,
+          "actual_control_offset_ticks": 1,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.425,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.425
+        },
+        {
+          "offset_ticks60": 2,
+          "request_time": 0.216666666666667,
+          "actual_control_offset_ticks": 3,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.425,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.425
+        }
+      ]
+    },
+    {
+      "map": "dust2",
+      "scheme": "legacy_16",
+      "physics_hz": 120,
+      "original_anchor_seconds": 0.15,
+      "observed_control_loss": 0.15,
+      "bracket": {
+        "found": true,
+        "latest_sampled_takeoff": 0.15,
+        "earliest_sampled_rejection": 0.166666666666667,
+        "interval_seconds": 0.016666666666666996
+      },
+      "controls": {
+        "no_jump": {
+          "physical_first_contact": {
+            "time": 0.325,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.325,
+          "arrival_time": 0.325
+        },
+        "walk": {
+          "physical_first_contact": {
+            "time": 0.575,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.575,
+          "arrival_time": 0.575
+        }
+      },
+      "samples": [
+        {
+          "offset_ticks60": -2,
+          "request_time": 0.116666666666667,
+          "actual_control_offset_ticks": -4,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.841666666666667,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.841666666666667,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": -1,
+          "request_time": 0.133333333333333,
+          "actual_control_offset_ticks": -2,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.858333333333333,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.858333333333333,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 0,
+          "request_time": 0.15,
+          "actual_control_offset_ticks": 0,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.866666666666667,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.866666666666667,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 1,
+          "request_time": 0.166666666666667,
+          "actual_control_offset_ticks": 2,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.325,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.325
+        },
+        {
+          "offset_ticks60": 2,
+          "request_time": 0.183333333333333,
+          "actual_control_offset_ticks": 4,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.325,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.325
+        }
+      ]
+    },
+    {
+      "map": "dust2",
+      "scheme": "modern_cs",
+      "physics_hz": 120,
+      "original_anchor_seconds": 0.21666666666666667,
+      "observed_control_loss": 0.233333333333333,
+      "bracket": {
+        "found": true,
+        "latest_sampled_takeoff": 0.233333333333333,
+        "earliest_sampled_rejection": 0.25,
+        "interval_seconds": 0.016666666666666996
+      },
+      "controls": {
+        "no_jump": {
+          "physical_first_contact": {
+            "time": 0.466666666666667,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.466666666666667,
+          "arrival_time": 0.466666666666667
+        },
+        "walk": {
+          "physical_first_contact": {
+            "time": 0.583333333333333,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.583333333333333,
+          "arrival_time": 0.583333333333333
+        }
+      },
+      "samples": [
+        {
+          "offset_ticks60": -2,
+          "request_time": 0.183333333333333,
+          "actual_control_offset_ticks": -6,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.991666666666667,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.991666666666667,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": -1,
+          "request_time": 0.2,
+          "actual_control_offset_ticks": -4,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.00833333333333,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.00833333333333,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 0,
+          "request_time": 0.216666666666667,
+          "actual_control_offset_ticks": -2,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.01666666666667,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.01666666666667,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 1,
+          "request_time": 0.233333333333333,
+          "actual_control_offset_ticks": 0,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.03333333333333,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.03333333333333,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 2,
+          "request_time": 0.25,
+          "actual_control_offset_ticks": 2,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.466666666666667,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.466666666666667
+        }
+      ]
+    },
+    {
+      "map": "mirage",
+      "scheme": "current",
+      "physics_hz": 60,
+      "original_anchor_seconds": 0.25,
+      "observed_control_loss": 0.25,
+      "bracket": {
+        "found": true,
+        "latest_sampled_takeoff": 0.25,
+        "earliest_sampled_rejection": 0.266666666666667,
+        "interval_seconds": 0.016666666666666996
+      },
+      "controls": {
+        "no_jump": {
+          "physical_first_contact": {
+            "time": 0.533333333333333,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.533333333333333,
+          "arrival_time": 0.533333333333333
+        },
+        "walk": {
+          "physical_first_contact": {
+            "time": 0.616666666666667,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.616666666666667,
+          "arrival_time": 0.616666666666667
+        }
+      },
+      "samples": [
+        {
+          "offset_ticks60": -2,
+          "request_time": 0.216666666666667,
+          "actual_control_offset_ticks": -2,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.35,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.35,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": -1,
+          "request_time": 0.233333333333333,
+          "actual_control_offset_ticks": -1,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.35,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.35,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 0,
+          "request_time": 0.25,
+          "actual_control_offset_ticks": 0,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.36666666666667,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.36666666666667,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 1,
+          "request_time": 0.266666666666667,
+          "actual_control_offset_ticks": 1,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.533333333333333,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.533333333333333
+        },
+        {
+          "offset_ticks60": 2,
+          "request_time": 0.283333333333333,
+          "actual_control_offset_ticks": 2,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.533333333333333,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.533333333333333
+        }
+      ]
+    },
+    {
+      "map": "mirage",
+      "scheme": "legacy_16",
+      "physics_hz": 60,
+      "original_anchor_seconds": 0.21666666666666667,
+      "observed_control_loss": 0.216666666666667,
+      "bracket": {
+        "found": true,
+        "latest_sampled_takeoff": 0.216666666666667,
+        "earliest_sampled_rejection": 0.233333333333333,
+        "interval_seconds": 0.016666666666665997
+      },
+      "controls": {
+        "no_jump": {
+          "physical_first_contact": {
+            "time": 0.416666666666667,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.416666666666667,
+          "arrival_time": 0.416666666666667
+        },
+        "walk": {
+          "physical_first_contact": {
+            "time": 0.583333333333333,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.583333333333333,
+          "arrival_time": 0.583333333333333
+        }
+      },
+      "samples": [
+        {
+          "offset_ticks60": -2,
+          "request_time": 0.183333333333333,
+          "actual_control_offset_ticks": -2,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.933333333333333,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.933333333333333,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": -1,
+          "request_time": 0.2,
+          "actual_control_offset_ticks": -1,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.95,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.95,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 0,
+          "request_time": 0.216666666666667,
+          "actual_control_offset_ticks": 0,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.95,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.95,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 1,
+          "request_time": 0.233333333333333,
+          "actual_control_offset_ticks": 1,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.416666666666667,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.416666666666667
+        },
+        {
+          "offset_ticks60": 2,
+          "request_time": 0.25,
+          "actual_control_offset_ticks": 2,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.416666666666667,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.416666666666667
+        }
+      ]
+    },
+    {
+      "map": "mirage",
+      "scheme": "modern_cs",
+      "physics_hz": 60,
+      "original_anchor_seconds": 0.31666666666666665,
+      "observed_control_loss": 0.316666666666667,
+      "bracket": {
+        "found": true,
+        "latest_sampled_takeoff": 0.316666666666667,
+        "earliest_sampled_rejection": 0.333333333333333,
+        "interval_seconds": 0.016666666666665997
+      },
+      "controls": {
+        "no_jump": {
+          "physical_first_contact": {
+            "time": 0.516666666666667,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.516666666666667,
+          "arrival_time": 0.516666666666667
+        },
+        "walk": {
+          "physical_first_contact": {
+            "time": 0.583333333333333,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.583333333333333,
+          "arrival_time": 0.583333333333333
+        }
+      },
+      "samples": [
+        {
+          "offset_ticks60": -2,
+          "request_time": 0.283333333333333,
+          "actual_control_offset_ticks": -2,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.13333333333333,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.13333333333333,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": -1,
+          "request_time": 0.3,
+          "actual_control_offset_ticks": -1,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.11666666666667,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.11666666666667,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 0,
+          "request_time": 0.316666666666667,
+          "actual_control_offset_ticks": 0,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.13333333333333,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.13333333333333,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 1,
+          "request_time": 0.333333333333333,
+          "actual_control_offset_ticks": 1,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.516666666666667,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.516666666666667
+        },
+        {
+          "offset_ticks60": 2,
+          "request_time": 0.35,
+          "actual_control_offset_ticks": 2,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.516666666666667,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.516666666666667
+        }
+      ]
+    },
+    {
+      "map": "mirage",
+      "scheme": "current",
+      "physics_hz": 120,
+      "original_anchor_seconds": 0.25,
+      "observed_control_loss": 0.266666666666667,
+      "bracket": {
+        "found": true,
+        "latest_sampled_takeoff": 0.266666666666667,
+        "earliest_sampled_rejection": 0.283333333333333,
+        "interval_seconds": 0.016666666666665997
+      },
+      "controls": {
+        "no_jump": {
+          "physical_first_contact": {
+            "time": 0.525,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.525,
+          "arrival_time": 0.525
+        },
+        "walk": {
+          "physical_first_contact": {
+            "time": 0.616666666666667,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.616666666666667,
+          "arrival_time": 0.616666666666667
+        }
+      },
+      "samples": [
+        {
+          "offset_ticks60": -2,
+          "request_time": 0.216666666666667,
+          "actual_control_offset_ticks": -6,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.34166666666667,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.34166666666667,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": -1,
+          "request_time": 0.233333333333333,
+          "actual_control_offset_ticks": -4,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.375,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.375,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 0,
+          "request_time": 0.25,
+          "actual_control_offset_ticks": -2,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.38333333333333,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.38333333333333,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 1,
+          "request_time": 0.266666666666667,
+          "actual_control_offset_ticks": 0,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.39166666666667,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.39166666666667,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 2,
+          "request_time": 0.283333333333333,
+          "actual_control_offset_ticks": 2,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.525,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.525
+        }
+      ]
+    },
+    {
+      "map": "mirage",
+      "scheme": "legacy_16",
+      "physics_hz": 120,
+      "original_anchor_seconds": 0.21666666666666667,
+      "observed_control_loss": 0.225,
+      "bracket": {
+        "found": true,
+        "latest_sampled_takeoff": 0.216666666666667,
+        "earliest_sampled_rejection": 0.233333333333333,
+        "interval_seconds": 0.016666666666665997
+      },
+      "controls": {
+        "no_jump": {
+          "physical_first_contact": {
+            "time": 0.408333333333333,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.408333333333333,
+          "arrival_time": 0.408333333333333
+        },
+        "walk": {
+          "physical_first_contact": {
+            "time": 0.575,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.575,
+          "arrival_time": 0.575
+        }
+      },
+      "samples": [
+        {
+          "offset_ticks60": -2,
+          "request_time": 0.183333333333333,
+          "actual_control_offset_ticks": -5,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.916666666666667,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.916666666666667,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": -1,
+          "request_time": 0.2,
+          "actual_control_offset_ticks": -3,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.933333333333333,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.933333333333333,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 0,
+          "request_time": 0.216666666666667,
+          "actual_control_offset_ticks": -1,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.941666666666667,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.941666666666667,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 1,
+          "request_time": 0.233333333333333,
+          "actual_control_offset_ticks": 1,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.408333333333333,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.408333333333333
+        },
+        {
+          "offset_ticks60": 2,
+          "request_time": 0.25,
+          "actual_control_offset_ticks": 3,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.408333333333333,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.408333333333333
+        }
+      ]
+    },
+    {
+      "map": "mirage",
+      "scheme": "modern_cs",
+      "physics_hz": 120,
+      "original_anchor_seconds": 0.31666666666666665,
+      "observed_control_loss": 0.325,
+      "bracket": {
+        "found": true,
+        "latest_sampled_takeoff": 0.316666666666667,
+        "earliest_sampled_rejection": 0.333333333333333,
+        "interval_seconds": 0.016666666666665997
+      },
+      "controls": {
+        "no_jump": {
+          "physical_first_contact": {
+            "time": 0.508333333333333,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.508333333333333,
+          "arrival_time": 0.508333333333333
+        },
+        "walk": {
+          "physical_first_contact": {
+            "time": 0.583333333333333,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.583333333333333,
+          "arrival_time": 0.583333333333333
+        }
+      },
+      "samples": [
+        {
+          "offset_ticks60": -2,
+          "request_time": 0.283333333333333,
+          "actual_control_offset_ticks": -5,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.10833333333333,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.10833333333333,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": -1,
+          "request_time": 0.3,
+          "actual_control_offset_ticks": -3,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.11666666666667,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.11666666666667,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 0,
+          "request_time": 0.316666666666667,
+          "actual_control_offset_ticks": -1,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.125,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.125,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 1,
+          "request_time": 0.333333333333333,
+          "actual_control_offset_ticks": 1,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.508333333333333,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.508333333333333
+        },
+        {
+          "offset_ticks60": 2,
+          "request_time": 0.35,
+          "actual_control_offset_ticks": 3,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.508333333333333,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.508333333333333
+        }
+      ]
+    },
+    {
+      "map": "inferno",
+      "scheme": "current",
+      "physics_hz": 60,
+      "original_anchor_seconds": 0.21666666666666667,
+      "observed_control_loss": 0.216666666666667,
+      "bracket": {
+        "found": true,
+        "latest_sampled_takeoff": 0.216666666666667,
+        "earliest_sampled_rejection": 0.233333333333333,
+        "interval_seconds": 0.016666666666665997
+      },
+      "controls": {
+        "no_jump": {
+          "physical_first_contact": {
+            "time": 0.383333333333333,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.383333333333333,
+          "arrival_time": 0.383333333333333
+        },
+        "walk": {
+          "physical_first_contact": {
+            "time": 0.433333333333333,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.433333333333333,
+          "arrival_time": 0.433333333333333
+        }
+      },
+      "samples": [
+        {
+          "offset_ticks60": -2,
+          "request_time": 0.183333333333333,
+          "actual_control_offset_ticks": -2,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.06666666666667,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.06666666666667,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": -1,
+          "request_time": 0.2,
+          "actual_control_offset_ticks": -1,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.06666666666667,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.06666666666667,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 0,
+          "request_time": 0.216666666666667,
+          "actual_control_offset_ticks": 0,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.06666666666667,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.06666666666667,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 1,
+          "request_time": 0.233333333333333,
+          "actual_control_offset_ticks": 1,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.383333333333333,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.383333333333333
+        },
+        {
+          "offset_ticks60": 2,
+          "request_time": 0.25,
+          "actual_control_offset_ticks": 2,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.383333333333333,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.383333333333333
+        }
+      ]
+    },
+    {
+      "map": "inferno",
+      "scheme": "legacy_16",
+      "physics_hz": 60,
+      "original_anchor_seconds": 0.18333333333333332,
+      "observed_control_loss": 0.183333333333333,
+      "bracket": {
+        "found": true,
+        "latest_sampled_takeoff": 0.183333333333333,
+        "earliest_sampled_rejection": 0.2,
+        "interval_seconds": 0.016666666666667024
+      },
+      "controls": {
+        "no_jump": {
+          "physical_first_contact": {
+            "time": 0.3,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.3,
+          "arrival_time": 0.3
+        },
+        "walk": {
+          "physical_first_contact": {
+            "time": 0.433333333333333,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.433333333333333,
+          "arrival_time": 0.433333333333333
+        }
+      },
+      "samples": [
+        {
+          "offset_ticks60": -2,
+          "request_time": 0.15,
+          "actual_control_offset_ticks": -2,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.766666666666667,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.766666666666667,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": -1,
+          "request_time": 0.166666666666667,
+          "actual_control_offset_ticks": -1,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.783333333333333,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.783333333333333,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 0,
+          "request_time": 0.183333333333333,
+          "actual_control_offset_ticks": 0,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.783333333333333,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.783333333333333,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 1,
+          "request_time": 0.2,
+          "actual_control_offset_ticks": 1,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.3,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.3
+        },
+        {
+          "offset_ticks60": 2,
+          "request_time": 0.216666666666667,
+          "actual_control_offset_ticks": 2,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.3,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.3
+        }
+      ]
+    },
+    {
+      "map": "inferno",
+      "scheme": "modern_cs",
+      "physics_hz": 60,
+      "original_anchor_seconds": 0.26666666666666666,
+      "observed_control_loss": 0.266666666666667,
+      "bracket": {
+        "found": true,
+        "latest_sampled_takeoff": 0.266666666666667,
+        "earliest_sampled_rejection": 0.283333333333333,
+        "interval_seconds": 0.016666666666665997
+      },
+      "controls": {
+        "no_jump": {
+          "physical_first_contact": {
+            "time": 0.383333333333333,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.383333333333333,
+          "arrival_time": 0.383333333333333
+        },
+        "walk": {
+          "physical_first_contact": {
+            "time": 0.433333333333333,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.433333333333333,
+          "arrival_time": 0.433333333333333
+        }
+      },
+      "samples": [
+        {
+          "offset_ticks60": -2,
+          "request_time": 0.233333333333333,
+          "actual_control_offset_ticks": -2,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.23333333333333,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.23333333333333,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": -1,
+          "request_time": 0.25,
+          "actual_control_offset_ticks": -1,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.23333333333333,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.23333333333333,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 0,
+          "request_time": 0.266666666666667,
+          "actual_control_offset_ticks": 0,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.983333333333333,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.983333333333333,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 1,
+          "request_time": 0.283333333333333,
+          "actual_control_offset_ticks": 1,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.383333333333333,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.383333333333333
+        },
+        {
+          "offset_ticks60": 2,
+          "request_time": 0.3,
+          "actual_control_offset_ticks": 2,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.383333333333333,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.383333333333333
+        }
+      ]
+    },
+    {
+      "map": "inferno",
+      "scheme": "current",
+      "physics_hz": 120,
+      "original_anchor_seconds": 0.21666666666666667,
+      "observed_control_loss": 0.233333333333333,
+      "bracket": {
+        "found": true,
+        "latest_sampled_takeoff": 0.233333333333333,
+        "earliest_sampled_rejection": 0.25,
+        "interval_seconds": 0.016666666666666996
+      },
+      "controls": {
+        "no_jump": {
+          "physical_first_contact": {
+            "time": 0.366666666666667,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.366666666666667,
+          "arrival_time": 0.366666666666667
+        },
+        "walk": {
+          "physical_first_contact": {
+            "time": 0.425,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.425,
+          "arrival_time": 0.425
+        }
+      },
+      "samples": [
+        {
+          "offset_ticks60": -2,
+          "request_time": 0.183333333333333,
+          "actual_control_offset_ticks": -6,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.05,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.05,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": -1,
+          "request_time": 0.2,
+          "actual_control_offset_ticks": -4,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.05833333333333,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.05833333333333,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 0,
+          "request_time": 0.216666666666667,
+          "actual_control_offset_ticks": -2,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.06666666666667,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.06666666666667,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 1,
+          "request_time": 0.233333333333333,
+          "actual_control_offset_ticks": 0,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.06666666666667,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.06666666666667,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 2,
+          "request_time": 0.25,
+          "actual_control_offset_ticks": 2,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.366666666666667,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.366666666666667
+        }
+      ]
+    },
+    {
+      "map": "inferno",
+      "scheme": "legacy_16",
+      "physics_hz": 120,
+      "original_anchor_seconds": 0.18333333333333332,
+      "observed_control_loss": 0.191666666666667,
+      "bracket": {
+        "found": true,
+        "latest_sampled_takeoff": 0.183333333333333,
+        "earliest_sampled_rejection": 0.2,
+        "interval_seconds": 0.016666666666667024
+      },
+      "controls": {
+        "no_jump": {
+          "physical_first_contact": {
+            "time": 0.291666666666667,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.291666666666667,
+          "arrival_time": 0.291666666666667
+        },
+        "walk": {
+          "physical_first_contact": {
+            "time": 0.425,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.425,
+          "arrival_time": 0.425
+        }
+      },
+      "samples": [
+        {
+          "offset_ticks60": -2,
+          "request_time": 0.15,
+          "actual_control_offset_ticks": -5,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.766666666666667,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.766666666666667,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": -1,
+          "request_time": 0.166666666666667,
+          "actual_control_offset_ticks": -3,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.775,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.775,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 0,
+          "request_time": 0.183333333333333,
+          "actual_control_offset_ticks": -1,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.783333333333333,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.783333333333333,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 1,
+          "request_time": 0.2,
+          "actual_control_offset_ticks": 1,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.291666666666667,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.291666666666667
+        },
+        {
+          "offset_ticks60": 2,
+          "request_time": 0.216666666666667,
+          "actual_control_offset_ticks": 3,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.291666666666667,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.291666666666667
+        }
+      ]
+    },
+    {
+      "map": "inferno",
+      "scheme": "modern_cs",
+      "physics_hz": 120,
+      "original_anchor_seconds": 0.26666666666666666,
+      "observed_control_loss": 0.283333333333333,
+      "bracket": {
+        "found": true,
+        "latest_sampled_takeoff": 0.283333333333333,
+        "earliest_sampled_rejection": 0.3,
+        "interval_seconds": 0.016666666666666996
+      },
+      "controls": {
+        "no_jump": {
+          "physical_first_contact": {
+            "time": 0.383333333333333,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.383333333333333,
+          "arrival_time": 0.383333333333333
+        },
+        "walk": {
+          "physical_first_contact": {
+            "time": 0.425,
+            "inside_goal": true
+          },
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.425,
+          "arrival_time": 0.425
+        }
+      },
+      "samples": [
+        {
+          "offset_ticks60": -2,
+          "request_time": 0.233333333333333,
+          "actual_control_offset_ticks": -6,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.025,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.025,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": -1,
+          "request_time": 0.25,
+          "actual_control_offset_ticks": -4,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.03333333333333,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.03333333333333,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 0,
+          "request_time": 0.266666666666667,
+          "actual_control_offset_ticks": -2,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 1.00833333333333,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.00833333333333,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 1,
+          "request_time": 0.283333333333333,
+          "actual_control_offset_ticks": 0,
+          "request_grounded_before": true,
+          "takeoff": true,
+          "classification": "supported_takeoff",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.991666666666667,
+            "inside_goal": false
+          },
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.991666666666667,
+          "arrival_time": null
+        },
+        {
+          "offset_ticks60": 2,
+          "request_time": 0.3,
+          "actual_control_offset_ticks": 2,
+          "request_grounded_before": false,
+          "takeoff": false,
+          "classification": "airborne_request_rejected",
+          "prefix_matches_control": true,
+          "physical_first_contact": {
+            "time": 0.383333333333333,
+            "inside_goal": true
+          },
+          "first_landing": false,
+          "supported_arrival": true,
+          "landing_time": null,
+          "arrival_time": 0.383333333333333
+        }
+      ]
+    }
+  ],
+  "evidence_sha256": {
+    "matrix-lock.json": "2f9cb0ba624caa12a7301820f5b2896ca95eca0db69a0fd4247d59b95c1c875d",
+    "dust2-matrix-v1.json": "793301dc2578e1f5de68b358204d9aed1d584925a96eb4cc891ee7bfac1d20de",
+    "dust2-60.json": "60294bf2ff9627754e21d6696fd39036fe4dcb55c56ffcfa923cc7e44d28d126",
+    "dust2-120.json": "499a7d13412b318b1656cbdcd721ab060a55e28c23f09598ddb61676ceb40390",
+    "mirage-matrix-v1.json": "397d46e1429d1900d696a9e4ea12583592b45a82876fe3bc6a401b2a6fc39dae",
+    "mirage-60.json": "c3e698077ea5709a5407d2dc6b51b3e132d592afa724484686bc7ba89cb2665d",
+    "mirage-120.json": "305840a05c62b6c4458422eaf6d2ce262002505c207b909daeef7a72e2183c3e",
+    "inferno-matrix-v1.json": "5b537cc48caf7dfdc5374c1fc53253434a2d9cc1191b5b6158e4bd5d6d3c5008",
+    "inferno-60.json": "000519029b44857ba8e545391b0a4c7678085d3ca61cbf2ac329a6aab5d98beb",
+    "inferno-120.json": "c895d3fe46f28066dffd46d658f9cdbd060ea3c406e78e9fde9ed035cdde733b"
+  },
+  "checker_sha256": "03ee3ab6e54879652904974bf04958482a5c7bf1b1f0617654d7dd7b497a26b6",
+  "sources_sha256": "67744a37c01d3a6379db90cb95b1e70fa1a4be6d49dfd45f78c7150b6f1c7f96",
+  "sampled_boundaries_all_groups": true,
+  "supported_takeoffs": 58,
+  "airborne_requests_rejected": 32,
+  "qualified_first_landings_among_takeoffs": 0,
+  "supported_arrivals_with_takeoff": 0,
+  "supported_arrivals_without_takeoff": 32,
+  "phase": "Movement-4 R17 three-map sampled edge-lip boundaries",
+  "ordinary_python_tests": 298,
+  "new_regressions": 13,
+  "source_evidence_sha256": {
+    "dust2": {
+      "manifest_sha256": "62defb12656b751b13749cce06087be397f205cb0860e210faeef90fe0e9bfdf",
+      "report60_sha256": "041f0a51eee4084f74003b13f53139af0ba6c5735c00b4fc1b6ae4e51722781c"
+    },
+    "mirage": {
+      "manifest_sha256": "d4ccb57cafc7a5bd58c78b5bd1417744061fc731697afa7abbeb89e18bccd1a9",
+      "report60_sha256": "22826e0e8d1d7096c8f1b7acd9c86af2e46a5e6ec7bc2977d87476d3ccc78730"
+    },
+    "inferno": {
+      "manifest_sha256": "a6fc12473683f8b0f214814dc53816e93bc48c08b261e5043c692ce72d2eaecf",
+      "report60_sha256": "349347327998722e5cdeeadb1ab26e96346c5934509bbf503718700b492bd4e3"
+    }
+  },
+  "source_evidence_imports_and_settings_preserved": true,
+  "previous_R16_results_unchanged": true,
+  "r16_revalidated_sha256": "0f24918903335bf236f2251f939fd133bc5d3ccd1d1065057f1465dbaf68739a",
+  "production_paths_changed": false,
+  "full_native_suite_repeated": false,
+  "validation": {
+    "format_lint_compile": "passed",
+    "pyright_errors": 0
+  },
+  "limitation": "Five time samples per group, 16.7 ms request spacing at both rates. Supported jump takeoff is not a qualified landing, full route, original-client, or human acceptance."
+}
