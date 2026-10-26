@@ -32,7 +32,7 @@ def shortlist(records):
     return chosen
 
 
-def grid_payload(source, project, rejection):
+def grid_payload(source, project, rejection, records=None):
     base = payload(source, project, rejection)
     templates = [
         p
@@ -40,7 +40,8 @@ def grid_payload(source, project, rejection):
         if p["parent_case"] == "edge" and p["scheme"] == "current"
     ]
     cases = []
-    for index, record in shortlist(read(source)["survey"]["drops"]):
+    candidates = read(source)["survey"]["drops"] if records is None else records
+    for index, record in shortlist(candidates):
         require(-2 <= record["height_change"] <= -0.5, "not a surveyed drop")
         for original in templates:
             point = copy.deepcopy(original)

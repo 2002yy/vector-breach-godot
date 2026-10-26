@@ -1,0 +1,190 @@
+{
+  "formal_release_ready": false,
+  "precision_equivalence_accepted": false,
+  "edge_lip_timing_accepted": false,
+  "human_acceptance": false,
+  "surface_accessibility": "unproven",
+  "route_status": "not_requalified",
+  "selected": "drop_00",
+  "observations": [
+    {
+      "candidate": "drop_00",
+      "action": true,
+      "drop": true
+    },
+    {
+      "candidate": "drop_01",
+      "action": true,
+      "drop": true
+    },
+    {
+      "candidate": "drop_02",
+      "action": true,
+      "drop": true
+    },
+    {
+      "candidate": "drop_03",
+      "action": true,
+      "drop": true
+    },
+    {
+      "candidate": "drop_04",
+      "action": true,
+      "drop": true
+    },
+    {
+      "candidate": "drop_05",
+      "action": true,
+      "drop": true
+    },
+    {
+      "candidate": "drop_06",
+      "action": true,
+      "drop": true
+    },
+    {
+      "candidate": "drop_07",
+      "action": true,
+      "drop": true
+    }
+  ],
+  "exploration_trials": 24,
+  "replay_trials": 18,
+  "results": [
+    {
+      "scheme": "current",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "drop_context": {
+        "60": true,
+        "120": true
+      }
+    },
+    {
+      "scheme": "legacy_16",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "drop_context": {
+        "60": true,
+        "120": true
+      }
+    },
+    {
+      "scheme": "modern_cs",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "drop_context": {
+        "60": true,
+        "120": true
+      }
+    }
+  ],
+  "evidence_sha256": {
+    "grid-v1.json": "de0df7713865a82f7786c1350f2709ac0c4f5508d2b194eaa86bab14de305113",
+    "surface-survey.json": "fa8abe1839572e4f1251c9cdd73138057b3f6f097c08eac1b9556233ad3fe80f",
+    "grid-60.json": "9f407bb6a49a06235f29bec437674e6e2ca07136243f72423394401c3cf1354a",
+    "selected-v1.json": "62defb12656b751b13749cce06087be397f205cb0860e210faeef90fe0e9bfdf",
+    "selection-lock.json": "10c07fe295c7496af10c98b5956226df940be907a5fc0456a63169de9dbecb67",
+    "replay-60.json": "041f0a51eee4084f74003b13f53139af0ba6c5735c00b4fc1b6ae4e51722781c",
+    "replay-120.json": "499d30930fc10bdfe76eaa32969d92dceddc194dda1f5650a480a3f39690c44b"
+  },
+  "parent_sha256": "b5a60ec7dbc7ba5fbdbc229c039a09c0b167fa44b1874f9ebe5d9d13e8c2ffce",
+  "checker_sha256": "c22e26c52a285a32e1a5ad0762432312affa990267ec29a8b0e819f8a881352d",
+  "geometry_survey": {
+    "diagnostics": {
+      "clear_surfaces": 4,
+      "columns": 20,
+      "lower_goals": 8,
+      "sweeps": 8
+    },
+    "policy": {
+      "candidate_limit": 8,
+      "column_limit": 1024,
+      "distances": [
+        0.8,
+        1.2,
+        1.6
+      ],
+      "goal_ray_up": 0.15,
+      "offsets": [
+        -2,
+        -1,
+        0,
+        1,
+        2
+      ]
+    },
+    "candidate_count": 8,
+    "survey_sha256": "a7e90b498b814965d6f5a34723b243f8d576d930413c7a3b4588da41b762d15e"
+  },
+  "validation": {
+    "ordinary_python_tests": 247,
+    "new_regressions": 7,
+    "previous_R12_default_results_unchanged": true,
+    "previous_R12_trials_rechecked": 60,
+    "preserved_imports_and_settings": true,
+    "pyright_errors": 0,
+    "format_lint_compile": "passed",
+    "full_native_suite_repeated": false
+  }
+}
