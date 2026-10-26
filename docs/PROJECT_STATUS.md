@@ -1,8 +1,16 @@
 # Vector Breach 当前状态
 
-更新：2026-10-26。此文件为当前实现、优先级和交付状态的权威入口；旧任务文档及历史截图中的“当前版本/尚未实现”只对应当时提交。
+更新：2026-10-27。此文件为当前实现、优先级和交付状态的权威入口；旧任务文档及历史截图中的“当前版本/尚未实现”只对应当时提交。
 
-## 当前批：Movement-4 R21 身体通道回接与早期蹲跳核查
+## 当前批：Movement-4 R22 三图预排队蹲跳和站立对照
+
+基线 `22f63ca`（#118），分支 `audit/queued-crouch-three-map`。沿用R4原几何/三方案有效输入，先冻结27条jump/no_jump/站立walk时间线再跑双档54次：18/18实际起跳、空中蹲伏和首落通过，36次控制均未到；站立walk全程1.8m。完整InputMap、预排队实际帧步进、姿态/胶囊和原几何身份均核对。合并R21后动作13/15、必须跳跃脚本通路7/15，剩余动作类别为Mirage/Inferno run_up。
+
+首落位置仍有频率差，Inferno Modern为约0.5115m，不能用18/18通过代替精度等价。固定1.2m通道也不证明必须蹲伏或完整姿态转换扫掠。Python **363**（新增12）、静态/Pyright 0错误、双档回算及原文件/四个脏导入/设置/包保持通过。见 [R22结果与限制](TASK_QUEUED_CROUCH_THREE_MAP_2026-10-27.md)，最终提交/PR/CI首查在本机`queued-crouch-three-map-20261027/delivery.json`。
+
+**Movement-4未验收、Movement-5冻结。** 下一片先用本次接触/支撑/阶段轨迹定位Inferno Modern约0.512m首落差，再补边缘配对控制/两图新通道和Mirage/Inferno助跑。Current/原图不改，不等CI、不合并、不发包；原机/人工、精度/完整路线、AI/18场/连续三图/70%FPS仍待完成。
+
+## 前批：Movement-4 R21 身体通道回接与早期蹲跳核查
 
 基线 `9dffb7e`（#117），分支 `audit/movement-corridor-provenance`。重验R20的528条记录、R1的30份逐点通道及R4的48条旧试验；三图普通点9组回接完整通道并改判walk_only，Mirage边缘3组补回通道但制动控制不配对，Dust II/Inferno边缘6组因几何不同拒绝借用。11点/33组现为15 qualified_jump、9 walk_only、9 route_unproven；动作10/15、必须跳跃通路4/15不变。
 
