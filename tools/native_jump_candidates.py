@@ -173,7 +173,8 @@ def outcomes(point, row):
     arrival = bool(row["start_valid"] and entry and support)
     require(row["target_entry"] == (entry or {}), "fabricated goal-entry sample")
     require(row["route_arrival_reached"] == arrival, "fabricated arrival verdict")
-    if point["trial_mode"] == "no_jump":
+    control_mode = point["trial_mode"] in ("no_jump", "walk")
+    if control_mode:
         require(not jumped, "no-jump control jumped")
         landing = entry
     require(
@@ -185,7 +186,7 @@ def outcomes(point, row):
         and landing
         and inside(point, landing)
         and row["support"]
-        and (not jumped if point["trial_mode"] == "no_jump" else jumped and airborne)
+        and (not jumped if control_mode else jumped and airborne)
     )
     require(row["target_reached"] == reached, "fabricated first-landing verdict")
     return dict(
