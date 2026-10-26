@@ -1,0 +1,441 @@
+{
+  "formal_release_ready": false,
+  "edge_lip_timing_accepted": false,
+  "human_acceptance": false,
+  "precision_equivalence_accepted": false,
+  "grid_trials": 108,
+  "replay_trials": 18,
+  "observations": [
+    {
+      "scheme": "current",
+      "variant": "jump0_travel150_crouch0",
+      "passed": false,
+      "rejected": "initial_tick_jump_consumed_next_tick"
+    },
+    {
+      "scheme": "current",
+      "variant": "jump0_travel150_crouch1",
+      "passed": false,
+      "rejected": "initial_tick_jump_consumed_next_tick"
+    },
+    {
+      "scheme": "current",
+      "variant": "jump0_travel300_crouch0",
+      "passed": false,
+      "rejected": "initial_tick_jump_consumed_next_tick"
+    },
+    {
+      "scheme": "current",
+      "variant": "jump0_travel300_crouch1",
+      "passed": false,
+      "rejected": "initial_tick_jump_consumed_next_tick"
+    },
+    {
+      "scheme": "current",
+      "variant": "jump100_travel150_crouch0",
+      "controls_arrive": false,
+      "action": true,
+      "corridor": true,
+      "arrival": true,
+      "stable_finish": true,
+      "passed": true
+    },
+    {
+      "scheme": "current",
+      "variant": "jump100_travel150_crouch1",
+      "controls_arrive": false,
+      "action": true,
+      "corridor": true,
+      "arrival": true,
+      "stable_finish": true,
+      "passed": true
+    },
+    {
+      "scheme": "current",
+      "variant": "jump100_travel300_crouch0",
+      "controls_arrive": false,
+      "action": true,
+      "corridor": true,
+      "arrival": true,
+      "stable_finish": true,
+      "passed": true
+    },
+    {
+      "scheme": "current",
+      "variant": "jump100_travel300_crouch1",
+      "controls_arrive": false,
+      "action": true,
+      "corridor": true,
+      "arrival": true,
+      "stable_finish": true,
+      "passed": true
+    },
+    {
+      "scheme": "current",
+      "variant": "jump200_travel150_crouch0",
+      "controls_arrive": false,
+      "action": true,
+      "corridor": true,
+      "arrival": true,
+      "stable_finish": true,
+      "passed": true
+    },
+    {
+      "scheme": "current",
+      "variant": "jump200_travel150_crouch1",
+      "controls_arrive": false,
+      "action": true,
+      "corridor": true,
+      "arrival": true,
+      "stable_finish": true,
+      "passed": true
+    },
+    {
+      "scheme": "current",
+      "variant": "jump200_travel300_crouch0",
+      "controls_arrive": false,
+      "action": true,
+      "corridor": true,
+      "arrival": true,
+      "stable_finish": true,
+      "passed": true
+    },
+    {
+      "scheme": "current",
+      "variant": "jump200_travel300_crouch1",
+      "controls_arrive": false,
+      "action": true,
+      "corridor": true,
+      "arrival": true,
+      "stable_finish": true,
+      "passed": true
+    },
+    {
+      "scheme": "legacy_16",
+      "variant": "jump0_travel150_crouch0",
+      "passed": false,
+      "rejected": "initial_tick_jump_consumed_next_tick"
+    },
+    {
+      "scheme": "legacy_16",
+      "variant": "jump0_travel150_crouch1",
+      "passed": false,
+      "rejected": "initial_tick_jump_consumed_next_tick"
+    },
+    {
+      "scheme": "legacy_16",
+      "variant": "jump0_travel300_crouch0",
+      "passed": false,
+      "rejected": "initial_tick_jump_consumed_next_tick"
+    },
+    {
+      "scheme": "legacy_16",
+      "variant": "jump0_travel300_crouch1",
+      "passed": false,
+      "rejected": "initial_tick_jump_consumed_next_tick"
+    },
+    {
+      "scheme": "legacy_16",
+      "variant": "jump100_travel150_crouch0",
+      "controls_arrive": false,
+      "action": true,
+      "corridor": true,
+      "arrival": true,
+      "stable_finish": true,
+      "passed": true
+    },
+    {
+      "scheme": "legacy_16",
+      "variant": "jump100_travel150_crouch1",
+      "controls_arrive": false,
+      "action": true,
+      "corridor": true,
+      "arrival": true,
+      "stable_finish": true,
+      "passed": true
+    },
+    {
+      "scheme": "legacy_16",
+      "variant": "jump100_travel300_crouch0",
+      "controls_arrive": false,
+      "action": true,
+      "corridor": true,
+      "arrival": true,
+      "stable_finish": true,
+      "passed": true
+    },
+    {
+      "scheme": "legacy_16",
+      "variant": "jump100_travel300_crouch1",
+      "controls_arrive": false,
+      "action": true,
+      "corridor": true,
+      "arrival": true,
+      "stable_finish": true,
+      "passed": true
+    },
+    {
+      "scheme": "legacy_16",
+      "variant": "jump200_travel150_crouch0",
+      "controls_arrive": false,
+      "action": true,
+      "corridor": true,
+      "arrival": true,
+      "stable_finish": true,
+      "passed": true
+    },
+    {
+      "scheme": "legacy_16",
+      "variant": "jump200_travel150_crouch1",
+      "controls_arrive": false,
+      "action": true,
+      "corridor": true,
+      "arrival": true,
+      "stable_finish": true,
+      "passed": true
+    },
+    {
+      "scheme": "legacy_16",
+      "variant": "jump200_travel300_crouch0",
+      "controls_arrive": false,
+      "action": true,
+      "corridor": true,
+      "arrival": true,
+      "stable_finish": true,
+      "passed": true
+    },
+    {
+      "scheme": "legacy_16",
+      "variant": "jump200_travel300_crouch1",
+      "controls_arrive": false,
+      "action": true,
+      "corridor": true,
+      "arrival": true,
+      "stable_finish": true,
+      "passed": true
+    },
+    {
+      "scheme": "modern_cs",
+      "variant": "jump0_travel150_crouch0",
+      "passed": false,
+      "rejected": "initial_tick_jump_consumed_next_tick"
+    },
+    {
+      "scheme": "modern_cs",
+      "variant": "jump0_travel150_crouch1",
+      "passed": false,
+      "rejected": "initial_tick_jump_consumed_next_tick"
+    },
+    {
+      "scheme": "modern_cs",
+      "variant": "jump0_travel300_crouch0",
+      "passed": false,
+      "rejected": "initial_tick_jump_consumed_next_tick"
+    },
+    {
+      "scheme": "modern_cs",
+      "variant": "jump0_travel300_crouch1",
+      "passed": false,
+      "rejected": "initial_tick_jump_consumed_next_tick"
+    },
+    {
+      "scheme": "modern_cs",
+      "variant": "jump100_travel150_crouch0",
+      "controls_arrive": false,
+      "action": true,
+      "corridor": true,
+      "arrival": true,
+      "stable_finish": true,
+      "passed": true
+    },
+    {
+      "scheme": "modern_cs",
+      "variant": "jump100_travel150_crouch1",
+      "controls_arrive": false,
+      "action": true,
+      "corridor": true,
+      "arrival": true,
+      "stable_finish": true,
+      "passed": true
+    },
+    {
+      "scheme": "modern_cs",
+      "variant": "jump100_travel300_crouch0",
+      "controls_arrive": false,
+      "action": true,
+      "corridor": true,
+      "arrival": true,
+      "stable_finish": true,
+      "passed": true
+    },
+    {
+      "scheme": "modern_cs",
+      "variant": "jump100_travel300_crouch1",
+      "controls_arrive": false,
+      "action": true,
+      "corridor": true,
+      "arrival": true,
+      "stable_finish": true,
+      "passed": true
+    },
+    {
+      "scheme": "modern_cs",
+      "variant": "jump200_travel150_crouch0",
+      "controls_arrive": false,
+      "action": true,
+      "corridor": true,
+      "arrival": true,
+      "stable_finish": true,
+      "passed": true
+    },
+    {
+      "scheme": "modern_cs",
+      "variant": "jump200_travel150_crouch1",
+      "controls_arrive": false,
+      "action": true,
+      "corridor": true,
+      "arrival": true,
+      "stable_finish": true,
+      "passed": true
+    },
+    {
+      "scheme": "modern_cs",
+      "variant": "jump200_travel300_crouch0",
+      "controls_arrive": false,
+      "action": true,
+      "corridor": true,
+      "arrival": true,
+      "stable_finish": true,
+      "passed": true
+    },
+    {
+      "scheme": "modern_cs",
+      "variant": "jump200_travel300_crouch1",
+      "controls_arrive": false,
+      "action": true,
+      "corridor": true,
+      "arrival": true,
+      "stable_finish": true,
+      "passed": true
+    }
+  ],
+  "rejected_cadence_trials": [
+    "current__jump0_travel150_crouch0__jump",
+    "current__jump0_travel150_crouch1__jump",
+    "current__jump0_travel300_crouch0__jump",
+    "current__jump0_travel300_crouch1__jump",
+    "legacy_16__jump0_travel150_crouch0__jump",
+    "legacy_16__jump0_travel150_crouch1__jump",
+    "legacy_16__jump0_travel300_crouch0__jump",
+    "legacy_16__jump0_travel300_crouch1__jump",
+    "modern_cs__jump0_travel150_crouch0__jump",
+    "modern_cs__jump0_travel150_crouch1__jump",
+    "modern_cs__jump0_travel300_crouch0__jump",
+    "modern_cs__jump0_travel300_crouch1__jump"
+  ],
+  "results": [
+    {
+      "scheme": "current",
+      "variant": "jump100_travel150_crouch0",
+      "rates": {
+        "60": {
+          "action": true,
+          "corridor": true,
+          "arrival": true,
+          "stable_finish": true,
+          "passed": true
+        },
+        "120": {
+          "action": true,
+          "corridor": true,
+          "arrival": true,
+          "stable_finish": true,
+          "passed": true
+        }
+      },
+      "controls_arrive": {
+        "60": false,
+        "120": false
+      },
+      "passed": true
+    },
+    {
+      "scheme": "legacy_16",
+      "variant": "jump100_travel150_crouch0",
+      "rates": {
+        "60": {
+          "action": true,
+          "corridor": true,
+          "arrival": true,
+          "stable_finish": true,
+          "passed": true
+        },
+        "120": {
+          "action": true,
+          "corridor": true,
+          "arrival": true,
+          "stable_finish": true,
+          "passed": true
+        }
+      },
+      "controls_arrive": {
+        "60": false,
+        "120": false
+      },
+      "passed": true
+    },
+    {
+      "scheme": "modern_cs",
+      "variant": "jump100_travel150_crouch0",
+      "rates": {
+        "60": {
+          "action": true,
+          "corridor": true,
+          "arrival": true,
+          "stable_finish": true,
+          "passed": true
+        },
+        "120": {
+          "action": true,
+          "corridor": true,
+          "arrival": true,
+          "stable_finish": true,
+          "passed": true
+        }
+      },
+      "controls_arrive": {
+        "60": false,
+        "120": false
+      },
+      "passed": true
+    }
+  ],
+  "evidence_sha256": {
+    "grid-v1.json": "96431596c98ed4e4f173cfe7e28082e08a5e67f3024a35e86bf41c45802656c2",
+    "grid-60.json": "4f6fb7c5109bd1b2b50a0dc8b28ce8ae0165abeeb6236515ee771f3db9f02c85",
+    "selected-v1.json": "73fff533fb4881a199a1283d585c587c875ae9e9b23ba11072cb31bd01a56c1d",
+    "selection-lock.json": "678ff32f957f67515321ee7e9222b316bace035d57539c091c20306dd0b3d5a2",
+    "replay-60.json": "d041c5972ead54699036251afe2e02786d6d9d85771959d941d1fed669e8595c",
+    "replay-120.json": "da1cfa88f9beb17f7ee9119d65fb17e3ff52d1381b39982a81586d11948787a3"
+  },
+  "parent_surface_sha256": "62defb12656b751b13749cce06087be397f205cb0860e210faeef90fe0e9bfdf",
+  "checker_sha256": "68d4987e0d2780a36c0ec6d0967a9f2d41158ce1388ddb6e6f0cd7e30c6ebbba",
+  "surface_ingress_all_profiles": true,
+  "phase": "Movement-4 R14 Dust II local surface ingress",
+  "exploration_valid_cadence_trials": 96,
+  "exploration_rejected_cadence_trials": 12,
+  "ordinary_python_tests": 260,
+  "new_regressions": 13,
+  "selected60_trace_matches_exploration": 9,
+  "local_surface_ingress_only": true,
+  "lower_start_world_connectivity": "unproven",
+  "route_status": "not_requalified",
+  "formal_defaults_changed": false,
+  "source_evidence_imports_and_settings_preserved": true,
+  "validation": {
+    "format_lint_compile": "passed",
+    "pyright_errors": 0,
+    "full_native_suite_repeated": false,
+    "human_playtest": false
+  }
+}
