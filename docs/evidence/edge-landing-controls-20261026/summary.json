@@ -1,0 +1,1925 @@
+{
+  "formal_release_ready": false,
+  "human_acceptance": false,
+  "edge_lip_timing_accepted": false,
+  "precision_equivalence_accepted": false,
+  "route_status": "not_requalified",
+  "trials": 90,
+  "groups": [
+    {
+      "map": "dust2",
+      "scheme": "current",
+      "physics_hz": 60,
+      "observations": [
+        {
+          "variant": "baseline",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.13333333333333,
+            "forward_error_m": 5.312084197997997,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 5.312084197997997,
+            "height_error_m": 0.7414313316345202
+          },
+          "minimum_forward_speed_airborne": 5.03176116943359,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.13333333333333,
+          "arrival_time": null
+        },
+        {
+          "variant": "release",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.16666666666667,
+            "forward_error_m": 4.660732269287102,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 4.660732269287102,
+            "height_error_m": 0.7414351463317903
+          },
+          "minimum_forward_speed_airborne": 4.91509437561035,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.16666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_010",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.25,
+            "forward_error_m": 4.352790832519499,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 4.352790832519499,
+            "height_error_m": 0.6961432456970202
+          },
+          "minimum_forward_speed_airborne": 4.2150936126709,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.25,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_030",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.28333333333333,
+            "forward_error_m": 3.2216091156006,
+            "lateral_error_m": 1.907348629970329e-05,
+            "horizontal_error_m": 3.221609115657062,
+            "height_error_m": -0.032362604141229934
+          },
+          "minimum_forward_speed_airborne": 2.81509470939636,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.28333333333333,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_hold",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.3,
+            "forward_error_m": 0.8866329193115021,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.8866329193115021,
+            "height_error_m": -0.04728760719298997
+          },
+          "minimum_forward_speed_airborne": -2.78490400314331,
+          "airborne_reversed": true,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 1.3,
+          "arrival_time": 1.3
+        }
+      ]
+    },
+    {
+      "map": "dust2",
+      "scheme": "legacy_16",
+      "physics_hz": 60,
+      "observations": [
+        {
+          "variant": "baseline",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.866666666666667,
+            "forward_error_m": 3.8727912902831996,
+            "lateral_error_m": 3.814697270598799e-05,
+            "horizontal_error_m": 3.8727912904710733,
+            "height_error_m": -0.0045815944671598885
+          },
+          "minimum_forward_speed_airborne": 5.613399982452389,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.866666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "release",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.866666666666667,
+            "forward_error_m": 3.8727912902831996,
+            "lateral_error_m": 3.814697270598799e-05,
+            "horizontal_error_m": 3.8727912904710733,
+            "height_error_m": -0.0045815944671598885
+          },
+          "minimum_forward_speed_airborne": 5.613399982452389,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.866666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_010",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.866666666666667,
+            "forward_error_m": 0.08419990539550071,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.08419990539550071,
+            "height_error_m": -0.004470014572139913
+          },
+          "minimum_forward_speed_airborne": 2.38418579101563e-07,
+          "airborne_reversed": false,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.866666666666667,
+          "arrival_time": 0.866666666666667
+        },
+        {
+          "variant": "reverse_030",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.816666666666667,
+            "forward_error_m": -0.34319114685060015,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.34319114685060015,
+            "height_error_m": 0.7017460823059105
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.816666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_hold",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.816666666666667,
+            "forward_error_m": -0.34319114685060015,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.34319114685060015,
+            "height_error_m": 0.7017460823059105
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.816666666666667,
+          "arrival_time": null
+        }
+      ]
+    },
+    {
+      "map": "dust2",
+      "scheme": "modern_cs",
+      "physics_hz": 60,
+      "observations": [
+        {
+          "variant": "baseline",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.03333333333333,
+            "forward_error_m": 2.903600692749002,
+            "lateral_error_m": 1.907348629970329e-05,
+            "horizontal_error_m": 2.903600692811648,
+            "height_error_m": -0.03637661933898961
+          },
+          "minimum_forward_speed_airborne": 3.83937048912048,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.03333333333333,
+          "arrival_time": null
+        },
+        {
+          "variant": "release",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.03333333333333,
+            "forward_error_m": 2.903600692749002,
+            "lateral_error_m": 1.907348629970329e-05,
+            "horizontal_error_m": 2.903600692811648,
+            "height_error_m": -0.03637661933898961
+          },
+          "minimum_forward_speed_airborne": 3.83937048912048,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.03333333333333,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_010",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.916666666666667,
+            "forward_error_m": -0.6404418945312997,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.6404418945312997,
+            "height_error_m": 0.7414937973022502
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.916666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_030",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.916666666666667,
+            "forward_error_m": -0.6404418945312997,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.6404418945312997,
+            "height_error_m": 0.7414937973022502
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.916666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_hold",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.916666666666667,
+            "forward_error_m": -0.6404418945312997,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.6404418945312997,
+            "height_error_m": 0.7414937973022502
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.916666666666667,
+          "arrival_time": null
+        }
+      ]
+    },
+    {
+      "map": "dust2",
+      "scheme": "current",
+      "physics_hz": 120,
+      "observations": [
+        {
+          "variant": "baseline",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.125,
+            "forward_error_m": 5.153450012207003,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 5.153450012207003,
+            "height_error_m": 0.7413388252258306
+          },
+          "minimum_forward_speed_airborne": 4.86645936965942,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.125,
+          "arrival_time": null
+        },
+        {
+          "variant": "release",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.19166666666667,
+            "forward_error_m": 4.592210769653299,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 4.592210769653299,
+            "height_error_m": 0.7413393020629906
+          },
+          "minimum_forward_speed_airborne": 4.8081259727478,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.19166666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_010",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.28333333333333,
+            "forward_error_m": 4.300951004028299,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 4.300951004028299,
+            "height_error_m": 0.6637993812561103
+          },
+          "minimum_forward_speed_airborne": 4.10812520980835,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.28333333333333,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_030",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.28333333333333,
+            "forward_error_m": 3.0466918945312003,
+            "lateral_error_m": 1.1444091803980427e-05,
+            "horizontal_error_m": 3.0466918945526937,
+            "height_error_m": -0.03484740257262997
+          },
+          "minimum_forward_speed_airborne": 2.7081236839294403,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.28333333333333,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_hold",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.28333333333333,
+            "forward_error_m": 0.8300495147705007,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.8300495147705007,
+            "height_error_m": -0.04693784713744975
+          },
+          "minimum_forward_speed_airborne": -2.77520942687988,
+          "airborne_reversed": true,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 1.28333333333333,
+          "arrival_time": 1.28333333333333
+        }
+      ]
+    },
+    {
+      "map": "dust2",
+      "scheme": "legacy_16",
+      "physics_hz": 120,
+      "observations": [
+        {
+          "variant": "baseline",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.866666666666667,
+            "forward_error_m": 3.793512344360302,
+            "lateral_error_m": 1.5258789105132564e-05,
+            "horizontal_error_m": 3.7935123443909897,
+            "height_error_m": -0.009169721603389913
+          },
+          "minimum_forward_speed_airborne": 5.613399982452389,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.866666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "release",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.866666666666667,
+            "forward_error_m": 3.793512344360302,
+            "lateral_error_m": 1.5258789105132564e-05,
+            "horizontal_error_m": 3.7935123443909897,
+            "height_error_m": -0.009169721603389913
+          },
+          "minimum_forward_speed_airborne": 5.613399982452389,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.866666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_010",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.866666666666667,
+            "forward_error_m": 0.07484626770019887,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.07484626770019887,
+            "height_error_m": -0.005164051055909891
+          },
+          "minimum_forward_speed_airborne": -8.344650268554691e-07,
+          "airborne_reversed": false,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.866666666666667,
+          "arrival_time": 0.866666666666667
+        },
+        {
+          "variant": "reverse_030",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.816666666666667,
+            "forward_error_m": -0.3466358184814986,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.3466358184814986,
+            "height_error_m": 0.7038269996643098
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.816666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_hold",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.816666666666667,
+            "forward_error_m": -0.3466358184814986,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.3466358184814986,
+            "height_error_m": 0.7038269996643098
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.816666666666667,
+          "arrival_time": null
+        }
+      ]
+    },
+    {
+      "map": "dust2",
+      "scheme": "modern_cs",
+      "physics_hz": 120,
+      "observations": [
+        {
+          "variant": "baseline",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.01666666666667,
+            "forward_error_m": 2.7132949829100994,
+            "lateral_error_m": 1.907348629970329e-05,
+            "horizontal_error_m": 2.713294982977139,
+            "height_error_m": -0.038795614242549625
+          },
+          "minimum_forward_speed_airborne": 3.76396703720093,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.01666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "release",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.01666666666667,
+            "forward_error_m": 2.7132949829100994,
+            "lateral_error_m": 1.907348629970329e-05,
+            "horizontal_error_m": 2.713294982977139,
+            "height_error_m": -0.038795614242549625
+          },
+          "minimum_forward_speed_airborne": 3.76396703720093,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.01666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_010",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.916666666666667,
+            "forward_error_m": -0.6555938720702983,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.6555938720702983,
+            "height_error_m": 0.7406731605529799
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.916666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_030",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.916666666666667,
+            "forward_error_m": -0.6555938720702983,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.6555938720702983,
+            "height_error_m": 0.7406731605529799
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.916666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_hold",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.916666666666667,
+            "forward_error_m": -0.6555938720702983,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.6555938720702983,
+            "height_error_m": 0.7406731605529799
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.916666666666667,
+          "arrival_time": null
+        }
+      ]
+    },
+    {
+      "map": "mirage",
+      "scheme": "current",
+      "physics_hz": 60,
+      "observations": [
+        {
+          "variant": "baseline",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.36666666666667,
+            "forward_error_m": 3.7632637023926,
+            "lateral_error_m": 0.9346542358398011,
+            "horizontal_error_m": 3.877593613869166,
+            "height_error_m": 0.22543427944184025
+          },
+          "minimum_forward_speed_airborne": 0.40110588073730497,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.36666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "release",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.36666666666667,
+            "forward_error_m": 3.0633354187012003,
+            "lateral_error_m": 0.7417812347412003,
+            "horizontal_error_m": 3.1518666354532576,
+            "height_error_m": 0.0357968568801903
+          },
+          "minimum_forward_speed_airborne": 0.394217967987061,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.36666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_010",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.36666666666667,
+            "forward_error_m": 3.010822296142599,
+            "lateral_error_m": 0.5501098632812003,
+            "horizontal_error_m": 3.0606652480512557,
+            "height_error_m": 0.03375813961029017
+          },
+          "minimum_forward_speed_airborne": 0.34440994262695296,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.36666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_030",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.36666666666667,
+            "forward_error_m": 2.922126770019503,
+            "lateral_error_m": 0.2230091094970028,
+            "horizontal_error_m": 2.930624152460233,
+            "height_error_m": 0.030336236953740325
+          },
+          "minimum_forward_speed_airborne": 0.24857497215271,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.36666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_hold",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.38333333333333,
+            "forward_error_m": 1.3258514404297015,
+            "lateral_error_m": 1.7166137698865214e-05,
+            "horizontal_error_m": 1.3258514405408288,
+            "height_error_m": 0.005106782913210317
+          },
+          "minimum_forward_speed_airborne": -2.08895492553711,
+          "airborne_reversed": true,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 1.38333333333333,
+          "arrival_time": 1.38333333333333
+        }
+      ]
+    },
+    {
+      "map": "mirage",
+      "scheme": "legacy_16",
+      "physics_hz": 60,
+      "observations": [
+        {
+          "variant": "baseline",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.95,
+            "forward_error_m": 2.9451751708984024,
+            "lateral_error_m": 0.18777847290040128,
+            "horizontal_error_m": 2.9511552894012945,
+            "height_error_m": 0.03232047557830997
+          },
+          "minimum_forward_speed_airborne": 0.385687828063965,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.95,
+          "arrival_time": null
+        },
+        {
+          "variant": "release",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.95,
+            "forward_error_m": 2.9083786010741974,
+            "lateral_error_m": 0.17173767089840197,
+            "horizontal_error_m": 2.913444681951575,
+            "height_error_m": 0.029844021797180265
+          },
+          "minimum_forward_speed_airborne": 0.385687828063965,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.95,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_010",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.95,
+            "forward_error_m": -0.34162139892580257,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.34162139892580257,
+            "height_error_m": 0.0066692590713501865
+          },
+          "minimum_forward_speed_airborne": 2.38418579101563e-07,
+          "airborne_reversed": false,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.95,
+          "arrival_time": 0.95
+        },
+        {
+          "variant": "reverse_030",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.883333333333333,
+            "forward_error_m": -0.7700729370116974,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.7700729370116974,
+            "height_error_m": 0.8310203909873981
+          },
+          "minimum_forward_speed_airborne": -0.7620000243186951,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.883333333333333,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_hold",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.883333333333333,
+            "forward_error_m": -0.7700729370116974,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.7700729370116974,
+            "height_error_m": 0.8310203909873981
+          },
+          "minimum_forward_speed_airborne": -0.7620000243186951,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.883333333333333,
+          "arrival_time": null
+        }
+      ]
+    },
+    {
+      "map": "mirage",
+      "scheme": "modern_cs",
+      "physics_hz": 60,
+      "observations": [
+        {
+          "variant": "baseline",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.13333333333333,
+            "forward_error_m": 2.9047050476074006,
+            "lateral_error_m": 0.11551284790040128,
+            "horizontal_error_m": 2.9070009686317566,
+            "height_error_m": 0.03010663986206019
+          },
+          "minimum_forward_speed_airborne": 0.31836462020874,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.13333333333333,
+          "arrival_time": null
+        },
+        {
+          "variant": "release",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.13333333333333,
+            "forward_error_m": 2.885837554931598,
+            "lateral_error_m": 0.11160278320310013,
+            "horizontal_error_m": 2.8879947324523054,
+            "height_error_m": 0.02873513698578023
+          },
+          "minimum_forward_speed_airborne": 0.31836462020874,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.13333333333333,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_010",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.01666666666667,
+            "forward_error_m": -0.9385948181151988,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.9385948181151988,
+            "height_error_m": 0.8592513561248802
+          },
+          "minimum_forward_speed_airborne": -0.7620000243186951,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.01666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_030",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.01666666666667,
+            "forward_error_m": -0.9385948181151988,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.9385948181151988,
+            "height_error_m": 0.8592513561248802
+          },
+          "minimum_forward_speed_airborne": -0.7620000243186951,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.01666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_hold",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.01666666666667,
+            "forward_error_m": -0.9385948181151988,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.9385948181151988,
+            "height_error_m": 0.8592513561248802
+          },
+          "minimum_forward_speed_airborne": -0.7620000243186951,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.01666666666667,
+          "arrival_time": null
+        }
+      ]
+    },
+    {
+      "map": "mirage",
+      "scheme": "current",
+      "physics_hz": 120,
+      "observations": [
+        {
+          "variant": "baseline",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.38333333333333,
+            "forward_error_m": 3.5848770141601984,
+            "lateral_error_m": 0.8326148986816015,
+            "horizontal_error_m": 3.6802976477671905,
+            "height_error_m": 0.07193908691405992
+          },
+          "minimum_forward_speed_airborne": -0.563992142677307,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.38333333333333,
+          "arrival_time": null
+        },
+        {
+          "variant": "release",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.36666666666667,
+            "forward_error_m": 3.048500061035199,
+            "lateral_error_m": 0.6909656524658025,
+            "horizontal_error_m": 3.125825675724592,
+            "height_error_m": 0.03482983112334992
+          },
+          "minimum_forward_speed_airborne": 0.38689231872558605,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.36666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_010",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.36666666666667,
+            "forward_error_m": 2.998062133789098,
+            "lateral_error_m": 0.5026340484619034,
+            "horizontal_error_m": 3.039904199926906,
+            "height_error_m": 0.03290627002716029
+          },
+          "minimum_forward_speed_airborne": 0.33863639831542997,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.36666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_030",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.36666666666667,
+            "forward_error_m": 2.910411834716797,
+            "lateral_error_m": 0.17979812622070312,
+            "horizontal_error_m": 2.915960290170644,
+            "height_error_m": 0.02958402633667001
+          },
+          "minimum_forward_speed_airborne": 0.242723226547241,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.36666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_hold",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.36666666666667,
+            "forward_error_m": 1.262710571289098,
+            "lateral_error_m": 1.1444091796875e-05,
+            "horizontal_error_m": 1.2627105713409577,
+            "height_error_m": 0.004984951019290307
+          },
+          "minimum_forward_speed_airborne": -2.06003665924072,
+          "airborne_reversed": true,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 1.36666666666667,
+          "arrival_time": 1.36666666666667
+        }
+      ]
+    },
+    {
+      "map": "mirage",
+      "scheme": "legacy_16",
+      "physics_hz": 120,
+      "observations": [
+        {
+          "variant": "baseline",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.941666666666667,
+            "forward_error_m": 2.9292106628417964,
+            "lateral_error_m": 0.15699958801270242,
+            "horizontal_error_m": 2.9334150708589193,
+            "height_error_m": 0.03141758441925013
+          },
+          "minimum_forward_speed_airborne": 0.385666370391846,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.941666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "release",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.941666666666667,
+            "forward_error_m": 2.899681091308601,
+            "lateral_error_m": 0.13979911804200285,
+            "horizontal_error_m": 2.9030491254365574,
+            "height_error_m": 0.029466962814330255
+          },
+          "minimum_forward_speed_airborne": 0.385666370391846,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.941666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_010",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.95,
+            "forward_error_m": -0.35127639770509944,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.35127639770509944,
+            "height_error_m": 0.006952500343320178
+          },
+          "minimum_forward_speed_airborne": -8.344650268554691e-07,
+          "airborne_reversed": false,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.95,
+          "arrival_time": 0.95
+        },
+        {
+          "variant": "reverse_030",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.883333333333333,
+            "forward_error_m": -0.7735366821288993,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.7735366821288991,
+            "height_error_m": 0.8321274280548121
+          },
+          "minimum_forward_speed_airborne": -0.7620000243186951,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.883333333333333,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_hold",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.883333333333333,
+            "forward_error_m": -0.7735366821288993,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.7735366821288991,
+            "height_error_m": 0.8321274280548121
+          },
+          "minimum_forward_speed_airborne": -0.7620000243186951,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.883333333333333,
+          "arrival_time": null
+        }
+      ]
+    },
+    {
+      "map": "mirage",
+      "scheme": "modern_cs",
+      "physics_hz": 120,
+      "observations": [
+        {
+          "variant": "baseline",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.125,
+            "forward_error_m": 2.882072448730497,
+            "lateral_error_m": 0.10374069213860083,
+            "horizontal_error_m": 2.883938926353469,
+            "height_error_m": 0.027660942077639916
+          },
+          "minimum_forward_speed_airborne": 0.314598083496094,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.125,
+          "arrival_time": null
+        },
+        {
+          "variant": "release",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.125,
+            "forward_error_m": 2.874393463134801,
+            "lateral_error_m": 0.10119438171380325,
+            "horizontal_error_m": 2.8761742095711997,
+            "height_error_m": 0.027440285682680088
+          },
+          "minimum_forward_speed_airborne": 0.314598083496094,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.125,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_010",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.00833333333333,
+            "forward_error_m": -0.9521408081054972,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.9521408081054972,
+            "height_error_m": 0.8585999965667752
+          },
+          "minimum_forward_speed_airborne": -0.7620000243186951,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.00833333333333,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_030",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.00833333333333,
+            "forward_error_m": -0.9521408081054972,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.9521408081054972,
+            "height_error_m": 0.8585999965667752
+          },
+          "minimum_forward_speed_airborne": -0.7620000243186951,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.00833333333333,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_hold",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.00833333333333,
+            "forward_error_m": -0.9521408081054972,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.9521408081054972,
+            "height_error_m": 0.8585999965667752
+          },
+          "minimum_forward_speed_airborne": -0.7620000243186951,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.00833333333333,
+          "arrival_time": null
+        }
+      ]
+    },
+    {
+      "map": "inferno",
+      "scheme": "current",
+      "physics_hz": 60,
+      "observations": [
+        {
+          "variant": "baseline",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.06666666666667,
+            "forward_error_m": 2.7577857971191015,
+            "lateral_error_m": 0.00019264221189985165,
+            "horizontal_error_m": 2.7577858038475105,
+            "height_error_m": 0.981864190101627
+          },
+          "minimum_forward_speed_airborne": -0.0,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.06666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "release",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.06666666666667,
+            "forward_error_m": 2.758590698242198,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 2.758590698242198,
+            "height_error_m": 0.9815999031066871
+          },
+          "minimum_forward_speed_airborne": 0.0,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.06666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_010",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.06666666666667,
+            "forward_error_m": 2.758354187011701,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 2.758354187011701,
+            "height_error_m": 0.9815997838973969
+          },
+          "minimum_forward_speed_airborne": 0.0,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.06666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_030",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.21666666666667,
+            "forward_error_m": 2.7579956054686967,
+            "lateral_error_m": 0.011085510253899146,
+            "horizontal_error_m": 2.7580178839743286,
+            "height_error_m": 0.9814011812210071
+          },
+          "minimum_forward_speed_airborne": 3.26554369926453,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.21666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_hold",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.3,
+            "forward_error_m": 0.8475780487060014,
+            "lateral_error_m": 0.0010776519774999826,
+            "horizontal_error_m": 0.8475787337953079,
+            "height_error_m": 0.00573152899742102
+          },
+          "minimum_forward_speed_airborne": -2.10112190246582,
+          "airborne_reversed": true,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 1.3,
+          "arrival_time": 1.3
+        }
+      ]
+    },
+    {
+      "map": "inferno",
+      "scheme": "legacy_16",
+      "physics_hz": 60,
+      "observations": [
+        {
+          "variant": "baseline",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.783333333333333,
+            "forward_error_m": 2.6101493835448966,
+            "lateral_error_m": 0.00012016296389916192,
+            "horizontal_error_m": 2.610149386310857,
+            "height_error_m": 1.0117511510848969
+          },
+          "minimum_forward_speed_airborne": 5.61339998245239,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.783333333333333,
+          "arrival_time": null
+        },
+        {
+          "variant": "release",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.783333333333333,
+            "forward_error_m": 2.6101493835448966,
+            "lateral_error_m": 0.00012016296389916192,
+            "horizontal_error_m": 2.610149386310857,
+            "height_error_m": 1.0117511510848969
+          },
+          "minimum_forward_speed_airborne": 5.61339998245239,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.783333333333333,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_010",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.9,
+            "forward_error_m": -0.5283794403075994,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.5283794403075994,
+            "height_error_m": 0.005032962560652998
+          },
+          "minimum_forward_speed_airborne": 2.38418579101563e-07,
+          "airborne_reversed": false,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.9,
+          "arrival_time": 0.9
+        },
+        {
+          "variant": "reverse_030",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.85,
+            "forward_error_m": -0.9565734863281001,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.9565734863281001,
+            "height_error_m": 0.601664400100708
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.85,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_hold",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.85,
+            "forward_error_m": -0.9565734863281001,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.9565734863281001,
+            "height_error_m": 0.601664400100708
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.85,
+          "arrival_time": null
+        }
+      ]
+    },
+    {
+      "map": "inferno",
+      "scheme": "modern_cs",
+      "physics_hz": 60,
+      "observations": [
+        {
+          "variant": "baseline",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.983333333333333,
+            "forward_error_m": 2.2281799316406,
+            "lateral_error_m": 1.9073486008380769e-06,
+            "horizontal_error_m": 2.2281799316414164,
+            "height_error_m": 0.911645627021787
+          },
+          "minimum_forward_speed_airborne": 4.30053043365479,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.983333333333333,
+          "arrival_time": null
+        },
+        {
+          "variant": "release",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.983333333333333,
+            "forward_error_m": 2.2281799316406,
+            "lateral_error_m": 1.9073486008380769e-06,
+            "horizontal_error_m": 2.2281799316414164,
+            "height_error_m": 0.911645627021787
+          },
+          "minimum_forward_speed_airborne": 4.30053043365479,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.983333333333333,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_010",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.966666666666667,
+            "forward_error_m": -1.1945247650146982,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 1.1945247650146982,
+            "height_error_m": 0.631676709651947
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.966666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_030",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.966666666666667,
+            "forward_error_m": -1.1945247650146982,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 1.1945247650146982,
+            "height_error_m": 0.631676709651947
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.966666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_hold",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.966666666666667,
+            "forward_error_m": -1.1945247650146982,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 1.1945247650146982,
+            "height_error_m": 0.631676709651947
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.966666666666667,
+          "arrival_time": null
+        }
+      ]
+    },
+    {
+      "map": "inferno",
+      "scheme": "current",
+      "physics_hz": 120,
+      "observations": [
+        {
+          "variant": "baseline",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.06666666666667,
+            "forward_error_m": 2.7577095031738033,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 2.7577095031738033,
+            "height_error_m": 0.980820035934447
+          },
+          "minimum_forward_speed_airborne": -0.0,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.06666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "release",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.06666666666667,
+            "forward_error_m": 2.7585411071777024,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 2.7585411071777024,
+            "height_error_m": 0.9817702531814569
+          },
+          "minimum_forward_speed_airborne": 0.0,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.06666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_010",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.06666666666667,
+            "forward_error_m": 2.7585945129394,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 2.7585945129394,
+            "height_error_m": 0.9817702531814569
+          },
+          "minimum_forward_speed_airborne": 0.0,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.06666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_030",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.16666666666667,
+            "forward_error_m": 2.4472503662108984,
+            "lateral_error_m": 7.820129389912722e-05,
+            "horizontal_error_m": 2.44725036746035,
+            "height_error_m": 1.018509602546687
+          },
+          "minimum_forward_speed_airborne": 3.16800737380981,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.16666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_hold",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.3,
+            "forward_error_m": 0.7452392578124999,
+            "lateral_error_m": 0.0009479522704971544,
+            "horizontal_error_m": 0.7452398607149466,
+            "height_error_m": 0.005285269021988004
+          },
+          "minimum_forward_speed_airborne": -2.19865894317627,
+          "airborne_reversed": true,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 1.3,
+          "arrival_time": 1.3
+        }
+      ]
+    },
+    {
+      "map": "inferno",
+      "scheme": "legacy_16",
+      "physics_hz": 120,
+      "observations": [
+        {
+          "variant": "baseline",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.783333333333333,
+            "forward_error_m": 2.5259819030760973,
+            "lateral_error_m": 6.866455079901357e-05,
+            "horizontal_error_m": 2.5259819040093623,
+            "height_error_m": 1.023188567161557
+          },
+          "minimum_forward_speed_airborne": 5.61339998245239,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.783333333333333,
+          "arrival_time": null
+        },
+        {
+          "variant": "release",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.783333333333333,
+            "forward_error_m": 2.5259819030760973,
+            "lateral_error_m": 6.866455079901357e-05,
+            "horizontal_error_m": 2.5259819040093623,
+            "height_error_m": 1.023188567161557
+          },
+          "minimum_forward_speed_airborne": 5.61339998245239,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.783333333333333,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_010",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.883333333333333,
+            "forward_error_m": -0.5380630493163991,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.5380630493163991,
+            "height_error_m": 0.00490075945854207
+          },
+          "minimum_forward_speed_airborne": -8.34465026855469e-07,
+          "airborne_reversed": false,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.883333333333333,
+          "arrival_time": 0.883333333333333
+        },
+        {
+          "variant": "reverse_030",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.85,
+            "forward_error_m": -0.9601955413818998,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.9601955413818999,
+            "height_error_m": 0.60280100107193
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.85,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_hold",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.85,
+            "forward_error_m": -0.9601955413818998,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.9601955413818999,
+            "height_error_m": 0.60280100107193
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.85,
+          "arrival_time": null
+        }
+      ]
+    },
+    {
+      "map": "inferno",
+      "scheme": "modern_cs",
+      "physics_hz": 120,
+      "observations": [
+        {
+          "variant": "baseline",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.00833333333333,
+            "forward_error_m": 2.247817993164002,
+            "lateral_error_m": 1.9073486008380769e-06,
+            "horizontal_error_m": 2.2478179931648112,
+            "height_error_m": 0.9285715579986571
+          },
+          "minimum_forward_speed_airborne": 4.23360633850098,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.00833333333333,
+          "arrival_time": null
+        },
+        {
+          "variant": "release",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.00833333333333,
+            "forward_error_m": 2.247817993164002,
+            "lateral_error_m": 1.9073486008380769e-06,
+            "horizontal_error_m": 2.2478179931648112,
+            "height_error_m": 0.9285715579986571
+          },
+          "minimum_forward_speed_airborne": 4.23360633850098,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.00833333333333,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_010",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.966666666666667,
+            "forward_error_m": -1.2133426666260014,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 1.2133426666260014,
+            "height_error_m": 0.630855596065521
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.966666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_030",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.966666666666667,
+            "forward_error_m": -1.2133426666260014,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 1.2133426666260014,
+            "height_error_m": 0.630855596065521
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.966666666666667,
+          "arrival_time": null
+        },
+        {
+          "variant": "reverse_hold",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.966666666666667,
+            "forward_error_m": -1.2133426666260014,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 1.2133426666260014,
+            "height_error_m": 0.630855596065521
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.966666666666667,
+          "arrival_time": null
+        }
+      ]
+    }
+  ],
+  "checker_sha256": "4164e4093b45c81875d986c70b6e0eed9694398f21d2d4dbfb5f1f5712b6845d",
+  "sources_sha256": "6356129def648a08b9772866554dc5246e8d10cb0962d31c15be1f9dcf68fe8b",
+  "evidence_sha256": {
+    "matrix-lock.json": "5ed5306c0ad2906dc0a349a2321c66697401a09fa9e1e7629a079c6445410dbc",
+    "dust2-matrix-v1.json": "20424adaabf871f597deda83e9db26c853fd0c7f6de7c6f2fb07b1d5a8531553",
+    "dust2-60.json": "1ef7915b824b26c6a9573a9c515f0405c1f7f2d2326016cdaa10fc7af8ebecb5",
+    "dust2-120.json": "898f08304b79dfbd9282786e2caae8d0c75a4fe806c4aa8c4097434726512c21",
+    "mirage-matrix-v1.json": "a5e838b8556792e2a3190d749edcd3e6694560b23bfce8ac1906fef00f60ff98",
+    "mirage-60.json": "ea2b361b235dd05d0d3119389de628019d8fe61a8a2fe4b008c2490e2cd855fc",
+    "mirage-120.json": "ed19ff93af5f83e89c7200ec6477509a3564f44d52dc46ca84b309c1f313101b",
+    "inferno-matrix-v1.json": "5b622e87a270dd89f2b362f47cc4019de5010c9b0e1a1119eac2578473ead48d",
+    "inferno-60.json": "85fa47df5d2eddc96671064be1f28d0b49609f1f4a7e9ac9ff2cad937f8ad3f6",
+    "inferno-120.json": "013ccd3722591c99f3376eda2929b808a82a78088d855cf0c5710f0c33995aa3"
+  },
+  "takeoffs": 90,
+  "first_landings": 12,
+  "arrivals": 12,
+  "baseline_traces_match_R17": 18,
+  "by_variant": {
+    "baseline": {
+      "trials": 18,
+      "first_landings": 0,
+      "arrivals": 0
+    },
+    "release": {
+      "trials": 18,
+      "first_landings": 0,
+      "arrivals": 0
+    },
+    "reverse_010": {
+      "trials": 18,
+      "first_landings": 6,
+      "arrivals": 6
+    },
+    "reverse_030": {
+      "trials": 18,
+      "first_landings": 0,
+      "arrivals": 0
+    },
+    "reverse_hold": {
+      "trials": 18,
+      "first_landings": 6,
+      "arrivals": 6
+    }
+  },
+  "phase": "Movement-4 R18 post-takeoff braking and original-goal first landing",
+  "ordinary_python_tests": 312,
+  "new_regressions": 14,
+  "source_evidence_imports_settings_and_playable_preserved": true,
+  "R17_results_unchanged": true,
+  "package_updated": false,
+  "original_target_radius_m": 1.6,
+  "original_target_height_tolerance_m": 0.18,
+  "source_and_goals_changed": false,
+  "full_native_suite_repeated": false,
+  "validation": {
+    "format_lint_compile": "passed",
+    "pyright_errors": 0
+  },
+  "by_scheme": {
+    "current": {
+      "trials": 30,
+      "first_landings": 6
+    },
+    "legacy_16": {
+      "trials": 30,
+      "first_landings": 6
+    },
+    "modern_cs": {
+      "trials": 30,
+      "first_landings": 0
+    }
+  },
+  "limits": [
+    "The 1.6m original goal radius is coarse; this is not precision or stable-hold acceptance.",
+    "Original controls can walk off to these goals; no jump-required route qualification granted.",
+    "Modern reverse contacts remain 0.631-0.859m above target; finer timing/contact identity pending.",
+    "All variants locked before both rates; no selected/holdout success claim."
+  ]
+}
