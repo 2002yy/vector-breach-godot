@@ -1,0 +1,318 @@
+{
+  "schema": 1,
+  "results": [
+    {
+      "id": "p60_v60__single",
+      "hit": true,
+      "steps": 1,
+      "contacts": [
+        {
+          "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+          "shape_index": 0,
+          "normal": [
+            0.99250328540802,
+            0.122217282652855,
+            1.11777517020073e-07
+          ],
+          "face_ray": {
+            "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+            "face_index": -1,
+            "matched": false,
+            "normal_dot": 0.99250328540802,
+            "position_error_m": 0.0,
+            "scope": "corroborating_ray_not_motion_result_face_api",
+            "shape_index": 0,
+            "shape_triangles": {
+              "bound": true,
+              "candidates": [
+                {
+                  "distance_m": 2.6770912882057e-05,
+                  "edge_distance_m": 2.6770912882057e-05,
+                  "normal": [
+                    -1.0,
+                    0.0,
+                    0.0
+                  ],
+                  "triangle_index": 18737
+                },
+                {
+                  "distance_m": 2.6770912882057e-05,
+                  "edge_distance_m": 2.6770912882057e-05,
+                  "normal": [
+                    0.0,
+                    -1.0,
+                    -6.71368070470635e-07
+                  ],
+                  "triangle_index": 18741
+                }
+              ],
+              "scope": "shape_array_candidates_not_Jolt_face_ids",
+              "shape_faces_sha256": "bee276aa31b280252ffa8dcd81e45fa846aa7811df6a9f161d2a82f51621f19b",
+              "triangle_count": 19242,
+              "unique": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "p60_v60__split",
+      "hit": true,
+      "steps": 2,
+      "contacts": [
+        {
+          "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+          "shape_index": 0,
+          "normal": [
+            0.991759181022644,
+            0.128116175532341,
+            1.11762453514075e-07
+          ],
+          "face_ray": {
+            "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+            "face_index": -1,
+            "matched": false,
+            "normal_dot": 0.991759181022644,
+            "position_error_m": 0.0,
+            "scope": "corroborating_ray_not_motion_result_face_api",
+            "shape_index": 0,
+            "shape_triangles": {
+              "bound": true,
+              "candidates": [
+                {
+                  "distance_m": 2.6770912882057e-05,
+                  "edge_distance_m": 2.6770912882057e-05,
+                  "normal": [
+                    -1.0,
+                    0.0,
+                    0.0
+                  ],
+                  "triangle_index": 18737
+                },
+                {
+                  "distance_m": 2.6770912882057e-05,
+                  "edge_distance_m": 2.6770912882057e-05,
+                  "normal": [
+                    0.0,
+                    -1.0,
+                    -6.71368070470635e-07
+                  ],
+                  "triangle_index": 18741
+                }
+              ],
+              "scope": "shape_array_candidates_not_Jolt_face_ids",
+              "shape_faces_sha256": "bee276aa31b280252ffa8dcd81e45fa846aa7811df6a9f161d2a82f51621f19b",
+              "triangle_count": 19242,
+              "unique": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "p60_v120__single",
+      "hit": true,
+      "steps": 1,
+      "contacts": [
+        {
+          "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+          "shape_index": 0,
+          "normal": [
+            0.993151187896729,
+            0.116836369037628,
+            1.11850482653608e-07
+          ],
+          "face_ray": {
+            "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+            "face_index": -1,
+            "matched": false,
+            "normal_dot": 0.993151187896729,
+            "position_error_m": 0.0,
+            "scope": "corroborating_ray_not_motion_result_face_api",
+            "shape_index": 0,
+            "shape_triangles": {
+              "bound": true,
+              "candidates": [
+                {
+                  "distance_m": 2.6770912882057e-05,
+                  "edge_distance_m": 2.6770912882057e-05,
+                  "normal": [
+                    -1.0,
+                    0.0,
+                    0.0
+                  ],
+                  "triangle_index": 18737
+                },
+                {
+                  "distance_m": 2.6770912882057e-05,
+                  "edge_distance_m": 2.6770912882057e-05,
+                  "normal": [
+                    0.0,
+                    -1.0,
+                    -6.71368070470635e-07
+                  ],
+                  "triangle_index": 18741
+                }
+              ],
+              "scope": "shape_array_candidates_not_Jolt_face_ids",
+              "shape_faces_sha256": "bee276aa31b280252ffa8dcd81e45fa846aa7811df6a9f161d2a82f51621f19b",
+              "triangle_count": 19242,
+              "unique": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "p60_v120__split",
+      "hit": true,
+      "steps": 2,
+      "contacts": [
+        {
+          "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+          "shape_index": 0,
+          "normal": [
+            0.993020176887512,
+            0.117944903671741,
+            1.11766986776729e-07
+          ],
+          "face_ray": {
+            "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+            "face_index": -1,
+            "matched": false,
+            "normal_dot": 0.117944963276386,
+            "position_error_m": 0.0,
+            "scope": "corroborating_ray_not_motion_result_face_api",
+            "shape_index": 0,
+            "shape_triangles": {
+              "bound": true,
+              "candidates": [
+                {
+                  "distance_m": 2.29675188165857e-05,
+                  "edge_distance_m": 2.29675188165857e-05,
+                  "normal": [
+                    -1.0,
+                    0.0,
+                    0.0
+                  ],
+                  "triangle_index": 18737
+                },
+                {
+                  "distance_m": 2.29675188165857e-05,
+                  "edge_distance_m": 2.29675188165857e-05,
+                  "normal": [
+                    0.0,
+                    -1.0,
+                    -6.71368070470635e-07
+                  ],
+                  "triangle_index": 18741
+                }
+              ],
+              "scope": "shape_array_candidates_not_Jolt_face_ids",
+              "shape_faces_sha256": "bee276aa31b280252ffa8dcd81e45fa846aa7811df6a9f161d2a82f51621f19b",
+              "triangle_count": 19242,
+              "unique": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "p120_v60__single",
+      "hit": false,
+      "steps": 1,
+      "contacts": []
+    },
+    {
+      "id": "p120_v60__split",
+      "hit": false,
+      "steps": 2,
+      "contacts": []
+    },
+    {
+      "id": "p120_v120__single",
+      "hit": false,
+      "steps": 1,
+      "contacts": []
+    },
+    {
+      "id": "p120_v120__split",
+      "hit": false,
+      "steps": 2,
+      "contacts": []
+    }
+  ],
+  "original_contact_face": {
+    "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+    "face_index": -1,
+    "matched": false,
+    "normal_dot": 0.99250328540802,
+    "position_error_m": 0.0,
+    "scope": "corroborating_ray_not_motion_result_face_api",
+    "shape_index": 0,
+    "shape_triangles": {
+      "bound": true,
+      "candidates": [
+        {
+          "distance_m": 2.6770912882057e-05,
+          "edge_distance_m": 2.6770912882057e-05,
+          "normal": [
+            -1.0,
+            0.0,
+            0.0
+          ],
+          "triangle_index": 18737
+        },
+        {
+          "distance_m": 2.6770912882057e-05,
+          "edge_distance_m": 2.6770912882057e-05,
+          "normal": [
+            0.0,
+            -1.0,
+            -6.71368070470635e-07
+          ],
+          "triangle_index": 18741
+        }
+      ],
+      "scope": "shape_array_candidates_not_Jolt_face_ids",
+      "shape_faces_sha256": "bee276aa31b280252ffa8dcd81e45fa846aa7811df6a9f161d2a82f51621f19b",
+      "triangle_count": 19242,
+      "unique": false
+    }
+  },
+  "actual_safe_margin": 0.00100000004749745,
+  "formal_release_ready": false,
+  "collision_fixed": false,
+  "precision_equivalence_accepted": false,
+  "movement5_frozen": true,
+  "scope": "free_flight_body_test_motion_stop_at_first_hit_not_move_and_slide",
+  "phase": "Movement-4 R24 common-time motion factorial and triangle neighborhood",
+  "base": "3bc2c2d7c6c0edffc39e79d3e62c282837a58411",
+  "final_design_cells": 8,
+  "native_query_executions": 16,
+  "native_gameplay_trials": 0,
+  "ordinary_python_tests": 385,
+  "new_regressions": 11,
+  "format_lint_compile": "passed",
+  "pyright_errors": 0,
+  "gdscript_format_lint": "passed",
+  "checker_sha256": "091b10746657b068fba0729651fe16a17f031e3d50908e727c43bd8163259d3d",
+  "matrix_sha256": "d6aacc06ae841a2eb5ac990c5b1f46a2b3439d7f3a390da96d292b0e095bec07",
+  "motion_report_sha256": "53a8a41314f195140906ae9b8ce5de2e94aa1f708f2bc005a7e60bc14bfadebd",
+  "state_position_difference_m": 0.014320258842567102,
+  "state_vertical_velocity_difference_mps": 0.16933345794677024,
+  "original_files_imports_settings_and_package_preserved": true,
+  "package_updated": false,
+  "full_native_suite_repeated": false,
+  "findings": [
+    "60Hz position hits under both velocities and both step schedules; 120Hz position clears all four.",
+    "A shorter query step alone does not remove this contact when incident position is fixed.",
+    "Two perpendicular shape triangle candidates occur near an edge; an oblique contact normal does not establish an oblique triangle plane."
+  ],
+  "limits": [
+    "Read-only free-flight capsule motion, stops at first contact; not full move_and_slide or a route pass.",
+    "Position is a combined XYZ factor; horizontal/vertical contributions remain unseparated.",
+    "Jolt ray face_index stays -1; indices are candidates in the frozen shape array, not a uniquely reported sweep face.",
+    "Coverage13/15 and7/15, human/original-client/precision/full routes/AI/matches/FPS remain pending."
+  ]
+}
