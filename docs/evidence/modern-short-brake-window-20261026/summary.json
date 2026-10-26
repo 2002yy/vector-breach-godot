@@ -1,0 +1,1494 @@
+{
+  "formal_release_ready": false,
+  "human_acceptance": false,
+  "edge_lip_timing_accepted": false,
+  "precision_equivalence_accepted": false,
+  "route_status": "not_requalified",
+  "trials": 42,
+  "groups": [
+    {
+      "map": "dust2",
+      "physics_hz": 60,
+      "observations": [
+        {
+          "variant": "baseline",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.03333333333333,
+            "forward_error_m": 2.903600692749002,
+            "lateral_error_m": 1.907348629970329e-05,
+            "horizontal_error_m": 2.903600692811648,
+            "height_error_m": -0.03637661933898961
+          },
+          "minimum_forward_speed_airborne": 3.83937048912048,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.03333333333333,
+          "arrival_time": null,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "dustline_depths/COLLISION_VISIBLE_BASE_physics_group_concrete/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.999889492988586,
+            "height_span_m": 8.964538573996705e-05,
+            "target_plane_error_m": -0.03785872459410955,
+            "initial_plane_error_m": -0.7789748668670602,
+            "within_target_height": true,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          }
+        },
+        {
+          "variant": "reverse_010",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.916666666666667,
+            "forward_error_m": -0.6404418945312997,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.6404418945312997,
+            "height_error_m": 0.7414937973022502
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.916666666666667,
+          "arrival_time": null,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "dustline_depths/COLLISION_ONLY_physics_npcclip_playerclip/RuntimeCollision"
+            ],
+            "minimum_normal_y": 1.0,
+            "height_span_m": 0.0,
+            "target_plane_error_m": 0.7405586242675803,
+            "initial_plane_error_m": -0.0005575180053702944,
+            "within_target_height": false,
+            "matches_initial_height": true,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          }
+        },
+        {
+          "variant": "brake_1",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.03333333333333,
+            "forward_error_m": 2.011703491210902,
+            "lateral_error_m": 1.907348629970329e-05,
+            "horizontal_error_m": 2.0117034913013225,
+            "height_error_m": -0.04828824996947967
+          },
+          "minimum_forward_speed_airborne": 2.74717044830322,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.03333333333333,
+          "arrival_time": null,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "dustline_depths/COLLISION_VISIBLE_BASE_physics_group_concrete/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.999870657920837,
+            "height_span_m": 0.000281095504759854,
+            "target_plane_error_m": -0.04922294616698997,
+            "initial_plane_error_m": -0.7903390884399406,
+            "within_target_height": true,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 1
+        },
+        {
+          "variant": "brake_2",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.03333333333333,
+            "forward_error_m": 1.1379756927490021,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 1.1379756927490021,
+            "height_error_m": -0.048943662643429864
+          },
+          "minimum_forward_speed_airborne": 1.65497040748596,
+          "airborne_reversed": false,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 1.03333333333333,
+          "arrival_time": 1.03333333333333,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "dustline_depths/COLLISION_VISIBLE_BASE_physics_group_concrete/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.999978125095367,
+            "height_span_m": 2.050399780006984e-05,
+            "target_plane_error_m": -0.049683809280389735,
+            "initial_plane_error_m": -0.7907999515533404,
+            "within_target_height": true,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 2
+        },
+        {
+          "variant": "brake_3",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.03333333333333,
+            "forward_error_m": 0.28291702270509944,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.28291702270509944,
+            "height_error_m": -0.01764025688170978
+          },
+          "minimum_forward_speed_airborne": 0.562770366668701,
+          "airborne_reversed": false,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 1.03333333333333,
+          "arrival_time": 1.03333333333333,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "dustline_depths/COLLISION_VISIBLE_BASE_physics_group_concrete/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.997628033161163,
+            "height_span_m": 4.291534430045374e-06,
+            "target_plane_error_m": -0.017048120498655006,
+            "initial_plane_error_m": -0.7581642627716056,
+            "within_target_height": true,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 3
+        },
+        {
+          "variant": "brake_4",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.966666666666667,
+            "forward_error_m": -0.5196342468262003,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.5196342468262003,
+            "height_error_m": 0.7415071487426799
+          },
+          "minimum_forward_speed_airborne": -0.52942967414856,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.966666666666667,
+          "arrival_time": null,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "dustline_depths/COLLISION_ONLY_physics_npcclip_playerclip/RuntimeCollision"
+            ],
+            "minimum_normal_y": 1.0,
+            "height_span_m": 0.0,
+            "target_plane_error_m": 0.7405586242675803,
+            "initial_plane_error_m": -0.0005575180053702944,
+            "within_target_height": false,
+            "matches_initial_height": true,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 4
+        },
+        {
+          "variant": "brake_5",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.916666666666667,
+            "forward_error_m": -0.6404418945312997,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.6404418945312997,
+            "height_error_m": 0.7414937973022502
+          },
+          "minimum_forward_speed_airborne": -0.76199996471405,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.916666666666667,
+          "arrival_time": null,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "dustline_depths/COLLISION_ONLY_physics_npcclip_playerclip/RuntimeCollision"
+            ],
+            "minimum_normal_y": 1.0,
+            "height_span_m": 0.0,
+            "target_plane_error_m": 0.7405586242675803,
+            "initial_plane_error_m": -0.0005575180053702944,
+            "within_target_height": false,
+            "matches_initial_height": true,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 5
+        }
+      ],
+      "successful_ticks": [
+        2,
+        3
+      ]
+    },
+    {
+      "map": "dust2",
+      "physics_hz": 120,
+      "observations": [
+        {
+          "variant": "baseline",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.01666666666667,
+            "forward_error_m": 2.7132949829100994,
+            "lateral_error_m": 1.907348629970329e-05,
+            "horizontal_error_m": 2.713294982977139,
+            "height_error_m": -0.038795614242549625
+          },
+          "minimum_forward_speed_airborne": 3.76396703720093,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.01666666666667,
+          "arrival_time": null,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "dustline_depths/COLLISION_VISIBLE_BASE_physics_group_concrete/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.999889492988586,
+            "height_span_m": 0.0001423358917200801,
+            "target_plane_error_m": -0.03975689411162975,
+            "initial_plane_error_m": -0.7803203821182203,
+            "within_target_height": true,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          }
+        },
+        {
+          "variant": "reverse_010",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.916666666666667,
+            "forward_error_m": -0.6555938720702983,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.6555938720702983,
+            "height_error_m": 0.7406731605529799
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.916666666666667,
+          "arrival_time": null,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "dustline_depths/COLLISION_ONLY_physics_npcclip_playerclip/RuntimeCollision"
+            ],
+            "minimum_normal_y": 1.0,
+            "height_span_m": 0.0,
+            "target_plane_error_m": 0.7405586242675803,
+            "initial_plane_error_m": -4.863739010207979e-06,
+            "within_target_height": false,
+            "matches_initial_height": true,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          }
+        },
+        {
+          "variant": "brake_1",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.01666666666667,
+            "forward_error_m": 1.8532009124756001,
+            "lateral_error_m": 1.5258789105132564e-05,
+            "horizontal_error_m": 1.8532009125384186,
+            "height_error_m": -0.049289608001709784
+          },
+          "minimum_forward_speed_airborne": 2.67176675796509,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.01666666666667,
+          "arrival_time": null,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "dustline_depths/COLLISION_VISIBLE_BASE_physics_group_concrete/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.999960899353027,
+            "height_span_m": 1.1920928959963106e-05,
+            "target_plane_error_m": -0.049408674240110084,
+            "initial_plane_error_m": -0.7899721622467006,
+            "within_target_height": true,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 1
+        },
+        {
+          "variant": "brake_2",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.01666666666667,
+            "forward_error_m": 1.0112895965575994,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 1.0112895965575994,
+            "height_error_m": -0.04872431755065998
+          },
+          "minimum_forward_speed_airborne": 1.57956659793854,
+          "airborne_reversed": false,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 1.01666666666667,
+          "arrival_time": 1.01666666666667,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "dustline_depths/COLLISION_VISIBLE_BASE_physics_group_concrete/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.999978184700012,
+            "height_span_m": 2.717971801979857e-05,
+            "target_plane_error_m": -0.048959970474240055,
+            "initial_plane_error_m": -0.7895234584808306,
+            "within_target_height": true,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 2
+        },
+        {
+          "variant": "brake_3",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.01666666666667,
+            "forward_error_m": 0.18771362304689987,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.18771362304689987,
+            "height_error_m": -0.01186909675597958
+          },
+          "minimum_forward_speed_airborne": 0.487366557121277,
+          "airborne_reversed": false,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 1.01666666666667,
+          "arrival_time": 1.01666666666667,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "dustline_depths/COLLISION_VISIBLE_BASE_physics_group_concrete/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.997628092765808,
+            "height_span_m": 8.940696715997731e-05,
+            "target_plane_error_m": -0.011006474494930085,
+            "initial_plane_error_m": -0.7515699625015206,
+            "within_target_height": true,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 3
+        },
+        {
+          "variant": "brake_4",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.916666666666667,
+            "forward_error_m": -0.5574607849120987,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.5574607849120987,
+            "height_error_m": 0.7406536102294998
+          },
+          "minimum_forward_speed_airborne": -0.604833483695984,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.916666666666667,
+          "arrival_time": null,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "dustline_depths/COLLISION_ONLY_physics_npcclip_playerclip/RuntimeCollision"
+            ],
+            "minimum_normal_y": 1.0,
+            "height_span_m": 0.0,
+            "target_plane_error_m": 0.7405586242675803,
+            "initial_plane_error_m": -4.863739010207979e-06,
+            "within_target_height": false,
+            "matches_initial_height": true,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 4
+        },
+        {
+          "variant": "brake_5",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.916666666666667,
+            "forward_error_m": -0.6555938720702983,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.6555938720702983,
+            "height_error_m": 0.7406731605529799
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.916666666666667,
+          "arrival_time": null,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "dustline_depths/COLLISION_ONLY_physics_npcclip_playerclip/RuntimeCollision"
+            ],
+            "minimum_normal_y": 1.0,
+            "height_span_m": 0.0,
+            "target_plane_error_m": 0.7405586242675803,
+            "initial_plane_error_m": -4.863739010207979e-06,
+            "within_target_height": false,
+            "matches_initial_height": true,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 5
+        }
+      ],
+      "successful_ticks": [
+        2,
+        3
+      ]
+    },
+    {
+      "map": "mirage",
+      "physics_hz": 60,
+      "observations": [
+        {
+          "variant": "baseline",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.13333333333333,
+            "forward_error_m": 2.9047050476074006,
+            "lateral_error_m": 0.11551284790040128,
+            "horizontal_error_m": 2.9070009686317566,
+            "height_error_m": 0.03010663986206019
+          },
+          "minimum_forward_speed_airborne": 0.31836462020874,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.13333333333333,
+          "arrival_time": null,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_group_plaster/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.997430980205536,
+            "height_span_m": 3.504753111993608e-05,
+            "target_plane_error_m": 0.02962648868561013,
+            "initial_plane_error_m": -0.7279780268669129,
+            "within_target_height": true,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          }
+        },
+        {
+          "variant": "reverse_010",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.01666666666667,
+            "forward_error_m": -0.9385948181151988,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.9385948181151988,
+            "height_error_m": 0.8592513561248802
+          },
+          "minimum_forward_speed_airborne": -0.7620000243186951,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.01666666666667,
+          "arrival_time": null,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_group_plaster/RuntimeCollision"
+            ],
+            "minimum_normal_y": 1.0,
+            "height_span_m": 0.0,
+            "target_plane_error_m": 0.8583154678344702,
+            "initial_plane_error_m": 0.10071095228194715,
+            "within_target_height": false,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          }
+        },
+        {
+          "variant": "brake_1",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.13333333333333,
+            "forward_error_m": 2.301277160644503,
+            "lateral_error_m": 0.09519004821770238,
+            "horizontal_error_m": 2.303245040238601,
+            "height_error_m": 0.006197786331179955
+          },
+          "minimum_forward_speed_airborne": 3.55968022346497,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.13333333333333,
+          "arrival_time": null,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_group_plaster/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.999971687793732,
+            "height_span_m": 0.0,
+            "target_plane_error_m": 0.005238533020019975,
+            "initial_plane_error_m": -0.7523659825325031,
+            "within_target_height": true,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 1
+        },
+        {
+          "variant": "brake_2",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.13333333333333,
+            "forward_error_m": 1.4492568969726989,
+            "lateral_error_m": 1.7166137698865214e-05,
+            "horizontal_error_m": 1.4492568970743636,
+            "height_error_m": 0.005146598815920278
+          },
+          "minimum_forward_speed_airborne": 2.46748018264771,
+          "airborne_reversed": false,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 1.13333333333333,
+          "arrival_time": 1.13333333333333,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_group_plaster/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.999971628189087,
+            "height_span_m": 1.6689300599281864e-06,
+            "target_plane_error_m": 0.004275202751160112,
+            "initial_plane_error_m": -0.753329312801363,
+            "within_target_height": true,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 2
+        },
+        {
+          "variant": "brake_3",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.13333333333333,
+            "forward_error_m": 0.5936355590820028,
+            "lateral_error_m": 7.6293945028282906e-06,
+            "horizontal_error_m": 0.5936355591310293,
+            "height_error_m": 0.0043415784835802995
+          },
+          "minimum_forward_speed_airborne": 1.37528014183044,
+          "airborne_reversed": false,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 1.13333333333333,
+          "arrival_time": 1.13333333333333,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_group_plaster/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.999966979026794,
+            "height_span_m": 7.3909759499279915e-06,
+            "target_plane_error_m": 0.0032905340194751,
+            "initial_plane_error_m": -0.754313981533048,
+            "within_target_height": true,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 3
+        },
+        {
+          "variant": "brake_4",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.13333333333333,
+            "forward_error_m": -0.24322128295899859,
+            "lateral_error_m": 0.0002708435058025316,
+            "horizontal_error_m": 0.24322143376032032,
+            "height_error_m": 0.002736663818359908
+          },
+          "minimum_forward_speed_airborne": 0.283080101013184,
+          "airborne_reversed": false,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 1.13333333333333,
+          "arrival_time": 1.13333333333333,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_group_plaster/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.99334990978241,
+            "height_span_m": 6.151199340997948e-05,
+            "target_plane_error_m": 0.004711627960205078,
+            "initial_plane_error_m": -0.752892887592318,
+            "within_target_height": true,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 4
+        },
+        {
+          "variant": "brake_5",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.01666666666667,
+            "forward_error_m": -0.9385948181151988,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.9385948181151988,
+            "height_error_m": 0.8592513561248802
+          },
+          "minimum_forward_speed_airborne": -0.76199996471405,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.01666666666667,
+          "arrival_time": null,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_group_plaster/RuntimeCollision"
+            ],
+            "minimum_normal_y": 1.0,
+            "height_span_m": 0.0,
+            "target_plane_error_m": 0.8583154678344702,
+            "initial_plane_error_m": 0.10071095228194715,
+            "within_target_height": false,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 5
+        }
+      ],
+      "successful_ticks": [
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "map": "mirage",
+      "physics_hz": 120,
+      "observations": [
+        {
+          "variant": "baseline",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.125,
+            "forward_error_m": 2.882072448730497,
+            "lateral_error_m": 0.10374069213860083,
+            "horizontal_error_m": 2.883938926353469,
+            "height_error_m": 0.027660942077639916
+          },
+          "minimum_forward_speed_airborne": 0.314598083496094,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.125,
+          "arrival_time": null,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_group_plaster/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.997430980205536,
+            "height_span_m": 0.0001471042632998909,
+            "target_plane_error_m": 0.028607010841370073,
+            "initial_plane_error_m": -0.7284445524215721,
+            "within_target_height": true,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          }
+        },
+        {
+          "variant": "reverse_010",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.00833333333333,
+            "forward_error_m": -0.9521408081054972,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.9521408081054972,
+            "height_error_m": 0.8585999965667752
+          },
+          "minimum_forward_speed_airborne": -0.7620000243186951,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.00833333333333,
+          "arrival_time": null,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_group_plaster/RuntimeCollision"
+            ],
+            "minimum_normal_y": 1.0,
+            "height_span_m": 2.384185799897409e-07,
+            "target_plane_error_m": 0.8583155870437602,
+            "initial_plane_error_m": 0.101264023780818,
+            "within_target_height": false,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          }
+        },
+        {
+          "variant": "brake_1",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.125,
+            "forward_error_m": 2.148609161377003,
+            "lateral_error_m": 0.04809761047360084,
+            "horizontal_error_m": 2.1491474375869277,
+            "height_error_m": 0.005780673027039995
+          },
+          "minimum_forward_speed_airborne": 3.50142621994019,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.125,
+          "arrival_time": null,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_group_plaster/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.999971687793732,
+            "height_span_m": 0.0,
+            "target_plane_error_m": 0.004886388778690076,
+            "initial_plane_error_m": -0.7521651744842521,
+            "within_target_height": true,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 1
+        },
+        {
+          "variant": "brake_2",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.125,
+            "forward_error_m": 1.3264465332030966,
+            "lateral_error_m": 1.1444091796875e-05,
+            "horizontal_error_m": 1.3264465332524642,
+            "height_error_m": 0.004369950294500047
+          },
+          "minimum_forward_speed_airborne": 2.40922594070435,
+          "airborne_reversed": false,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 1.125,
+          "arrival_time": 1.125,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_group_plaster/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.999971628189087,
+            "height_span_m": 2.3841857896833574e-06,
+            "target_plane_error_m": 0.004239082336425337,
+            "initial_plane_error_m": -0.7528124809265169,
+            "within_target_height": true,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 2
+        },
+        {
+          "variant": "brake_3",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.125,
+            "forward_error_m": 0.49361801147460227,
+            "lateral_error_m": 7.6293945028282906e-06,
+            "horizontal_error_m": 0.4936180115335625,
+            "height_error_m": 0.002807593345639958
+          },
+          "minimum_forward_speed_airborne": 1.3170258998870898,
+          "airborne_reversed": false,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 1.125,
+          "arrival_time": 1.125,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_group_plaster/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.999966979026794,
+            "height_span_m": 2.9087066649946536e-05,
+            "target_plane_error_m": 0.0027110576629651995,
+            "initial_plane_error_m": -0.754340505599977,
+            "within_target_height": true,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 3
+        },
+        {
+          "variant": "brake_4",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.125,
+            "forward_error_m": -0.32080078125000006,
+            "lateral_error_m": 0.0004215240478018245,
+            "horizontal_error_m": 0.3208010581858065,
+            "height_error_m": 0.005554056167599963
+          },
+          "minimum_forward_speed_airborne": 0.224825859069824,
+          "airborne_reversed": false,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 1.125,
+          "arrival_time": 1.125,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_group_plaster/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.99334990978241,
+            "height_span_m": 5.9843063350051295e-05,
+            "target_plane_error_m": 0.008190751075745073,
+            "initial_plane_error_m": -0.7488608121871971,
+            "within_target_height": true,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 4
+        },
+        {
+          "variant": "brake_5",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.00833333333333,
+            "forward_error_m": -0.9521408081054972,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.9521408081054972,
+            "height_error_m": 0.8585999965667752
+          },
+          "minimum_forward_speed_airborne": -0.76199996471405,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.00833333333333,
+          "arrival_time": null,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_group_plaster/RuntimeCollision"
+            ],
+            "minimum_normal_y": 1.0,
+            "height_span_m": 2.384185799897409e-07,
+            "target_plane_error_m": 0.8583155870437602,
+            "initial_plane_error_m": 0.101264023780818,
+            "within_target_height": false,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 5
+        }
+      ],
+      "successful_ticks": [
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "map": "inferno",
+      "physics_hz": 60,
+      "observations": [
+        {
+          "variant": "baseline",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.983333333333333,
+            "forward_error_m": 2.2281799316406,
+            "lateral_error_m": 1.9073486008380769e-06,
+            "horizontal_error_m": 2.2281799316414164,
+            "height_error_m": 0.911645627021787
+          },
+          "minimum_forward_speed_airborne": 4.30053043365479,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.983333333333333,
+          "arrival_time": null,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_group_wood_001/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.730122685432434,
+            "height_span_m": 0.0,
+            "target_plane_error_m": 1.01932692527771,
+            "initial_plane_error_m": 0.388028585910797,
+            "within_target_height": false,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          }
+        },
+        {
+          "variant": "reverse_010",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.966666666666667,
+            "forward_error_m": -1.1945247650146982,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 1.1945247650146982,
+            "height_error_m": 0.631676709651947
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.966666666666667,
+          "arrival_time": null,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision"
+            ],
+            "minimum_normal_y": 1.0,
+            "height_span_m": 0.0,
+            "target_plane_error_m": 0.6307410597801205,
+            "initial_plane_error_m": -0.000557279586792532,
+            "within_target_height": false,
+            "matches_initial_height": true,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          }
+        },
+        {
+          "variant": "brake_1",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.06666666666667,
+            "forward_error_m": 1.7500610351562003,
+            "lateral_error_m": 0.001081466674797582,
+            "horizontal_error_m": 1.7500613693074194,
+            "height_error_m": 0.00573418140411297
+          },
+          "minimum_forward_speed_airborne": 3.2083303928375195,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.06666666666667,
+          "arrival_time": null,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.987604737281799,
+            "height_span_m": 2.3961067199040897e-05,
+            "target_plane_error_m": 0.00983387231826749,
+            "initial_plane_error_m": -0.6214644670486456,
+            "within_target_height": true,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 1
+        },
+        {
+          "variant": "brake_2",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.06666666666667,
+            "forward_error_m": 0.8944892883300994,
+            "lateral_error_m": 0.001081466674797582,
+            "horizontal_error_m": 0.8944899420940721,
+            "height_error_m": 0.005733704566954989
+          },
+          "minimum_forward_speed_airborne": 2.11613035202026,
+          "airborne_reversed": false,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 1.06666666666667,
+          "arrival_time": 1.06666666666667,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.987604737281799,
+            "height_span_m": 2.3901462555042663e-05,
+            "target_plane_error_m": 0.009833902120589433,
+            "initial_plane_error_m": -0.6214644372463236,
+            "within_target_height": true,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 2
+        },
+        {
+          "variant": "brake_3",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.06666666666667,
+            "forward_error_m": 0.05712890625,
+            "lateral_error_m": 0.0010643005370987169,
+            "horizontal_error_m": 0.05713881924711568,
+            "height_error_m": 0.005736207962036
+          },
+          "minimum_forward_speed_airborne": 1.023930311203,
+          "airborne_reversed": false,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 1.06666666666667,
+          "arrival_time": 1.06666666666667,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.987604737281799,
+            "height_span_m": 2.807378768898694e-05,
+            "target_plane_error_m": 0.009831875562667514,
+            "initial_plane_error_m": -0.6214664638042455,
+            "within_target_height": true,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 3
+        },
+        {
+          "variant": "brake_4",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.23333333333333,
+            "forward_error_m": -0.7080078125,
+            "lateral_error_m": 0.0008144378661967268,
+            "horizontal_error_m": 0.7080082809332622,
+            "height_error_m": 0.005121505260467063
+          },
+          "minimum_forward_speed_airborne": -0.0682697296142578,
+          "airborne_reversed": true,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 1.23333333333333,
+          "arrival_time": 1.23333333333333,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.987604737281799,
+            "height_span_m": 0.0,
+            "target_plane_error_m": 0.009852290153502974,
+            "initial_plane_error_m": -0.6214460492134101,
+            "within_target_height": true,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 4
+        },
+        {
+          "variant": "brake_5",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.966666666666667,
+            "forward_error_m": -1.1945247650146982,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 1.1945247650146982,
+            "height_error_m": 0.631676709651947
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.966666666666667,
+          "arrival_time": null,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision"
+            ],
+            "minimum_normal_y": 1.0,
+            "height_span_m": 0.0,
+            "target_plane_error_m": 0.6307410597801205,
+            "initial_plane_error_m": -0.000557279586792532,
+            "within_target_height": false,
+            "matches_initial_height": true,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 5
+        }
+      ],
+      "successful_ticks": [
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "map": "inferno",
+      "physics_hz": 120,
+      "observations": [
+        {
+          "variant": "baseline",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.00833333333333,
+            "forward_error_m": 2.247817993164002,
+            "lateral_error_m": 1.9073486008380769e-06,
+            "horizontal_error_m": 2.2478179931648112,
+            "height_error_m": 0.9285715579986571
+          },
+          "minimum_forward_speed_airborne": 4.23360633850098,
+          "airborne_reversed": false,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.00833333333333,
+          "arrival_time": null,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_group_wood_001/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.771993815898895,
+            "height_span_m": 1.4901161199953883e-06,
+            "target_plane_error_m": 1.019714623689651,
+            "initial_plane_error_m": 0.3889692366123201,
+            "within_target_height": false,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          }
+        },
+        {
+          "variant": "reverse_010",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.966666666666667,
+            "forward_error_m": -1.2133426666260014,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 1.2133426666260014,
+            "height_error_m": 0.630855596065521
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.966666666666667,
+          "arrival_time": null,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision"
+            ],
+            "minimum_normal_y": 1.0,
+            "height_span_m": 0.0,
+            "target_plane_error_m": 0.6307410597801205,
+            "initial_plane_error_m": -4.327297210456049e-06,
+            "within_target_height": false,
+            "matches_initial_height": true,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          }
+        },
+        {
+          "variant": "brake_1",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.05,
+            "forward_error_m": 1.5829353332518998,
+            "lateral_error_m": 0.0010776519774999826,
+            "horizontal_error_m": 1.5829357000810513,
+            "height_error_m": 0.005738294124603027
+          },
+          "minimum_forward_speed_airborne": 3.1414060592651394,
+          "airborne_reversed": false,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 1.05,
+          "arrival_time": 1.05,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.987604737281799,
+            "height_span_m": 1.8835067749023438e-05,
+            "target_plane_error_m": 0.009836435317992498,
+            "initial_plane_error_m": -0.6209089517593385,
+            "within_target_height": true,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 1
+        },
+        {
+          "variant": "brake_2",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.05,
+            "forward_error_m": 0.7592163085937003,
+            "lateral_error_m": 0.0010776519774999826,
+            "horizontal_error_m": 0.7592170734173654,
+            "height_error_m": 0.005738264322280973
+          },
+          "minimum_forward_speed_airborne": 2.0492057800293,
+          "airborne_reversed": false,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 1.05,
+          "arrival_time": 1.05,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.987604737281799,
+            "height_span_m": 1.8715858459028567e-05,
+            "target_plane_error_m": 0.009836494922637495,
+            "initial_plane_error_m": -0.6209088921546935,
+            "within_target_height": true,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 2
+        },
+        {
+          "variant": "brake_3",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.05,
+            "forward_error_m": -0.04630088806149857,
+            "lateral_error_m": 0.0010776519774999826,
+            "horizontal_error_m": 0.04631342752450989,
+            "height_error_m": 0.005738472938536909
+          },
+          "minimum_forward_speed_airborne": 0.957005739212036,
+          "airborne_reversed": false,
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 1.05,
+          "arrival_time": 1.05,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.987604737281799,
+            "height_span_m": 1.8954277038019107e-05,
+            "target_plane_error_m": 0.009836375713348056,
+            "initial_plane_error_m": -0.6209090113639829,
+            "within_target_height": true,
+            "matches_initial_height": false,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 3
+        },
+        {
+          "variant": "brake_4",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 1.03333333333333,
+            "forward_error_m": -0.8313579559325994,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 0.8313579559325994,
+            "height_error_m": 0.52035037279129
+          },
+          "minimum_forward_speed_airborne": -0.135194301605225,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 1.03333333333333,
+          "arrival_time": null,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision"
+            ],
+            "minimum_normal_y": 0.718888998031616,
+            "height_span_m": 0.0,
+            "target_plane_error_m": 0.6307411193847653,
+            "initial_plane_error_m": -4.2676925656563724e-06,
+            "within_target_height": false,
+            "matches_initial_height": true,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 4
+        },
+        {
+          "variant": "brake_5",
+          "takeoff": true,
+          "prefix_through_takeoff_unchanged": true,
+          "contact": {
+            "observed": true,
+            "time": 0.966666666666667,
+            "forward_error_m": -1.2133426666260014,
+            "lateral_error_m": 0.0,
+            "horizontal_error_m": 1.2133426666260014,
+            "height_error_m": 0.630855596065521
+          },
+          "minimum_forward_speed_airborne": -0.762000024318695,
+          "airborne_reversed": true,
+          "first_landing": false,
+          "supported_arrival": false,
+          "landing_time": 0.966666666666667,
+          "arrival_time": null,
+          "floor_contact": {
+            "observed": true,
+            "bodies": [
+              "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision"
+            ],
+            "minimum_normal_y": 1.0,
+            "height_span_m": 0.0,
+            "target_plane_error_m": 0.6307410597801205,
+            "initial_plane_error_m": -4.327297210456049e-06,
+            "within_target_height": false,
+            "matches_initial_height": true,
+            "scope": "collision_group_and_height_not_visual_prop_or_triangle_identity"
+          },
+          "reverse_reference_ticks": 5
+        }
+      ],
+      "successful_ticks": [
+        1,
+        2,
+        3
+      ]
+    }
+  ],
+  "checker_sha256": "e4f2e56f58ddd3e49409b08059729bef6f97973a09c680cf228a4f55554c37e1",
+  "sources_sha256": "b1ef020e4fe87ac1f8383f0397f1aa02cdb634af53f75f4b3a445ffe1b046dac",
+  "evidence_sha256": {
+    "matrix-lock.json": "bf441cc5c8f9e6462688c9f4ecfeca6f4ce8744eae2169d475b46a58cefee6cd",
+    "dust2-matrix-v1.json": "811bddda78b938a323b5051ebf6511897c5dd6dc3a863e523a8e2fc05f3ccc2d",
+    "dust2-60.json": "f5f9e040ed1932c4f663319817d5216bff9e6a323136a33a14f1d242bfecf76f",
+    "dust2-120.json": "bbd22f81f639a8a1e9bb2fc1480e23e6f86481f470f43da8ff65ead8b6d0fccd",
+    "mirage-matrix-v1.json": "753d8614fc6e0227a5013e74df6f5fd3b646ad0c9a61ae735201c8ad0362c786",
+    "mirage-60.json": "aae64712cc396a7d984e812472d9734efd8d3ca1ac3370fa32c76ae83238dae6",
+    "mirage-120.json": "8bdc760101b204781530f4d59558da67a446d30f37e28d9a0f03222bf01b9767",
+    "inferno-matrix-v1.json": "65bf206a0f42c19bc62de648b2b324457816d5490b306cf2854231ba426146e9",
+    "inferno-60.json": "884ebf528297dd231163142fd4379fc75cfc5d9984804b1afb830884ed270f33",
+    "inferno-120.json": "1c65131f7318cbfc5d5553c667e7e94c29c1c551370b03369173471f0d3f89a2"
+  },
+  "common_success_ticks": [
+    2,
+    3
+  ],
+  "takeoffs": 42,
+  "first_landings": 16,
+  "control_traces_match_R18": 12,
+  "phase": "Movement-4 R19 Modern short brake samples and collision-group evidence",
+  "ordinary_python_tests": 325,
+  "new_regressions": 13,
+  "original_target_radius_m": 1.6,
+  "original_target_height_tolerance_m": 0.18,
+  "common_duration_seconds": [
+    0.03333333333333333,
+    0.05
+  ],
+  "common_duration_first_landings": "6/6 each",
+  "original_R18_results_unchanged": true,
+  "package_updated": false,
+  "original_imports_settings_and_playable_preserved": true,
+  "full_native_suite_repeated": false,
+  "validation": {
+    "format_lint_compile": "passed",
+    "pyright_errors": 0
+  },
+  "limits": [
+    "All duration samples were frozen before both rates. Common successes are observations, not a holdout-selection claim.",
+    "Goal radius remains 1.6m; common-sample horizontal error is 0.046-1.449m. No precision or stable-hold acceptance.",
+    "Inferno 1/60 and 4/60 pulse results differ between rates; differences retained.",
+    "Contact evidence binds collision groups, normals and heights, not exact visual props or triangle identity.",
+    "These goals can be reached by walking off; jump-required route qualification remains unchanged."
+  ]
+}
