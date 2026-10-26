@@ -219,8 +219,12 @@ func _record(sample: Dictionary) -> void:
 				"consumed_usec": sample.consumed_usec,
 				"direction": [sample.input.direction.x, sample.input.direction.y],
 				"jump_requested": sample.input.jump,
+				"crouch_requested": sample.input.crouch,
+				"walk_requested": sample.input.walk,
 				"jumped": sample.jumped,
+				"grounded_before": sample.grounded_before,
 				"grounded": sample.grounded_after,
+				"capsule_height": player.get_node("CollisionShape3D").shape.height,
 				"position": Survey.array(sample.position),
 				"velocity": Survey.array(sample.velocity)
 			}
@@ -233,6 +237,16 @@ func _physics_process(_delta: float) -> void:
 	if not smoke or not ready_to_record or saved:
 		return
 	smoke_ticks += 1
+	var posture := {
+		30: [KEY_CTRL, true], 32: [KEY_CTRL, false], 34: [KEY_SHIFT, true], 36: [KEY_SHIFT, false]
+	}
+	if smoke_ticks in posture:
+		var pose_event := InputEventKey.new()
+		pose_event.keycode = posture[smoke_ticks][0]
+		pose_event.physical_keycode = posture[smoke_ticks][0]
+		pose_event.pressed = posture[smoke_ticks][1]
+		Input.parse_input_event(pose_event)
+		Input.flush_buffered_events()
 	var actions := {5: KEY_F7, 10: KEY_F5, 15: KEY_F6, 20: KEY_ESCAPE, 25: KEY_F4, 40: KEY_F8}
 	if smoke_ticks in actions:
 		for pressed in [true, false]:
