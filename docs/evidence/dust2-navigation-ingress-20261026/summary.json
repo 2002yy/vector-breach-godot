@@ -1,0 +1,750 @@
+{
+  "formal_release_ready": false,
+  "human_acceptance": false,
+  "precision_equivalence_accepted": false,
+  "edge_lip_timing_accepted": false,
+  "spawn_to_navigation_connectivity": "unproven",
+  "route_status": "not_requalified",
+  "grid_trials": 90,
+  "replay_trials": 18,
+  "observations": [
+    {
+      "scheme": "current",
+      "variant": "jump200_travel150",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": false,
+        "stable_finish": false,
+        "passed": false
+      },
+      "approach": {
+        "passed": false,
+        "checkpoint_time": null,
+        "horizontal_travel": null
+      },
+      "approach_corridor": true,
+      "passed": false
+    },
+    {
+      "scheme": "current",
+      "variant": "jump200_travel300",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": false,
+        "stable_finish": false,
+        "passed": false
+      },
+      "approach": {
+        "passed": false,
+        "checkpoint_time": null,
+        "horizontal_travel": null
+      },
+      "approach_corridor": true,
+      "passed": false
+    },
+    {
+      "scheme": "current",
+      "variant": "jump250_travel150",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": true,
+        "stable_finish": true,
+        "passed": true
+      },
+      "approach": {
+        "passed": false,
+        "checkpoint_time": null,
+        "horizontal_travel": null
+      },
+      "approach_corridor": true,
+      "passed": false
+    },
+    {
+      "scheme": "current",
+      "variant": "jump250_travel300",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": true,
+        "stable_finish": true,
+        "passed": true
+      },
+      "approach": {
+        "passed": false,
+        "checkpoint_time": null,
+        "horizontal_travel": null
+      },
+      "approach_corridor": true,
+      "passed": false
+    },
+    {
+      "scheme": "current",
+      "variant": "jump300_travel150",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": true,
+        "stable_finish": true,
+        "passed": true
+      },
+      "approach": {
+        "passed": true,
+        "checkpoint_time": 0.266666666666667,
+        "horizontal_travel": 1.0927772521971981
+      },
+      "approach_corridor": true,
+      "passed": true
+    },
+    {
+      "scheme": "current",
+      "variant": "jump300_travel300",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": true,
+        "stable_finish": true,
+        "passed": true
+      },
+      "approach": {
+        "passed": true,
+        "checkpoint_time": 0.266666666666667,
+        "horizontal_travel": 1.0927772521971981
+      },
+      "approach_corridor": true,
+      "passed": true
+    },
+    {
+      "scheme": "current",
+      "variant": "jump350_travel150",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": true,
+        "stable_finish": true,
+        "passed": true
+      },
+      "approach": {
+        "passed": true,
+        "checkpoint_time": 0.266666666666667,
+        "horizontal_travel": 1.0927772521971981
+      },
+      "approach_corridor": true,
+      "passed": true
+    },
+    {
+      "scheme": "current",
+      "variant": "jump350_travel300",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": true,
+        "stable_finish": true,
+        "passed": true
+      },
+      "approach": {
+        "passed": true,
+        "checkpoint_time": 0.266666666666667,
+        "horizontal_travel": 1.0927772521971981
+      },
+      "approach_corridor": true,
+      "passed": true
+    },
+    {
+      "scheme": "current",
+      "variant": "jump400_travel150",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": true,
+        "stable_finish": true,
+        "passed": true
+      },
+      "approach": {
+        "passed": true,
+        "checkpoint_time": 0.266666666666667,
+        "horizontal_travel": 1.0927772521971981
+      },
+      "approach_corridor": true,
+      "passed": true
+    },
+    {
+      "scheme": "current",
+      "variant": "jump400_travel300",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": true,
+        "stable_finish": true,
+        "passed": true
+      },
+      "approach": {
+        "passed": true,
+        "checkpoint_time": 0.266666666666667,
+        "horizontal_travel": 1.0927772521971981
+      },
+      "approach_corridor": true,
+      "passed": true
+    },
+    {
+      "scheme": "legacy_16",
+      "variant": "jump200_travel150",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": false,
+        "stable_finish": false,
+        "passed": false
+      },
+      "approach": {
+        "passed": false,
+        "checkpoint_time": null,
+        "horizontal_travel": null
+      },
+      "approach_corridor": true,
+      "passed": false
+    },
+    {
+      "scheme": "legacy_16",
+      "variant": "jump200_travel300",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": false,
+        "stable_finish": false,
+        "passed": false
+      },
+      "approach": {
+        "passed": false,
+        "checkpoint_time": null,
+        "horizontal_travel": null
+      },
+      "approach_corridor": true,
+      "passed": false
+    },
+    {
+      "scheme": "legacy_16",
+      "variant": "jump250_travel150",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": true,
+        "stable_finish": true,
+        "passed": true
+      },
+      "approach": {
+        "passed": true,
+        "checkpoint_time": 0.233333333333333,
+        "horizontal_travel": 1.1174774169921982
+      },
+      "approach_corridor": true,
+      "passed": true
+    },
+    {
+      "scheme": "legacy_16",
+      "variant": "jump250_travel300",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": true,
+        "stable_finish": true,
+        "passed": true
+      },
+      "approach": {
+        "passed": true,
+        "checkpoint_time": 0.233333333333333,
+        "horizontal_travel": 1.1174774169921982
+      },
+      "approach_corridor": true,
+      "passed": true
+    },
+    {
+      "scheme": "legacy_16",
+      "variant": "jump300_travel150",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": true,
+        "stable_finish": true,
+        "passed": true
+      },
+      "approach": {
+        "passed": true,
+        "checkpoint_time": 0.233333333333333,
+        "horizontal_travel": 1.1174774169921982
+      },
+      "approach_corridor": true,
+      "passed": true
+    },
+    {
+      "scheme": "legacy_16",
+      "variant": "jump300_travel300",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": true,
+        "stable_finish": true,
+        "passed": true
+      },
+      "approach": {
+        "passed": true,
+        "checkpoint_time": 0.233333333333333,
+        "horizontal_travel": 1.1174774169921982
+      },
+      "approach_corridor": true,
+      "passed": true
+    },
+    {
+      "scheme": "legacy_16",
+      "variant": "jump350_travel150",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": true,
+        "stable_finish": true,
+        "passed": true
+      },
+      "approach": {
+        "passed": true,
+        "checkpoint_time": 0.233333333333333,
+        "horizontal_travel": 1.1174774169921982
+      },
+      "approach_corridor": true,
+      "passed": true
+    },
+    {
+      "scheme": "legacy_16",
+      "variant": "jump350_travel300",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": true,
+        "stable_finish": true,
+        "passed": true
+      },
+      "approach": {
+        "passed": true,
+        "checkpoint_time": 0.233333333333333,
+        "horizontal_travel": 1.1174774169921982
+      },
+      "approach_corridor": true,
+      "passed": true
+    },
+    {
+      "scheme": "legacy_16",
+      "variant": "jump400_travel150",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": true,
+        "stable_finish": true,
+        "passed": true
+      },
+      "approach": {
+        "passed": true,
+        "checkpoint_time": 0.233333333333333,
+        "horizontal_travel": 1.1174774169921982
+      },
+      "approach_corridor": true,
+      "passed": true
+    },
+    {
+      "scheme": "legacy_16",
+      "variant": "jump400_travel300",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": true,
+        "stable_finish": true,
+        "passed": true
+      },
+      "approach": {
+        "passed": true,
+        "checkpoint_time": 0.233333333333333,
+        "horizontal_travel": 1.1174774169921982
+      },
+      "approach_corridor": true,
+      "passed": true
+    },
+    {
+      "scheme": "modern_cs",
+      "variant": "jump200_travel150",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": false,
+        "stable_finish": false,
+        "passed": false
+      },
+      "approach": {
+        "passed": false,
+        "checkpoint_time": null,
+        "horizontal_travel": null
+      },
+      "approach_corridor": true,
+      "passed": false
+    },
+    {
+      "scheme": "modern_cs",
+      "variant": "jump200_travel300",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": false,
+        "stable_finish": false,
+        "passed": false
+      },
+      "approach": {
+        "passed": false,
+        "checkpoint_time": null,
+        "horizontal_travel": null
+      },
+      "approach_corridor": true,
+      "passed": false
+    },
+    {
+      "scheme": "modern_cs",
+      "variant": "jump250_travel150",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": false,
+        "stable_finish": false,
+        "passed": false
+      },
+      "approach": {
+        "passed": false,
+        "checkpoint_time": null,
+        "horizontal_travel": null
+      },
+      "approach_corridor": true,
+      "passed": false
+    },
+    {
+      "scheme": "modern_cs",
+      "variant": "jump250_travel300",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": false,
+        "stable_finish": false,
+        "passed": false
+      },
+      "approach": {
+        "passed": false,
+        "checkpoint_time": null,
+        "horizontal_travel": null
+      },
+      "approach_corridor": true,
+      "passed": false
+    },
+    {
+      "scheme": "modern_cs",
+      "variant": "jump300_travel150",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": false,
+        "stable_finish": false,
+        "passed": false
+      },
+      "approach": {
+        "passed": false,
+        "checkpoint_time": null,
+        "horizontal_travel": null
+      },
+      "approach_corridor": true,
+      "passed": false
+    },
+    {
+      "scheme": "modern_cs",
+      "variant": "jump300_travel300",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": false,
+        "stable_finish": false,
+        "passed": false
+      },
+      "approach": {
+        "passed": false,
+        "checkpoint_time": null,
+        "horizontal_travel": null
+      },
+      "approach_corridor": true,
+      "passed": false
+    },
+    {
+      "scheme": "modern_cs",
+      "variant": "jump350_travel150",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": true,
+        "stable_finish": true,
+        "passed": true
+      },
+      "approach": {
+        "passed": true,
+        "checkpoint_time": 0.333333333333333,
+        "horizontal_travel": 1.0978298187256001
+      },
+      "approach_corridor": true,
+      "passed": true
+    },
+    {
+      "scheme": "modern_cs",
+      "variant": "jump350_travel300",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": true,
+        "stable_finish": true,
+        "passed": true
+      },
+      "approach": {
+        "passed": true,
+        "checkpoint_time": 0.333333333333333,
+        "horizontal_travel": 1.0978298187256001
+      },
+      "approach_corridor": true,
+      "passed": true
+    },
+    {
+      "scheme": "modern_cs",
+      "variant": "jump400_travel150",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": true,
+        "stable_finish": true,
+        "passed": true
+      },
+      "approach": {
+        "passed": true,
+        "checkpoint_time": 0.333333333333333,
+        "horizontal_travel": 1.0978298187256001
+      },
+      "approach_corridor": true,
+      "passed": true
+    },
+    {
+      "scheme": "modern_cs",
+      "variant": "jump400_travel300",
+      "controls_arrive": false,
+      "ingress": {
+        "action": true,
+        "corridor": true,
+        "arrival": true,
+        "stable_finish": true,
+        "passed": true
+      },
+      "approach": {
+        "passed": true,
+        "checkpoint_time": 0.333333333333333,
+        "horizontal_travel": 1.0978298187256001
+      },
+      "approach_corridor": true,
+      "passed": true
+    }
+  ],
+  "results": [
+    {
+      "scheme": "current",
+      "variant": "jump300_travel150",
+      "rates": {
+        "60": {
+          "ingress": {
+            "action": true,
+            "corridor": true,
+            "arrival": true,
+            "stable_finish": true,
+            "passed": true
+          },
+          "approach": {
+            "passed": true,
+            "checkpoint_time": 0.266666666666667,
+            "horizontal_travel": 1.0927772521971981
+          },
+          "approach_corridor": true,
+          "passed": true
+        },
+        "120": {
+          "ingress": {
+            "action": true,
+            "corridor": true,
+            "arrival": true,
+            "stable_finish": true,
+            "passed": true
+          },
+          "approach": {
+            "passed": true,
+            "checkpoint_time": 0.283333333333333,
+            "horizontal_travel": 1.0879497528075994
+          },
+          "approach_corridor": true,
+          "passed": true
+        }
+      },
+      "controls_arrive": {
+        "60": false,
+        "120": false
+      },
+      "passed": true
+    },
+    {
+      "scheme": "legacy_16",
+      "variant": "jump250_travel150",
+      "rates": {
+        "60": {
+          "ingress": {
+            "action": true,
+            "corridor": true,
+            "arrival": true,
+            "stable_finish": true,
+            "passed": true
+          },
+          "approach": {
+            "passed": true,
+            "checkpoint_time": 0.233333333333333,
+            "horizontal_travel": 1.1174774169921982
+          },
+          "approach_corridor": true,
+          "passed": true
+        },
+        "120": {
+          "ingress": {
+            "action": true,
+            "corridor": true,
+            "arrival": true,
+            "stable_finish": true,
+            "passed": true
+          },
+          "approach": {
+            "passed": true,
+            "checkpoint_time": 0.241666666666667,
+            "horizontal_travel": 1.0839672088622976
+          },
+          "approach_corridor": true,
+          "passed": true
+        }
+      },
+      "controls_arrive": {
+        "60": false,
+        "120": false
+      },
+      "passed": true
+    },
+    {
+      "scheme": "modern_cs",
+      "variant": "jump350_travel150",
+      "rates": {
+        "60": {
+          "ingress": {
+            "action": true,
+            "corridor": true,
+            "arrival": true,
+            "stable_finish": true,
+            "passed": true
+          },
+          "approach": {
+            "passed": true,
+            "checkpoint_time": 0.333333333333333,
+            "horizontal_travel": 1.0978298187256001
+          },
+          "approach_corridor": true,
+          "passed": true
+        },
+        "120": {
+          "ingress": {
+            "action": true,
+            "corridor": true,
+            "arrival": true,
+            "stable_finish": true,
+            "passed": true
+          },
+          "approach": {
+            "passed": false,
+            "checkpoint_time": null,
+            "horizontal_travel": null
+          },
+          "approach_corridor": true,
+          "passed": false
+        }
+      },
+      "controls_arrive": {
+        "60": false,
+        "120": false
+      },
+      "passed": false
+    }
+  ],
+  "checker_sha256": "9238c9ed353366d751e2609f158ba64332766158f7efbf3a5dd23b93f90f0ea9",
+  "evidence_sha256": {
+    "grid-v1.json": "87b7251161939c853139c85938f54a6f916fa500821ab2fcb1a1f0e914a6fe95",
+    "grid-60.json": "543210125123566f2c9fbfe4a6d57d89801808aa0a19667fa66d8e68e505b38c",
+    "selected-v1.json": "20e91d671ae8cea40fecd0c01339b8465358522c160dedcdb5f583166e66aa35",
+    "selection-lock.json": "dbdbd90e36f6094e734d043cf107713a49a9a033966a22c9330f6bb378489eb3",
+    "replay-60.json": "2fc283a72be9472f88f9af790d8ae2e5bb20cb14613a92a86cfb67336e129496",
+    "replay-120.json": "b0e92d0465c1cdbe5eabb7cbd1c42c04fa92e5272c7d4e0d99acfca64cdd0c7f"
+  },
+  "parent_ingress_sha256": "73fff533fb4881a199a1283d585c587c875ae9e9b23ba11072cb31bd01a56c1d",
+  "navigation_ingress_all_profiles": false,
+  "phase": "Movement-4 R15 Dust II navigation approach and continuous ingress",
+  "source_nav_node": 2947,
+  "ordinary_python_tests": 272,
+  "new_regressions": 12,
+  "selected60_trace_matches_exploration": 9,
+  "local_navigation_approach_passes": "5/6",
+  "continuous_ingress_passes": "5/6",
+  "supported_stable_upper_arrivals": "6/6",
+  "negative_control_arrivals": "0/12",
+  "full_native_suite_repeated": false,
+  "production_paths_changed": false,
+  "source_evidence_imports_and_settings_preserved": true,
+  "validation": {
+    "format_lint_compile": "passed",
+    "pyright_errors": 0
+  },
+  "failure": {
+    "scheme": "modern_cs",
+    "physics_hz": 120,
+    "checkpoint_radius": 0.12,
+    "last_grounded_prejump_distance": 0.148451,
+    "jump_sample_distance": 0.108526,
+    "explanation": "Checkpoint is entered on the jump sample, not during the preceding grounded approach.",
+    "selection_revised_after_holdout": false,
+    "tolerance_relaxed": false
+  }
+}
