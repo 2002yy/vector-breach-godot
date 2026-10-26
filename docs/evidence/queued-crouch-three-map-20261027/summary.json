@@ -1,0 +1,799 @@
+{
+  "schema": 1,
+  "source_config_sha256": "d85eef09c6f8b0a157c51518e1d8603e8567f61076cfda4e181a158067f45422",
+  "baseline_records_revalidated": 576,
+  "new_native_trials": 54,
+  "sites": [
+    {
+      "map": "dust2",
+      "site": "crouch__queued_original_geometry",
+      "kind": "crouch_jump",
+      "profiles": {
+        "current": {
+          "source_case": "crouch__current__jump",
+          "scheme": "current",
+          "category_action_passed": true,
+          "actions": {
+            "60": {
+              "passed": true,
+              "consumed_edges": 1,
+              "actual_takeoffs": 1,
+              "input_delays_seconds": [
+                0.0
+              ],
+              "takeoff_time": 0.1,
+              "scope": "single_supported_takeoff_synthetic_InputMap"
+            },
+            "120": {
+              "passed": true,
+              "consumed_edges": 1,
+              "actual_takeoffs": 1,
+              "input_delays_seconds": [
+                0.0
+              ],
+              "takeoff_time": 0.1,
+              "scope": "single_supported_takeoff_synthetic_InputMap"
+            }
+          },
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "postures": {
+            "60": {
+              "crouched_in_air": true,
+              "standing_throughout": false,
+              "capsule_heights": [
+                1.2
+              ]
+            },
+            "120": {
+              "crouched_in_air": true,
+              "standing_throughout": false,
+              "capsule_heights": [
+                1.2
+              ]
+            }
+          },
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "body_envelope_available": true,
+          "paired_controls_available": true,
+          "cross_frequency_first_landing": {
+            "position_metres": 0.07184588242643236,
+            "time_seconds": 0.025000000000000022,
+            "vertical_metres": 9.250640869051807e-05,
+            "precision_accepted": false
+          },
+          "status": "qualified_jump",
+          "jump_route_passed": true,
+          "action_passed": true
+        },
+        "legacy_16": {
+          "source_case": "crouch__legacy_16__jump",
+          "scheme": "legacy_16",
+          "category_action_passed": true,
+          "actions": {
+            "60": {
+              "passed": true,
+              "consumed_edges": 1,
+              "actual_takeoffs": 1,
+              "input_delays_seconds": [
+                0.0
+              ],
+              "takeoff_time": 0.1,
+              "scope": "single_supported_takeoff_synthetic_InputMap"
+            },
+            "120": {
+              "passed": true,
+              "consumed_edges": 1,
+              "actual_takeoffs": 1,
+              "input_delays_seconds": [
+                0.0
+              ],
+              "takeoff_time": 0.1,
+              "scope": "single_supported_takeoff_synthetic_InputMap"
+            }
+          },
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "postures": {
+            "60": {
+              "crouched_in_air": true,
+              "standing_throughout": false,
+              "capsule_heights": [
+                1.2
+              ]
+            },
+            "120": {
+              "crouched_in_air": true,
+              "standing_throughout": false,
+              "capsule_heights": [
+                1.2
+              ]
+            }
+          },
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "body_envelope_available": true,
+          "paired_controls_available": true,
+          "cross_frequency_first_landing": {
+            "position_metres": 0.08107243046785192,
+            "time_seconds": 0.00833333333333397,
+            "vertical_metres": 0.04502391815185991,
+            "precision_accepted": false
+          },
+          "status": "qualified_jump",
+          "jump_route_passed": true,
+          "action_passed": true
+        },
+        "modern_cs": {
+          "source_case": "crouch__modern_cs__jump",
+          "scheme": "modern_cs",
+          "category_action_passed": true,
+          "actions": {
+            "60": {
+              "passed": true,
+              "consumed_edges": 1,
+              "actual_takeoffs": 1,
+              "input_delays_seconds": [
+                0.0
+              ],
+              "takeoff_time": 0.1,
+              "scope": "single_supported_takeoff_synthetic_InputMap"
+            },
+            "120": {
+              "passed": true,
+              "consumed_edges": 1,
+              "actual_takeoffs": 1,
+              "input_delays_seconds": [
+                0.0
+              ],
+              "takeoff_time": 0.1,
+              "scope": "single_supported_takeoff_synthetic_InputMap"
+            }
+          },
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "postures": {
+            "60": {
+              "crouched_in_air": true,
+              "standing_throughout": false,
+              "capsule_heights": [
+                1.2
+              ]
+            },
+            "120": {
+              "crouched_in_air": true,
+              "standing_throughout": false,
+              "capsule_heights": [
+                1.2
+              ]
+            }
+          },
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "body_envelope_available": true,
+          "paired_controls_available": true,
+          "cross_frequency_first_landing": {
+            "position_metres": 0.07600814010986616,
+            "time_seconds": 0.025000000000000078,
+            "vertical_metres": 0.0007905960082998931,
+            "precision_accepted": false
+          },
+          "status": "qualified_jump",
+          "jump_route_passed": true,
+          "action_passed": true
+        }
+      },
+      "human_review": "pending",
+      "precision_accepted": false,
+      "spawn_connectivity": "unproven"
+    },
+    {
+      "map": "mirage",
+      "site": "crouch__queued_original_geometry",
+      "kind": "crouch_jump",
+      "profiles": {
+        "current": {
+          "source_case": "crouch__current__jump",
+          "scheme": "current",
+          "category_action_passed": true,
+          "actions": {
+            "60": {
+              "passed": true,
+              "consumed_edges": 1,
+              "actual_takeoffs": 1,
+              "input_delays_seconds": [
+                0.0
+              ],
+              "takeoff_time": 0.35,
+              "scope": "single_supported_takeoff_synthetic_InputMap"
+            },
+            "120": {
+              "passed": true,
+              "consumed_edges": 1,
+              "actual_takeoffs": 1,
+              "input_delays_seconds": [
+                0.0
+              ],
+              "takeoff_time": 0.35,
+              "scope": "single_supported_takeoff_synthetic_InputMap"
+            }
+          },
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "postures": {
+            "60": {
+              "crouched_in_air": true,
+              "standing_throughout": false,
+              "capsule_heights": [
+                1.2,
+                1.8
+              ]
+            },
+            "120": {
+              "crouched_in_air": true,
+              "standing_throughout": false,
+              "capsule_heights": [
+                1.2,
+                1.8
+              ]
+            }
+          },
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "body_envelope_available": true,
+          "paired_controls_available": true,
+          "cross_frequency_first_landing": {
+            "position_metres": 0.29790498383337016,
+            "time_seconds": 0.02499999999999991,
+            "vertical_metres": 9.632110594992582e-05,
+            "precision_accepted": false
+          },
+          "status": "qualified_jump",
+          "jump_route_passed": true,
+          "action_passed": true
+        },
+        "legacy_16": {
+          "source_case": "crouch__legacy_16__jump",
+          "scheme": "legacy_16",
+          "category_action_passed": true,
+          "actions": {
+            "60": {
+              "passed": true,
+              "consumed_edges": 1,
+              "actual_takeoffs": 1,
+              "input_delays_seconds": [
+                0.0
+              ],
+              "takeoff_time": 0.35,
+              "scope": "single_supported_takeoff_synthetic_InputMap"
+            },
+            "120": {
+              "passed": true,
+              "consumed_edges": 1,
+              "actual_takeoffs": 1,
+              "input_delays_seconds": [
+                0.0
+              ],
+              "takeoff_time": 0.35,
+              "scope": "single_supported_takeoff_synthetic_InputMap"
+            }
+          },
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "postures": {
+            "60": {
+              "crouched_in_air": true,
+              "standing_throughout": false,
+              "capsule_heights": [
+                1.2,
+                1.8
+              ]
+            },
+            "120": {
+              "crouched_in_air": true,
+              "standing_throughout": false,
+              "capsule_heights": [
+                1.2,
+                1.8
+              ]
+            }
+          },
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "body_envelope_available": true,
+          "paired_controls_available": true,
+          "cross_frequency_first_landing": {
+            "position_metres": 0.24114133440208016,
+            "time_seconds": 0.025000000000000022,
+            "vertical_metres": 0.0006835460662899528,
+            "precision_accepted": false
+          },
+          "status": "qualified_jump",
+          "jump_route_passed": true,
+          "action_passed": true
+        },
+        "modern_cs": {
+          "source_case": "crouch__modern_cs__jump",
+          "scheme": "modern_cs",
+          "category_action_passed": true,
+          "actions": {
+            "60": {
+              "passed": true,
+              "consumed_edges": 1,
+              "actual_takeoffs": 1,
+              "input_delays_seconds": [
+                0.0
+              ],
+              "takeoff_time": 0.35,
+              "scope": "single_supported_takeoff_synthetic_InputMap"
+            },
+            "120": {
+              "passed": true,
+              "consumed_edges": 1,
+              "actual_takeoffs": 1,
+              "input_delays_seconds": [
+                0.0
+              ],
+              "takeoff_time": 0.35,
+              "scope": "single_supported_takeoff_synthetic_InputMap"
+            }
+          },
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "postures": {
+            "60": {
+              "crouched_in_air": true,
+              "standing_throughout": false,
+              "capsule_heights": [
+                1.2,
+                1.8
+              ]
+            },
+            "120": {
+              "crouched_in_air": true,
+              "standing_throughout": false,
+              "capsule_heights": [
+                1.2,
+                1.8
+              ]
+            }
+          },
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "body_envelope_available": true,
+          "paired_controls_available": true,
+          "cross_frequency_first_landing": {
+            "position_metres": 0.17332800622578295,
+            "time_seconds": 0.025000000000000022,
+            "vertical_metres": 0.0007244348526000977,
+            "precision_accepted": false
+          },
+          "status": "qualified_jump",
+          "jump_route_passed": true,
+          "action_passed": true
+        }
+      },
+      "human_review": "pending",
+      "precision_accepted": false,
+      "spawn_connectivity": "unproven"
+    },
+    {
+      "map": "inferno",
+      "site": "crouch__queued_original_geometry",
+      "kind": "crouch_jump",
+      "profiles": {
+        "current": {
+          "source_case": "crouch__current__jump",
+          "scheme": "current",
+          "category_action_passed": true,
+          "actions": {
+            "60": {
+              "passed": true,
+              "consumed_edges": 1,
+              "actual_takeoffs": 1,
+              "input_delays_seconds": [
+                0.0
+              ],
+              "takeoff_time": 0.1,
+              "scope": "single_supported_takeoff_synthetic_InputMap"
+            },
+            "120": {
+              "passed": true,
+              "consumed_edges": 1,
+              "actual_takeoffs": 1,
+              "input_delays_seconds": [
+                0.0
+              ],
+              "takeoff_time": 0.1,
+              "scope": "single_supported_takeoff_synthetic_InputMap"
+            }
+          },
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "postures": {
+            "60": {
+              "crouched_in_air": true,
+              "standing_throughout": false,
+              "capsule_heights": [
+                1.2
+              ]
+            },
+            "120": {
+              "crouched_in_air": true,
+              "standing_throughout": false,
+              "capsule_heights": [
+                1.2
+              ]
+            }
+          },
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "body_envelope_available": true,
+          "paired_controls_available": true,
+          "cross_frequency_first_landing": {
+            "position_metres": 0.02879731240797392,
+            "time_seconds": 0.016666666666660168,
+            "vertical_metres": 9.679794312056345e-05,
+            "precision_accepted": false
+          },
+          "status": "qualified_jump",
+          "jump_route_passed": true,
+          "action_passed": true
+        },
+        "legacy_16": {
+          "source_case": "crouch__legacy_16__jump",
+          "scheme": "legacy_16",
+          "category_action_passed": true,
+          "actions": {
+            "60": {
+              "passed": true,
+              "consumed_edges": 1,
+              "actual_takeoffs": 1,
+              "input_delays_seconds": [
+                0.0
+              ],
+              "takeoff_time": 0.1,
+              "scope": "single_supported_takeoff_synthetic_InputMap"
+            },
+            "120": {
+              "passed": true,
+              "consumed_edges": 1,
+              "actual_takeoffs": 1,
+              "input_delays_seconds": [
+                0.0
+              ],
+              "takeoff_time": 0.1,
+              "scope": "single_supported_takeoff_synthetic_InputMap"
+            }
+          },
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "postures": {
+            "60": {
+              "crouched_in_air": true,
+              "standing_throughout": false,
+              "capsule_heights": [
+                1.2
+              ]
+            },
+            "120": {
+              "crouched_in_air": true,
+              "standing_throughout": false,
+              "capsule_heights": [
+                1.2
+              ]
+            }
+          },
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "body_envelope_available": true,
+          "paired_controls_available": true,
+          "cross_frequency_first_landing": {
+            "position_metres": 0.018187392145699033,
+            "time_seconds": 0.04999999999999993,
+            "vertical_metres": 0.0008087158203098355,
+            "precision_accepted": false
+          },
+          "status": "qualified_jump",
+          "jump_route_passed": true,
+          "action_passed": true
+        },
+        "modern_cs": {
+          "source_case": "crouch__modern_cs__jump",
+          "scheme": "modern_cs",
+          "category_action_passed": true,
+          "actions": {
+            "60": {
+              "passed": true,
+              "consumed_edges": 1,
+              "actual_takeoffs": 1,
+              "input_delays_seconds": [
+                0.0
+              ],
+              "takeoff_time": 0.1,
+              "scope": "single_supported_takeoff_synthetic_InputMap"
+            },
+            "120": {
+              "passed": true,
+              "consumed_edges": 1,
+              "actual_takeoffs": 1,
+              "input_delays_seconds": [
+                0.0
+              ],
+              "takeoff_time": 0.1,
+              "scope": "single_supported_takeoff_synthetic_InputMap"
+            }
+          },
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "postures": {
+            "60": {
+              "crouched_in_air": true,
+              "standing_throughout": false,
+              "capsule_heights": [
+                1.2
+              ]
+            },
+            "120": {
+              "crouched_in_air": true,
+              "standing_throughout": false,
+              "capsule_heights": [
+                1.2
+              ]
+            }
+          },
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "body_envelope_available": true,
+          "paired_controls_available": true,
+          "cross_frequency_first_landing": {
+            "position_metres": 0.5114558871068697,
+            "time_seconds": 0.01666666666666705,
+            "vertical_metres": 0.00059938430786044,
+            "precision_accepted": false
+          },
+          "status": "qualified_jump",
+          "jump_route_passed": true,
+          "action_passed": true
+        }
+      },
+      "human_review": "pending",
+      "precision_accepted": false,
+      "spawn_connectivity": "unproven"
+    }
+  ],
+  "combined_category_coverage": [
+    {
+      "map": "dust2",
+      "kind": "critical_landing",
+      "action_covered": true,
+      "jump_route_covered": true
+    },
+    {
+      "map": "dust2",
+      "kind": "crouch_jump",
+      "action_covered": true,
+      "jump_route_covered": true
+    },
+    {
+      "map": "dust2",
+      "kind": "edge",
+      "action_covered": true,
+      "jump_route_covered": false
+    },
+    {
+      "map": "dust2",
+      "kind": "ordinary",
+      "action_covered": true,
+      "jump_route_covered": false
+    },
+    {
+      "map": "dust2",
+      "kind": "run_up",
+      "action_covered": true,
+      "jump_route_covered": true
+    },
+    {
+      "map": "mirage",
+      "kind": "critical_landing",
+      "action_covered": true,
+      "jump_route_covered": true
+    },
+    {
+      "map": "mirage",
+      "kind": "crouch_jump",
+      "action_covered": true,
+      "jump_route_covered": true
+    },
+    {
+      "map": "mirage",
+      "kind": "edge",
+      "action_covered": true,
+      "jump_route_covered": false
+    },
+    {
+      "map": "mirage",
+      "kind": "ordinary",
+      "action_covered": true,
+      "jump_route_covered": false
+    },
+    {
+      "map": "mirage",
+      "kind": "run_up",
+      "action_covered": false,
+      "jump_route_covered": false
+    },
+    {
+      "map": "inferno",
+      "kind": "critical_landing",
+      "action_covered": true,
+      "jump_route_covered": true
+    },
+    {
+      "map": "inferno",
+      "kind": "crouch_jump",
+      "action_covered": true,
+      "jump_route_covered": true
+    },
+    {
+      "map": "inferno",
+      "kind": "edge",
+      "action_covered": true,
+      "jump_route_covered": false
+    },
+    {
+      "map": "inferno",
+      "kind": "ordinary",
+      "action_covered": true,
+      "jump_route_covered": false
+    },
+    {
+      "map": "inferno",
+      "kind": "run_up",
+      "action_covered": false,
+      "jump_route_covered": false
+    }
+  ],
+  "action_categories": 13,
+  "jump_route_categories": 7,
+  "sources": {
+    "dust2": {
+      "manifest_sha256": "311520a87b4a959614b75eb65c84a4a5c3f58ea0aa1147c0667d35e39f89c3fb",
+      "parent_sha256": "c0110d720644cfe5135d575091b4efd7d2bcdeef8943572be53ffcef70bbf811",
+      "reports": {
+        "60": "22e762979c6777bf0d8989d465a97e1c393b333ce849b98f6f7980bc0da63a25",
+        "120": "7a2482d4435d728b1288547980e35b1da9171a77309461a151a2c5d3d2f2b6b5"
+      }
+    },
+    "mirage": {
+      "manifest_sha256": "cd0370996440aaf20e127439cbc07d8ce4f18ed7820fd04529ae722592cec757",
+      "parent_sha256": "28cd6de1890f883bc4acab22553ec1e9591b1e10a7a7c8cecff4913e22c7ed1f",
+      "reports": {
+        "60": "df36cd5a3bb8d46b7b7d8dd294d0dacc43f47d313b39f9634bed020d5980c2e4",
+        "120": "6e24ae8540740c2c02ac06d45620a5b9017e133d9a83626dba0ba24d7d3a0a4f"
+      }
+    },
+    "inferno": {
+      "manifest_sha256": "31e7dd5507c7279c63465d2ae5b3f535911e581518dd9c061b94293840a80e67",
+      "parent_sha256": "741d11b49d1ec52c4a219fb08dffc434d251fe95513a364b2ed91559a4181dd2",
+      "reports": {
+        "60": "6eb54cd545c7df1dc2cf9832ab69dba151d97289939591e865b2a571d3cd9ae0",
+        "120": "26763e585bbdb7b5c6a8021df0305ba2020055fefff03baab7e87c6347c112d4"
+      }
+    }
+  },
+  "formal_release_ready": false,
+  "human_acceptance": false,
+  "precision_equivalence_accepted": false,
+  "movement5_frozen": true,
+  "scope": "queued_synthetic_InputMap_crouch_envelope_not_human_or_crouch_necessity",
+  "phase": "Movement-4 R22 three-map queued crouch and standing controls",
+  "base": "22f63cadb50f4a7b14f374d07542a31f34034f08",
+  "ordinary_python_tests": 363,
+  "new_regressions": 12,
+  "format_lint_compile": "passed",
+  "pyright_errors": 0,
+  "checker_sha256": "14c71c6fca95bbf8e3b9d64886e156e6836b51907333b6ad7a23dd974ef137f3",
+  "matrix_lock_sha256": "124bc6949d6baa39a586c7f1ac74dbb4e216cdbaacd368eb21cd3d80b1220b03",
+  "package_updated": false,
+  "source_imports_settings_and_package_preserved": true,
+  "full_native_suite_repeated": false,
+  "limits": [
+    "Synthetic queued InputMap replay is not human acceptance.",
+    "The 1.2m crouch corridor does not prove crouching is required, or a swept standing-to-crouching transition envelope.",
+    "First landing tolerances do not grant cross-frequency precision equivalence.",
+    "Mirage/Inferno run_up categories, edge paired controls and two changed body corridors remain pending.",
+    "Original-client/full spawn routes/AI/matches/manual three-map play/FPS remain pending."
+  ]
+}
