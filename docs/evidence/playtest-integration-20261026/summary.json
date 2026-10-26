@@ -1,0 +1,85 @@
+{
+  "phase": "2026-10-26 local integrated playable candidate and old-package cleanup",
+  "runtime_source_head": "c9b6d868c8ba391de9f5c656750755c8ba695914",
+  "main_head": "598cde156cf9de6a99e88045d5f71849e06f906c",
+  "main_merged": false,
+  "open_prs_before_delivery": 33,
+  "package": "D:\\VectorBreach\\releases\\VectorBreach-playtest-20261026-candidate",
+  "default_movement": "current",
+  "movement5_menu_enabled": false,
+  "environment_candidate_default": false,
+  "validation": {
+    "native_suites": 16,
+    "counted_native_cases": 224,
+    "classic_movement_groups": 15,
+    "python": 298,
+    "gdunit": "2/2",
+    "pack_map_entry_flows": 6,
+    "pack_pngs": 126,
+    "actual_exe_gui": "2/2",
+    "actual_exe_headless": "2/2",
+    "lint_no_new_errors": true,
+    "formatting_no_new_debt": true,
+    "desktop_launchers": "2/2"
+  },
+  "source_snapshot_clean_before_import": true,
+  "source_snapshot_tracked_edits_after_import": 0,
+  "generated_authoring_uid_files": 4,
+  "user_dirty_imports_excluded": true,
+  "binary_files": {
+    "VectorBreach.exe": {
+      "bytes": 109071360,
+      "sha256": "2b9f079a843397d8b441b762173dc5278c658e949ab7d8a0882696387e8780bd"
+    },
+    "VectorBreach.pck": {
+      "bytes": 3616406727,
+      "sha256": "c7eab89ed6c763d01593833bfcc726f4dda9b36accf82ce9eec6828a102c69a4"
+    }
+  },
+  "package_parts_bytes": {
+    "assets": 699813779,
+    "candidate-inputs": 1108102815
+  },
+  "start_probe_ms": {
+    "dust2": 4769.818,
+    "mirage": 2634.599,
+    "inferno": 9197.179
+  },
+  "start_probe_not_cold_or_fps_acceptance": true,
+  "cleanup": {
+    "old_package_removed": true,
+    "old_package_bytes": 5535144836,
+    "temporary_worktree_removed": true,
+    "temporary_copy_bytes": 10726086878,
+    "old_metadata_retained": true,
+    "new_package_bytes": 5533406831,
+    "package_size_change_bytes": -1738005,
+    "d_free_before": 5497655296,
+    "d_free_after": 21595582464,
+    "protected_imports_and_user_settings_preserved": true,
+    "source_and_audit_evidence_preserved": true
+  },
+  "lint_baseline": {
+    "changed_gd_files": 74,
+    "baseline_gd_files": 27,
+    "baseline_lint": 1009,
+    "candidate_lint": 1006,
+    "new_lint": [],
+    "baseline_format_debt_count": 16,
+    "candidate_format_debt_count": 16,
+    "new_format_debt": []
+  },
+  "external_exe_script_probe_timeout": {
+    "seconds": 180,
+    "reason_unproven": true,
+    "error_reported": false,
+    "normal_gui_and_headless_startup_passed": true
+  },
+  "pending": [
+    "Movement-4 landing/route/precision and human acceptance; Movement-5 frozen",
+    "AI shared movement, congestion, difficulty and latest match/economy acceptance",
+    "Original-engine character/environment equivalence, map details, shared throwables and real minimap",
+    "Latest-head 18 matches, continuous human maps, cold-load frame/memory and per-map 70% FPS"
+  ],
+  "evidence": "D:\\AgentGamePipeline\\evidence\\playable-integration-20261026"
+}
