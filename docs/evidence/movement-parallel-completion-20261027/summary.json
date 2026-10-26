@@ -1,0 +1,286 @@
+{
+  "phase": "Movement-4 R25 parallel candidate, edge qualification and CI discovery",
+  "base": "ef5427cc37c8f7eed052115e5e1c3d23d329eca7",
+  "parallel_workstreams": [
+    "Modern incident-state investigation and opt-in numerical candidate",
+    "Three-map edge paired controls/current body corridors",
+    "CI test discovery repair"
+  ],
+  "candidate": {
+    "inferno": {
+      "schema": 1,
+      "results": {
+        "baseline": {
+          "actions": {
+            "60": true,
+            "120": true
+          },
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "first_landing_delta_m": 0.5114558871068697,
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          }
+        },
+        "candidate": {
+          "actions": {
+            "60": true,
+            "120": true
+          },
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "first_landing_delta_m": 0.04653934576474913,
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          }
+        }
+      },
+      "runup_decomposition": {
+        "boundary_seconds": 0.1,
+        "actual_position_delta_m": 0.01411437988279829,
+        "end_velocity_rule_contribution_m": 0.007337772846221906,
+        "displacement_quadrature_contribution_m": 0.006760105242331874,
+        "integrated_delta_m": 0.01409787808855378,
+        "residual_m": 1.6501794244509066e-05
+      },
+      "baseline_physics_unchanged": true,
+      "production_changed": false,
+      "formal_release_ready": false,
+      "precision_equivalence_accepted": false,
+      "scope": "author_only_displacement_quadrature_not_full_physics_substeps",
+      "source_sha256": "31e7dd5507c7279c63465d2ae5b3f535911e581518dd9c061b94293840a80e67",
+      "matrix_sha256": "eb329aebb4c1a8706c2550556f2329a79c63912577b0f44ca74ebd5175c3c5ca",
+      "reports_sha256": {
+        "60": "c0e8cc26ca989560c770848bc88e3039ced68d00c334b00e7a89a53cf6c62cca",
+        "120": "ebccffaae1c57372d44f99d104e18a83ceccb7d8cf80df6734ee72fa2a14b0bd"
+      }
+    },
+    "dust2": {
+      "schema": 1,
+      "results": {
+        "baseline": {
+          "actions": {
+            "60": true,
+            "120": true
+          },
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "first_landing_delta_m": 0.07600814010986616,
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          }
+        },
+        "candidate": {
+          "actions": {
+            "60": true,
+            "120": true
+          },
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "first_landing_delta_m": 0.06189469788088222,
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          }
+        }
+      },
+      "runup_decomposition": {
+        "boundary_seconds": 0.1,
+        "actual_position_delta_m": 0.014144897460894867,
+        "end_velocity_rule_contribution_m": 0.007337772846221906,
+        "displacement_quadrature_contribution_m": 0.006760105242331874,
+        "integrated_delta_m": 0.01409787808855378,
+        "residual_m": 4.7019372341087357e-05
+      },
+      "baseline_physics_unchanged": true,
+      "production_changed": false,
+      "formal_release_ready": false,
+      "precision_equivalence_accepted": false,
+      "scope": "author_only_displacement_quadrature_not_full_physics_substeps",
+      "source_sha256": "311520a87b4a959614b75eb65c84a4a5c3f58ea0aa1147c0667d35e39f89c3fb",
+      "matrix_sha256": "b69224ccc075f6efe639b30ef6b2780128dcfc68d3ed0580cf0f03798927504b",
+      "reports_sha256": {
+        "60": "9331ab74793b83c76b0542b62a0c8cec10971bcefacf4b388c996dc91c1b797f",
+        "120": "a0a78ecf1e6a9b418e425a1db0dc250738111dfd88234065289464c3501f7965"
+      }
+    },
+    "mirage": {
+      "schema": 1,
+      "results": {
+        "baseline": {
+          "actions": {
+            "60": true,
+            "120": true
+          },
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "first_landing_delta_m": 0.17332800622578295,
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          }
+        },
+        "candidate": {
+          "actions": {
+            "60": true,
+            "120": true
+          },
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "first_landing_delta_m": 0.08670537223315992,
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          }
+        }
+      },
+      "runup_decomposition": {
+        "boundary_seconds": 0.35,
+        "actual_position_delta_m": 0.01051330566410158,
+        "end_velocity_rule_contribution_m": 0.00010080387194967913,
+        "displacement_quadrature_contribution_m": 0.01040912556151542,
+        "integrated_delta_m": 0.010509929433465098,
+        "residual_m": 3.3762306364815142e-06
+      },
+      "baseline_physics_unchanged": true,
+      "production_changed": false,
+      "formal_release_ready": false,
+      "precision_equivalence_accepted": false,
+      "scope": "author_only_displacement_quadrature_not_full_physics_substeps",
+      "source_sha256": "cd0370996440aaf20e127439cbc07d8ce4f18ed7820fd04529ae722592cec757",
+      "matrix_sha256": "a0651de687a76e1e52700db0a9263299391ad6d11cae27dc8f7c35c971f71bbf",
+      "reports_sha256": {
+        "60": "b803db94c72aa4cf928a0fcf8be9514510d478ffb744cc627704ef53508642a5",
+        "120": "ed9d1c8522e07f29cc7942cc0efd0fa644acedec2f376394e5e633bb7de4e225"
+      }
+    }
+  },
+  "position_components": [
+    {
+      "id": "h60_y60_v60",
+      "hit": true
+    },
+    {
+      "id": "h60_y60_v120",
+      "hit": true
+    },
+    {
+      "id": "h60_y120_v60",
+      "hit": true
+    },
+    {
+      "id": "h60_y120_v120",
+      "hit": true
+    },
+    {
+      "id": "h120_y60_v60",
+      "hit": false
+    },
+    {
+      "id": "h120_y60_v120",
+      "hit": false
+    },
+    {
+      "id": "h120_y120_v60",
+      "hit": false
+    },
+    {
+      "id": "h120_y120_v120",
+      "hit": false
+    }
+  ],
+  "inferno_candidate_early_lateral_contact_both_rates": false,
+  "edge": {
+    "native_trials": 54,
+    "jump_replays_identical": 18,
+    "first_landings": 18,
+    "paired_control_arrivals": "22/36",
+    "no_jump_arrivals": "18/18",
+    "standing_walk_arrivals": "4/18",
+    "current_geometry_corridors": 6,
+    "profile_groups_walk_only": 9,
+    "summary_sha256": "f7b86dd7cf17ca65e5a91adda43e4dadbd0c5580003c9e86a59f44c147ece317"
+  },
+  "ci_discovery": {
+    "renamed_test_content_unchanged": true,
+    "previously_excluded_tests_now_discoverable": 12
+  },
+  "ordinary_python_tests": 402,
+  "new_regressions": 17,
+  "native_candidate_trials": 36,
+  "position_queries": 8,
+  "native_numeric_fixture_assertions": 7,
+  "format_lint_compile": "passed",
+  "pyright_errors": 0,
+  "existing_curated_sites": 14,
+  "existing_curated_profile_groups": 42,
+  "qualified_jump": 24,
+  "walk_only": 18,
+  "route_unproven": 0,
+  "action_categories": "13/15",
+  "jump_route_categories": "7/15",
+  "production_changed": false,
+  "formal_release_ready": false,
+  "precision_equivalence_accepted": false,
+  "movement5_frozen": true,
+  "original_files_imports_settings_and_package_preserved": true,
+  "package_updated": false,
+  "limits": [
+    "Quadrature is author-only: mean motion velocity and cached numerical endpoint differ, so it is not full physics substepping or production integration.",
+    "Only three frozen Modern crouch routes were compared; wider weapon/damage/water/ladder/obstruction/variable-frame tests remain.",
+    "Candidate residual cross-frequency landing differences remain, no precision equivalence threshold was approved.",
+    "Walking edge references close evidence gaps but add no jump-required coverage.",
+    "Two run_up categories, original-client/manual/full routes/AI/18 matches/three-map play/FPS remain pending."
+  ]
+}
