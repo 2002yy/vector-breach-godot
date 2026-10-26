@@ -1,0 +1,679 @@
+{
+  "schema": 1,
+  "formal_release_ready": false,
+  "precision_equivalence_accepted": false,
+  "human_acceptance": false,
+  "source_trials_revalidated": 144,
+  "evidence_sha256": {
+    "dust2-queued-v1.json": "beca9efdf7235a8849980e6f4a1bef1573e84d305868b71759ce931ba76e2ded",
+    "source/dust2-matrix-v1.json": "f57bfc9e2aac5cd5b1bb0bcbbe93d776d445c22cb1983a2db0daa65543bb690e",
+    "dust2-60.json": "d78a77d6c5033a82dc7cdaaeb3a98e62302999493c3346fe44dfcd59a490051d",
+    "dust2-120.json": "1d0a8c197e37f63a10636344a8d58bb5dce6ecf83b68010193ac7bf906531136",
+    "mirage-queued-v1.json": "2281292ccc9d70a0e78447a46a2df024d76aaf35c3a6b837ab6018d83c65c1cb",
+    "source/mirage-matrix-v1.json": "36df25483d024757389e1886f54e7b19c59390d24efcae9fe895c5ab0d7b3585",
+    "mirage-60.json": "66859d31ac6c9eb44f882d233c83daeb0add5841688b64b6d52ead92301fe898",
+    "mirage-120.json": "0860915a253b3620d94727950fe66e78e621696ad4f9dca7eae1d86027097343",
+    "inferno-queued-v1.json": "718fd119d7f15910740959188e9e14b927b2f7c60d58ad232a82a8bbafb32ded",
+    "source/inferno-matrix-v1.json": "738b6cdbf9ac8731b5903239fd57e4ee005f590b3d97a4d07715c64dd8535554",
+    "inferno-60.json": "28d0de76b74ac77be9d0dddf8ae35f7a06d7d5a321128eaaf2ad7c473330e8cc",
+    "inferno-120.json": "a6d870f23c5004a01cfd2d9986bbbbd50bb05e0b523133e4015999d376640cd6"
+  },
+  "checker_sha256": "029de0809875a2b45388148a1aaae96f25538e0139d1d48c74804b3a139f8da4",
+  "points": [
+    {
+      "map": "dust2",
+      "case": "objective_rise_00",
+      "scheme": "current",
+      "kind": "critical_landing",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "body_corridor_clear": true,
+      "controls": {
+        "60": {
+          "no_jump": false,
+          "walk": false
+        },
+        "120": {
+          "no_jump": false,
+          "walk": false
+        }
+      },
+      "first_landings": {
+        "60": true,
+        "120": true
+      },
+      "status": "qualified_jump",
+      "jump_route_passed": true,
+      "action_passed": true
+    },
+    {
+      "map": "dust2",
+      "case": "objective_rise_00",
+      "scheme": "legacy_16",
+      "kind": "critical_landing",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "body_corridor_clear": true,
+      "controls": {
+        "60": {
+          "no_jump": false,
+          "walk": false
+        },
+        "120": {
+          "no_jump": false,
+          "walk": false
+        }
+      },
+      "first_landings": {
+        "60": true,
+        "120": true
+      },
+      "status": "qualified_jump",
+      "jump_route_passed": true,
+      "action_passed": true
+    },
+    {
+      "map": "dust2",
+      "case": "objective_rise_00",
+      "scheme": "modern_cs",
+      "kind": "critical_landing",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "body_corridor_clear": true,
+      "controls": {
+        "60": {
+          "no_jump": false,
+          "walk": false
+        },
+        "120": {
+          "no_jump": false,
+          "walk": false
+        }
+      },
+      "first_landings": {
+        "60": true,
+        "120": true
+      },
+      "status": "qualified_jump",
+      "jump_route_passed": true,
+      "action_passed": true
+    },
+    {
+      "map": "mirage",
+      "case": "objective_rise_00",
+      "scheme": "current",
+      "kind": "critical_landing",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "body_corridor_clear": true,
+      "controls": {
+        "60": {
+          "no_jump": false,
+          "walk": false
+        },
+        "120": {
+          "no_jump": false,
+          "walk": false
+        }
+      },
+      "first_landings": {
+        "60": true,
+        "120": true
+      },
+      "status": "qualified_jump",
+      "jump_route_passed": true,
+      "action_passed": true
+    },
+    {
+      "map": "mirage",
+      "case": "objective_rise_00",
+      "scheme": "legacy_16",
+      "kind": "critical_landing",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "body_corridor_clear": true,
+      "controls": {
+        "60": {
+          "no_jump": false,
+          "walk": false
+        },
+        "120": {
+          "no_jump": false,
+          "walk": false
+        }
+      },
+      "first_landings": {
+        "60": true,
+        "120": true
+      },
+      "status": "qualified_jump",
+      "jump_route_passed": true,
+      "action_passed": true
+    },
+    {
+      "map": "mirage",
+      "case": "objective_rise_00",
+      "scheme": "modern_cs",
+      "kind": "critical_landing",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "body_corridor_clear": true,
+      "controls": {
+        "60": {
+          "no_jump": false,
+          "walk": false
+        },
+        "120": {
+          "no_jump": false,
+          "walk": false
+        }
+      },
+      "first_landings": {
+        "60": true,
+        "120": true
+      },
+      "status": "qualified_jump",
+      "jump_route_passed": true,
+      "action_passed": true
+    },
+    {
+      "map": "inferno",
+      "case": "objective_rise_00",
+      "scheme": "current",
+      "kind": "critical_landing",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "body_corridor_clear": true,
+      "controls": {
+        "60": {
+          "no_jump": false,
+          "walk": false
+        },
+        "120": {
+          "no_jump": false,
+          "walk": false
+        }
+      },
+      "first_landings": {
+        "60": true,
+        "120": true
+      },
+      "status": "qualified_jump",
+      "jump_route_passed": true,
+      "action_passed": true
+    },
+    {
+      "map": "inferno",
+      "case": "objective_rise_00",
+      "scheme": "legacy_16",
+      "kind": "critical_landing",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "body_corridor_clear": true,
+      "controls": {
+        "60": {
+          "no_jump": false,
+          "walk": false
+        },
+        "120": {
+          "no_jump": false,
+          "walk": false
+        }
+      },
+      "first_landings": {
+        "60": true,
+        "120": true
+      },
+      "status": "qualified_jump",
+      "jump_route_passed": true,
+      "action_passed": true
+    },
+    {
+      "map": "inferno",
+      "case": "objective_rise_00",
+      "scheme": "modern_cs",
+      "kind": "critical_landing",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "body_corridor_clear": true,
+      "controls": {
+        "60": {
+          "no_jump": false,
+          "walk": false
+        },
+        "120": {
+          "no_jump": false,
+          "walk": false
+        }
+      },
+      "first_landings": {
+        "60": true,
+        "120": true
+      },
+      "status": "qualified_jump",
+      "jump_route_passed": true,
+      "action_passed": true
+    },
+    {
+      "map": "inferno",
+      "case": "objective_rise_01",
+      "scheme": "current",
+      "kind": "critical_landing",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "body_corridor_clear": true,
+      "controls": {
+        "60": {
+          "no_jump": false,
+          "walk": false
+        },
+        "120": {
+          "no_jump": false,
+          "walk": false
+        }
+      },
+      "first_landings": {
+        "60": true,
+        "120": true
+      },
+      "status": "qualified_jump",
+      "jump_route_passed": true,
+      "action_passed": true
+    },
+    {
+      "map": "inferno",
+      "case": "objective_rise_01",
+      "scheme": "legacy_16",
+      "kind": "critical_landing",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "body_corridor_clear": true,
+      "controls": {
+        "60": {
+          "no_jump": false,
+          "walk": false
+        },
+        "120": {
+          "no_jump": false,
+          "walk": false
+        }
+      },
+      "first_landings": {
+        "60": true,
+        "120": true
+      },
+      "status": "qualified_jump",
+      "jump_route_passed": true,
+      "action_passed": true
+    },
+    {
+      "map": "inferno",
+      "case": "objective_rise_01",
+      "scheme": "modern_cs",
+      "kind": "critical_landing",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "body_corridor_clear": true,
+      "controls": {
+        "60": {
+          "no_jump": false,
+          "walk": false
+        },
+        "120": {
+          "no_jump": false,
+          "walk": false
+        }
+      },
+      "first_landings": {
+        "60": true,
+        "120": true
+      },
+      "status": "qualified_jump",
+      "jump_route_passed": true,
+      "action_passed": true
+    }
+  ],
+  "category_coverage": [
+    {
+      "map": "dust2",
+      "category": "critical_landing",
+      "action_evidence_present": true,
+      "all_profiles_route_passed": true
+    },
+    {
+      "map": "dust2",
+      "category": "crouch_jump",
+      "action_evidence_present": false,
+      "all_profiles_route_passed": false
+    },
+    {
+      "map": "dust2",
+      "category": "edge",
+      "action_evidence_present": false,
+      "all_profiles_route_passed": false
+    },
+    {
+      "map": "dust2",
+      "category": "ordinary",
+      "action_evidence_present": false,
+      "all_profiles_route_passed": false
+    },
+    {
+      "map": "dust2",
+      "category": "run_up",
+      "action_evidence_present": false,
+      "all_profiles_route_passed": false
+    },
+    {
+      "map": "mirage",
+      "category": "critical_landing",
+      "action_evidence_present": true,
+      "all_profiles_route_passed": true
+    },
+    {
+      "map": "mirage",
+      "category": "crouch_jump",
+      "action_evidence_present": false,
+      "all_profiles_route_passed": false
+    },
+    {
+      "map": "mirage",
+      "category": "edge",
+      "action_evidence_present": false,
+      "all_profiles_route_passed": false
+    },
+    {
+      "map": "mirage",
+      "category": "ordinary",
+      "action_evidence_present": false,
+      "all_profiles_route_passed": false
+    },
+    {
+      "map": "mirage",
+      "category": "run_up",
+      "action_evidence_present": false,
+      "all_profiles_route_passed": false
+    },
+    {
+      "map": "inferno",
+      "category": "critical_landing",
+      "action_evidence_present": true,
+      "all_profiles_route_passed": true
+    },
+    {
+      "map": "inferno",
+      "category": "crouch_jump",
+      "action_evidence_present": false,
+      "all_profiles_route_passed": false
+    },
+    {
+      "map": "inferno",
+      "category": "edge",
+      "action_evidence_present": false,
+      "all_profiles_route_passed": false
+    },
+    {
+      "map": "inferno",
+      "category": "ordinary",
+      "action_evidence_present": false,
+      "all_profiles_route_passed": false
+    },
+    {
+      "map": "inferno",
+      "category": "run_up",
+      "action_evidence_present": false,
+      "all_profiles_route_passed": false
+    }
+  ],
+  "all_categories_covered": false,
+  "validation": {
+    "ordinary_python_tests": 222,
+    "new_regressions": 14,
+    "pyright_errors": 0,
+    "format_ruff_F_compile": "passed",
+    "preserved_imports_and_settings": true,
+    "raw_evidence_unchanged": true,
+    "new_native_trials": 0,
+    "full_native_suite_repeated": false
+  }
+}
