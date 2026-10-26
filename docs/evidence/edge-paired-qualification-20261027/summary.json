@@ -1,0 +1,591 @@
+{
+  "schema": 1,
+  "sites": [
+    {
+      "map": "dust2",
+      "kind": "edge",
+      "profiles": {
+        "current": {
+          "source_kind": "edge",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "walk_only",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "edge__current__jump",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": false
+            },
+            "120": {
+              "no_jump": true,
+              "walk": false
+            }
+          },
+          "baseline_physical_trace_identical": true,
+          "source_evidence": {
+            "provider": "edge/dust2",
+            "case": "current__reverse_hold",
+            "manifest_sha256": "20424adaabf871f597deda83e9db26c853fd0c7f6de7c6f2fb07b1d5a8531553",
+            "reports_sha256": {
+              "60": "1ef7915b824b26c6a9573a9c515f0405c1f7f2d2326016cdaa10fc7af8ebecb5",
+              "120": "898f08304b79dfbd9282786e2caae8d0c75a4fe806c4aa8c4097434726512c21"
+            }
+          },
+          "paired_input_route_status": "walk_only",
+          "geometry_role": "walk_only",
+          "known_forward_walk_arrival_both_rates": true,
+          "jump_necessity_accepted": false,
+          "forward_walk_context": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "forward_walk_source_sha256": {
+            "manifest": "793301dc2578e1f5de68b358204d9aed1d584925a96eb4cc891ee7bfac1d20de",
+            "reports": {
+              "60": "60294bf2ff9627754e21d6696fd39036fe4dcb55c56ffcfa923cc7e44d28d126",
+              "120": "499a7d13412b318b1656cbdcd721ab060a55e28c23f09598ddb61676ceb40390"
+            }
+          }
+        },
+        "legacy_16": {
+          "source_kind": "edge",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "walk_only",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "edge__legacy_16__jump",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": false
+            },
+            "120": {
+              "no_jump": true,
+              "walk": false
+            }
+          },
+          "baseline_physical_trace_identical": true,
+          "source_evidence": {
+            "provider": "edge/dust2",
+            "case": "legacy_16__reverse_010",
+            "manifest_sha256": "20424adaabf871f597deda83e9db26c853fd0c7f6de7c6f2fb07b1d5a8531553",
+            "reports_sha256": {
+              "60": "1ef7915b824b26c6a9573a9c515f0405c1f7f2d2326016cdaa10fc7af8ebecb5",
+              "120": "898f08304b79dfbd9282786e2caae8d0c75a4fe806c4aa8c4097434726512c21"
+            }
+          },
+          "paired_input_route_status": "walk_only",
+          "geometry_role": "walk_only",
+          "known_forward_walk_arrival_both_rates": true,
+          "jump_necessity_accepted": false,
+          "forward_walk_context": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "forward_walk_source_sha256": {
+            "manifest": "793301dc2578e1f5de68b358204d9aed1d584925a96eb4cc891ee7bfac1d20de",
+            "reports": {
+              "60": "60294bf2ff9627754e21d6696fd39036fe4dcb55c56ffcfa923cc7e44d28d126",
+              "120": "499a7d13412b318b1656cbdcd721ab060a55e28c23f09598ddb61676ceb40390"
+            }
+          }
+        },
+        "modern_cs": {
+          "source_kind": "edge",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "walk_only",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "edge__modern_cs__jump",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "baseline_physical_trace_identical": true,
+          "source_evidence": {
+            "provider": "modern/dust2",
+            "case": "modern_cs__brake_2",
+            "manifest_sha256": "811bddda78b938a323b5051ebf6511897c5dd6dc3a863e523a8e2fc05f3ccc2d",
+            "reports_sha256": {
+              "60": "f5f9e040ed1932c4f663319817d5216bff9e6a323136a33a14f1d242bfecf76f",
+              "120": "bbd22f81f639a8a1e9bb2fc1480e23e6f86481f470f43da8ff65ead8b6d0fccd"
+            }
+          },
+          "paired_input_route_status": "walk_only",
+          "geometry_role": "walk_only",
+          "known_forward_walk_arrival_both_rates": true,
+          "jump_necessity_accepted": false,
+          "forward_walk_context": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "forward_walk_source_sha256": {
+            "manifest": "793301dc2578e1f5de68b358204d9aed1d584925a96eb4cc891ee7bfac1d20de",
+            "reports": {
+              "60": "60294bf2ff9627754e21d6696fd39036fe4dcb55c56ffcfa923cc7e44d28d126",
+              "120": "499a7d13412b318b1656cbdcd721ab060a55e28c23f09598ddb61676ceb40390"
+            }
+          }
+        }
+      },
+      "human_review": "pending"
+    },
+    {
+      "map": "mirage",
+      "kind": "edge",
+      "profiles": {
+        "current": {
+          "source_kind": "edge",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "walk_only",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "edge__current__jump",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": false
+            },
+            "120": {
+              "no_jump": true,
+              "walk": false
+            }
+          },
+          "baseline_physical_trace_identical": true,
+          "source_evidence": {
+            "provider": "edge/mirage",
+            "case": "current__reverse_hold",
+            "manifest_sha256": "a5e838b8556792e2a3190d749edcd3e6694560b23bfce8ac1906fef00f60ff98",
+            "reports_sha256": {
+              "60": "ea2b361b235dd05d0d3119389de628019d8fe61a8a2fe4b008c2490e2cd855fc",
+              "120": "ed19ff93af5f83e89c7200ec6477509a3564f44d52dc46ca84b309c1f313101b"
+            }
+          },
+          "paired_input_route_status": "walk_only",
+          "geometry_role": "walk_only",
+          "known_forward_walk_arrival_both_rates": true,
+          "jump_necessity_accepted": false,
+          "forward_walk_context": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "forward_walk_source_sha256": {
+            "manifest": "397d46e1429d1900d696a9e4ea12583592b45a82876fe3bc6a401b2a6fc39dae",
+            "reports": {
+              "60": "c3e698077ea5709a5407d2dc6b51b3e132d592afa724484686bc7ba89cb2665d",
+              "120": "305840a05c62b6c4458422eaf6d2ce262002505c207b909daeef7a72e2183c3e"
+            }
+          }
+        },
+        "legacy_16": {
+          "source_kind": "edge",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "walk_only",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "edge__legacy_16__jump",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": false
+            },
+            "120": {
+              "no_jump": true,
+              "walk": false
+            }
+          },
+          "baseline_physical_trace_identical": true,
+          "source_evidence": {
+            "provider": "edge/mirage",
+            "case": "legacy_16__reverse_010",
+            "manifest_sha256": "a5e838b8556792e2a3190d749edcd3e6694560b23bfce8ac1906fef00f60ff98",
+            "reports_sha256": {
+              "60": "ea2b361b235dd05d0d3119389de628019d8fe61a8a2fe4b008c2490e2cd855fc",
+              "120": "ed19ff93af5f83e89c7200ec6477509a3564f44d52dc46ca84b309c1f313101b"
+            }
+          },
+          "paired_input_route_status": "walk_only",
+          "geometry_role": "walk_only",
+          "known_forward_walk_arrival_both_rates": true,
+          "jump_necessity_accepted": false,
+          "forward_walk_context": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "forward_walk_source_sha256": {
+            "manifest": "397d46e1429d1900d696a9e4ea12583592b45a82876fe3bc6a401b2a6fc39dae",
+            "reports": {
+              "60": "c3e698077ea5709a5407d2dc6b51b3e132d592afa724484686bc7ba89cb2665d",
+              "120": "305840a05c62b6c4458422eaf6d2ce262002505c207b909daeef7a72e2183c3e"
+            }
+          }
+        },
+        "modern_cs": {
+          "source_kind": "edge",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "walk_only",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "edge__modern_cs__jump",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": false
+            },
+            "120": {
+              "no_jump": true,
+              "walk": false
+            }
+          },
+          "baseline_physical_trace_identical": true,
+          "source_evidence": {
+            "provider": "modern/mirage",
+            "case": "modern_cs__brake_2",
+            "manifest_sha256": "753d8614fc6e0227a5013e74df6f5fd3b646ad0c9a61ae735201c8ad0362c786",
+            "reports_sha256": {
+              "60": "aae64712cc396a7d984e812472d9734efd8d3ca1ac3370fa32c76ae83238dae6",
+              "120": "8bdc760101b204781530f4d59558da67a446d30f37e28d9a0f03222bf01b9767"
+            }
+          },
+          "paired_input_route_status": "walk_only",
+          "geometry_role": "walk_only",
+          "known_forward_walk_arrival_both_rates": true,
+          "jump_necessity_accepted": false,
+          "forward_walk_context": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "forward_walk_source_sha256": {
+            "manifest": "397d46e1429d1900d696a9e4ea12583592b45a82876fe3bc6a401b2a6fc39dae",
+            "reports": {
+              "60": "c3e698077ea5709a5407d2dc6b51b3e132d592afa724484686bc7ba89cb2665d",
+              "120": "305840a05c62b6c4458422eaf6d2ce262002505c207b909daeef7a72e2183c3e"
+            }
+          }
+        }
+      },
+      "human_review": "pending"
+    },
+    {
+      "map": "inferno",
+      "kind": "edge",
+      "profiles": {
+        "current": {
+          "source_kind": "edge",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "walk_only",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "edge__current__jump",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": false
+            },
+            "120": {
+              "no_jump": true,
+              "walk": false
+            }
+          },
+          "baseline_physical_trace_identical": true,
+          "source_evidence": {
+            "provider": "edge/inferno",
+            "case": "current__reverse_hold",
+            "manifest_sha256": "5b622e87a270dd89f2b362f47cc4019de5010c9b0e1a1119eac2578473ead48d",
+            "reports_sha256": {
+              "60": "85fa47df5d2eddc96671064be1f28d0b49609f1f4a7e9ac9ff2cad937f8ad3f6",
+              "120": "013ccd3722591c99f3376eda2929b808a82a78088d855cf0c5710f0c33995aa3"
+            }
+          },
+          "paired_input_route_status": "walk_only",
+          "geometry_role": "walk_only",
+          "known_forward_walk_arrival_both_rates": true,
+          "jump_necessity_accepted": false,
+          "forward_walk_context": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "forward_walk_source_sha256": {
+            "manifest": "5b537cc48caf7dfdc5374c1fc53253434a2d9cc1191b5b6158e4bd5d6d3c5008",
+            "reports": {
+              "60": "000519029b44857ba8e545391b0a4c7678085d3ca61cbf2ac329a6aab5d98beb",
+              "120": "c895d3fe46f28066dffd46d658f9cdbd060ea3c406e78e9fde9ed035cdde733b"
+            }
+          }
+        },
+        "legacy_16": {
+          "source_kind": "edge",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "walk_only",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "edge__legacy_16__jump",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": false
+            },
+            "120": {
+              "no_jump": true,
+              "walk": false
+            }
+          },
+          "baseline_physical_trace_identical": true,
+          "source_evidence": {
+            "provider": "edge/inferno",
+            "case": "legacy_16__reverse_010",
+            "manifest_sha256": "5b622e87a270dd89f2b362f47cc4019de5010c9b0e1a1119eac2578473ead48d",
+            "reports_sha256": {
+              "60": "85fa47df5d2eddc96671064be1f28d0b49609f1f4a7e9ac9ff2cad937f8ad3f6",
+              "120": "013ccd3722591c99f3376eda2929b808a82a78088d855cf0c5710f0c33995aa3"
+            }
+          },
+          "paired_input_route_status": "walk_only",
+          "geometry_role": "walk_only",
+          "known_forward_walk_arrival_both_rates": true,
+          "jump_necessity_accepted": false,
+          "forward_walk_context": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "forward_walk_source_sha256": {
+            "manifest": "5b537cc48caf7dfdc5374c1fc53253434a2d9cc1191b5b6158e4bd5d6d3c5008",
+            "reports": {
+              "60": "000519029b44857ba8e545391b0a4c7678085d3ca61cbf2ac329a6aab5d98beb",
+              "120": "c895d3fe46f28066dffd46d658f9cdbd060ea3c406e78e9fde9ed035cdde733b"
+            }
+          }
+        },
+        "modern_cs": {
+          "source_kind": "edge",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": true,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "walk_only",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "edge__modern_cs__jump",
+          "controls": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "baseline_physical_trace_identical": true,
+          "source_evidence": {
+            "provider": "modern/inferno",
+            "case": "modern_cs__brake_2",
+            "manifest_sha256": "65bf206a0f42c19bc62de648b2b324457816d5490b306cf2854231ba426146e9",
+            "reports_sha256": {
+              "60": "884ebf528297dd231163142fd4379fc75cfc5d9984804b1afb830884ed270f33",
+              "120": "1c65131f7318cbfc5d5553c667e7e94c29c1c551370b03369173471f0d3f89a2"
+            }
+          },
+          "paired_input_route_status": "walk_only",
+          "geometry_role": "walk_only",
+          "known_forward_walk_arrival_both_rates": true,
+          "jump_necessity_accepted": false,
+          "forward_walk_context": {
+            "60": {
+              "no_jump": true,
+              "walk": true
+            },
+            "120": {
+              "no_jump": true,
+              "walk": true
+            }
+          },
+          "forward_walk_source_sha256": {
+            "manifest": "5b537cc48caf7dfdc5374c1fc53253434a2d9cc1191b5b6158e4bd5d6d3c5008",
+            "reports": {
+              "60": "000519029b44857ba8e545391b0a4c7678085d3ca61cbf2ac329a6aab5d98beb",
+              "120": "c895d3fe46f28066dffd46d658f9cdbd060ea3c406e78e9fde9ed035cdde733b"
+            }
+          }
+        }
+      },
+      "human_review": "pending"
+    }
+  ],
+  "new_native_trials": 54,
+  "new_control_trials": 36,
+  "repeated_jump_trials": 18,
+  "original_geometry_body_envelopes": 6,
+  "formal_release_ready": false,
+  "human_acceptance": false,
+  "precision_equivalence_accepted": false,
+  "movement5_frozen": true,
+  "production_changed": false,
+  "checker_sha256": "503d9a8dc590bb71e5a4d6a4862c94dab0037697012f727ddf3941fdc22ede63",
+  "phase": "Movement-4 parallel slice: paired three-map edge controls and current corridors",
+  "base": "ef5427cc37c8f7eed052115e5e1c3d23d329eca7",
+  "new_focused_regressions": 9,
+  "pyright_errors": 0,
+  "format_lint_compile": "passed",
+  "gdscript_format_lint": "passed",
+  "paired_control_arrivals": 22,
+  "paired_no_jump_arrivals": 18,
+  "paired_standing_walk_arrivals": 4,
+  "all_new_jump_first_landings": 18,
+  "new_evidence_sha256": {
+    "dust2": {
+      "manifest": "05d772cea0a62db5bebbdbb70f5a535f17ac3d514d88a488046b5e594376902a",
+      "reports": {
+        "60": "e44e4c2060d65df0693f985cfdd4cba0405a3c99f9310d089eb046300c5e18a9",
+        "120": "8795b82459a4a69a970fa1b68dc9d8614a8e536d8c57153b0bb7c37bde241e61"
+      }
+    },
+    "mirage": {
+      "manifest": "690e34da5a5531a86e84fdd769abe764d4828ef872d28dcf21f882acb200c13a",
+      "reports": {
+        "60": "0b0cb9fdfa24e56a1ca1cc8e78a1f99a429c3d98346a5ecc952d576b1050ea69",
+        "120": "93e015c53a2abb6506b71e0bf4157b4328f08c6fe040e11a2a825951fcd724f5"
+      }
+    },
+    "inferno": {
+      "manifest": "d1724452c73f5c1c0cd218dea3e984ac6dd92c4130072ed62f1085e4dd59c3d6",
+      "reports": {
+        "60": "9fa3ab15845558304d0f092fade76319ddb879a43e41bb9480331e4e42cfdf0b",
+        "120": "d69229a7d541df9e12fa17320acab2ecc7d7bf6320ef5d5c8b8ba861a725a726"
+      }
+    }
+  },
+  "matrix_lock_sha256": "f7cebbb71ed10d867c1006c9cf70edb9b219a75b3ad6f920611744eb09fba42c",
+  "walking_context_lock_sha256": "f10ef1b70d51cf0ac3b78e3917543ec6fc2e14b8fd9c4a9822d50c962ba9826c",
+  "package_updated": false,
+  "limits": [
+    "All nine edge profile groups are walk_only, not jump-required coverage.",
+    "Controls preserve braking schedule but do not certify real player precision, original engine equivalence or manual play.",
+    "Body envelopes are frozen geometric sweeps, not a proof that all spawn-to-goal approaches are navigable.",
+    "One Mirage process exited before report without diagnostics; missing case retried successfully using single-threaded scene and compatibility rendering. Exit cause unproven."
+  ]
+}
