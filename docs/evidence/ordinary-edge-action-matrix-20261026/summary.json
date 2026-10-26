@@ -1,0 +1,924 @@
+{
+  "formal_release_ready": false,
+  "human_acceptance": false,
+  "precision_equivalence_accepted": false,
+  "route_qualification_replaced": false,
+  "trials": 108,
+  "points": [
+    {
+      "map": "dust2",
+      "kind": "ordinary",
+      "scheme": "current",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.25,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.25,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "edge_context": {
+        "60": true,
+        "120": true
+      },
+      "edge_observation": {},
+      "edge_lip_timing_accepted": false,
+      "category_action_passed": true,
+      "route_status": "not_requalified",
+      "control_arrivals": {
+        "60": {
+          "no_jump": true,
+          "walk": true
+        },
+        "120": {
+          "no_jump": true,
+          "walk": true
+        }
+      }
+    },
+    {
+      "map": "dust2",
+      "kind": "ordinary",
+      "scheme": "legacy_16",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.25,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.25,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "edge_context": {
+        "60": true,
+        "120": true
+      },
+      "edge_observation": {},
+      "edge_lip_timing_accepted": false,
+      "category_action_passed": true,
+      "route_status": "not_requalified",
+      "control_arrivals": {
+        "60": {
+          "no_jump": true,
+          "walk": true
+        },
+        "120": {
+          "no_jump": true,
+          "walk": true
+        }
+      }
+    },
+    {
+      "map": "dust2",
+      "kind": "ordinary",
+      "scheme": "modern_cs",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.25,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.25,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "edge_context": {
+        "60": true,
+        "120": true
+      },
+      "edge_observation": {},
+      "edge_lip_timing_accepted": false,
+      "category_action_passed": true,
+      "route_status": "not_requalified",
+      "control_arrivals": {
+        "60": {
+          "no_jump": true,
+          "walk": true
+        },
+        "120": {
+          "no_jump": true,
+          "walk": true
+        }
+      }
+    },
+    {
+      "map": "dust2",
+      "kind": "edge",
+      "scheme": "current",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "edge_context": {
+        "60": false,
+        "120": false
+      },
+      "edge_observation": {
+        "60": {
+          "control_first_loss_time": null,
+          "control_drop_metres": 0.0003750324249200965
+        },
+        "120": {
+          "control_first_loss_time": null,
+          "control_drop_metres": 0.00014102458954012853
+        }
+      },
+      "edge_lip_timing_accepted": false,
+      "category_action_passed": false,
+      "route_status": "not_requalified",
+      "control_arrivals": {
+        "60": {
+          "no_jump": false,
+          "walk": false
+        },
+        "120": {
+          "no_jump": false,
+          "walk": false
+        }
+      }
+    },
+    {
+      "map": "dust2",
+      "kind": "edge",
+      "scheme": "legacy_16",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "edge_context": {
+        "60": false,
+        "120": false
+      },
+      "edge_observation": {
+        "60": {
+          "control_first_loss_time": null,
+          "control_drop_metres": -0.001382589340209961
+        },
+        "120": {
+          "control_first_loss_time": null,
+          "control_drop_metres": 0.00014102458954012853
+        }
+      },
+      "edge_lip_timing_accepted": false,
+      "category_action_passed": false,
+      "route_status": "not_requalified",
+      "control_arrivals": {
+        "60": {
+          "no_jump": false,
+          "walk": false
+        },
+        "120": {
+          "no_jump": false,
+          "walk": false
+        }
+      }
+    },
+    {
+      "map": "dust2",
+      "kind": "edge",
+      "scheme": "modern_cs",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "edge_context": {
+        "60": false,
+        "120": false
+      },
+      "edge_observation": {
+        "60": {
+          "control_first_loss_time": null,
+          "control_drop_metres": 0.0003750324249200965
+        },
+        "120": {
+          "control_first_loss_time": null,
+          "control_drop_metres": 0.00014102458954012853
+        }
+      },
+      "edge_lip_timing_accepted": false,
+      "category_action_passed": false,
+      "route_status": "not_requalified",
+      "control_arrivals": {
+        "60": {
+          "no_jump": false,
+          "walk": false
+        },
+        "120": {
+          "no_jump": false,
+          "walk": false
+        }
+      }
+    },
+    {
+      "map": "mirage",
+      "kind": "ordinary",
+      "scheme": "current",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.25,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.25,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "edge_context": {
+        "60": true,
+        "120": true
+      },
+      "edge_observation": {},
+      "edge_lip_timing_accepted": false,
+      "category_action_passed": true,
+      "route_status": "not_requalified",
+      "control_arrivals": {
+        "60": {
+          "no_jump": true,
+          "walk": true
+        },
+        "120": {
+          "no_jump": true,
+          "walk": true
+        }
+      }
+    },
+    {
+      "map": "mirage",
+      "kind": "ordinary",
+      "scheme": "legacy_16",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.25,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.25,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "edge_context": {
+        "60": true,
+        "120": true
+      },
+      "edge_observation": {},
+      "edge_lip_timing_accepted": false,
+      "category_action_passed": true,
+      "route_status": "not_requalified",
+      "control_arrivals": {
+        "60": {
+          "no_jump": true,
+          "walk": true
+        },
+        "120": {
+          "no_jump": true,
+          "walk": true
+        }
+      }
+    },
+    {
+      "map": "mirage",
+      "kind": "ordinary",
+      "scheme": "modern_cs",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.25,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.25,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "edge_context": {
+        "60": true,
+        "120": true
+      },
+      "edge_observation": {},
+      "edge_lip_timing_accepted": false,
+      "category_action_passed": true,
+      "route_status": "not_requalified",
+      "control_arrivals": {
+        "60": {
+          "no_jump": true,
+          "walk": true
+        },
+        "120": {
+          "no_jump": true,
+          "walk": true
+        }
+      }
+    },
+    {
+      "map": "mirage",
+      "kind": "edge",
+      "scheme": "current",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "edge_context": {
+        "60": true,
+        "120": true
+      },
+      "edge_observation": {
+        "60": {
+          "control_first_loss_time": 0.25,
+          "control_drop_metres": 0.7535309195518531
+        },
+        "120": {
+          "control_first_loss_time": 0.266666666666667,
+          "control_drop_metres": 0.7530168294906621
+        }
+      },
+      "edge_lip_timing_accepted": false,
+      "category_action_passed": true,
+      "route_status": "not_requalified",
+      "control_arrivals": {
+        "60": {
+          "no_jump": true,
+          "walk": true
+        },
+        "120": {
+          "no_jump": true,
+          "walk": true
+        }
+      }
+    },
+    {
+      "map": "mirage",
+      "kind": "edge",
+      "scheme": "legacy_16",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "edge_context": {
+        "60": true,
+        "120": true
+      },
+      "edge_observation": {
+        "60": {
+          "control_first_loss_time": 0.216666666666667,
+          "control_drop_metres": 0.7551843523979231
+        },
+        "120": {
+          "control_first_loss_time": 0.225,
+          "control_drop_metres": 0.755186915397642
+        }
+      },
+      "edge_lip_timing_accepted": false,
+      "category_action_passed": true,
+      "route_status": "not_requalified",
+      "control_arrivals": {
+        "60": {
+          "no_jump": true,
+          "walk": true
+        },
+        "120": {
+          "no_jump": true,
+          "walk": true
+        }
+      }
+    },
+    {
+      "map": "mirage",
+      "kind": "edge",
+      "scheme": "modern_cs",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "edge_context": {
+        "60": true,
+        "120": true
+      },
+      "edge_observation": {
+        "60": {
+          "control_first_loss_time": 0.316666666666667,
+          "control_drop_metres": 0.756335437297823
+        },
+        "120": {
+          "control_first_loss_time": 0.325,
+          "control_drop_metres": 0.756358504295352
+        }
+      },
+      "edge_lip_timing_accepted": false,
+      "category_action_passed": true,
+      "route_status": "not_requalified",
+      "control_arrivals": {
+        "60": {
+          "no_jump": true,
+          "walk": true
+        },
+        "120": {
+          "no_jump": true,
+          "walk": true
+        }
+      }
+    },
+    {
+      "map": "inferno",
+      "kind": "ordinary",
+      "scheme": "current",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.25,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.25,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "edge_context": {
+        "60": true,
+        "120": true
+      },
+      "edge_observation": {},
+      "edge_lip_timing_accepted": false,
+      "category_action_passed": true,
+      "route_status": "not_requalified",
+      "control_arrivals": {
+        "60": {
+          "no_jump": true,
+          "walk": true
+        },
+        "120": {
+          "no_jump": true,
+          "walk": true
+        }
+      }
+    },
+    {
+      "map": "inferno",
+      "kind": "ordinary",
+      "scheme": "legacy_16",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.25,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.25,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "edge_context": {
+        "60": true,
+        "120": true
+      },
+      "edge_observation": {},
+      "edge_lip_timing_accepted": false,
+      "category_action_passed": true,
+      "route_status": "not_requalified",
+      "control_arrivals": {
+        "60": {
+          "no_jump": true,
+          "walk": true
+        },
+        "120": {
+          "no_jump": true,
+          "walk": true
+        }
+      }
+    },
+    {
+      "map": "inferno",
+      "kind": "ordinary",
+      "scheme": "modern_cs",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.25,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.25,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "edge_context": {
+        "60": true,
+        "120": true
+      },
+      "edge_observation": {},
+      "edge_lip_timing_accepted": false,
+      "category_action_passed": true,
+      "route_status": "not_requalified",
+      "control_arrivals": {
+        "60": {
+          "no_jump": true,
+          "walk": true
+        },
+        "120": {
+          "no_jump": true,
+          "walk": true
+        }
+      }
+    },
+    {
+      "map": "inferno",
+      "kind": "edge",
+      "scheme": "current",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "edge_context": {
+        "60": false,
+        "120": false
+      },
+      "edge_observation": {
+        "60": {
+          "control_first_loss_time": null,
+          "control_drop_metres": 0.00012010335922296722
+        },
+        "120": {
+          "control_first_loss_time": null,
+          "control_drop_metres": 0.0
+        }
+      },
+      "edge_lip_timing_accepted": false,
+      "category_action_passed": false,
+      "route_status": "not_requalified",
+      "control_arrivals": {
+        "60": {
+          "no_jump": false,
+          "walk": false
+        },
+        "120": {
+          "no_jump": false,
+          "walk": false
+        }
+      }
+    },
+    {
+      "map": "inferno",
+      "kind": "edge",
+      "scheme": "legacy_16",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "edge_context": {
+        "60": false,
+        "120": false
+      },
+      "edge_observation": {
+        "60": {
+          "control_first_loss_time": null,
+          "control_drop_metres": 0.00012010335922296722
+        },
+        "120": {
+          "control_first_loss_time": null,
+          "control_drop_metres": 0.0
+        }
+      },
+      "edge_lip_timing_accepted": false,
+      "category_action_passed": false,
+      "route_status": "not_requalified",
+      "control_arrivals": {
+        "60": {
+          "no_jump": false,
+          "walk": false
+        },
+        "120": {
+          "no_jump": false,
+          "walk": false
+        }
+      }
+    },
+    {
+      "map": "inferno",
+      "kind": "edge",
+      "scheme": "modern_cs",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "edge_context": {
+        "60": false,
+        "120": false
+      },
+      "edge_observation": {
+        "60": {
+          "control_first_loss_time": null,
+          "control_drop_metres": 0.00012010335922296722
+        },
+        "120": {
+          "control_first_loss_time": null,
+          "control_drop_metres": 0.0
+        }
+      },
+      "edge_lip_timing_accepted": false,
+      "category_action_passed": false,
+      "route_status": "not_requalified",
+      "control_arrivals": {
+        "60": {
+          "no_jump": false,
+          "walk": false
+        },
+        "120": {
+          "no_jump": false,
+          "walk": false
+        }
+      }
+    }
+  ],
+  "evidence_sha256": {
+    "dust2-actions-v1.json": "d94ecd988bad5342fd074c53498fb8db1ae05a7c26fb52e259dbbafcc78c7bae",
+    "source/dust2-manifest.json": "b5a60ec7dbc7ba5fbdbc229c039a09c0b167fa44b1874f9ebe5d9d13e8c2ffce",
+    "dust2-60.json": "16e1a3b0d54dac1411d2ade7a88b78824c2534bd4d3544c6a9711203865e0a9b",
+    "dust2-120.json": "d99ea474e266b83fe9400a538b3a1e02478567e4f151df2021a70b54724b7401",
+    "mirage-actions-v1.json": "d4ccb57cafc7a5bd58c78b5bd1417744061fc731697afa7abbeb89e18bccd1a9",
+    "source/mirage-manifest.json": "a79fae49c128524812e560942a4f9904be19311d894a62e235319411f148d975",
+    "mirage-60.json": "22826e0e8d1d7096c8f1b7acd9c86af2e46a5e6ec7bc2977d87476d3ccc78730",
+    "mirage-120.json": "6857141a936575a8baf4566217acb3e7c0dfa76f0027f4db502d4833866e61d9",
+    "inferno-actions-v1.json": "2c14f924605c01883b8ce36db667e6574e1b867d011c72b451002564b009e71d",
+    "source/inferno-manifest.json": "f48351cab077bd9cd2c222a22bdc0b9033332801596964d5879941bcb27829de",
+    "inferno-60.json": "582717b9311cd91bd137a43534ccb951542ae5eb02d6f1b587b591d97e3eacf5",
+    "inferno-120.json": "2a95a75b2a13fdf28dc62d403bd3d887998b2a613b1260c0c4347712fd3fdafa"
+  },
+  "checker_sha256": "b7471d1fc8e264f038fa08e709e1baf06d0c9a648f191514e1937dbdc3acb941",
+  "validation": {
+    "ordinary_python_tests": 231,
+    "new_regressions": 9,
+    "r9_trials_rechecked_unchanged": 144,
+    "source_evidence_preserved": true,
+    "imports_and_settings_preserved": true,
+    "production_changed": false,
+    "full_native_suite_repeated": false
+  }
+}
