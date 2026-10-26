@@ -1,0 +1,1062 @@
+{
+  "schema": 1,
+  "observations": {
+    "60": {
+      "baseline": {
+        "action": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "first_landing": true,
+        "takeoff_seconds": 0.1,
+        "landing_tick_start_seconds": 0.716666666666667,
+        "first_air_lateral_contact": {
+          "observed": true,
+          "tick": 7,
+          "tick_start_seconds": 0.116666666666667,
+          "physics_interval_end_seconds": 0.13333333333333366,
+          "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+          "normal": [
+            0.99250328540802,
+            0.122217282652855,
+            6.83938239376403e-08
+          ],
+          "incoming_horizontal_mps": 1.8567399978637718,
+          "outgoing_horizontal_mps": 0.9171097278595086,
+          "contact_projection_horizontal_error_mps": 6.523761519883275e-08,
+          "changed_auxiliary_stages": [],
+          "air_projection_cap_mps": 0.762,
+          "outgoing_above_air_projection_cap": true,
+          "scope": "recorded_contact_plane_projection_not_complete_solver_reimplementation"
+        },
+        "landing_contacts": [
+          {
+            "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+            "normal_y": 1.0,
+            "target_plane_error_m": 0.0
+          },
+          {
+            "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+            "normal_y": 1.0,
+            "target_plane_error_m": 0.0
+          }
+        ],
+        "prelanding_stage_changes": [
+          {
+            "time": 0.7,
+            "stage": "snap",
+            "delta_y": -0.39761447906493963,
+            "displacement": 0.39761447906493963,
+            "velocity_change": 4.52136564254761,
+            "grounded_before": false,
+            "grounded_after": false,
+            "velocity_y_before": -4.52136564254761,
+            "velocity_y_after": 0.0
+          }
+        ],
+        "prefix_through_shared_contact_interval_identical": true
+      },
+      "no_pre": {
+        "action": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "first_landing": true,
+        "takeoff_seconds": 0.1,
+        "landing_tick_start_seconds": 0.716666666666667,
+        "first_air_lateral_contact": {
+          "observed": true,
+          "tick": 7,
+          "tick_start_seconds": 0.116666666666667,
+          "physics_interval_end_seconds": 0.13333333333333366,
+          "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+          "normal": [
+            0.99250328540802,
+            0.122217282652855,
+            6.83938239376403e-08
+          ],
+          "incoming_horizontal_mps": 1.8567399978637718,
+          "outgoing_horizontal_mps": 0.9171097278595086,
+          "contact_projection_horizontal_error_mps": 6.523761519883275e-08,
+          "changed_auxiliary_stages": [],
+          "air_projection_cap_mps": 0.762,
+          "outgoing_above_air_projection_cap": true,
+          "scope": "recorded_contact_plane_projection_not_complete_solver_reimplementation"
+        },
+        "landing_contacts": [
+          {
+            "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+            "normal_y": 1.0,
+            "target_plane_error_m": 0.0
+          },
+          {
+            "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+            "normal_y": 1.0,
+            "target_plane_error_m": 0.0
+          }
+        ],
+        "prelanding_stage_changes": [
+          {
+            "time": 0.7,
+            "stage": "snap",
+            "delta_y": -0.39761447906493963,
+            "displacement": 0.39761447906493963,
+            "velocity_change": 4.52136564254761,
+            "grounded_before": false,
+            "grounded_after": false,
+            "velocity_y_before": -4.52136564254761,
+            "velocity_y_after": 0.0
+          }
+        ],
+        "prefix_through_shared_contact_interval_identical": true
+      },
+      "no_try": {
+        "action": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "first_landing": true,
+        "takeoff_seconds": 0.1,
+        "landing_tick_start_seconds": 0.716666666666667,
+        "first_air_lateral_contact": {
+          "observed": true,
+          "tick": 7,
+          "tick_start_seconds": 0.116666666666667,
+          "physics_interval_end_seconds": 0.13333333333333366,
+          "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+          "normal": [
+            0.99250328540802,
+            0.122217282652855,
+            6.83938239376403e-08
+          ],
+          "incoming_horizontal_mps": 1.8567399978637718,
+          "outgoing_horizontal_mps": 0.9171097278595086,
+          "contact_projection_horizontal_error_mps": 6.523761519883275e-08,
+          "changed_auxiliary_stages": [],
+          "air_projection_cap_mps": 0.762,
+          "outgoing_above_air_projection_cap": true,
+          "scope": "recorded_contact_plane_projection_not_complete_solver_reimplementation"
+        },
+        "landing_contacts": [
+          {
+            "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+            "normal_y": 1.0,
+            "target_plane_error_m": 0.0
+          },
+          {
+            "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+            "normal_y": 1.0,
+            "target_plane_error_m": 0.0
+          }
+        ],
+        "prelanding_stage_changes": [
+          {
+            "time": 0.7,
+            "stage": "snap",
+            "delta_y": -0.39761447906493963,
+            "displacement": 0.39761447906493963,
+            "velocity_change": 4.52136564254761,
+            "grounded_before": false,
+            "grounded_after": false,
+            "velocity_y_before": -4.52136564254761,
+            "velocity_y_after": 0.0
+          }
+        ],
+        "prefix_through_shared_contact_interval_identical": true
+      },
+      "no_snap": {
+        "action": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "first_landing": true,
+        "takeoff_seconds": 0.1,
+        "landing_tick_start_seconds": 0.783333333333333,
+        "first_air_lateral_contact": {
+          "observed": true,
+          "tick": 7,
+          "tick_start_seconds": 0.116666666666667,
+          "physics_interval_end_seconds": 0.13333333333333366,
+          "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+          "normal": [
+            0.99250328540802,
+            0.122217282652855,
+            6.83938239376403e-08
+          ],
+          "incoming_horizontal_mps": 1.8567399978637718,
+          "outgoing_horizontal_mps": 0.9171097278595086,
+          "contact_projection_horizontal_error_mps": 6.523761519883275e-08,
+          "changed_auxiliary_stages": [],
+          "air_projection_cap_mps": 0.762,
+          "outgoing_above_air_projection_cap": true,
+          "scope": "recorded_contact_plane_projection_not_complete_solver_reimplementation"
+        },
+        "landing_contacts": [
+          {
+            "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+            "normal_y": 1.0,
+            "target_plane_error_m": 0.0
+          },
+          {
+            "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+            "normal_y": 1.0,
+            "target_plane_error_m": -4.768371502095192e-07
+          }
+        ],
+        "prelanding_stage_changes": [],
+        "prefix_through_shared_contact_interval_identical": true
+      }
+    },
+    "120": {
+      "baseline": {
+        "action": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "first_landing": true,
+        "takeoff_seconds": 0.1,
+        "landing_tick_start_seconds": 0.7,
+        "first_air_lateral_contact": {
+          "observed": false
+        },
+        "landing_contacts": [
+          {
+            "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+            "normal_y": 1.0,
+            "target_plane_error_m": 0.0
+          },
+          {
+            "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+            "normal_y": 1.0,
+            "target_plane_error_m": 0.0
+          }
+        ],
+        "prelanding_stage_changes": [
+          {
+            "time": 0.691666666666667,
+            "stage": "snap",
+            "delta_y": -0.4215884208679199,
+            "displacement": 0.4215884208679199,
+            "velocity_change": 4.35203504562378,
+            "grounded_before": false,
+            "grounded_after": false,
+            "velocity_y_before": -4.35203504562378,
+            "velocity_y_after": 0.0
+          }
+        ],
+        "prefix_through_shared_contact_interval_identical": true
+      },
+      "no_pre": {
+        "action": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "first_landing": true,
+        "takeoff_seconds": 0.1,
+        "landing_tick_start_seconds": 0.7,
+        "first_air_lateral_contact": {
+          "observed": false
+        },
+        "landing_contacts": [
+          {
+            "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+            "normal_y": 1.0,
+            "target_plane_error_m": 0.0
+          },
+          {
+            "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+            "normal_y": 1.0,
+            "target_plane_error_m": 0.0
+          }
+        ],
+        "prelanding_stage_changes": [
+          {
+            "time": 0.691666666666667,
+            "stage": "snap",
+            "delta_y": -0.4215884208679199,
+            "displacement": 0.4215884208679199,
+            "velocity_change": 4.35203504562378,
+            "grounded_before": false,
+            "grounded_after": false,
+            "velocity_y_before": -4.35203504562378,
+            "velocity_y_after": 0.0
+          }
+        ],
+        "prefix_through_shared_contact_interval_identical": true
+      },
+      "no_try": {
+        "action": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "first_landing": true,
+        "takeoff_seconds": 0.1,
+        "landing_tick_start_seconds": 0.7,
+        "first_air_lateral_contact": {
+          "observed": false
+        },
+        "landing_contacts": [
+          {
+            "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+            "normal_y": 1.0,
+            "target_plane_error_m": 0.0
+          },
+          {
+            "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+            "normal_y": 1.0,
+            "target_plane_error_m": 0.0
+          }
+        ],
+        "prelanding_stage_changes": [
+          {
+            "time": 0.691666666666667,
+            "stage": "snap",
+            "delta_y": -0.4215884208679199,
+            "displacement": 0.4215884208679199,
+            "velocity_change": 4.35203504562378,
+            "grounded_before": false,
+            "grounded_after": false,
+            "velocity_y_before": -4.35203504562378,
+            "velocity_y_after": 0.0
+          }
+        ],
+        "prefix_through_shared_contact_interval_identical": true
+      },
+      "no_snap": {
+        "action": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "first_landing": true,
+        "takeoff_seconds": 0.1,
+        "landing_tick_start_seconds": 0.775,
+        "first_air_lateral_contact": {
+          "observed": false
+        },
+        "landing_contacts": [
+          {
+            "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+            "normal_y": 1.0,
+            "target_plane_error_m": 0.0
+          },
+          {
+            "body": "player_collision/OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip_vrf_unknown_key_2838185980/RuntimeCollision",
+            "normal_y": 1.0,
+            "target_plane_error_m": 0.0
+          }
+        ],
+        "prelanding_stage_changes": [],
+        "prefix_through_shared_contact_interval_identical": true
+      }
+    }
+  },
+  "comparisons": {
+    "baseline": {
+      "first_landing_delta_m": 0.5114558871068697,
+      "first_landing_time_delta_seconds": 0.01666666666666705
+    },
+    "no_pre": {
+      "first_landing_delta_m": 0.5114558871068697,
+      "first_landing_time_delta_seconds": 0.01666666666666705
+    },
+    "no_try": {
+      "first_landing_delta_m": 0.5114558871068697,
+      "first_landing_time_delta_seconds": 0.01666666666666705
+    },
+    "no_snap": {
+      "first_landing_delta_m": 0.5895652785288704,
+      "first_landing_time_delta_seconds": 0.00833333333333297
+    }
+  },
+  "aligned_end_states": [
+    {
+      "end_seconds": 0.016666666666666666,
+      "position_delta_m": 0.0028233398880745586,
+      "horizontal_velocity_delta_mps": 0.08805334568023707
+    },
+    {
+      "end_seconds": 0.03333333333333333,
+      "position_delta_m": 0.005674498420184171,
+      "horizontal_velocity_delta_mps": 0.08805334568023701
+    },
+    {
+      "end_seconds": 0.05,
+      "position_delta_m": 0.008460973287809282,
+      "horizontal_velocity_delta_mps": 0.08805322647094024
+    },
+    {
+      "end_seconds": 0.06666666666666667,
+      "position_delta_m": 0.011282760385772654,
+      "horizontal_velocity_delta_mps": 0.08805322647095024
+    },
+    {
+      "end_seconds": 0.08333333333333333,
+      "position_delta_m": 0.01410968065166466,
+      "horizontal_velocity_delta_mps": 0.08805322647095024
+    },
+    {
+      "end_seconds": 0.1,
+      "position_delta_m": 0.014115767161057008,
+      "horizontal_velocity_delta_mps": 7.105427397305671e-15
+    },
+    {
+      "end_seconds": 0.11666666666666667,
+      "position_delta_m": 0.014320258842567102,
+      "horizontal_velocity_delta_mps": 7.105427397305671e-15
+    },
+    {
+      "end_seconds": 0.13333333333333333,
+      "position_delta_m": 0.006778564958608654,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.15,
+      "position_delta_m": 0.010914726390450224,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.16666666666666666,
+      "position_delta_m": 0.026205368045926707,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.18333333333333332,
+      "position_delta_m": 0.04181781505140138,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.2,
+      "position_delta_m": 0.0574903736136983,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.21666666666666667,
+      "position_delta_m": 0.07318454366507715,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.23333333333333334,
+      "position_delta_m": 0.08888877417512969,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.25,
+      "position_delta_m": 0.10459857510794483,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.26666666666666666,
+      "position_delta_m": 0.12031182262248465,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.2833333333333333,
+      "position_delta_m": 0.13602728071947706,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.3,
+      "position_delta_m": 0.1517442075449411,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.31666666666666665,
+      "position_delta_m": 0.16746228528422302,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.3333333333333333,
+      "position_delta_m": 0.18318117575430584,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.35,
+      "position_delta_m": 0.1989006341305795,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.36666666666666664,
+      "position_delta_m": 0.21462057767541456,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.38333333333333336,
+      "position_delta_m": 0.2303409070557613,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.4,
+      "position_delta_m": 0.24606159866852872,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.4166666666666667,
+      "position_delta_m": 0.2617824951771596,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.43333333333333335,
+      "position_delta_m": 0.27750360397733076,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.45,
+      "position_delta_m": 0.29322494005691396,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.4666666666666667,
+      "position_delta_m": 0.3089464264420457,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.48333333333333334,
+      "position_delta_m": 0.32466799277705327,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.5,
+      "position_delta_m": 0.34038967030990597,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.5166666666666667,
+      "position_delta_m": 0.3561114443134254,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.5333333333333333,
+      "position_delta_m": 0.3718333503450158,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.55,
+      "position_delta_m": 0.3875552823615661,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.5666666666666667,
+      "position_delta_m": 0.40327727972361266,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.5833333333333334,
+      "position_delta_m": 0.41899938230752237,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.6,
+      "position_delta_m": 0.4347215362687983,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.6166666666666667,
+      "position_delta_m": 0.4504436893043403,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.6333333333333333,
+      "position_delta_m": 0.46616593074549234,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.65,
+      "position_delta_m": 0.4818881628204061,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.6666666666666666,
+      "position_delta_m": 0.49761047542439446,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.6833333333333333,
+      "position_delta_m": 0.5133327722550394,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.7,
+      "position_delta_m": 0.7077851775611234,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.7166666666666667,
+      "position_delta_m": 0.5422135441568425,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.7333333333333333,
+      "position_delta_m": 0.5578769089073311,
+      "horizontal_velocity_delta_mps": 0.9396302700042752
+    },
+    {
+      "end_seconds": 0.75,
+      "position_delta_m": 0.5681269946507644,
+      "horizontal_velocity_delta_mps": 0.6151452064514228
+    },
+    {
+      "end_seconds": 0.7666666666666667,
+      "position_delta_m": 0.5729716575046182,
+      "horizontal_velocity_delta_mps": 0.29066014289856634
+    },
+    {
+      "end_seconds": 0.7833333333333333,
+      "position_delta_m": 0.5729716575047248,
+      "horizontal_velocity_delta_mps": 6.512374284284319e-08
+    },
+    {
+      "end_seconds": 0.8,
+      "position_delta_m": 0.5729716575046182,
+      "horizontal_velocity_delta_mps": 5.8946923786607195e-08
+    },
+    {
+      "end_seconds": 0.8166666666666667,
+      "position_delta_m": 0.5729716575047248,
+      "horizontal_velocity_delta_mps": 5.33559614268602e-08
+    },
+    {
+      "end_seconds": 0.8333333333333334,
+      "position_delta_m": 0.5729716575046182,
+      "horizontal_velocity_delta_mps": 4.82952913216652e-08
+    },
+    {
+      "end_seconds": 0.85,
+      "position_delta_m": 0.5729716575047248,
+      "horizontal_velocity_delta_mps": 4.371462125618519e-08
+    },
+    {
+      "end_seconds": 0.8666666666666667,
+      "position_delta_m": 0.5729716575046182,
+      "horizontal_velocity_delta_mps": 3.95684054410592e-08
+    },
+    {
+      "end_seconds": 0.8833333333333333,
+      "position_delta_m": 0.5729716575047248,
+      "horizontal_velocity_delta_mps": 3.58154537138942e-08
+    },
+    {
+      "end_seconds": 0.9,
+      "position_delta_m": 0.5729716575046182,
+      "horizontal_velocity_delta_mps": 3.24184554756362e-08
+    },
+    {
+      "end_seconds": 0.9166666666666666,
+      "position_delta_m": 0.5729716575047248,
+      "horizontal_velocity_delta_mps": 2.9343659946335194e-08
+    },
+    {
+      "end_seconds": 0.9333333333333333,
+      "position_delta_m": 0.5729716575046182,
+      "horizontal_velocity_delta_mps": 2.6560499577499193e-08
+    },
+    {
+      "end_seconds": 0.95,
+      "position_delta_m": 0.5729717082944982,
+      "horizontal_velocity_delta_mps": 2.4041312940426195e-08
+    },
+    {
+      "end_seconds": 0.9666666666666667,
+      "position_delta_m": 0.5729678935995159,
+      "horizontal_velocity_delta_mps": 2.1761060509107192e-08
+    },
+    {
+      "end_seconds": 0.9833333333333333,
+      "position_delta_m": 0.5729678935996225,
+      "horizontal_velocity_delta_mps": 1.96970830756982e-08
+    },
+    {
+      "end_seconds": 1.0,
+      "position_delta_m": 0.5729678935995159,
+      "horizontal_velocity_delta_mps": 1.7828874376846202e-08
+    },
+    {
+      "end_seconds": 1.0166666666666666,
+      "position_delta_m": 0.5729678935996225,
+      "horizontal_velocity_delta_mps": 1.6137853720010793e-08
+    },
+    {
+      "end_seconds": 1.0333333333333334,
+      "position_delta_m": 0.5729678935995159,
+      "horizontal_velocity_delta_mps": 1.4607223874918392e-08
+    },
+    {
+      "end_seconds": 1.05,
+      "position_delta_m": 0.5729678935996225,
+      "horizontal_velocity_delta_mps": 1.32217721215966e-08
+    },
+    {
+      "end_seconds": 1.0666666666666667,
+      "position_delta_m": 0.5729678935995159,
+      "horizontal_velocity_delta_mps": 1.1967728141826202e-08
+    },
+    {
+      "end_seconds": 1.0833333333333333,
+      "position_delta_m": 0.5729678935996225,
+      "horizontal_velocity_delta_mps": 1.0832621910594793e-08
+    },
+    {
+      "end_seconds": 1.1,
+      "position_delta_m": 0.5729678935995159,
+      "horizontal_velocity_delta_mps": 9.805177114685701e-09
+    },
+    {
+      "end_seconds": 1.1166666666666667,
+      "position_delta_m": 0.5729678935996225,
+      "horizontal_velocity_delta_mps": 8.875183254986001e-09
+    },
+    {
+      "end_seconds": 1.1333333333333333,
+      "position_delta_m": 0.5729678935995159,
+      "horizontal_velocity_delta_mps": 8.033396170503693e-09
+    },
+    {
+      "end_seconds": 1.15,
+      "position_delta_m": 0.5729780681424675,
+      "horizontal_velocity_delta_mps": 7.271452773238694e-09
+    },
+    {
+      "end_seconds": 1.1666666666666667,
+      "position_delta_m": 0.5731034136105535,
+      "horizontal_velocity_delta_mps": 6.581778677627894e-09
+    },
+    {
+      "end_seconds": 1.1833333333333333,
+      "position_delta_m": 0.5732640679938675,
+      "horizontal_velocity_delta_mps": 5.95751714627109e-09
+    },
+    {
+      "end_seconds": 1.2,
+      "position_delta_m": 0.5734237782386553,
+      "horizontal_velocity_delta_mps": 5.392465141085294e-09
+    },
+    {
+      "end_seconds": 1.2166666666666666,
+      "position_delta_m": 0.5733591895148099,
+      "horizontal_velocity_delta_mps": 4.88100937445779e-09
+    },
+    {
+      "end_seconds": 1.2333333333333334,
+      "position_delta_m": 0.5733477570476836,
+      "horizontal_velocity_delta_mps": 4.418062360400694e-09
+    },
+    {
+      "end_seconds": 1.25,
+      "position_delta_m": 0.5742809721263942,
+      "horizontal_velocity_delta_mps": 3.999026887413493e-09
+    },
+    {
+      "end_seconds": 1.2666666666666666,
+      "position_delta_m": 0.5753531480542843,
+      "horizontal_velocity_delta_mps": 3.6197320696373936e-09
+    },
+    {
+      "end_seconds": 1.2833333333333334,
+      "position_delta_m": 0.5763603183390514,
+      "horizontal_velocity_delta_mps": 3.276412030572802e-09
+    },
+    {
+      "end_seconds": 1.3,
+      "position_delta_m": 0.5771481743439915,
+      "horizontal_velocity_delta_mps": 2.9656561650882015e-09
+    },
+    {
+      "end_seconds": 1.3166666666666667,
+      "position_delta_m": 0.5778102665222103,
+      "horizontal_velocity_delta_mps": 2.6843736122827977e-09
+    },
+    {
+      "end_seconds": 1.3333333333333333,
+      "position_delta_m": 0.577898988798932,
+      "horizontal_velocity_delta_mps": 2.429771939205199e-09
+    },
+    {
+      "end_seconds": 1.35,
+      "position_delta_m": 0.5780390623102004,
+      "horizontal_velocity_delta_mps": 2.1993145082887945e-09
+    },
+    {
+      "end_seconds": 1.3666666666666667,
+      "position_delta_m": 0.5781368319955796,
+      "horizontal_velocity_delta_mps": 1.990720477351702e-09
+    },
+    {
+      "end_seconds": 1.3833333333333333,
+      "position_delta_m": 0.5779775523215489,
+      "horizontal_velocity_delta_mps": 1.801907956178197e-09
+    },
+    {
+      "end_seconds": 1.4,
+      "position_delta_m": 0.5777129662063505,
+      "horizontal_velocity_delta_mps": 1.6310011119457935e-09
+    },
+    {
+      "end_seconds": 1.4166666666666667,
+      "position_delta_m": 0.5773263645756622,
+      "horizontal_velocity_delta_mps": 1.4763088529435018e-09
+    },
+    {
+      "end_seconds": 1.4333333333333333,
+      "position_delta_m": 0.5769135224268475,
+      "horizontal_velocity_delta_mps": 1.33628930143459e-09
+    },
+    {
+      "end_seconds": 1.45,
+      "position_delta_m": 0.5762660200587414,
+      "horizontal_velocity_delta_mps": 1.2095497936571007e-09
+    },
+    {
+      "end_seconds": 1.4666666666666666,
+      "position_delta_m": 0.5749519921503172,
+      "horizontal_velocity_delta_mps": 1.0948326689685928e-09
+    },
+    {
+      "end_seconds": 1.4833333333333334,
+      "position_delta_m": 0.5743274732839797,
+      "horizontal_velocity_delta_mps": 9.909939535645985e-10
+    },
+    {
+      "end_seconds": 1.5,
+      "position_delta_m": 0.5746014953257648,
+      "horizontal_velocity_delta_mps": 8.970033604782921e-10
+    },
+    {
+      "end_seconds": 1.5166666666666666,
+      "position_delta_m": 0.5768677551893543,
+      "horizontal_velocity_delta_mps": 8.11922973298391e-10
+    },
+    {
+      "end_seconds": 1.5333333333333334,
+      "position_delta_m": 0.5776780926317164,
+      "horizontal_velocity_delta_mps": 7.268425861183972e-10
+    },
+    {
+      "end_seconds": 1.55,
+      "position_delta_m": 0.5784211842371269,
+      "horizontal_velocity_delta_mps": 1.1921101744302457e-07
+    },
+    {
+      "end_seconds": 1.5666666666666667,
+      "position_delta_m": 0.5796135394828108,
+      "horizontal_velocity_delta_mps": 1.1921057978820752e-07
+    },
+    {
+      "end_seconds": 1.5833333333333333,
+      "position_delta_m": 0.5808851735774672,
+      "horizontal_velocity_delta_mps": 1.1921022285163186e-07
+    },
+    {
+      "end_seconds": 1.6,
+      "position_delta_m": 0.5820599715053615,
+      "horizontal_velocity_delta_mps": 1.1920991563984223e-07
+    },
+    {
+      "end_seconds": 1.6166666666666667,
+      "position_delta_m": 0.5831481985492253,
+      "horizontal_velocity_delta_mps": 1.1920967014808567e-07
+    },
+    {
+      "end_seconds": 1.6333333333333333,
+      "position_delta_m": 0.5841180568251754,
+      "horizontal_velocity_delta_mps": 1.490117690913319e-07
+    },
+    {
+      "end_seconds": 1.65,
+      "position_delta_m": 0.5850275799840022,
+      "horizontal_velocity_delta_mps": 1.4901166984104488e-07
+    },
+    {
+      "end_seconds": 1.6666666666666667,
+      "position_delta_m": 0.5857870727100571,
+      "horizontal_velocity_delta_mps": 1.6391277960883562e-07
+    },
+    {
+      "end_seconds": 1.6833333333333333,
+      "position_delta_m": 0.5858516094287327,
+      "horizontal_velocity_delta_mps": 0.0
+    },
+    {
+      "end_seconds": 1.7,
+      "position_delta_m": 0.5858516094287327,
+      "horizontal_velocity_delta_mps": 0.0
+    },
+    {
+      "end_seconds": 1.7166666666666666,
+      "position_delta_m": 0.5858516094287327,
+      "horizontal_velocity_delta_mps": 0.0
+    },
+    {
+      "end_seconds": 1.7333333333333334,
+      "position_delta_m": 0.5858516094287327,
+      "horizontal_velocity_delta_mps": 0.0
+    },
+    {
+      "end_seconds": 1.75,
+      "position_delta_m": 0.5858516094287327,
+      "horizontal_velocity_delta_mps": 0.0
+    },
+    {
+      "end_seconds": 1.7666666666666666,
+      "position_delta_m": 0.5858516094287327,
+      "horizontal_velocity_delta_mps": 0.0
+    },
+    {
+      "end_seconds": 1.7833333333333334,
+      "position_delta_m": 0.5858516094287327,
+      "horizontal_velocity_delta_mps": 0.0
+    },
+    {
+      "end_seconds": 1.8,
+      "position_delta_m": 0.5858516094287327,
+      "horizontal_velocity_delta_mps": 0.0
+    },
+    {
+      "end_seconds": 1.8166666666666667,
+      "position_delta_m": 0.5858516094287327,
+      "horizontal_velocity_delta_mps": 0.0
+    },
+    {
+      "end_seconds": 1.8333333333333333,
+      "position_delta_m": 0.5858516094287327,
+      "horizontal_velocity_delta_mps": 0.0
+    },
+    {
+      "end_seconds": 1.85,
+      "position_delta_m": 0.5858516094287327,
+      "horizontal_velocity_delta_mps": 0.0
+    },
+    {
+      "end_seconds": 1.8666666666666667,
+      "position_delta_m": 0.5858516094287327,
+      "horizontal_velocity_delta_mps": 0.0
+    },
+    {
+      "end_seconds": 1.8833333333333333,
+      "position_delta_m": 0.5858516094287327,
+      "horizontal_velocity_delta_mps": 0.0
+    },
+    {
+      "end_seconds": 1.9,
+      "position_delta_m": 0.5858516094287327,
+      "horizontal_velocity_delta_mps": 0.0
+    },
+    {
+      "end_seconds": 1.9166666666666667,
+      "position_delta_m": 0.5858516094287327,
+      "horizontal_velocity_delta_mps": 0.0
+    },
+    {
+      "end_seconds": 1.9333333333333333,
+      "position_delta_m": 0.5858516094287327,
+      "horizontal_velocity_delta_mps": 0.0
+    },
+    {
+      "end_seconds": 1.95,
+      "position_delta_m": 0.5858516094287327,
+      "horizontal_velocity_delta_mps": 0.0
+    },
+    {
+      "end_seconds": 1.9666666666666666,
+      "position_delta_m": 0.5858516094287327,
+      "horizontal_velocity_delta_mps": 0.0
+    },
+    {
+      "end_seconds": 1.9833333333333334,
+      "position_delta_m": 0.5858516094287327,
+      "horizontal_velocity_delta_mps": 0.0
+    },
+    {
+      "end_seconds": 2.0,
+      "position_delta_m": 0.5858516094287327,
+      "horizontal_velocity_delta_mps": 0.0
+    }
+  ],
+  "source_reports_sha256": {
+    "60": "f5ac721590a4eca4a26528f5128721806056b65db8272ab3a7f5445c7a678ace",
+    "120": "635699dce74b9f4542dcda658e7e66728902bd73c8318644bd5056c297dc486f"
+  },
+  "baseline_physical_traces_identical": true,
+  "new_native_trials": 8,
+  "formal_release_ready": false,
+  "human_acceptance": false,
+  "precision_equivalence_accepted": false,
+  "movement5_frozen": true,
+  "production_changed": false,
+  "scope": "one_frozen_Modern_jump_not_triangle_identity_or_collision_repair",
+  "phase": "Movement-4 R23 Inferno Modern early contact and stage ablation",
+  "base": "aa36df2425281e2a696b14614a9851d24fb59e9b",
+  "ordinary_python_tests": 374,
+  "new_regressions": 11,
+  "format_lint_compile": "passed",
+  "pyright_errors": 0,
+  "checker_sha256": "921f6587dccbf32e263eafbd67723778dbe5d04866b6989cdf014b10ec86c330",
+  "source_lock_sha256": "c3c3cb0eacab7c8f7b0fd6b6c4de66f6109fd20d269a2992dce425083a3974f5",
+  "post_contact_air_speed_ranges": {
+    "60": {
+      "min_mps": 0.9171097278595086,
+      "max_mps": 0.9171097278595086
+    },
+    "120": {
+      "min_mps": 1.8567399978637718,
+      "max_mps": 1.8567399978637718
+    }
+  },
+  "baseline_landing_height_delta_m": 0.0,
+  "original_files_imports_settings_and_package_preserved": true,
+  "package_updated": false,
+  "full_native_suite_repeated": false,
+  "limits": [
+    "One frozen Modern jump; not a global frequency-equivalence or gameplay acceptance result.",
+    "Recorded contact plane projection matches horizontal loss, not a complete Godot solver reimplementation.",
+    "Only collision group and contact normal are bound; visual prop and triangle identity remain unproven.",
+    "Snap disabling changes landing timing but preserves early 60Hz contact; collision remains unfixed.",
+    "Coverage remains action13/15 and jump-route7/15; other outstanding acceptance gates unchanged."
+  ]
+}
