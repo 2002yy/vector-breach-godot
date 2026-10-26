@@ -1,0 +1,233 @@
+{
+  "formal_release_ready": false,
+  "precision_equivalence_accepted": false,
+  "edge_lip_timing_accepted": false,
+  "route_qualification_replaced": false,
+  "human_acceptance": false,
+  "selection_hz": 60,
+  "holdout_hz": 120,
+  "grid_trials": 42,
+  "replay_trials": 18,
+  "results": [
+    {
+      "map": "dust2",
+      "candidate": null,
+      "status": "bounded_candidates_exhausted",
+      "route_status": "not_requalified"
+    },
+    {
+      "map": "inferno",
+      "candidate": "drop_02",
+      "scheme": "current",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "drop_context": {
+        "60": true,
+        "120": true
+      },
+      "route_status": "not_requalified"
+    },
+    {
+      "map": "inferno",
+      "candidate": "drop_02",
+      "scheme": "legacy_16",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "drop_context": {
+        "60": true,
+        "120": true
+      },
+      "route_status": "not_requalified"
+    },
+    {
+      "map": "inferno",
+      "candidate": "drop_02",
+      "scheme": "modern_cs",
+      "actions": {
+        "60": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        },
+        "120": {
+          "passed": true,
+          "consumed_edges": 1,
+          "actual_takeoffs": 1,
+          "input_delays_seconds": [
+            0.0
+          ],
+          "takeoff_time": 0.1,
+          "scope": "single_supported_takeoff_synthetic_InputMap"
+        }
+      },
+      "drop_context": {
+        "60": true,
+        "120": true
+      },
+      "route_status": "not_requalified"
+    }
+  ],
+  "exploration": [
+    {
+      "map": "dust2",
+      "observations": [
+        {
+          "candidate": "drop_00",
+          "action": true,
+          "drop": false
+        },
+        {
+          "candidate": "drop_01",
+          "action": true,
+          "drop": false
+        },
+        {
+          "candidate": "drop_02",
+          "action": true,
+          "drop": false
+        },
+        {
+          "candidate": "drop_03",
+          "action": true,
+          "drop": false
+        },
+        {
+          "candidate": "drop_04",
+          "action": true,
+          "drop": false
+        },
+        {
+          "candidate": "drop_05",
+          "action": true,
+          "drop": false
+        }
+      ]
+    },
+    {
+      "map": "inferno",
+      "observations": [
+        {
+          "candidate": "drop_00",
+          "action": true,
+          "drop": false
+        },
+        {
+          "candidate": "drop_01",
+          "action": true,
+          "drop": false
+        },
+        {
+          "candidate": "drop_02",
+          "action": true,
+          "drop": true
+        },
+        {
+          "candidate": "drop_04",
+          "action": true,
+          "drop": false
+        },
+        {
+          "candidate": "drop_05",
+          "action": true,
+          "drop": false
+        },
+        {
+          "candidate": "drop_06",
+          "action": true,
+          "drop": true
+        },
+        {
+          "candidate": "drop_07",
+          "action": true,
+          "drop": true
+        },
+        {
+          "candidate": "drop_08",
+          "action": true,
+          "drop": true
+        }
+      ]
+    }
+  ],
+  "checker_sha256": "036fb4fa526d489e01c5aef54f4fd6d83ca92a148df38bbe170510741ea54835",
+  "evidence_sha256": {
+    "selection-lock.json": "e85675ca9b015e7044da1416b6bf7ebb6c01cfe52e28003944aad71935a30f7f",
+    "dust2-grid-v1.json": "f6166144e77d80b3c6095e0c8546e9f7ced90f353699951164538b07d63f71de",
+    "dust2-grid-60.json": "d56752cfcff3249d252bf2b5c307e7aec47aba18dd87d695b9c8f7710cb32847",
+    "dust2-selected-v1.json": "803c11905546dc3e80b8102de72f9556ebbf597800685c4ffbc40168cf7a1140",
+    "source/dust2-manifest.json": "b5a60ec7dbc7ba5fbdbc229c039a09c0b167fa44b1874f9ebe5d9d13e8c2ffce",
+    "inferno-grid-v1.json": "f163ad864e54521024dafcbf52f53d8a0b32430ea1dee42bd32948a4ead49138",
+    "inferno-grid-60.json": "b2d557aa6c530746720d10fa6842e825f6cf5bc770c548da556d4bfe22325d70",
+    "inferno-selected-v1.json": "a6fc12473683f8b0f214814dc53816e93bc48c08b261e5043c692ce72d2eaecf",
+    "source/inferno-manifest.json": "f48351cab077bd9cd2c222a22bdc0b9033332801596964d5879941bcb27829de",
+    "inferno-60.json": "349347327998722e5cdeeadb1ab26e96346c5934509bbf503718700b492bd4e3",
+    "inferno-120.json": "6f6b3bfabdd097b7fddfe1878dc235fc8fcdc414d50488668b4b69f0bf8bbf6b",
+    "dust2-walkoff-survey-final.json": "fd342f7c9ab09181b413301fa1a814434cbfc601677bbabcb2a74c4c210c5568"
+  },
+  "dust2_bounded_geometry_survey": {
+    "nodes_examined": 1012,
+    "node_limit": 1024,
+    "stride": 4,
+    "diagnostics": {
+      "clear_initial": 3,
+      "clear_starts": 913,
+      "clear_sweeps": 0,
+      "lower_goals": 3
+    },
+    "survey_sha256": "b0117fc09b0104c28c7b84d3899d0f45b7bcb540942726f4fba12484a253dea5"
+  },
+  "validation": {
+    "ordinary_python_tests": 240,
+    "new_regressions": 9,
+    "original_R11_evidence_unchanged": true,
+    "imports_and_settings_preserved": true,
+    "gdformat_gdlint_ruff_compile": "passed",
+    "pyright_errors": 0,
+    "full_native_suite_repeated": false
+  }
+}
