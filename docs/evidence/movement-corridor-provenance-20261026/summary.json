@@ -1,0 +1,867 @@
+{
+  "phase": "Movement-4 R21 corridor provenance and historical category audit",
+  "base": "9dffb7e956b4e2df39a8cb8402bc6a60e5ecf922",
+  "source_rows_revalidated": 528,
+  "historical_native_trials_revalidated": 48,
+  "original_corridor_point_receipts": 30,
+  "recovered_profile_groups": 12,
+  "statuses": {
+    "qualified_jump": 15,
+    "walk_only": 9,
+    "route_unproven": 9
+  },
+  "action_categories": 10,
+  "jump_route_categories": 4,
+  "ordinary_python_tests": 351,
+  "new_regressions": 13,
+  "validation": {
+    "format_lint_compile": "passed",
+    "pyright_errors": 0,
+    "frozen_provenance": "recomputed"
+  },
+  "sites": [
+    {
+      "map": "dust2",
+      "site": "critical__objective_rise_00",
+      "kind": "critical_landing",
+      "profiles": {
+        "current": {
+          "source_case": "queued__current__objective_rise_00__jump",
+          "source_provider": "critical/dust2",
+          "status": "qualified_jump",
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "corridor_recovery": null
+        },
+        "legacy_16": {
+          "source_case": "queued__legacy_16__objective_rise_00__jump",
+          "source_provider": "critical/dust2",
+          "status": "qualified_jump",
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "corridor_recovery": null
+        },
+        "modern_cs": {
+          "source_case": "queued__modern_cs__objective_rise_00__jump",
+          "source_provider": "critical/dust2",
+          "status": "qualified_jump",
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "corridor_recovery": null
+        }
+      }
+    },
+    {
+      "map": "dust2",
+      "site": "ordinary__ordinary",
+      "kind": "ordinary",
+      "profiles": {
+        "current": {
+          "source_case": "ordinary__current__jump",
+          "source_provider": "ordinary/dust2",
+          "status": "walk_only",
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "corridor_recovery": {
+            "matched": true,
+            "reason": "exact_frozen_geometry",
+            "reference": {
+              "manifest_sha256": "b5a60ec7dbc7ba5fbdbc229c039a09c0b167fa44b1874f9ebe5d9d13e8c2ffce",
+              "reports": {
+                "60": "e4950b5dde21a25c3fe4d580d845ae1527daab73ac8d7924519a867af472b2f0",
+                "120": "02d6a9c6546951189117ab34e4b6f1343771ad09c0dbdf4441dc49e5951702ad"
+              }
+            },
+            "source_case": "ordinary"
+          }
+        },
+        "legacy_16": {
+          "source_case": "ordinary__legacy_16__jump",
+          "source_provider": "ordinary/dust2",
+          "status": "walk_only",
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "corridor_recovery": {
+            "matched": true,
+            "reason": "exact_frozen_geometry",
+            "reference": {
+              "manifest_sha256": "b5a60ec7dbc7ba5fbdbc229c039a09c0b167fa44b1874f9ebe5d9d13e8c2ffce",
+              "reports": {
+                "60": "e4950b5dde21a25c3fe4d580d845ae1527daab73ac8d7924519a867af472b2f0",
+                "120": "02d6a9c6546951189117ab34e4b6f1343771ad09c0dbdf4441dc49e5951702ad"
+              }
+            },
+            "source_case": "ordinary"
+          }
+        },
+        "modern_cs": {
+          "source_case": "ordinary__modern_cs__jump",
+          "source_provider": "ordinary/dust2",
+          "status": "walk_only",
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "corridor_recovery": {
+            "matched": true,
+            "reason": "exact_frozen_geometry",
+            "reference": {
+              "manifest_sha256": "b5a60ec7dbc7ba5fbdbc229c039a09c0b167fa44b1874f9ebe5d9d13e8c2ffce",
+              "reports": {
+                "60": "e4950b5dde21a25c3fe4d580d845ae1527daab73ac8d7924519a867af472b2f0",
+                "120": "02d6a9c6546951189117ab34e4b6f1343771ad09c0dbdf4441dc49e5951702ad"
+              }
+            },
+            "source_case": "ordinary"
+          }
+        }
+      }
+    },
+    {
+      "map": "dust2",
+      "site": "edge__braking",
+      "kind": "edge",
+      "profiles": {
+        "current": {
+          "source_case": "current__reverse_hold",
+          "source_provider": "edge/dust2",
+          "status": "route_unproven",
+          "paired_controls_available": false,
+          "body_envelope_available": false,
+          "corridor_recovery": {
+            "matched": false,
+            "reason": "geometry_changed",
+            "reference": {
+              "manifest_sha256": "b5a60ec7dbc7ba5fbdbc229c039a09c0b167fa44b1874f9ebe5d9d13e8c2ffce",
+              "reports": {
+                "60": "e4950b5dde21a25c3fe4d580d845ae1527daab73ac8d7924519a867af472b2f0",
+                "120": "02d6a9c6546951189117ab34e4b6f1343771ad09c0dbdf4441dc49e5951702ad"
+              }
+            }
+          }
+        },
+        "legacy_16": {
+          "source_case": "legacy_16__reverse_010",
+          "source_provider": "edge/dust2",
+          "status": "route_unproven",
+          "paired_controls_available": false,
+          "body_envelope_available": false,
+          "corridor_recovery": {
+            "matched": false,
+            "reason": "geometry_changed",
+            "reference": {
+              "manifest_sha256": "b5a60ec7dbc7ba5fbdbc229c039a09c0b167fa44b1874f9ebe5d9d13e8c2ffce",
+              "reports": {
+                "60": "e4950b5dde21a25c3fe4d580d845ae1527daab73ac8d7924519a867af472b2f0",
+                "120": "02d6a9c6546951189117ab34e4b6f1343771ad09c0dbdf4441dc49e5951702ad"
+              }
+            }
+          }
+        },
+        "modern_cs": {
+          "source_case": "modern_cs__brake_2",
+          "source_provider": "modern/dust2",
+          "status": "route_unproven",
+          "paired_controls_available": false,
+          "body_envelope_available": false,
+          "corridor_recovery": {
+            "matched": false,
+            "reason": "geometry_changed",
+            "reference": {
+              "manifest_sha256": "b5a60ec7dbc7ba5fbdbc229c039a09c0b167fa44b1874f9ebe5d9d13e8c2ffce",
+              "reports": {
+                "60": "e4950b5dde21a25c3fe4d580d845ae1527daab73ac8d7924519a867af472b2f0",
+                "120": "02d6a9c6546951189117ab34e4b6f1343771ad09c0dbdf4441dc49e5951702ad"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "map": "mirage",
+      "site": "critical__objective_rise_00",
+      "kind": "critical_landing",
+      "profiles": {
+        "current": {
+          "source_case": "queued__current__objective_rise_00__jump",
+          "source_provider": "critical/mirage",
+          "status": "qualified_jump",
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "corridor_recovery": null
+        },
+        "legacy_16": {
+          "source_case": "queued__legacy_16__objective_rise_00__jump",
+          "source_provider": "critical/mirage",
+          "status": "qualified_jump",
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "corridor_recovery": null
+        },
+        "modern_cs": {
+          "source_case": "queued__modern_cs__objective_rise_00__jump",
+          "source_provider": "critical/mirage",
+          "status": "qualified_jump",
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "corridor_recovery": null
+        }
+      }
+    },
+    {
+      "map": "mirage",
+      "site": "ordinary__ordinary",
+      "kind": "ordinary",
+      "profiles": {
+        "current": {
+          "source_case": "ordinary__current__jump",
+          "source_provider": "ordinary/mirage",
+          "status": "walk_only",
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "corridor_recovery": {
+            "matched": true,
+            "reason": "exact_frozen_geometry",
+            "reference": {
+              "manifest_sha256": "a79fae49c128524812e560942a4f9904be19311d894a62e235319411f148d975",
+              "reports": {
+                "60": "9353290ea47b861dc47acb1fb1eb2d8283e17bf858b4b4e99dd0c53c90aec05f",
+                "120": "610206a230a264e4b95dd9dc88dcbbb3037e2964d6ff3e41ed3b10b60e14c732"
+              }
+            },
+            "source_case": "ordinary"
+          }
+        },
+        "legacy_16": {
+          "source_case": "ordinary__legacy_16__jump",
+          "source_provider": "ordinary/mirage",
+          "status": "walk_only",
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "corridor_recovery": {
+            "matched": true,
+            "reason": "exact_frozen_geometry",
+            "reference": {
+              "manifest_sha256": "a79fae49c128524812e560942a4f9904be19311d894a62e235319411f148d975",
+              "reports": {
+                "60": "9353290ea47b861dc47acb1fb1eb2d8283e17bf858b4b4e99dd0c53c90aec05f",
+                "120": "610206a230a264e4b95dd9dc88dcbbb3037e2964d6ff3e41ed3b10b60e14c732"
+              }
+            },
+            "source_case": "ordinary"
+          }
+        },
+        "modern_cs": {
+          "source_case": "ordinary__modern_cs__jump",
+          "source_provider": "ordinary/mirage",
+          "status": "walk_only",
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "corridor_recovery": {
+            "matched": true,
+            "reason": "exact_frozen_geometry",
+            "reference": {
+              "manifest_sha256": "a79fae49c128524812e560942a4f9904be19311d894a62e235319411f148d975",
+              "reports": {
+                "60": "9353290ea47b861dc47acb1fb1eb2d8283e17bf858b4b4e99dd0c53c90aec05f",
+                "120": "610206a230a264e4b95dd9dc88dcbbb3037e2964d6ff3e41ed3b10b60e14c732"
+              }
+            },
+            "source_case": "ordinary"
+          }
+        }
+      }
+    },
+    {
+      "map": "mirage",
+      "site": "edge__braking",
+      "kind": "edge",
+      "profiles": {
+        "current": {
+          "source_case": "current__reverse_hold",
+          "source_provider": "edge/mirage",
+          "status": "route_unproven",
+          "paired_controls_available": false,
+          "body_envelope_available": true,
+          "corridor_recovery": {
+            "matched": true,
+            "reason": "exact_frozen_geometry",
+            "reference": {
+              "manifest_sha256": "a79fae49c128524812e560942a4f9904be19311d894a62e235319411f148d975",
+              "reports": {
+                "60": "9353290ea47b861dc47acb1fb1eb2d8283e17bf858b4b4e99dd0c53c90aec05f",
+                "120": "610206a230a264e4b95dd9dc88dcbbb3037e2964d6ff3e41ed3b10b60e14c732"
+              }
+            },
+            "source_case": "edge"
+          }
+        },
+        "legacy_16": {
+          "source_case": "legacy_16__reverse_010",
+          "source_provider": "edge/mirage",
+          "status": "route_unproven",
+          "paired_controls_available": false,
+          "body_envelope_available": true,
+          "corridor_recovery": {
+            "matched": true,
+            "reason": "exact_frozen_geometry",
+            "reference": {
+              "manifest_sha256": "a79fae49c128524812e560942a4f9904be19311d894a62e235319411f148d975",
+              "reports": {
+                "60": "9353290ea47b861dc47acb1fb1eb2d8283e17bf858b4b4e99dd0c53c90aec05f",
+                "120": "610206a230a264e4b95dd9dc88dcbbb3037e2964d6ff3e41ed3b10b60e14c732"
+              }
+            },
+            "source_case": "edge"
+          }
+        },
+        "modern_cs": {
+          "source_case": "modern_cs__brake_2",
+          "source_provider": "modern/mirage",
+          "status": "route_unproven",
+          "paired_controls_available": false,
+          "body_envelope_available": true,
+          "corridor_recovery": {
+            "matched": true,
+            "reason": "exact_frozen_geometry",
+            "reference": {
+              "manifest_sha256": "a79fae49c128524812e560942a4f9904be19311d894a62e235319411f148d975",
+              "reports": {
+                "60": "9353290ea47b861dc47acb1fb1eb2d8283e17bf858b4b4e99dd0c53c90aec05f",
+                "120": "610206a230a264e4b95dd9dc88dcbbb3037e2964d6ff3e41ed3b10b60e14c732"
+              }
+            },
+            "source_case": "edge"
+          }
+        }
+      }
+    },
+    {
+      "map": "inferno",
+      "site": "critical__objective_rise_00",
+      "kind": "critical_landing",
+      "profiles": {
+        "current": {
+          "source_case": "queued__current__objective_rise_00__jump",
+          "source_provider": "critical/inferno",
+          "status": "qualified_jump",
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "corridor_recovery": null
+        },
+        "legacy_16": {
+          "source_case": "queued__legacy_16__objective_rise_00__jump",
+          "source_provider": "critical/inferno",
+          "status": "qualified_jump",
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "corridor_recovery": null
+        },
+        "modern_cs": {
+          "source_case": "queued__modern_cs__objective_rise_00__jump",
+          "source_provider": "critical/inferno",
+          "status": "qualified_jump",
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "corridor_recovery": null
+        }
+      }
+    },
+    {
+      "map": "inferno",
+      "site": "critical__objective_rise_01",
+      "kind": "critical_landing",
+      "profiles": {
+        "current": {
+          "source_case": "queued__current__objective_rise_01__jump",
+          "source_provider": "critical/inferno",
+          "status": "qualified_jump",
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "corridor_recovery": null
+        },
+        "legacy_16": {
+          "source_case": "queued__legacy_16__objective_rise_01__jump",
+          "source_provider": "critical/inferno",
+          "status": "qualified_jump",
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "corridor_recovery": null
+        },
+        "modern_cs": {
+          "source_case": "queued__modern_cs__objective_rise_01__jump",
+          "source_provider": "critical/inferno",
+          "status": "qualified_jump",
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "corridor_recovery": null
+        }
+      }
+    },
+    {
+      "map": "inferno",
+      "site": "ordinary__ordinary",
+      "kind": "ordinary",
+      "profiles": {
+        "current": {
+          "source_case": "ordinary__current__jump",
+          "source_provider": "ordinary/inferno",
+          "status": "walk_only",
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "corridor_recovery": {
+            "matched": true,
+            "reason": "exact_frozen_geometry",
+            "reference": {
+              "manifest_sha256": "f48351cab077bd9cd2c222a22bdc0b9033332801596964d5879941bcb27829de",
+              "reports": {
+                "60": "c354e951eb0cda59ff99a6eb3a202cbd47b09e8408d66eec98c397f5a4b0eee9",
+                "120": "dfbfb0f11913d98d62530f83631429e4b5b3e9b1c5324a222b1f6b307b62ffb1"
+              }
+            },
+            "source_case": "ordinary"
+          }
+        },
+        "legacy_16": {
+          "source_case": "ordinary__legacy_16__jump",
+          "source_provider": "ordinary/inferno",
+          "status": "walk_only",
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "corridor_recovery": {
+            "matched": true,
+            "reason": "exact_frozen_geometry",
+            "reference": {
+              "manifest_sha256": "f48351cab077bd9cd2c222a22bdc0b9033332801596964d5879941bcb27829de",
+              "reports": {
+                "60": "c354e951eb0cda59ff99a6eb3a202cbd47b09e8408d66eec98c397f5a4b0eee9",
+                "120": "dfbfb0f11913d98d62530f83631429e4b5b3e9b1c5324a222b1f6b307b62ffb1"
+              }
+            },
+            "source_case": "ordinary"
+          }
+        },
+        "modern_cs": {
+          "source_case": "ordinary__modern_cs__jump",
+          "source_provider": "ordinary/inferno",
+          "status": "walk_only",
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "corridor_recovery": {
+            "matched": true,
+            "reason": "exact_frozen_geometry",
+            "reference": {
+              "manifest_sha256": "f48351cab077bd9cd2c222a22bdc0b9033332801596964d5879941bcb27829de",
+              "reports": {
+                "60": "c354e951eb0cda59ff99a6eb3a202cbd47b09e8408d66eec98c397f5a4b0eee9",
+                "120": "dfbfb0f11913d98d62530f83631429e4b5b3e9b1c5324a222b1f6b307b62ffb1"
+              }
+            },
+            "source_case": "ordinary"
+          }
+        }
+      }
+    },
+    {
+      "map": "inferno",
+      "site": "edge__braking",
+      "kind": "edge",
+      "profiles": {
+        "current": {
+          "source_case": "current__reverse_hold",
+          "source_provider": "edge/inferno",
+          "status": "route_unproven",
+          "paired_controls_available": false,
+          "body_envelope_available": false,
+          "corridor_recovery": {
+            "matched": false,
+            "reason": "geometry_changed",
+            "reference": {
+              "manifest_sha256": "f48351cab077bd9cd2c222a22bdc0b9033332801596964d5879941bcb27829de",
+              "reports": {
+                "60": "c354e951eb0cda59ff99a6eb3a202cbd47b09e8408d66eec98c397f5a4b0eee9",
+                "120": "dfbfb0f11913d98d62530f83631429e4b5b3e9b1c5324a222b1f6b307b62ffb1"
+              }
+            }
+          }
+        },
+        "legacy_16": {
+          "source_case": "legacy_16__reverse_010",
+          "source_provider": "edge/inferno",
+          "status": "route_unproven",
+          "paired_controls_available": false,
+          "body_envelope_available": false,
+          "corridor_recovery": {
+            "matched": false,
+            "reason": "geometry_changed",
+            "reference": {
+              "manifest_sha256": "f48351cab077bd9cd2c222a22bdc0b9033332801596964d5879941bcb27829de",
+              "reports": {
+                "60": "c354e951eb0cda59ff99a6eb3a202cbd47b09e8408d66eec98c397f5a4b0eee9",
+                "120": "dfbfb0f11913d98d62530f83631429e4b5b3e9b1c5324a222b1f6b307b62ffb1"
+              }
+            }
+          }
+        },
+        "modern_cs": {
+          "source_case": "modern_cs__brake_2",
+          "source_provider": "modern/inferno",
+          "status": "route_unproven",
+          "paired_controls_available": false,
+          "body_envelope_available": false,
+          "corridor_recovery": {
+            "matched": false,
+            "reason": "geometry_changed",
+            "reference": {
+              "manifest_sha256": "f48351cab077bd9cd2c222a22bdc0b9033332801596964d5879941bcb27829de",
+              "reports": {
+                "60": "c354e951eb0cda59ff99a6eb3a202cbd47b09e8408d66eec98c397f5a4b0eee9",
+                "120": "dfbfb0f11913d98d62530f83631429e4b5b3e9b1c5324a222b1f6b307b62ffb1"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "map": "dust2",
+      "site": "run_up__navigation_ingress",
+      "kind": "run_up",
+      "profiles": {
+        "current": {
+          "source_case": "current__jump350_travel150__jump",
+          "source_provider": "run_up/dust2",
+          "status": "qualified_jump",
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "corridor_recovery": null
+        },
+        "legacy_16": {
+          "source_case": "legacy_16__jump300_travel150__jump",
+          "source_provider": "run_up/dust2",
+          "status": "qualified_jump",
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "corridor_recovery": null
+        },
+        "modern_cs": {
+          "source_case": "modern_cs__jump400_travel150__jump",
+          "source_provider": "run_up/dust2",
+          "status": "qualified_jump",
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "corridor_recovery": null
+        }
+      }
+    }
+  ],
+  "historical": {
+    "dust2": {
+      "manifest_sha256": "c0110d720644cfe5135d575091b4efd7d2bcdeef8943572be53ffcef70bbf811",
+      "reports": {
+        "60": "5bcf69ca2543c674e4e7a94ecce8b38803d2bfcf0d3c03f6747b744e5ba640a0",
+        "120": "133d05255874812713c9bd04f2d5518ab136da27825c14d842a4e339587400aa"
+      },
+      "records": [
+        {
+          "case": "current__run_up__original__jump",
+          "kind": "run_up",
+          "scheme": "current",
+          "observations": {
+            "60": {
+              "actual_takeoffs": 1,
+              "first_landing": true,
+              "crouched_in_air": false,
+              "no_jump_arrival": false
+            },
+            "120": {
+              "actual_takeoffs": 1,
+              "first_landing": true,
+              "crouched_in_air": false,
+              "no_jump_arrival": false
+            }
+          },
+          "queued_cadence_present": false,
+          "paired_standing_walk_present": false,
+          "current_category_credit": false
+        },
+        {
+          "case": "legacy_16__run_up__original__jump",
+          "kind": "run_up",
+          "scheme": "legacy_16",
+          "observations": {
+            "60": {
+              "actual_takeoffs": 1,
+              "first_landing": true,
+              "crouched_in_air": false,
+              "no_jump_arrival": false
+            },
+            "120": {
+              "actual_takeoffs": 1,
+              "first_landing": true,
+              "crouched_in_air": false,
+              "no_jump_arrival": false
+            }
+          },
+          "queued_cadence_present": false,
+          "paired_standing_walk_present": false,
+          "current_category_credit": false
+        },
+        {
+          "case": "modern_cs__run_up__original__jump",
+          "kind": "run_up",
+          "scheme": "modern_cs",
+          "observations": {
+            "60": {
+              "actual_takeoffs": 1,
+              "first_landing": true,
+              "crouched_in_air": false,
+              "no_jump_arrival": false
+            },
+            "120": {
+              "actual_takeoffs": 1,
+              "first_landing": true,
+              "crouched_in_air": false,
+              "no_jump_arrival": false
+            }
+          },
+          "queued_cadence_present": false,
+          "paired_standing_walk_present": false,
+          "current_category_credit": false
+        },
+        {
+          "case": "current__crouch_jump__original__jump",
+          "kind": "crouch_jump",
+          "scheme": "current",
+          "observations": {
+            "60": {
+              "actual_takeoffs": 1,
+              "first_landing": true,
+              "crouched_in_air": true,
+              "no_jump_arrival": false
+            },
+            "120": {
+              "actual_takeoffs": 1,
+              "first_landing": true,
+              "crouched_in_air": true,
+              "no_jump_arrival": false
+            }
+          },
+          "queued_cadence_present": false,
+          "paired_standing_walk_present": false,
+          "current_category_credit": false
+        },
+        {
+          "case": "legacy_16__crouch_jump__original__jump",
+          "kind": "crouch_jump",
+          "scheme": "legacy_16",
+          "observations": {
+            "60": {
+              "actual_takeoffs": 1,
+              "first_landing": true,
+              "crouched_in_air": true,
+              "no_jump_arrival": false
+            },
+            "120": {
+              "actual_takeoffs": 1,
+              "first_landing": true,
+              "crouched_in_air": true,
+              "no_jump_arrival": false
+            }
+          },
+          "queued_cadence_present": false,
+          "paired_standing_walk_present": false,
+          "current_category_credit": false
+        },
+        {
+          "case": "modern_cs__crouch_jump__original__jump",
+          "kind": "crouch_jump",
+          "scheme": "modern_cs",
+          "observations": {
+            "60": {
+              "actual_takeoffs": 1,
+              "first_landing": true,
+              "crouched_in_air": true,
+              "no_jump_arrival": false
+            },
+            "120": {
+              "actual_takeoffs": 1,
+              "first_landing": true,
+              "crouched_in_air": true,
+              "no_jump_arrival": false
+            }
+          },
+          "queued_cadence_present": false,
+          "paired_standing_walk_present": false,
+          "current_category_credit": false
+        }
+      ],
+      "scope": "historical_native_input_without_current_queued_cadence_or_standing_walk"
+    },
+    "mirage": {
+      "manifest_sha256": "28cd6de1890f883bc4acab22553ec1e9591b1e10a7a7c8cecff4913e22c7ed1f",
+      "reports": {
+        "60": "d8b5a4d560ebff117627b3034e1ea88e3b9e938a19c6d6d303a0db09f469fe09",
+        "120": "9df50863eb767af6c72f238225b76c758a23381aa81f87b42c36e7d63d219b58"
+      },
+      "records": [
+        {
+          "case": "current__crouch_jump__back150_run200__jump",
+          "kind": "crouch_jump",
+          "scheme": "current",
+          "observations": {
+            "60": {
+              "actual_takeoffs": 1,
+              "first_landing": true,
+              "crouched_in_air": true,
+              "no_jump_arrival": false
+            },
+            "120": {
+              "actual_takeoffs": 1,
+              "first_landing": true,
+              "crouched_in_air": true,
+              "no_jump_arrival": false
+            }
+          },
+          "queued_cadence_present": false,
+          "paired_standing_walk_present": false,
+          "current_category_credit": false
+        },
+        {
+          "case": "legacy_16__crouch_jump__back150_run200__jump",
+          "kind": "crouch_jump",
+          "scheme": "legacy_16",
+          "observations": {
+            "60": {
+              "actual_takeoffs": 1,
+              "first_landing": true,
+              "crouched_in_air": true,
+              "no_jump_arrival": false
+            },
+            "120": {
+              "actual_takeoffs": 1,
+              "first_landing": true,
+              "crouched_in_air": true,
+              "no_jump_arrival": false
+            }
+          },
+          "queued_cadence_present": false,
+          "paired_standing_walk_present": false,
+          "current_category_credit": false
+        },
+        {
+          "case": "modern_cs__crouch_jump__back150_run200__jump",
+          "kind": "crouch_jump",
+          "scheme": "modern_cs",
+          "observations": {
+            "60": {
+              "actual_takeoffs": 1,
+              "first_landing": true,
+              "crouched_in_air": true,
+              "no_jump_arrival": false
+            },
+            "120": {
+              "actual_takeoffs": 1,
+              "first_landing": true,
+              "crouched_in_air": true,
+              "no_jump_arrival": false
+            }
+          },
+          "queued_cadence_present": false,
+          "paired_standing_walk_present": false,
+          "current_category_credit": false
+        }
+      ],
+      "scope": "historical_native_input_without_current_queued_cadence_or_standing_walk"
+    },
+    "inferno": {
+      "manifest_sha256": "741d11b49d1ec52c4a219fb08dffc434d251fe95513a364b2ed91559a4181dd2",
+      "reports": {
+        "60": "f87d886e108db0b12d06e4033b0d6161ea62bbad3d57a4c7580e415fcea242f8",
+        "120": "368b0d2f7adf6c1b4398c51d859ca2000fa458a21efdc4215cc025c8b35567e3"
+      },
+      "records": [
+        {
+          "case": "current__crouch_jump__original__jump",
+          "kind": "crouch_jump",
+          "scheme": "current",
+          "observations": {
+            "60": {
+              "actual_takeoffs": 1,
+              "first_landing": true,
+              "crouched_in_air": true,
+              "no_jump_arrival": false
+            },
+            "120": {
+              "actual_takeoffs": 1,
+              "first_landing": true,
+              "crouched_in_air": true,
+              "no_jump_arrival": false
+            }
+          },
+          "queued_cadence_present": false,
+          "paired_standing_walk_present": false,
+          "current_category_credit": false
+        },
+        {
+          "case": "legacy_16__crouch_jump__original__jump",
+          "kind": "crouch_jump",
+          "scheme": "legacy_16",
+          "observations": {
+            "60": {
+              "actual_takeoffs": 1,
+              "first_landing": true,
+              "crouched_in_air": true,
+              "no_jump_arrival": false
+            },
+            "120": {
+              "actual_takeoffs": 1,
+              "first_landing": true,
+              "crouched_in_air": true,
+              "no_jump_arrival": false
+            }
+          },
+          "queued_cadence_present": false,
+          "paired_standing_walk_present": false,
+          "current_category_credit": false
+        },
+        {
+          "case": "modern_cs__crouch_jump__original__jump",
+          "kind": "crouch_jump",
+          "scheme": "modern_cs",
+          "observations": {
+            "60": {
+              "actual_takeoffs": 1,
+              "first_landing": true,
+              "crouched_in_air": true,
+              "no_jump_arrival": false
+            },
+            "120": {
+              "actual_takeoffs": 1,
+              "first_landing": true,
+              "crouched_in_air": true,
+              "no_jump_arrival": false
+            }
+          },
+          "queued_cadence_present": false,
+          "paired_standing_walk_present": false,
+          "current_category_credit": false
+        }
+      ],
+      "scope": "historical_native_input_without_current_queued_cadence_or_standing_walk"
+    }
+  },
+  "formal_release_ready": false,
+  "human_acceptance": false,
+  "precision_equivalence_accepted": false,
+  "movement5_frozen": true,
+  "new_native_trials": 0,
+  "package_updated": false,
+  "preserved_imports_settings_original_evidence_and_package": true,
+  "limits": [
+    "Ordinary walk_only credit does not prove jumping is needed.",
+    "Mirage edge corridor is recovered but braking controls remain unpaired.",
+    "Dust II and Inferno edge geometries differ from original corridor receipts.",
+    "Historical crouch successes lack current queued cadence and standing-walk controls; no category credit.",
+    "Manual/original-client/precision/full routes/matches/FPS remain pending."
+  ]
+}
