@@ -12,6 +12,7 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from runup_action_completion import (
     CADENCE_PROBES,
+    LEVELS,
     PROBE,
     PROBES,
     QUEUE_PROBES,
@@ -22,6 +23,7 @@ from runup_action_completion import (
     payload,
     runup_gate,
     selected_payload,
+    with_runup_contract,
 )
 from native_jump_candidates import GEOMETRY
 
@@ -61,9 +63,9 @@ class RunupActionTests(unittest.TestCase):
 
     def test_all_variants_preserve_original_geometry_and_kind(self):
         source = self.root / "manifest.json"
-        data = dict(schema=1, level="fixture", identity={}, cases=[self.point])
+        data = dict(schema=1, level=LEVELS["mirage"], identity={}, cases=[self.point])
         source.write_text(json.dumps(data), encoding="utf-8")
-        result = payload(source, self.root, self.root / "rejected.json")
+        result = payload("mirage", source, self.root, self.root / "rejected.json")
         self.assertEqual(len(result["cases"]), 27)
         self.assertEqual({p["variant"] for p in result["cases"]}, set(VARIANTS))
         for p in result["cases"]:
@@ -71,6 +73,21 @@ class RunupActionTests(unittest.TestCase):
             for key in GEOMETRY:
                 self.assertEqual(p[key], self.point[key])
         self.assertEqual(json.loads(source.read_text()), data)
+
+    def test_swapped_or_duplicated_map_source_and_grid_are_rejected(self):
+        source = self.root / "source.json"
+        for name, other in (("mirage", "inferno"), ("inferno", "mirage")):
+            with self.subTest(expected=name, supplied=other):
+                data = dict(
+                    schema=1, level=LEVELS[other], identity={}, cases=[self.point]
+                )
+                source.write_text(json.dumps(data), encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, "source map label differs"):
+                    payload(name, source, self.root, self.root / "rejected.json")
+                grid = self.root / f"{name}-grid-v1.json"
+                grid.write_text(json.dumps(data), encoding="utf-8")
+                with self.assertRaisesRegex(ValueError, "grid map label differs"):
+                    selected_payload(name, self.root, self.root)
 
     def test_controls_keep_direction_and_event_times(self):
         native = native_timeline(self.point, "back250_run150")
@@ -142,12 +159,32 @@ class RunupActionTests(unittest.TestCase):
         ):
             self.assertFalse(runup_gate(self.point, self.row(), 60)["passed"])
 
+    def test_one_rate_runup_failure_cannot_retain_generic_route_qualification(self):
+        profile = dict(status="qualified_jump", jump_route_passed=True)
+        for failed_rate in ("60", "120"):
+            with self.subTest(failed_rate=failed_rate):
+                runup = {
+                    rate: dict(passed=rate != failed_rate) for rate in ("60", "120")
+                }
+                result = with_runup_contract(profile, runup)
+                self.assertFalse(result["category_action_passed"])
+                self.assertFalse(result["jump_route_passed"])
+                self.assertEqual(result["status"], "route_unproven")
+        passed = with_runup_contract(
+            profile, {rate: dict(passed=True) for rate in ("60", "120")}
+        )
+        self.assertTrue(passed["category_action_passed"])
+        self.assertTrue(passed["jump_route_passed"])
+        self.assertEqual(profile, dict(status="qualified_jump", jump_route_passed=True))
+
     def test_selection_locks_first_passing_input_and_keeps_all_controls(self):
         source = self.root / "source.json"
         source.write_text(
-            json.dumps(dict(schema=1, level="fixture", identity={}, cases=[self.point]))
+            json.dumps(
+                dict(schema=1, level=LEVELS["mirage"], identity={}, cases=[self.point])
+            )
         )
-        grid = payload(source, self.root, self.root / "rejected.json")
+        grid = payload("mirage", source, self.root, self.root / "rejected.json")
         (self.root / "mirage-grid-v1.json").write_text(json.dumps(grid))
         (self.root / "mirage-grid-60.json").write_text("{}")
         points = {p["id"]: p for p in grid["cases"]}

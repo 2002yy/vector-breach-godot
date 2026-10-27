@@ -277,7 +277,7 @@
   "scope": "runup_actions_on_original_geometry_not_complete_route_acceptance",
   "phase": "Run-up original-geometry action completion without route promotion",
   "base": "628a9908a1f4ef404faa4d64eab18206b602658b",
-  "new_regressions": 9,
+  "new_regressions": 11,
   "format_lint_compile": "passed",
   "pyright_errors": 0,
   "gdscript_format_lint": "passed",

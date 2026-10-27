@@ -7,8 +7,8 @@
   "runup_grid_runs": 54,
   "runup_selected_dual_rate_runs": 36,
   "native_lifecycle_assertions": 22,
-  "python_tests": 424,
-  "added_python_tests": 22,
+  "python_tests": 426,
+  "added_python_tests": 24,
   "python_format_lint": "passed",
   "pyright_errors": 0,
   "gdscript_format_lint": "passed",
@@ -210,7 +210,7 @@
   },
   "source_summaries_sha256": {
     "docs\\evidence\\quadrature-cross-category-20261027\\summary.json": "ac9c67d1d7ecb1d760e9d88bb2c83f05082921f191c3602d7fa9287fefd65d02",
-    "docs\\evidence\\runup-action-completion-20261027\\summary.json": "6ed8914eb726b90f7f5847b3aee8b741bb18267aef1daac08804bef6f455abb8"
+    "docs\\evidence\\runup-action-completion-20261027\\summary.json": "b74a19b383cae7b13d4e9357edd0deaa8fa636eafd36515dd9a2902799aa5ed4"
   },
   "existing_dirty_imports_settings_package_preserved": true,
   "production_changed": false,

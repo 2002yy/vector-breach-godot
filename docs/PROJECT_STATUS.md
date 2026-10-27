@@ -6,7 +6,7 @@
 
 基线 `628a9908`（#122），分支 `audit/movement-parallel-followthrough`。并行完成120次跨类别和90次两图助跑回放；V2修复作者候选开关/方案切换等生命周期缓存，原生22断言通过，原R25探针保留。三图10点候选20/20起跳和首落，双频落点差6点改善、4点相同、0点增大；60条baseline逐值保持，控制仍22/40到达。残余蹲跳水平差主要随离散垂直/贴地导致的首落时间差，未改跳跃/重力。
 
-两图6个助跑动作组通过双频门槛，动作覆盖15/15；Mirage路线仍未证明、Inferno直路仍被墙阻挡，必须跳跃通路仍7/15。最终Python **424项**、Python格式/F及Pyright零错误、四份GDScript格式/lint通过。四份原脏导入、设置、原证据及现有包保持。见 [R26整合结果](TASK_MOVEMENT_PARALLEL_FOLLOWTHROUGH_2026-10-27.md)；最终提交/PR/CI首查见本机`movement-parallel-followthrough-20261027/delivery.json`。
+两图6个助跑动作组通过双频门槛，动作覆盖15/15；Mirage路线仍未证明、Inferno直路仍被墙阻挡，必须跳跃通路仍7/15。复核补来源地图绑定和双频助跑路线资格撤权。最终Python **426项**、Python格式/F及Pyright零错误、四份GDScript格式/lint通过。四份原脏导入、设置、原证据及现有包保持。见 [R26整合结果](TASK_MOVEMENT_PARALLEL_FOLLOWTHROUGH_2026-10-27.md)；最终提交/PR/CI首查见本机`movement-parallel-followthrough-20261027/delivery.json`。
 
 **Movement-4未验收、Movement-5冻结。** 下一批补真实可行的两图助跑路线，并单列垂直积分候选合同，不重复已闭环动作矩阵。Current/正式Modern/原图不改，不等CI、不合并、不发包；人工/原机/完整路线、AI/18场/连续三图/70%FPS待验。
 

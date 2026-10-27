@@ -9,7 +9,7 @@ from typing import Any
 from build_native_route_study import SCHEMES, read, sha
 from edge_drop_revision import checked
 from movement_dimension_gates import action_gate
-from movement_evidence_bank import profile_evidence
+from movement_evidence_bank import LEVELS, profile_evidence
 from native_jump_candidates import RUNTIME, digital, freeze
 from queued_three_map_audit import CADENCE_PROBES, PROBES, QUEUE_PROBES
 from tactical_jump_coverage import require_unchanged_current
@@ -57,8 +57,11 @@ def control_timeline(native, mode) -> list[dict[str, Any]]:
     return result
 
 
-def payload(source, project, rejection) -> dict[str, Any]:
+def payload(name, source, project, rejection) -> dict[str, Any]:
     manifest = read(source)
+    require(
+        name in MAPS and manifest["level"] == LEVELS[name], "source map label differs"
+    )
     parents = [
         p for p in manifest["cases"] if p["id"] == "run_up" and p["kind"] == "run_up"
     ]
@@ -153,6 +156,9 @@ def runup_gate(point, row, rate):
 
 def selected_payload(name, directory, project):
     grid = directory / f"{name}-grid-v1.json"
+    require(
+        name in MAPS and read(grid)["level"] == LEVELS[name], "grid map label differs"
+    )
     points, rows = checked(grid, directory / f"{name}-grid-60.json", 60, project)
     cases, observations = [], []
     for scheme in SCHEMES:
@@ -185,6 +191,17 @@ def select(directory, project):
     freeze(directory / "selection-lock.json", result)
 
 
+def with_runup_contract(profile, runup) -> dict[str, Any]:
+    require(set(runup) == {"60", "120"}, "both run-up rates required")
+    passed = all(v["passed"] for v in runup.values())
+    result: dict[str, Any] = dict(profile, runup=runup, category_action_passed=passed)
+    if not passed and (
+        result["jump_route_passed"] or result["status"] == "qualified_jump"
+    ):
+        result.update(status="route_unproven", jump_route_passed=False)
+    return result
+
+
 def verify(directory, sources, project) -> dict[str, Any]:
     sites = []
     for name in MAPS:
@@ -195,6 +212,7 @@ def verify(directory, sources, project) -> dict[str, Any]:
         require(
             read(grid)
             == payload(
+                name,
                 sources / f"{name}-manifest.json",
                 project,
                 directory / f"{name}-rejected.json",
@@ -246,11 +264,7 @@ def verify(directory, sources, project) -> dict[str, Any]:
             runup = {
                 str(r): runup_gate(jump, rows[r][jump["id"]], r) for r in (60, 120)
             }
-            profile.update(
-                runup=runup,
-                category_action_passed=all(v["passed"] for v in runup.values()),
-            )
-            profiles[scheme] = profile
+            profiles[scheme] = with_runup_contract(profile, runup)
         sites.append(
             dict(map=name, kind="run_up", profiles=profiles, human_review="pending")
         )
@@ -281,6 +295,7 @@ if __name__ == "__main__":
             freeze(
                 args.directory / f"{name}-grid-v1.json",
                 payload(
+                    name,
                     args.sources / f"{name}-manifest.json",
                     args.project,
                     args.directory / f"{name}-rejected.json",

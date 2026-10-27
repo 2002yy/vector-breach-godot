@@ -21,7 +21,7 @@
 
 ## 验证与证据
 
-- `python -m unittest discover -s tools/tests -p test_movement_runup_actions.py`：9/9通过，覆盖原几何保持、输入/控制保持、抵墙、反向起跳、支撑中断、物理动作失败及选择顺序。
+- `python -m unittest discover -s tools/tests -p test_movement_runup_actions.py`：11/11通过，覆盖原几何保持、输入/控制保持、抵墙、反向起跳、支撑中断、物理动作失败及选择顺序，以及地图来源错配和单频助跑失败不得保留通路资格。
 - Ruff F检查/格式、Python编译、Pyright零错误；作者GDScript格式与lint通过。六份原生日志完成标记齐全，无脚本/运行时错误。
 - 三张图原资产、四个既存脏导入、玩家设置及最新版试玩包哈希保持。未做原生全比赛或人工验收。
 - 可提交摘要：[summary.json](evidence/runup-action-completion-20261027/summary.json)，不包含点位世界坐标或原版几何数据。
@@ -30,6 +30,8 @@
 复核命令：`python tools/runup_action_completion.py verify D:/AgentGamePipeline/evidence/three-map-movement-points-20261025 D:/AgentGamePipeline/evidence/runup-action-completion-20261027`。命令仅核验现有冻结文件，不重新执行地图回放。
 
 ## 限制与下一步
+
+独立复核补上两项门闸：冻结和重验均校验来源地图标签，选择器也校验网格标签，拒绝将同一张图复制或交换为另一张图；当任一频率不满足较强的助跑动作合同时，即使通用首落/通道判断成功，也必须撤回跳跃路线资格。现有原始结果未改变，无需重跑90次地图回放。
 
 输入及几何已有历史曝光；本轮先选60Hz输入后再冻结当前生产者双频回放，不能称严格盲测。0.5m/50ms/0.5m/s是本片动作合同，不能当作原CS参数。路线/精度门闸、原机对照及三图人工体验继续独立保留。
 
