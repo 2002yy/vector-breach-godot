@@ -1,0 +1,152 @@
+{
+  "schema": 1,
+  "selected_point": "rise_03",
+  "profiles": {
+    "legacy_16": {
+      "source_kind": "run_up",
+      "action_passed": true,
+      "category_action_passed": true,
+      "first_landings": {
+        "60": true,
+        "120": true
+      },
+      "walking_observed_both_rates": false,
+      "paired_controls_available": true,
+      "body_envelope_available": true,
+      "status": "qualified_jump",
+      "jump_route_passed": true,
+      "extra_approach_margin": null,
+      "source_case": "rise_03__legacy_16__v0__jump",
+      "controls": {
+        "60": {
+          "no_jump": false,
+          "walk": false
+        },
+        "120": {
+          "no_jump": false,
+          "walk": false
+        }
+      },
+      "runup": {
+        "60": {
+          "passed": true,
+          "action_passed": true,
+          "supported_suffix_seconds": 0.4,
+          "grounded_distance_m": 1.3916778564452983,
+          "forward_takeoff_mps": 5.33334255218506
+        },
+        "120": {
+          "passed": true,
+          "action_passed": true,
+          "supported_suffix_seconds": 0.4,
+          "grounded_distance_m": 1.3521499633787997,
+          "forward_takeoff_mps": 5.24753284454346
+        }
+      }
+    },
+    "modern_cs": {
+      "source_kind": "run_up",
+      "action_passed": true,
+      "category_action_passed": true,
+      "first_landings": {
+        "60": true,
+        "120": true
+      },
+      "walking_observed_both_rates": false,
+      "paired_controls_available": true,
+      "body_envelope_available": true,
+      "status": "qualified_jump",
+      "jump_route_passed": true,
+      "extra_approach_margin": null,
+      "source_case": "rise_03__modern_cs__v0__jump",
+      "controls": {
+        "60": {
+          "no_jump": false,
+          "walk": false
+        },
+        "120": {
+          "no_jump": false,
+          "walk": false
+        }
+      },
+      "runup": {
+        "60": {
+          "passed": true,
+          "action_passed": true,
+          "supported_suffix_seconds": 0.5,
+          "grounded_distance_m": 1.0620155334474077,
+          "forward_takeoff_mps": 3.83937048912048
+        },
+        "120": {
+          "passed": true,
+          "action_passed": true,
+          "supported_suffix_seconds": 0.5,
+          "grounded_distance_m": 1.0086860656739063,
+          "forward_takeoff_mps": 3.76396703720093
+        }
+      }
+    },
+    "current": {
+      "source_kind": "run_up",
+      "action_passed": true,
+      "category_action_passed": true,
+      "first_landings": {
+        "60": true,
+        "120": true
+      },
+      "walking_observed_both_rates": false,
+      "paired_controls_available": true,
+      "body_envelope_available": true,
+      "status": "qualified_jump",
+      "jump_route_passed": true,
+      "extra_approach_margin": null,
+      "source_case": "rise_03__current__v1__jump",
+      "controls": {
+        "60": {
+          "no_jump": false,
+          "walk": false
+        },
+        "120": {
+          "no_jump": false,
+          "walk": false
+        }
+      },
+      "runup": {
+        "60": {
+          "passed": true,
+          "action_passed": true,
+          "supported_suffix_seconds": 0.4,
+          "grounded_distance_m": 1.088848114013608,
+          "forward_takeoff_mps": 4.18695163726807
+        },
+        "120": {
+          "passed": true,
+          "action_passed": true,
+          "supported_suffix_seconds": 0.4,
+          "grounded_distance_m": 1.0434989929199006,
+          "forward_takeoff_mps": 4.09940481185913
+        }
+      }
+    }
+  },
+  "category_closed": true,
+  "action_categories": 15,
+  "route_categories": 9,
+  "total_valid_replays": 93,
+  "production_changed": false,
+  "formal_release_ready": false,
+  "human_acceptance": false,
+  "precision_equivalence_accepted": false,
+  "movement5_frozen": true,
+  "source_summaries_sha256": {
+    "D:\\AgentGamePipeline\\evidence\\inferno-clear-inputs-20261027": "802573ac6aa4253cee4e828ab23293908c7e13c71b0cdc8f3f1bd3a0e7bc8abf",
+    "D:\\AgentGamePipeline\\evidence\\inferno-clear-inputs-20261027\\v2": "4233bae96402a38ebf6c2a8e0deb1e440645513e06a670be236a4639c86f953a",
+    "D:\\AgentGamePipeline\\evidence\\inferno-clear-inputs-20261027\\v3": "fd4f9fb7196f8ea4c1883549c5b3983f5faf5d0c9441b9bc2f02ee7119906105"
+  },
+  "baseline": "a0c40e690035f9ff655cd966fc09805b5325a7d4",
+  "grid_trials": 75,
+  "selected_replay_trials": 18,
+  "original_start_target_and_geometry_unchanged": true,
+  "historical_exposure": true,
+  "composite_summary_sha256": "d27e1084d44592f66acb7d251ba5df8ac62d91e3d00fc201dfa488f722c4f295"
+}
