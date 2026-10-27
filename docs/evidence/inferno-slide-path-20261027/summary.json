@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "sites": [
+    {
+      "id": "rise_00__current__jump",
+      "frames": 120,
+      "reconciled_frames": 116,
+      "air_frames": 34,
+      "reconciled_air_frames": 34,
+      "air_contact_moves": 5,
+      "air_terminal_tails": 33,
+      "maximum_air_collision_depth_m": 0.00247777625918388,
+      "status": "route_unproven",
+      "geometric_clearance_proven": false
+    },
+    {
+      "id": "rise_02__current__jump",
+      "frames": 120,
+      "reconciled_frames": 112,
+      "air_frames": 36,
+      "reconciled_air_frames": 36,
+      "air_contact_moves": 5,
+      "air_terminal_tails": 35,
+      "maximum_air_collision_depth_m": 0.00185648817569017,
+      "status": "route_unproven",
+      "geometric_clearance_proven": false
+    }
+  ],
+  "new_gameplay_replays": 2,
+  "baseline_physics_input_traces_unchanged": 2,
+  "report_sha256": "ffeba9ad2821b0f7da2805476ba488de69290d2699739f37dcb5797d28ad4875",
+  "formal_release_ready": false,
+  "production_changed": false,
+  "limitation": "API travel chain reconciliation is not a full recovery/platform path or clearance proof.",
+  "base": "4e9152b9c57df1e7a9007af00d7f12fceca685c7",
+  "focused_tests": 9,
+  "native_fixture_assertions": 8,
+  "complete_air_interval_frames": 70,
+  "unreconciled_ground_recovery_frames": 12,
+  "matrix_sha256": "c3e26c63c5be6f29faa5f344bc79a0d53fd4142d7e8285c9af554f005b8b287a",
+  "limits": [
+    "Travel chains close numerically; full capsule clearance remains unproven.",
+    "Requested remainder never becomes an inferred traveled path.",
+    "Unreconciled recovery/platform displacements stay incomplete."
+  ]
+}
