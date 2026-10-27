@@ -2,7 +2,15 @@
 
 更新：2026-10-27。此文件为当前实现、优先级和交付状态的权威入口；旧任务文档及历史截图中的“当前版本/尚未实现”只对应当时提交。
 
-## 当前批：Movement-4 R26 候选生命周期、跨类别和助跑验证
+## 当前批：Movement-4 R27 垂直积分候选与真实助跑路线
+
+基线 `3caa475e`（#123），分支 `audit/movement-vertical-runup`。并行实现独立Modern垂直kick/drift/kick作者候选、36次三图双频对照与54次有效助跑回放。26原生断言通过，18条baseline物理/输入轨迹保持；共时刻自由飞行高度差由约25mm降到约0.05mm，三图首落差均缩小，但Mirage120目标首落失败，候选仅5/6首落，采用NO-GO。正式Current/Modern与原图不改。
+
+Mirage新路线Current双频真实助跑/通道/目标首落及配对控制通过，Legacy/Modern失败；Inferno无合格选择。动作15/15、通路7/15保持。首版18次缺timeline的无效尝试保留，新v2结果不覆盖。完整Python **445项**、Python格式/F和Pyright零错误、四份GDScript格式/lint通过；四脏导入、设置、旧探针和包保持。见 [R27结果与限制](TASK_MOVEMENT_VERTICAL_RUNUP_2026-10-27.md)；最终提交/PR/CI首查见本机`movement-vertical-runup-20261027/delivery.json`。
+
+**Movement-4未验收、Movement-5冻结。** 下一片聚焦Mirage120首落回归与Inferno实际轨迹身体扫掠，再分解Mirage两候选方案助跑失败；不以自由飞行改善放行地图。人工/原机、AI/18场/连续三图/70%FPS待验；不等CI、不合并、不发包。
+
+## 前批：Movement-4 R26 候选生命周期、跨类别和助跑验证
 
 基线 `628a9908`（#122），分支 `audit/movement-parallel-followthrough`。并行完成120次跨类别和90次两图助跑回放；V2修复作者候选开关/方案切换等生命周期缓存，原生22断言通过，原R25探针保留。三图10点候选20/20起跳和首落，双频落点差6点改善、4点相同、0点增大；60条baseline逐值保持，控制仍22/40到达。残余蹲跳水平差主要随离散垂直/贴地导致的首落时间差，未改跳跃/重力。
 
