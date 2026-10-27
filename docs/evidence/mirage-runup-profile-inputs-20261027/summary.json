@@ -1,0 +1,277 @@
+{
+  "schema": 1,
+  "base": "602e0bcad31ea823fb854b29bdd2a5ab9269323f",
+  "valid_trials": 33,
+  "grid_trials": 18,
+  "modern_selected_trials": 6,
+  "legacy_followup_trials": 9,
+  "initial": {
+    "schema": 1,
+    "selected": {
+      "legacy_16": null,
+      "modern_cs": 0
+    },
+    "observations": [
+      {
+        "scheme": "legacy_16",
+        "variant": 0,
+        "runup": {
+          "passed": true,
+          "action_passed": true,
+          "supported_suffix_seconds": 0.2,
+          "grounded_distance_m": 0.8364225000844767,
+          "forward_takeoff_mps": 5.61339998245239
+        },
+        "first_landing": false,
+        "corridor": "geometric_corridor_found",
+        "controls": {
+          "no_jump": false,
+          "walk": false
+        },
+        "eligible": false
+      },
+      {
+        "scheme": "legacy_16",
+        "variant": 1,
+        "runup": {
+          "passed": true,
+          "action_passed": true,
+          "supported_suffix_seconds": 0.2,
+          "grounded_distance_m": 0.8364225000844767,
+          "forward_takeoff_mps": 5.61339998245239
+        },
+        "first_landing": false,
+        "corridor": "geometric_corridor_found",
+        "controls": {
+          "no_jump": false,
+          "walk": false
+        },
+        "eligible": false
+      },
+      {
+        "scheme": "legacy_16",
+        "variant": 2,
+        "runup": {
+          "passed": true,
+          "action_passed": true,
+          "supported_suffix_seconds": 0.2,
+          "grounded_distance_m": 0.8364225000844767,
+          "forward_takeoff_mps": 5.61339998245239
+        },
+        "first_landing": false,
+        "corridor": "geometric_corridor_found",
+        "controls": {
+          "no_jump": false,
+          "walk": false
+        },
+        "eligible": false
+      },
+      {
+        "scheme": "modern_cs",
+        "variant": 0,
+        "runup": {
+          "passed": true,
+          "action_passed": true,
+          "supported_suffix_seconds": 0.25,
+          "grounded_distance_m": 0.6398353951869284,
+          "forward_takeoff_mps": 4.1605167388916
+        },
+        "first_landing": true,
+        "corridor": "geometric_corridor_found",
+        "controls": {
+          "no_jump": false,
+          "walk": false
+        },
+        "eligible": true
+      },
+      {
+        "scheme": "modern_cs",
+        "variant": 1,
+        "runup": {
+          "passed": true,
+          "action_passed": true,
+          "supported_suffix_seconds": 0.25,
+          "grounded_distance_m": 0.6398353951869284,
+          "forward_takeoff_mps": 4.1605167388916
+        },
+        "first_landing": true,
+        "corridor": "geometric_corridor_found",
+        "controls": {
+          "no_jump": false,
+          "walk": false
+        },
+        "eligible": true
+      },
+      {
+        "scheme": "modern_cs",
+        "variant": 2,
+        "runup": {
+          "passed": true,
+          "action_passed": true,
+          "supported_suffix_seconds": 0.25,
+          "grounded_distance_m": 0.6398353951869284,
+          "forward_takeoff_mps": 4.1605167388916
+        },
+        "first_landing": true,
+        "corridor": "geometric_corridor_found",
+        "controls": {
+          "no_jump": false,
+          "walk": false
+        },
+        "eligible": true
+      }
+    ],
+    "profiles": {
+      "modern_cs": {
+        "source_kind": "run_up",
+        "action_passed": true,
+        "category_action_passed": true,
+        "first_landings": {
+          "60": true,
+          "120": true
+        },
+        "walking_observed_both_rates": false,
+        "paired_controls_available": true,
+        "body_envelope_available": true,
+        "status": "qualified_jump",
+        "jump_route_passed": true,
+        "extra_approach_margin": null,
+        "source_case": "modern_cs__brake0__jump",
+        "controls": {
+          "60": {
+            "no_jump": false,
+            "walk": false
+          },
+          "120": {
+            "no_jump": false,
+            "walk": false
+          }
+        },
+        "runup": {
+          "60": {
+            "passed": true,
+            "action_passed": true,
+            "supported_suffix_seconds": 0.25,
+            "grounded_distance_m": 0.6398353951869284,
+            "forward_takeoff_mps": 4.1605167388916
+          },
+          "120": {
+            "passed": true,
+            "action_passed": true,
+            "supported_suffix_seconds": 0.25,
+            "grounded_distance_m": 0.6024975546324249,
+            "forward_takeoff_mps": 4.09070730209351
+          }
+        }
+      }
+    },
+    "formal_release_ready": false,
+    "production_changed": false,
+    "historical_exposure": true,
+    "source_and_target_unchanged": true,
+    "grid_trials": 18,
+    "selected_trials": 6,
+    "reports_sha256": {
+      "120.json": "dce7170fbe4ca2a7c8363281aba980d4bcef89d3292d2b19aafe0cd438326a1f",
+      "60.json": "ce15f5739a73c2b6557ffe8567c7de16c875579d5a7db8390739bc5f5c8a5a6d",
+      "grid-60.json": "34f5c05410a49c5263202630e606f4c7b3c163b4da25b47ae046ece3ded0fcb3"
+    }
+  },
+  "legacy_followup": {
+    "schema": 1,
+    "selected": {
+      "legacy_16": null
+    },
+    "observations": [
+      {
+        "scheme": "legacy_16",
+        "variant": 0,
+        "runup": {
+          "passed": false,
+          "action_passed": true,
+          "supported_suffix_seconds": 0.25,
+          "grounded_distance_m": 0.9665251345144066,
+          "forward_takeoff_mps": 0.0
+        },
+        "first_landing": false,
+        "corridor": "geometric_corridor_found",
+        "controls": {
+          "no_jump": false,
+          "walk": false
+        },
+        "eligible": false
+      },
+      {
+        "scheme": "legacy_16",
+        "variant": 1,
+        "runup": {
+          "passed": false,
+          "action_passed": true,
+          "supported_suffix_seconds": 0.3,
+          "grounded_distance_m": 0.9665251345144066,
+          "forward_takeoff_mps": 0.0
+        },
+        "first_landing": false,
+        "corridor": "geometric_corridor_found",
+        "controls": {
+          "no_jump": false,
+          "walk": false
+        },
+        "eligible": false
+      },
+      {
+        "scheme": "legacy_16",
+        "variant": 2,
+        "runup": {
+          "passed": false,
+          "action_passed": true,
+          "supported_suffix_seconds": 0.35,
+          "grounded_distance_m": 0.9665251345144066,
+          "forward_takeoff_mps": 0.0
+        },
+        "first_landing": false,
+        "corridor": "geometric_corridor_found",
+        "controls": {
+          "no_jump": false,
+          "walk": false
+        },
+        "eligible": false
+      }
+    ],
+    "profiles": {},
+    "formal_release_ready": false,
+    "production_changed": false,
+    "historical_exposure": true,
+    "source_and_target_unchanged": true,
+    "grid_trials": 9,
+    "selected_trials": 0,
+    "reports_sha256": {
+      "grid-60.json": "30212d8bf87e4a8cbe0c4711bf658e2c86dbf29edeb6e2f7fcd079f1700fa08e"
+    }
+  },
+  "new_tests": 6,
+  "source_sha256": {
+    "mirage-selected-v1.json": "70d01bb6fad5a90970b27c44c54fe16b9bd0158a53cb6e0f4a2cb8cebb837d8d",
+    "mirage-60.json": "b25ca7058fcdea391a7570092dadec8ac3bf711b54391a4ba5c0f7113a6d9c28",
+    "mirage-120.json": "3b4f02c7ab9dd7aa4129f33c27da30a2b8f1a8a4cefe951f2a8ca11e4aaafb74"
+  },
+  "matrices_sha256": {
+    "grid-v1.json": "3abd27359909fdd6b1490dbd42e7d62dbbb5425d9b979fa015fb0942f8cdc490",
+    "selected-v1.json": "313144bb43d9dcc586206e27dc3ff2e0885882ad06244ab893eddaf5b023d123",
+    "legacy-v2\\grid-v1.json": "dd6a3d0a79c8fd2e04d3072ff638d963c304a0c408d7fe4988b0d07246cfa4b2",
+    "legacy-v2\\selected-v1.json": "f82038c6288dec6eab5dcaf5ab993d7fecc590fc532d5216c2b8fbf68d9fc621"
+  },
+  "checker_sha256": "22b3ea570ebb0b566ad0e7663957fbb7f17176d133c5ddecd85f275bea11f6f1",
+  "preserved_geometry_and_targets": true,
+  "production_changed": false,
+  "package_updated": false,
+  "category_route_coverage": "7/15",
+  "movement4_accepted": false,
+  "movement5_frozen": true,
+  "limits": [
+    "Historically exposed source and input, no blind holdout claim.",
+    "Modern both rates qualified; Legacy no eligible input even in bounded later launch follow-up.",
+    "Original map, radius,height and action thresholds unchanged.",
+    "No human,original-client,full-map,AI,match,FPS acceptance."
+  ]
+}

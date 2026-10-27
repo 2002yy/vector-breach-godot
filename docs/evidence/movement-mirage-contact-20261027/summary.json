@@ -1,0 +1,169 @@
+{
+  "schema": 1,
+  "queries": 8,
+  "results": [
+    {
+      "id": "p60_v60__single",
+      "hit": false,
+      "steps": 1,
+      "hit_step_end_seconds": null,
+      "safe_fraction": 1.0,
+      "contact_groups": [],
+      "contact_normals": [],
+      "snap_eligible_steps": [
+        0
+      ],
+      "snap_gaps_m": [
+        0.425360894203186
+      ]
+    },
+    {
+      "id": "p60_v60__split",
+      "hit": false,
+      "steps": 2,
+      "hit_step_end_seconds": null,
+      "safe_fraction": 1.0,
+      "contact_groups": [],
+      "contact_normals": [],
+      "snap_eligible_steps": [
+        1
+      ],
+      "snap_gaps_m": [
+        0.459511256217957,
+        0.425360894203186
+      ]
+    },
+    {
+      "id": "p60_v120__single",
+      "hit": false,
+      "steps": 1,
+      "hit_step_end_seconds": null,
+      "safe_fraction": 1.0,
+      "contact_groups": [],
+      "contact_normals": [],
+      "snap_eligible_steps": [
+        0
+      ],
+      "snap_gaps_m": [
+        0.425360536575317
+      ]
+    },
+    {
+      "id": "p60_v120__split",
+      "hit": false,
+      "steps": 2,
+      "hit_step_end_seconds": null,
+      "safe_fraction": 1.0,
+      "contact_groups": [],
+      "contact_normals": [],
+      "snap_eligible_steps": [
+        1
+      ],
+      "snap_gaps_m": [
+        0.459511256217957,
+        0.425360894203186
+      ]
+    },
+    {
+      "id": "p120_v60__single",
+      "hit": false,
+      "steps": 1,
+      "hit_step_end_seconds": null,
+      "safe_fraction": 1.0,
+      "contact_groups": [],
+      "contact_normals": [],
+      "snap_eligible_steps": [
+        0
+      ],
+      "snap_gaps_m": [
+        0.425307130813599
+      ]
+    },
+    {
+      "id": "p120_v60__split",
+      "hit": false,
+      "steps": 2,
+      "hit_step_end_seconds": null,
+      "safe_fraction": 1.0,
+      "contact_groups": [],
+      "contact_normals": [],
+      "snap_eligible_steps": [
+        1
+      ],
+      "snap_gaps_m": [
+        0.459457612037659,
+        0.425307130813599
+      ]
+    },
+    {
+      "id": "p120_v120__single",
+      "hit": false,
+      "steps": 1,
+      "hit_step_end_seconds": null,
+      "safe_fraction": 1.0,
+      "contact_groups": [],
+      "contact_normals": [],
+      "snap_eligible_steps": [
+        0
+      ],
+      "snap_gaps_m": [
+        0.425307011604309
+      ]
+    },
+    {
+      "id": "p120_v120__split",
+      "hit": false,
+      "steps": 2,
+      "hit_step_end_seconds": null,
+      "safe_fraction": 1.0,
+      "contact_groups": [],
+      "contact_normals": [],
+      "snap_eligible_steps": [
+        1
+      ],
+      "snap_gaps_m": [
+        0.459457612037659,
+        0.425307130813599
+      ]
+    }
+  ],
+  "formal_release_ready": false,
+  "scope": "midpoint_gravity_body_test_motion_first_contact_not_move_and_slide",
+  "gameplay_replays": 0,
+  "base": "602e0bcad31ea823fb854b29bdd2a5ab9269323f",
+  "common_pre_snap_end_seconds": 0.9166666666666666,
+  "valid_queries": 8,
+  "invalid_overlapping_initial_queries_retained": 8,
+  "new_gameplay_replays": 0,
+  "focused_tests": 7,
+  "format_lint": "passed",
+  "pyright_errors": 0,
+  "gdscript_format_lint": "passed",
+  "body_motion_contacts": 0,
+  "interpretation": "custom_snap_at_common_end_then_next_move_and_slide_floor_flag_latency",
+  "observed_snap_physics_end_seconds": 0.9333333333333333,
+  "observed_floor_flag_end_seconds": {
+    "60": 0.95,
+    "120": 0.9416666666666667
+  },
+  "candidate_adoption": "NO-GO; original first-landing target failure retained",
+  "source_sha256": "d2e0e9ae94b882011129bd05f04361d39fadb8130fb590cecc2f1b6f8509a981",
+  "reports_sha256": {
+    "60": "5adb37e292cd0be8aa95078e96c87cd819beaddb1ce7bb8eac4c4e17ecab2717",
+    "120": "63ab3d8918e4e5a4a3037cc144190ca7a6976ad4b09c05a6824e173443eca83e"
+  },
+  "matrix_sha256": "40a3e68dacfdc4baaf31163154895bfa06340e866793bb5f9d051fbb3708fb79",
+  "query_report_sha256": "9aee13dfa9fa57ef4e8519bac7c322dbf12f3be617d91da3ee2a447a6cac71fb",
+  "probe_sha256": {
+    "tools/authoring/probe_mirage_landing_motion.gd": "327ae2f78eb126e3bf8c78b7a623915c6f7f99195a0ad797ba7b2e057cfc449a",
+    "tools/authoring/probe_crouch_motion.gd": "143c80d2f99057faaba75ca80a09f726ec38c63d4b82a519da3c1d7703fde69f"
+  },
+  "production_changed": false,
+  "movement4_accepted": false,
+  "movement5_frozen": true,
+  "limits": [
+    "Body test queries plus independent snap rays are not full player slide replays.",
+    "First common state was already snapped despite airborne flag and was rejected.",
+    "No target tolerance, original geometry or production parameters were changed."
+  ]
+}
