@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "base": "a0c40e690035f9ff655cd966fc09805b5325a7d4",
+  "branch": "audit/movement-clear-boundary",
+  "python_tests": 516,
+  "added_python_tests": 19,
+  "new_valid_gameplay_replays": 93,
+  "grid_trials": 75,
+  "selected_dual_rate_trials": 18,
+  "native_boundary_assertions": 124,
+  "native_boundary_maps_loaded": false,
+  "original_point": "rise_03",
+  "qualified_schemes": [
+    "current",
+    "legacy_16",
+    "modern_cs"
+  ],
+  "action_categories": "15/15",
+  "route_categories_before": "8/15",
+  "route_categories_after": "9/15",
+  "current_selected_reverse_seconds": 0.25,
+  "selected_first_passing_input_not_best_result": true,
+  "receipt_artifact_self_reference_fixed": true,
+  "canonical_receipts_unchanged": true,
+  "ci_discovery": "all_four_new_test_modules_match_test_m*.py",
+  "format_lint": "passed",
+  "pyright_errors": 0,
+  "gdscript_format_lint": "passed",
+  "production_changed": false,
+  "package_updated": false,
+  "global_candidate_adoption": false,
+  "original_failures_preserved": true,
+  "movement4_accepted": false,
+  "movement5_frozen": true,
+  "imports_settings_package_and_39_old_sources_preserved": true,
+  "public_summaries_sha256": {
+    "docs\\evidence\\inferno-clear-inputs-20261027\\summary.json": "071f694e353cd53498a7441d9e2ab6b20091e44b0346dc02b3e741e1b68eccf2",
+    "docs\\evidence\\support-boundaries-20261027\\summary.json": "86c6ad4e526e2a8ece7894364f243cb1df6216047071f26333e542f67958a6ee"
+  },
+  "composite_receipt_sha256": "d27e1084d44592f66acb7d251ba5df8ac62d91e3d00fc201dfa488f722c4f295",
+  "next_slice": "Refresh final three-map point/input/qualification inventory and existing native human-observation entry; stop searching closed run-up points.",
+  "limits": [
+    "Finite frozen script routes are not full map traversal or original-client/human acceptance.",
+    "Boundary regressions are bounded, not dynamic-support or all-pose authority.",
+    "Old candidate failures remain; no global adoption/Movement5 menu/package authorization.",
+    "AI/shared movement/difficulty,18matches,three-map manual playtest,70%FPS pending."
+  ]
+}
