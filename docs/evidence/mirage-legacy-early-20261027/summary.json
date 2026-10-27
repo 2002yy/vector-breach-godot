@@ -1,0 +1,214 @@
+{
+  "schema": 1,
+  "selected": {
+    "legacy_16": 0
+  },
+  "observations": [
+    {
+      "scheme": "legacy_16",
+      "variant": 0,
+      "runup": {
+        "passed": true,
+        "action_passed": true,
+        "supported_suffix_seconds": 0.15,
+        "grounded_distance_m": 0.5557518572316962,
+        "forward_takeoff_mps": 5.61339998245239
+      },
+      "first_landing": true,
+      "corridor": "geometric_corridor_found",
+      "controls": {
+        "no_jump": false,
+        "walk": false
+      },
+      "eligible": true
+    },
+    {
+      "scheme": "legacy_16",
+      "variant": 1,
+      "runup": {
+        "passed": true,
+        "action_passed": true,
+        "supported_suffix_seconds": 0.16666666666666666,
+        "grounded_distance_m": 0.6493087381826266,
+        "forward_takeoff_mps": 5.61339998245239
+      },
+      "first_landing": true,
+      "corridor": "geometric_corridor_found",
+      "controls": {
+        "no_jump": false,
+        "walk": false
+      },
+      "eligible": true
+    },
+    {
+      "scheme": "legacy_16",
+      "variant": 2,
+      "runup": {
+        "passed": true,
+        "action_passed": true,
+        "supported_suffix_seconds": 0.18333333333333332,
+        "grounded_distance_m": 0.7428656191335463,
+        "forward_takeoff_mps": 5.61339998245239
+      },
+      "first_landing": false,
+      "corridor": "geometric_corridor_found",
+      "controls": {
+        "no_jump": false,
+        "walk": false
+      },
+      "eligible": false
+    }
+  ],
+  "legacy": {
+    "source_kind": "run_up",
+    "action_passed": true,
+    "category_action_passed": true,
+    "first_landings": {
+      "60": true,
+      "120": true
+    },
+    "walking_observed_both_rates": false,
+    "paired_controls_available": true,
+    "body_envelope_available": true,
+    "status": "qualified_jump",
+    "jump_route_passed": true,
+    "extra_approach_margin": null,
+    "source_case": "legacy_16__early0__jump",
+    "controls": {
+      "60": {
+        "no_jump": false,
+        "walk": false
+      },
+      "120": {
+        "no_jump": false,
+        "walk": false
+      }
+    },
+    "runup": {
+      "60": {
+        "passed": true,
+        "action_passed": true,
+        "supported_suffix_seconds": 0.15,
+        "grounded_distance_m": 0.5557518572316962,
+        "forward_takeoff_mps": 5.61339998245239
+      },
+      "120": {
+        "passed": true,
+        "action_passed": true,
+        "supported_suffix_seconds": 0.15,
+        "grounded_distance_m": 0.5235167549470946,
+        "forward_takeoff_mps": 5.61339998245239
+      }
+    }
+  },
+  "prior_current": {
+    "source_kind": "run_up",
+    "action_passed": true,
+    "category_action_passed": true,
+    "first_landings": {
+      "60": true,
+      "120": true
+    },
+    "walking_observed_both_rates": false,
+    "paired_controls_available": true,
+    "body_envelope_available": true,
+    "status": "qualified_jump",
+    "jump_route_passed": true,
+    "extra_approach_margin": null,
+    "source_case": "rise_05__current__jump",
+    "controls": {
+      "60": {
+        "no_jump": false,
+        "walk": false
+      },
+      "120": {
+        "no_jump": false,
+        "walk": false
+      }
+    },
+    "runup": {
+      "60": {
+        "passed": true,
+        "action_passed": true,
+        "supported_suffix_seconds": 0.2,
+        "grounded_distance_m": 0.6281765995406025,
+        "forward_takeoff_mps": 5.15258979797363
+      },
+      "120": {
+        "passed": true,
+        "action_passed": true,
+        "supported_suffix_seconds": 0.2,
+        "grounded_distance_m": 0.5851887826232463,
+        "forward_takeoff_mps": 4.99192094802856
+      }
+    }
+  },
+  "prior_modern": {
+    "source_kind": "run_up",
+    "action_passed": true,
+    "category_action_passed": true,
+    "first_landings": {
+      "60": true,
+      "120": true
+    },
+    "walking_observed_both_rates": false,
+    "paired_controls_available": true,
+    "body_envelope_available": true,
+    "status": "qualified_jump",
+    "jump_route_passed": true,
+    "extra_approach_margin": null,
+    "source_case": "modern_cs__brake0__jump",
+    "controls": {
+      "60": {
+        "no_jump": false,
+        "walk": false
+      },
+      "120": {
+        "no_jump": false,
+        "walk": false
+      }
+    },
+    "runup": {
+      "60": {
+        "passed": true,
+        "action_passed": true,
+        "supported_suffix_seconds": 0.25,
+        "grounded_distance_m": 0.6398353951869284,
+        "forward_takeoff_mps": 4.1605167388916
+      },
+      "120": {
+        "passed": true,
+        "action_passed": true,
+        "supported_suffix_seconds": 0.25,
+        "grounded_distance_m": 0.6024975546324249,
+        "forward_takeoff_mps": 4.09070730209351
+      }
+    }
+  },
+  "mirage_all_three_schemes_qualified": true,
+  "grid_trials": 9,
+  "selected_trials": 6,
+  "formal_release_ready": false,
+  "production_changed": false,
+  "historical_exposure": true,
+  "source_and_targets_unchanged": true,
+  "prior_selected_sha256": {
+    "current": "70d01bb6fad5a90970b27c44c54fe16b9bd0158a53cb6e0f4a2cb8cebb837d8d",
+    "modern": "313144bb43d9dcc586206e27dc3ff2e0885882ad06244ab893eddaf5b023d123"
+  },
+  "reports_sha256": {
+    "120.json": "32214071a437c0079113dd810389d7e80c77e2ac9125ffb6e3d23241d84b3618",
+    "60.json": "3308752ade040cebcc953daa474bb7b893f7ccb45195f5ef2af014e5853368ec",
+    "grid-60.json": "bb7b5f79356ca82f4a2ba033c8470c5acae34b6dd195cf6eabcfd2a0f6008a22"
+  },
+  "base": "4e9152b9c57df1e7a9007af00d7f12fceca685c7",
+  "focused_tests": 5,
+  "valid_gameplay_replays": 15,
+  "route_coverage_before": "7/15",
+  "route_coverage_after": "8/15",
+  "selected_manifest_sha256": "bf5951cf577c21c36398eb3bd00d65881ae3ba1d71f0cca9c2b7f5ec624297ba",
+  "limits": [
+    "Finite frozen route and profile-specific inputs, not original-client/human acceptance.",
+    "All old failures retained; targets/default parameters/map geometry unchanged."
+  ]
+}
