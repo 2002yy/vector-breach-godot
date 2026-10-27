@@ -2,7 +2,15 @@
 
 更新：2026-10-27。此文件为当前实现、优先级和交付状态的权威入口；旧任务文档及历史截图中的“当前版本/尚未实现”只对应当时提交。
 
-## 当前批：Movement-4 R27 垂直积分候选与真实助跑路线
+## 当前批：Movement-4 R28 贴地状态、实际通道与分方案助跑
+
+基线 `602e0bc`（#124），分支 `audit/movement-contact-observed-routes`。三线并行：Mirage新8组有效查询定位同刻custom snap后grounded到下一物理帧才更新，解释首落1/120s记录差，未改正式snap或原半径；Inferno两条实际阶段折线76段、233次完整胶囊查询仍未证明清空。原始重叠查询和计数修正前证据保留，不把查询算比赛或玩法通过。
+
+新增33次有效助跑回放，Mirage Modern新输入两频满足动作/通道/首落/控制；同路线已有Current+Modern通过，Legacy仍失败，延后起跳在约0.216667s先碰台阶而失速。动作15/15、通路7/15保持，垂直候选采用仍NO-GO。完整Python **466项**、格式/F/Pyright零错误、四份GDScript检查通过；四脏导入、设置、旧来源和包保持。见 [R28结果与待修](TASK_MOVEMENT_CONTACT_OBSERVED_ROUTES_2026-10-27.md)；最终PR/提交/CI首查见本机`movement-contact-observed-routes-20261027/delivery.json`。
+
+**Movement-4未验收、Movement-5冻结。** 下一片做独立作者snap支撑/落地事件一致性候选，Legacy验证碰台阶前起跳窗口，Inferno补内部滑动路径证据，不再重复同一查询矩阵。正式Current/Modern和原图不改；不等CI、不合并、不发包，人工/原机、AI/18场/连续三图/70%FPS待验。
+
+## 前批：Movement-4 R27 垂直积分候选与真实助跑路线
 
 基线 `3caa475e`（#123），分支 `audit/movement-vertical-runup`。并行实现独立Modern垂直kick/drift/kick作者候选、36次三图双频对照与54次有效助跑回放。26原生断言通过，18条baseline物理/输入轨迹保持；共时刻自由飞行高度差由约25mm降到约0.05mm，三图首落差均缩小，但Mirage120目标首落失败，候选仅5/6首落，采用NO-GO。正式Current/Modern与原图不改。
 
