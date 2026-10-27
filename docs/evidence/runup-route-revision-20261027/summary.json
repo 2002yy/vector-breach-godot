@@ -1,0 +1,398 @@
+{
+  "schema": 1,
+  "base": "3caa475eb6a95f644ea8eb19447f04182d1faa02",
+  "phase": "bounded replacement run-up geometry with genuine approach and paired controls",
+  "maps": {
+    "mirage": {
+      "map": "mirage",
+      "selected": "rise_05",
+      "observations": [
+        {
+          "candidate": "rise_00",
+          "runup": {
+            "passed": true,
+            "action_passed": true,
+            "supported_suffix_seconds": 0.2,
+            "grounded_distance_m": 0.6285914274750659,
+            "forward_takeoff_mps": 5.15258979797363
+          },
+          "first_landing": false,
+          "corridor": "geometric_corridor_found",
+          "controls": {
+            "no_jump": false,
+            "walk": false
+          },
+          "eligible": false
+        },
+        {
+          "candidate": "rise_01",
+          "runup": {
+            "passed": true,
+            "action_passed": true,
+            "supported_suffix_seconds": 0.2,
+            "grounded_distance_m": 0.628465652465799,
+            "forward_takeoff_mps": 5.15258979797363
+          },
+          "first_landing": false,
+          "corridor": "geometric_corridor_found",
+          "controls": {
+            "no_jump": false,
+            "walk": false
+          },
+          "eligible": false
+        },
+        {
+          "candidate": "rise_02",
+          "runup": {
+            "passed": true,
+            "action_passed": true,
+            "supported_suffix_seconds": 0.2,
+            "grounded_distance_m": 0.628465652465799,
+            "forward_takeoff_mps": 5.15258979797363
+          },
+          "first_landing": false,
+          "corridor": "geometric_corridor_found",
+          "controls": {
+            "no_jump": false,
+            "walk": false
+          },
+          "eligible": false
+        },
+        {
+          "candidate": "rise_03",
+          "runup": {
+            "passed": true,
+            "action_passed": true,
+            "supported_suffix_seconds": 0.2,
+            "grounded_distance_m": 0.6285400390625,
+            "forward_takeoff_mps": 5.15258979797363
+          },
+          "first_landing": false,
+          "corridor": "blocked_direct_route",
+          "controls": {
+            "no_jump": false,
+            "walk": false
+          },
+          "eligible": false
+        },
+        {
+          "candidate": "rise_04",
+          "runup": {
+            "passed": true,
+            "action_passed": true,
+            "supported_suffix_seconds": 0.2,
+            "grounded_distance_m": 0.6284675598144993,
+            "forward_takeoff_mps": 5.15258979797363
+          },
+          "first_landing": false,
+          "corridor": "geometric_corridor_found",
+          "controls": {
+            "no_jump": false,
+            "walk": false
+          },
+          "eligible": false
+        },
+        {
+          "candidate": "rise_05",
+          "runup": {
+            "passed": true,
+            "action_passed": true,
+            "supported_suffix_seconds": 0.2,
+            "grounded_distance_m": 0.6281765995406025,
+            "forward_takeoff_mps": 5.15258979797363
+          },
+          "first_landing": true,
+          "corridor": "geometric_corridor_found",
+          "controls": {
+            "no_jump": false,
+            "walk": false
+          },
+          "eligible": true
+        }
+      ],
+      "profiles": {
+        "current": {
+          "source_kind": "run_up",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": true,
+            "120": true
+          },
+          "walking_observed_both_rates": false,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "qualified_jump",
+          "jump_route_passed": true,
+          "extra_approach_margin": null,
+          "source_case": "rise_05__current__jump",
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "runup": {
+            "60": {
+              "passed": true,
+              "action_passed": true,
+              "supported_suffix_seconds": 0.2,
+              "grounded_distance_m": 0.6281765995406025,
+              "forward_takeoff_mps": 5.15258979797363
+            },
+            "120": {
+              "passed": true,
+              "action_passed": true,
+              "supported_suffix_seconds": 0.2,
+              "grounded_distance_m": 0.5851887826232463,
+              "forward_takeoff_mps": 4.99192094802856
+            }
+          }
+        },
+        "legacy_16": {
+          "source_kind": "run_up",
+          "action_passed": true,
+          "category_action_passed": true,
+          "first_landings": {
+            "60": false,
+            "120": false
+          },
+          "walking_observed_both_rates": false,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "route_unproven",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "rise_05__legacy_16__jump",
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "runup": {
+            "60": {
+              "passed": true,
+              "action_passed": true,
+              "supported_suffix_seconds": 0.2,
+              "grounded_distance_m": 0.8364225000844767,
+              "forward_takeoff_mps": 5.61339998245239
+            },
+            "120": {
+              "passed": true,
+              "action_passed": true,
+              "supported_suffix_seconds": 0.2,
+              "grounded_distance_m": 0.8041850136140841,
+              "forward_takeoff_mps": 5.61339998245239
+            }
+          }
+        },
+        "modern_cs": {
+          "source_kind": "run_up",
+          "action_passed": true,
+          "category_action_passed": false,
+          "first_landings": {
+            "60": false,
+            "120": false
+          },
+          "walking_observed_both_rates": false,
+          "paired_controls_available": true,
+          "body_envelope_available": true,
+          "status": "route_unproven",
+          "jump_route_passed": false,
+          "extra_approach_margin": null,
+          "source_case": "rise_05__modern_cs__jump",
+          "controls": {
+            "60": {
+              "no_jump": false,
+              "walk": false
+            },
+            "120": {
+              "no_jump": false,
+              "walk": false
+            }
+          },
+          "runup": {
+            "60": {
+              "passed": false,
+              "action_passed": true,
+              "supported_suffix_seconds": 0.2,
+              "grounded_distance_m": 0.4392199891505488,
+              "forward_takeoff_mps": 3.65559697151184
+            },
+            "120": {
+              "passed": false,
+              "action_passed": true,
+              "supported_suffix_seconds": 0.2,
+              "grounded_distance_m": 0.4077653654539546,
+              "forward_takeoff_mps": 3.57755875587463
+            }
+          }
+        }
+      },
+      "formal_release_ready": false,
+      "human_acceptance": false,
+      "original_failures_preserved": true,
+      "production_changed": false
+    },
+    "inferno": {
+      "map": "inferno",
+      "selected": null,
+      "observations": [
+        {
+          "candidate": "rise_00",
+          "runup": {
+            "passed": false,
+            "action_passed": true,
+            "supported_suffix_seconds": 0.11666666666666667,
+            "grounded_distance_m": 0.0606498718262003,
+            "forward_takeoff_mps": 0.0
+          },
+          "first_landing": true,
+          "corridor": "route_unproven",
+          "controls": {
+            "no_jump": false,
+            "walk": false
+          },
+          "eligible": false
+        },
+        {
+          "candidate": "rise_01",
+          "runup": {
+            "passed": true,
+            "action_passed": true,
+            "supported_suffix_seconds": 0.2,
+            "grounded_distance_m": 0.6296901702880007,
+            "forward_takeoff_mps": 5.15258979797363
+          },
+          "first_landing": false,
+          "corridor": "route_unproven",
+          "controls": {
+            "no_jump": false,
+            "walk": false
+          },
+          "eligible": false
+        },
+        {
+          "candidate": "rise_02",
+          "runup": {
+            "passed": false,
+            "action_passed": true,
+            "supported_suffix_seconds": 0.2,
+            "grounded_distance_m": 0.6679019927978977,
+            "forward_takeoff_mps": 0.0
+          },
+          "first_landing": true,
+          "corridor": "route_unproven",
+          "controls": {
+            "no_jump": false,
+            "walk": false
+          },
+          "eligible": false
+        },
+        {
+          "candidate": "rise_03",
+          "runup": {
+            "passed": true,
+            "action_passed": true,
+            "supported_suffix_seconds": 0.2,
+            "grounded_distance_m": 0.6284637451172017,
+            "forward_takeoff_mps": 5.15258979797363
+          },
+          "first_landing": false,
+          "corridor": "geometric_corridor_found",
+          "controls": {
+            "no_jump": false,
+            "walk": false
+          },
+          "eligible": false
+        },
+        {
+          "candidate": "rise_04",
+          "runup": {
+            "passed": true,
+            "action_passed": true,
+            "supported_suffix_seconds": 0.2,
+            "grounded_distance_m": 0.62846231460572,
+            "forward_takeoff_mps": 5.15258979797363
+          },
+          "first_landing": false,
+          "corridor": "geometric_corridor_found",
+          "controls": {
+            "no_jump": false,
+            "walk": false
+          },
+          "eligible": false
+        },
+        {
+          "candidate": "rise_05",
+          "runup": {
+            "passed": true,
+            "action_passed": true,
+            "supported_suffix_seconds": 0.2,
+            "grounded_distance_m": 0.628465652465799,
+            "forward_takeoff_mps": 5.15258979797363
+          },
+          "first_landing": false,
+          "corridor": "blocked_direct_route",
+          "controls": {
+            "no_jump": false,
+            "walk": false
+          },
+          "eligible": false
+        }
+      ],
+      "profiles": {},
+      "formal_release_ready": false,
+      "human_acceptance": false,
+      "original_failures_preserved": true,
+      "production_changed": false
+    }
+  },
+  "valid_grid_trials": 36,
+  "valid_selected_trials": 18,
+  "invalid_initial_case_attempts": 18,
+  "invalid_initial_reason": "missing timeline field caused inherited runner errors; excluded from all acceptance",
+  "explored_rise_limit_per_map": 6,
+  "new_python_regressions": 8,
+  "format_lint_pyright": "passed",
+  "gdscript_format_lint": "passed",
+  "production_changed": false,
+  "map_geometry_changed": false,
+  "original_failures_preserved": true,
+  "formal_release_ready": false,
+  "movement5_frozen": true,
+  "category_jump_route_coverage": "7/15 unchanged: Current-only Mirage is not all-profile coverage",
+  "limits": [
+    "New geometry versions, not repairs to original failed manifests.",
+    "Current60 selected after finite geometry/input grid; not a fully blind holdout.",
+    "Mirage Legacy misses target and Modern fails approach contract; no universal route claim.",
+    "Inferno two actual first landings lack ideal-arc body-envelope proof; no promotion.",
+    "Original client/manual/precision/full routes/matches/FPS remain pending."
+  ],
+  "sha256": {
+    "inferno-grid-60.json": "9c2b872d5a9e67ae845812e49b35211b553a00d3d7bc59f097f950bfc84f4cde",
+    "inferno-grid-v1.json": "e702c64f89c93cbccde221c8c9446b8b02721976e8825a261a023176ac1717c5",
+    "inferno-selected-v1.json": "632b5fc34b380b7bac43d0b8708c001aeab33ddee667e7f60bf3f545063bd0fa",
+    "inferno-verified.json": "ffe0c17064889321a675b86257fe66fb3cdbd3e00b062d66aab809c68677da83",
+    "mirage-120.json": "3b4f02c7ab9dd7aa4129f33c27da30a2b8f1a8a4cefe951f2a8ca11e4aaafb74",
+    "mirage-60.json": "b25ca7058fcdea391a7570092dadec8ac3bf711b54391a4ba5c0f7113a6d9c28",
+    "mirage-grid-60.json": "ca0ec7b2dccf2f67f5883062442984929a75614ab0bc36edbc1539b921cb82cc",
+    "mirage-grid-v1.json": "1b26ba65e2e51c4bf175fd36ce872425ce3dab11e180531416b69db97a34b340",
+    "mirage-selected-v1.json": "70d01bb6fad5a90970b27c44c54fe16b9bd0158a53cb6e0f4a2cb8cebb837d8d",
+    "mirage-verified.json": "7ac3f0151880637529554d057d0a07b53baddb341f4dd163ab52ba0e7849aa1f"
+  },
+  "source_sha256": {
+    "mirage": "a79fae49c128524812e560942a4f9904be19311d894a62e235319411f148d975",
+    "inferno": "f48351cab077bd9cd2c222a22bdc0b9033332801596964d5879941bcb27829de"
+  },
+  "tool_sha256": "b5420ce30cc7c752df9df8d9ca6c4498dc817245ec386fd15e67ad950e69afe5"
+}
