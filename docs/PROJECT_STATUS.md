@@ -2,7 +2,15 @@
 
 更新：2026-10-27。此文件为当前实现、优先级和交付状态的权威入口；旧任务文档及历史截图中的“当前版本/尚未实现”只对应当时提交。
 
-## 当前批：Movement-4 R28 贴地状态、实际通道与分方案助跑
+## 当前批：Movement-4 R29 真实贴地支撑、Legacy助跑与滑动链
+
+基线 `4e9152b`（#125），分支 `audit/movement-snap-support-slide`。并行完成真实引擎支撑作者修复、Legacy提前起跳、Inferno内部滑动记录，共53次玩法回放。支撑/落地事件同帧一致，Mirage双频首落差21.677→0.00382mm、Inferno15.587→0.11446mm；但Mirage原输入两频首落超原半径约24.54mm，候选4/6首落，正式采用仍NO-GO。原输入/目标/正式参数均不改。
+
+Legacy0.15s起跳双频动作/通道/首落/控制通过，复算同几何Current+Modern报告后Mirage助跑三方案闭环，动作15/15、通路7/15→8/15。Inferno两条新回放与原轨迹相同，起跳至首落70/70帧API位移链闭合，未获得完整几何资格。完整Python **485项**、新原生夹具36断言、Python格式/F/Pyright零错误、七份GDScript检查通过；四脏导入/设置/旧来源/包保持。见 [R29整合结果](TASK_MOVEMENT_SNAP_SUPPORT_SLIDE_2026-10-27.md)；最终提交/PR/CI首查见本机`movement-snap-support-slide-20261027/delivery.json`。
+
+**Movement-4未验收、Movement-5冻结。** 下一片为真实支撑后的Mirage单列原目标新输入版本，Inferno检查已闭合空中链的完整身体与恢复范围；Legacy助跑不再列缺项。正式默认/原图不改，不等CI、不合并、不发包；原机/人工、AI/18场/连续三图/70%FPS待验。
+
+## 前批：Movement-4 R28 贴地状态、实际通道与分方案助跑
 
 基线 `602e0bc`（#124），分支 `audit/movement-contact-observed-routes`。三线并行：Mirage新8组有效查询定位同刻custom snap后grounded到下一物理帧才更新，解释首落1/120s记录差，未改正式snap或原半径；Inferno两条实际阶段折线76段、233次完整胶囊查询仍未证明清空。原始重叠查询和计数修正前证据保留，不把查询算比赛或玩法通过。
 

@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "base": "4e9152b9c57df1e7a9007af00d7f12fceca685c7",
+  "branch": "audit/movement-snap-support-slide",
+  "python_tests": 485,
+  "added_python_tests": 19,
+  "native_fixture_assertions": 36,
+  "gameplay_replays": 53,
+  "snap_map_replays": 36,
+  "legacy_replays": 15,
+  "inferno_replays": 2,
+  "format_lint": "passed",
+  "pyright_errors": 0,
+  "gdscript_format_lint": "passed",
+  "support_state_and_landed_events_consistent": true,
+  "snap_candidate_target_first_landings": "4/6",
+  "candidate_adoption": "NO-GO",
+  "legacy_mirage_all_profiles_qualified": true,
+  "action_categories": "15/15",
+  "required_jump_route_categories_before": "7/15",
+  "required_jump_route_categories_after": "8/15",
+  "inferno_air_interval_motion_chains_reconciled": "70/70",
+  "inferno_total_motion_chains_reconciled": "228/240",
+  "inferno_geometric_clearance_proven": false,
+  "production_changed": false,
+  "package_updated": false,
+  "movement4_accepted": false,
+  "movement5_frozen": true,
+  "preserved_imports_settings_package_and_19_old_sources": true,
+  "public_summaries_sha256": {
+    "docs\\evidence\\snap-support-candidate-20261027\\summary.json": "7decb578a3b765662459fb3ce8d3ff07765fc405e13d0c12b6a630406ea123ba",
+    "docs\\evidence\\mirage-legacy-early-20261027\\summary.json": "6d0f2b2416a199e17ad0bd8db68858f33d10151c1d86e05a90fcbd287ded67f5",
+    "docs\\evidence\\inferno-slide-path-20261027\\summary.json": "568d6686d8c77f8a02737443b36ffd1b42bd81de5d10cee463a59958be927a34"
+  },
+  "next_slice": "New frozen Mirage inputs for true-support first landing; full body/recovery audit on reconstructed Inferno air chains.",
+  "limits": [
+    "Physics state repair does not waive original Mirage target failure.",
+    "Finite script category index is not whole-map reachability or original-client parity.",
+    "Manual/original-client/full routes/AI/18matches/three-map playtest/70%FPS pending."
+  ]
+}
