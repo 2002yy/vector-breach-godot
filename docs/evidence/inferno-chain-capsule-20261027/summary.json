@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "results": [
+    {
+      "id": "rise_00__current__jump",
+      "air_frames": 34,
+      "actual_segments": 38,
+      "last_motion_tails": 33,
+      "query_clear_segments": 28,
+      "proven_segments": 28,
+      "overlap_segments": 10,
+      "support_cast_segments": 1,
+      "wall_cast_segments": 2,
+      "recovery_depth_segments": 8,
+      "nonclear_comparison_chords": 6,
+      "old_chord_nonclear_removed_ticks": [],
+      "outside_unreconciled_frames": 4,
+      "status": "route_unproven",
+      "geometric_clearance_proven": false
+    },
+    {
+      "id": "rise_02__current__jump",
+      "air_frames": 36,
+      "actual_segments": 40,
+      "last_motion_tails": 35,
+      "query_clear_segments": 29,
+      "proven_segments": 29,
+      "overlap_segments": 11,
+      "support_cast_segments": 0,
+      "wall_cast_segments": 1,
+      "recovery_depth_segments": 8,
+      "nonclear_comparison_chords": 7,
+      "old_chord_nonclear_removed_ticks": [],
+      "outside_unreconciled_frames": 8,
+      "status": "route_unproven",
+      "geometric_clearance_proven": false
+    }
+  ],
+  "collision_queries": 748,
+  "source_report_sha256": "ffeba9ad2821b0f7da2805476ba488de69290d2699739f37dcb5797d28ad4875",
+  "query_report_sha256": "6c6e872936a12f0b1ec6336b34ecd3bfb14d4f9f4ddc47ac54e614de42f5e27b",
+  "new_gameplay_replays": 0,
+  "production_changed": false,
+  "formal_release_ready": false,
+  "limitation": "Contact/overlap and nonzero recovery depth remain unproven; central chains do not prove other stage displacements or 12 outside-interval recovery frames."
+}
