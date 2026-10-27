@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "results": [
+    {
+      "id": "rise_00__current__jump",
+      "segments": 35,
+      "clear_segments": 28,
+      "contact_segments": 1,
+      "initial_overlaps": 5,
+      "endpoint_overlaps": 5,
+      "minimum_free_fraction": 0.84375,
+      "observed_piecewise_path_clear": false,
+      "original_corridor": "route_unproven",
+      "status": "route_unproven"
+    },
+    {
+      "id": "rise_02__current__jump",
+      "segments": 41,
+      "clear_segments": 32,
+      "contact_segments": 1,
+      "initial_overlaps": 7,
+      "endpoint_overlaps": 7,
+      "minimum_free_fraction": 0.75,
+      "observed_piecewise_path_clear": false,
+      "original_corridor": "route_unproven",
+      "status": "route_unproven"
+    }
+  ],
+  "source_reports_sha256": {
+    "source": "9c2b872d5a9e67ae845812e49b35211b553a00d3d7bc59f097f950bfc84f4cde",
+    "sweep": "a442c4af2f555c0021f0f9e164b35781df8b850667d5533133dab819c0af6513"
+  },
+  "new_gameplay_replays": 0,
+  "collision_queries": 233,
+  "formal_release_ready": false,
+  "production_changed": false,
+  "limitation": "Exact full capsule swept on recorded stage chords; nonclear chords cannot disprove actual engine slide path. Floor contact is not excluded.",
+  "base": "602e0bcad31ea823fb854b29bdd2a5ab9269323f",
+  "focused_tests": 8,
+  "native_fixture_assertions": 5,
+  "format_lint": "passed",
+  "pyright_errors": 0,
+  "gdscript_format_lint": "passed",
+  "v1_reported_query_upper_bound": 304,
+  "v1_producer_and_raw_preserved": true,
+  "required_jump_route_categories": "7/15",
+  "actual_contact_normals_agree_with_source": true
+}
