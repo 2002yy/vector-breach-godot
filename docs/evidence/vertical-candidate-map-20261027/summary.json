@@ -1,0 +1,283 @@
+{
+  "schema": 1,
+  "results": {
+    "dust2": {
+      "baseline": {
+        "common_air_end_states": {
+          "0.016666666666666666": {
+            "y_delta_m": 0.001453638076789776,
+            "vertical_velocity_delta_mps": 0.16933345794677024
+          },
+          "0.1": {
+            "y_delta_m": 0.008509159088129437,
+            "vertical_velocity_delta_mps": 0.16933584213257014
+          },
+          "0.3": {
+            "y_delta_m": 0.02544355392455966,
+            "vertical_velocity_delta_mps": 0.1693367958068801
+          }
+        },
+        "landing_position_delta_m": 0.06189469788088222,
+        "landing_physics_end_delta_seconds": 0.033333333333333465,
+        "apex_height_delta_m": 0.03249931335449041,
+        "actions": {
+          "60": true,
+          "120": true
+        },
+        "first_landings": {
+          "60": true,
+          "120": true
+        },
+        "controls": {
+          "60": {
+            "no_jump": false,
+            "walk": false
+          },
+          "120": {
+            "no_jump": false,
+            "walk": false
+          }
+        }
+      },
+      "vertical": {
+        "common_air_end_states": {
+          "0.016666666666666666": {
+            "y_delta_m": 4.148483276011916e-05,
+            "vertical_velocity_delta_mps": 0.0
+          },
+          "0.1": {
+            "y_delta_m": 4.196166992009864e-05,
+            "vertical_velocity_delta_mps": 2.3841857901274466e-06
+          },
+          "0.3": {
+            "y_delta_m": 4.2438507080078125e-05,
+            "vertical_velocity_delta_mps": 3.4570694000812807e-06
+          }
+        },
+        "landing_position_delta_m": 0.0464249907992287,
+        "landing_physics_end_delta_seconds": 0.025000000000000383,
+        "apex_height_delta_m": -0.00024032592774059225,
+        "actions": {
+          "60": true,
+          "120": true
+        },
+        "first_landings": {
+          "60": true,
+          "120": true
+        },
+        "controls": {
+          "60": {
+            "no_jump": false,
+            "walk": false
+          },
+          "120": {
+            "no_jump": false,
+            "walk": false
+          }
+        }
+      }
+    },
+    "mirage": {
+      "baseline": {
+        "common_air_end_states": {
+          "0.016666666666666666": {
+            "y_delta_m": 0.0014627575874330834,
+            "vertical_velocity_delta_mps": 0.16933345794677024
+          },
+          "0.1": {
+            "y_delta_m": 0.008518457412719949,
+            "vertical_velocity_delta_mps": 0.16933584213257014
+          },
+          "0.3": {
+            "y_delta_m": 0.02545213699340998,
+            "vertical_velocity_delta_mps": 0.1693367958068801
+          }
+        },
+        "landing_position_delta_m": 0.08670537223315992,
+        "landing_physics_end_delta_seconds": 0.03333333333333341,
+        "apex_height_delta_m": 0.03250789642334029,
+        "actions": {
+          "60": true,
+          "120": true
+        },
+        "first_landings": {
+          "60": true,
+          "120": true
+        },
+        "controls": {
+          "60": {
+            "no_jump": false,
+            "walk": false
+          },
+          "120": {
+            "no_jump": false,
+            "walk": false
+          }
+        }
+      },
+      "vertical": {
+        "common_air_end_states": {
+          "0.016666666666666666": {
+            "y_delta_m": 5.090236663796155e-05,
+            "vertical_velocity_delta_mps": 0.0
+          },
+          "0.1": {
+            "y_delta_m": 5.114078521994969e-05,
+            "vertical_velocity_delta_mps": 2.3841857901274466e-06
+          },
+          "0.3": {
+            "y_delta_m": 5.197525024014382e-05,
+            "vertical_velocity_delta_mps": 3.4570694000812807e-06
+          }
+        },
+        "landing_position_delta_m": 0.021677216125099843,
+        "landing_physics_end_delta_seconds": 0.008333333333333385,
+        "apex_height_delta_m": -0.00023102760314985815,
+        "actions": {
+          "60": true,
+          "120": true
+        },
+        "first_landings": {
+          "60": true,
+          "120": false
+        },
+        "controls": {
+          "60": {
+            "no_jump": false,
+            "walk": false
+          },
+          "120": {
+            "no_jump": false,
+            "walk": false
+          }
+        }
+      }
+    },
+    "inferno": {
+      "baseline": {
+        "common_air_end_states": {
+          "0.016666666666666666": {
+            "y_delta_m": 0.001338005065919745,
+            "vertical_velocity_delta_mps": 0.16933345794677024
+          },
+          "0.1": {
+            "y_delta_m": 0.008394241333009589,
+            "vertical_velocity_delta_mps": 0.16933584213257014
+          },
+          "0.3": {
+            "y_delta_m": 0.02532863616943981,
+            "vertical_velocity_delta_mps": 0.1693367958068801
+          }
+        },
+        "landing_position_delta_m": 0.04653934576474913,
+        "landing_physics_end_delta_seconds": 0.02500000000000044,
+        "apex_height_delta_m": 0.032384395599359905,
+        "actions": {
+          "60": true,
+          "120": true
+        },
+        "first_landings": {
+          "60": true,
+          "120": true
+        },
+        "controls": {
+          "60": {
+            "no_jump": false,
+            "walk": false
+          },
+          "120": {
+            "no_jump": false,
+            "walk": false
+          }
+        }
+      },
+      "vertical": {
+        "common_air_end_states": {
+          "0.016666666666666666": {
+            "y_delta_m": -7.390975951970802e-05,
+            "vertical_velocity_delta_mps": 0.0
+          },
+          "0.1": {
+            "y_delta_m": -7.390975951970802e-05,
+            "vertical_velocity_delta_mps": 2.3841857901274466e-06
+          },
+          "0.3": {
+            "y_delta_m": -7.34329223694985e-05,
+            "vertical_velocity_delta_mps": 3.4570694000812807e-06
+          }
+        },
+        "landing_position_delta_m": 0.015587225675969785,
+        "landing_physics_end_delta_seconds": 0.008333333333333385,
+        "apex_height_delta_m": -0.00035619735717951073,
+        "actions": {
+          "60": true,
+          "120": true
+        },
+        "first_landings": {
+          "60": true,
+          "120": true
+        },
+        "controls": {
+          "60": {
+            "no_jump": false,
+            "walk": false
+          },
+          "120": {
+            "no_jump": false,
+            "walk": false
+          }
+        }
+      }
+    }
+  },
+  "trials": 36,
+  "baseline_physics_input_traces_unchanged": 18,
+  "production_changed": false,
+  "formal_release_ready": false,
+  "precision_equivalence_accepted": false,
+  "scope": "vertical_only_author_candidate_not_original_engine_parity",
+  "reports_sha256": {
+    "dust2-60": "96b611adffd9fc97c0c8d0664a8b612a4421fa7942b7b2f2b77dbcc1e3d81912",
+    "dust2-120": "4209a1a3a48853505633a50711b5e58f25453ca1f7b5747f9c6779b1e34eea42",
+    "mirage-60": "5adb37e292cd0be8aa95078e96c87cd819beaddb1ce7bb8eac4c4e17ecab2717",
+    "mirage-120": "63ab3d8918e4e5a4a3037cc144190ca7a6976ad4b09c05a6824e173443eca83e",
+    "inferno-60": "12c6c9a754f59c65bce34615f6561b7f1c7a3ecaf12537f7da6ee871fa087ec2",
+    "inferno-120": "239c8335454aa562b5e4afa7edda24fea03b29e731474f63ccf235a80467c3a1"
+  },
+  "lock_sha256": "5becb5de5296589fbd0a18df683589f7dc2f6ee61567eae5dded8e46a4c32538",
+  "mirage120_first_landing_regression": {
+    "horizontal_target_distance_m": 1.6028709411620987,
+    "radius_m": 1.6,
+    "radius_excess_m": 0.002870941162098628,
+    "feet_height_error_m": 0.0007780551910410161,
+    "height_tolerance_m": 0.18,
+    "landing_tick_start_seconds": 0.933333333333333,
+    "landing_physics_end_seconds": 0.9416666666666663,
+    "supported_arrival_tick_start_seconds": 0.941666666666667,
+    "supported_arrival_is_not_first_landing": true,
+    "collision_group": "OfficialSourceAlignment/COLLISION_ONLY_physics_npcclip_playerclip/RuntimeCollision",
+    "earlier_air_contacts": 0
+  },
+  "baseline_first_landings": 6,
+  "candidate_actual_takeoffs": 6,
+  "candidate_first_landings": 5,
+  "baseline_control_arrivals": 0,
+  "candidate_control_arrivals": 0,
+  "ordinary_focused_tests": 10,
+  "format_lint": "passed",
+  "pyright_errors": 0,
+  "candidate_adoption": "NO_GO_first_landing_regression",
+  "probes_sha256": {
+    "tools/authoring/ModernGroundQuadratureV2Player.gd": "8e02ab4da4615e18f0fa3f05c8b20b0e6c1c0c4b5e636f22e3632312b24e441a",
+    "tools/authoring/audit_modern_ground_quadrature_v2.gd": "b0d66529cd5cf46afc0fd85f6919a88e3df22518b771e39ff520ad1fad1255c9",
+    "tools/authoring/ModernVerticalQuadraturePlayer.gd": "48b3adf37a1079aec43cc9c4d8eafe173ed7e53e37aa5e8cc9a0404376647222",
+    "tools/authoring/audit_modern_vertical_quadrature.gd": "b24296f32509cb11e3bc46bfda64d58e7832ba3e519ca633159027e0006870dd"
+  },
+  "checker_sha256": "cc7b639cae8c681be415783d7079f71d451272070c626dc752f93dd287b839f0",
+  "limits": [
+    "Only three exposed R25 crouch points, not original-client or whole-map parity.",
+    "Freeflight convergence is not landing/snap equality; Mirage120 misses first landing radius.",
+    "No input/target tolerance/map geometry tuning or native rerun to suppress failure.",
+    "Formal production defaults and package unchanged; Movement4 unaccepted,Movement5 frozen."
+  ]
+}
