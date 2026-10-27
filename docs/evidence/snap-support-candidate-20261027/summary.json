@@ -1,0 +1,273 @@
+{
+  "schema": 1,
+  "results": {
+    "dust2": {
+      "baseline": {
+        "common_air_end_states": {
+          "0.016666666666666666": {
+            "y_delta_m": 4.148483276011916e-05,
+            "vertical_velocity_delta_mps": 0.0
+          },
+          "0.1": {
+            "y_delta_m": 4.196166992009864e-05,
+            "vertical_velocity_delta_mps": 2.3841857901274466e-06
+          },
+          "0.3": {
+            "y_delta_m": 4.2438507080078125e-05,
+            "vertical_velocity_delta_mps": 3.4570694000812807e-06
+          }
+        },
+        "landing_position_delta_m": 0.0464249907992287,
+        "landing_physics_end_delta_seconds": 0.025000000000000383,
+        "apex_height_delta_m": -0.00024032592774059225,
+        "first_landings": {
+          "60": true,
+          "120": true
+        },
+        "controls": {
+          "60": {
+            "no_jump": false,
+            "walk": false
+          },
+          "120": {
+            "no_jump": false,
+            "walk": false
+          }
+        },
+        "support_sync_count": {
+          "60": 0,
+          "120": 0
+        }
+      },
+      "support": {
+        "common_air_end_states": {
+          "0.016666666666666666": {
+            "y_delta_m": 4.148483276011916e-05,
+            "vertical_velocity_delta_mps": 0.0
+          },
+          "0.1": {
+            "y_delta_m": 4.196166992009864e-05,
+            "vertical_velocity_delta_mps": 2.3841857901274466e-06
+          },
+          "0.3": {
+            "y_delta_m": 4.2438507080078125e-05,
+            "vertical_velocity_delta_mps": 3.4570694000812807e-06
+          }
+        },
+        "landing_position_delta_m": 0.030944824218806843,
+        "landing_physics_end_delta_seconds": 0.016666666666666358,
+        "apex_height_delta_m": -0.00024032592774059225,
+        "first_landings": {
+          "60": true,
+          "120": true
+        },
+        "controls": {
+          "60": {
+            "no_jump": false,
+            "walk": false
+          },
+          "120": {
+            "no_jump": false,
+            "walk": false
+          }
+        },
+        "support_sync_count": {
+          "60": 1,
+          "120": 1
+        }
+      }
+    },
+    "mirage": {
+      "baseline": {
+        "common_air_end_states": {
+          "0.016666666666666666": {
+            "y_delta_m": 5.090236663796155e-05,
+            "vertical_velocity_delta_mps": 0.0
+          },
+          "0.1": {
+            "y_delta_m": 5.114078521994969e-05,
+            "vertical_velocity_delta_mps": 2.3841857901274466e-06
+          },
+          "0.3": {
+            "y_delta_m": 5.197525024014382e-05,
+            "vertical_velocity_delta_mps": 3.4570694000812807e-06
+          }
+        },
+        "landing_position_delta_m": 0.021677216125099843,
+        "landing_physics_end_delta_seconds": 0.008333333333333385,
+        "apex_height_delta_m": -0.00023102760314985815,
+        "first_landings": {
+          "60": true,
+          "120": false
+        },
+        "controls": {
+          "60": {
+            "no_jump": false,
+            "walk": false
+          },
+          "120": {
+            "no_jump": false,
+            "walk": false
+          }
+        },
+        "support_sync_count": {
+          "60": 0,
+          "120": 0
+        }
+      },
+      "support": {
+        "common_air_end_states": {
+          "0.016666666666666666": {
+            "y_delta_m": 5.090236663796155e-05,
+            "vertical_velocity_delta_mps": 0.0
+          },
+          "0.1": {
+            "y_delta_m": 5.114078521994969e-05,
+            "vertical_velocity_delta_mps": 2.3841857901274466e-06
+          },
+          "0.3": {
+            "y_delta_m": 5.197525024014382e-05,
+            "vertical_velocity_delta_mps": 3.4570694000812807e-06
+          }
+        },
+        "landing_position_delta_m": 3.816559488221483e-06,
+        "landing_physics_end_delta_seconds": 3.0357660829594124e-16,
+        "apex_height_delta_m": -0.00023102760314985815,
+        "first_landings": {
+          "60": false,
+          "120": false
+        },
+        "controls": {
+          "60": {
+            "no_jump": false,
+            "walk": false
+          },
+          "120": {
+            "no_jump": false,
+            "walk": false
+          }
+        },
+        "support_sync_count": {
+          "60": 1,
+          "120": 1
+        }
+      }
+    },
+    "inferno": {
+      "baseline": {
+        "common_air_end_states": {
+          "0.016666666666666666": {
+            "y_delta_m": -7.390975951970802e-05,
+            "vertical_velocity_delta_mps": 0.0
+          },
+          "0.1": {
+            "y_delta_m": -7.390975951970802e-05,
+            "vertical_velocity_delta_mps": 2.3841857901274466e-06
+          },
+          "0.3": {
+            "y_delta_m": -7.34329223694985e-05,
+            "vertical_velocity_delta_mps": 3.4570694000812807e-06
+          }
+        },
+        "landing_position_delta_m": 0.015587225675969785,
+        "landing_physics_end_delta_seconds": 0.008333333333333385,
+        "apex_height_delta_m": -0.00035619735717951073,
+        "first_landings": {
+          "60": true,
+          "120": true
+        },
+        "controls": {
+          "60": {
+            "no_jump": false,
+            "walk": false
+          },
+          "120": {
+            "no_jump": false,
+            "walk": false
+          }
+        },
+        "support_sync_count": {
+          "60": 0,
+          "120": 0
+        }
+      },
+      "support": {
+        "common_air_end_states": {
+          "0.016666666666666666": {
+            "y_delta_m": -7.390975951970802e-05,
+            "vertical_velocity_delta_mps": 0.0
+          },
+          "0.1": {
+            "y_delta_m": -7.390975951970802e-05,
+            "vertical_velocity_delta_mps": 2.3841857901274466e-06
+          },
+          "0.3": {
+            "y_delta_m": -7.34329223694985e-05,
+            "vertical_velocity_delta_mps": 3.4570694000812807e-06
+          }
+        },
+        "landing_position_delta_m": 0.00011445681136547642,
+        "landing_physics_end_delta_seconds": 3.0357660829594124e-16,
+        "apex_height_delta_m": -0.00035619735717951073,
+        "first_landings": {
+          "60": true,
+          "120": true
+        },
+        "controls": {
+          "60": {
+            "no_jump": false,
+            "walk": false
+          },
+          "120": {
+            "no_jump": false,
+            "walk": false
+          }
+        },
+        "support_sync_count": {
+          "60": 1,
+          "120": 1
+        }
+      }
+    }
+  },
+  "trials": 36,
+  "baseline_unchanged": 18,
+  "formal_release_ready": false,
+  "production_changed": false,
+  "source_report_sha256": {
+    "dust2-60": "a3c2d2f5d57f9d5092f6e05b7fdd3941eb58bad348bc8fdcf7caeb515773fd36",
+    "dust2-120": "03457a56ef0a4f79ec853f4eabf8d2bf9752cf7062e9dc1cb8644043c6386ec3",
+    "mirage-60": "2582bc37e9a8b9ca8bcc80803515759e2e1c2e88161a9ff33ab94f74da222362",
+    "mirage-120": "b3a440345185f8f1522fbdd275dda6953b21d8a3e772907d2d07bdbbf4205dde",
+    "inferno-60": "1da4cf0ba5ab85944c052f68c3307f373f616d7ad3fca8761847fbcdccfc0ea3",
+    "inferno-120": "884630e198246acd00d4ead669915a25859d9fe2f5bc7c1845933abe0e3cf458"
+  },
+  "matrix_lock_sha256": "03f0ca99659c8cf1dc28591b214a8fc8c7fc56020f9728d60d91eb909ae5bbaa",
+  "base": "4e9152b9c57df1e7a9007af00d7f12fceca685c7",
+  "candidate_target_first_landings": 4,
+  "baseline_target_first_landings": 5,
+  "candidate_actual_support_transitions": 6,
+  "candidate_control_arrivals": 0,
+  "focused_python_tests": 5,
+  "native_fixture_assertions": 28,
+  "candidate_adoption": "NO-GO",
+  "mirage_first_landing": {
+    "60": {
+      "radial_m": 1.6245422363281001,
+      "radius_m": 1.6,
+      "physics_end_seconds": 0.9333333333333337
+    },
+    "120": {
+      "radial_m": 1.6245460510253977,
+      "radius_m": 1.6,
+      "physics_end_seconds": 0.9333333333333333
+    }
+  },
+  "old_input_targets_and_producers_preserved": true,
+  "limits": [
+    "Force engine floor snap synchronizes true support, not a fabricated grounded label.",
+    "Mirage earlier physical support falls outside frozen original target; no tolerance waiver.",
+    "Apply-floor-snap may adjust position; not Source-client parity or full-route authority.",
+    "Fall damage and camera midpoint/other vertical-candidate limits remain."
+  ]
+}
