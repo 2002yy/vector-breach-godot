@@ -1,0 +1,227 @@
+{
+  "schema": 1,
+  "base": "628a9908a1f4ef404faa4d64eab18206b602658b",
+  "branch": "audit/movement-parallel-followthrough",
+  "native_map_replays": 210,
+  "cross_category_runs": 120,
+  "runup_grid_runs": 54,
+  "runup_selected_dual_rate_runs": 36,
+  "native_lifecycle_assertions": 22,
+  "python_tests": 424,
+  "added_python_tests": 22,
+  "python_format_lint": "passed",
+  "pyright_errors": 0,
+  "gdscript_format_lint": "passed",
+  "candidate_takeoff_and_first_landing": "20/20",
+  "cross_category_delta_comparison": {
+    "improved": 6,
+    "equal": 4,
+    "worse": 0
+  },
+  "baseline_physics_input_traces_unchanged": 60,
+  "runup_action_map_profile_groups": 6,
+  "action_categories": "15/15",
+  "required_jump_route_categories": "7/15",
+  "runup_routes": {
+    "mirage": "route_unproven",
+    "inferno": "blocked_direct_route"
+  },
+  "lifecycle_fix": "versioned_author_candidate_only",
+  "residual": {
+    "schema": 1,
+    "results": {
+      "inferno": {
+        "common_end_states": {
+          "0.016666666666666666": {
+            "end_seconds": 0.11666666666666667,
+            "y_delta_m": 0.001338005065919745,
+            "vertical_velocity_delta_mps": 0.16933345794677024,
+            "horizontal_delta_m": 0.00011064266213432117
+          },
+          "0.1": {
+            "end_seconds": 0.2,
+            "y_delta_m": 0.008394241333009589,
+            "vertical_velocity_delta_mps": 0.16933584213257014,
+            "horizontal_delta_m": 0.00011064266213432117
+          },
+          "0.3": {
+            "end_seconds": 0.4,
+            "y_delta_m": 0.02532863616943981,
+            "vertical_velocity_delta_mps": 0.1693367958068801,
+            "horizontal_delta_m": 0.00011064266213432117
+          }
+        },
+        "horizontal_speed_ranges": {
+          "60": {
+            "min_mps": 1.8567399978637718,
+            "max_mps": 1.8567399978637718
+          },
+          "120": {
+            "min_mps": 1.8567399978637718,
+            "max_mps": 1.8567399978637718
+          }
+        },
+        "same_air_speed": true,
+        "first_landing_end_seconds": {
+          "60": 0.7333333333333337,
+          "120": 0.7083333333333333
+        },
+        "first_landing_horizontal_delta_m": 0.046535491982490226,
+        "first_landing_end_time_delta_seconds": 0.025000000000000466,
+        "same_speed_time_contribution_m": 0.04641849994659516,
+        "horizontal_residual_m": 0.00011699203589506796,
+        "apex_y_delta_m": 0.032384395599359905,
+        "custom_snap_tick_start_seconds": {
+          "60": [
+            0.7
+          ],
+          "120": [
+            0.691666666666667
+          ]
+        },
+        "landing_same_collision_groups": true,
+        "landing_height_delta_m": 0.0,
+        "precision_equivalence_accepted": false
+      },
+      "dust2": {
+        "common_end_states": {
+          "0.016666666666666666": {
+            "end_seconds": 0.11666666666666667,
+            "y_delta_m": 0.001453638076789776,
+            "vertical_velocity_delta_mps": 0.16933345794677024,
+            "horizontal_delta_m": 0.0
+          },
+          "0.1": {
+            "end_seconds": 0.2,
+            "y_delta_m": 0.008509159088129437,
+            "vertical_velocity_delta_mps": 0.16933584213257014,
+            "horizontal_delta_m": 0.0
+          },
+          "0.3": {
+            "end_seconds": 0.4,
+            "y_delta_m": 0.02544355392455966,
+            "vertical_velocity_delta_mps": 0.1693367958068801,
+            "horizontal_delta_m": 0.0
+          }
+        },
+        "horizontal_speed_ranges": {
+          "60": {
+            "min_mps": 1.8567399978637718,
+            "max_mps": 1.8567399978637718
+          },
+          "120": {
+            "min_mps": 1.8567399978637718,
+            "max_mps": 1.8567399978637718
+          }
+        },
+        "same_air_speed": true,
+        "first_landing_end_seconds": {
+          "60": 0.5333333333333338,
+          "120": 0.5000000000000003
+        },
+        "first_landing_horizontal_delta_m": 0.0618896484375,
+        "first_landing_end_time_delta_seconds": 0.03333333333333344,
+        "same_speed_time_contribution_m": 0.06189133326212592,
+        "horizontal_residual_m": -1.6848246259179578e-06,
+        "apex_y_delta_m": 0.03249931335449041,
+        "custom_snap_tick_start_seconds": {
+          "60": [
+            0.5
+          ],
+          "120": [
+            0.483333333333333
+          ]
+        },
+        "landing_same_collision_groups": true,
+        "landing_height_delta_m": 0.0,
+        "precision_equivalence_accepted": false
+      },
+      "mirage": {
+        "common_end_states": {
+          "0.016666666666666666": {
+            "end_seconds": 0.36666666666666664,
+            "y_delta_m": 0.0014627575874330834,
+            "vertical_velocity_delta_mps": 0.16933345794677024,
+            "horizontal_delta_m": 6.103515620026201e-05
+          },
+          "0.1": {
+            "end_seconds": 0.44999999999999996,
+            "y_delta_m": 0.008518457412719949,
+            "vertical_velocity_delta_mps": 0.16933584213257014,
+            "horizontal_delta_m": 5.1498413100148355e-05
+          },
+          "0.3": {
+            "end_seconds": 0.6499999999999999,
+            "y_delta_m": 0.02545213699340998,
+            "vertical_velocity_delta_mps": 0.1693367958068801,
+            "horizontal_delta_m": 2.8610229499292927e-05
+          }
+        },
+        "horizontal_speed_ranges": {
+          "60": {
+            "min_mps": 2.60088133811951,
+            "max_mps": 2.60088133811951
+          },
+          "120": {
+            "min_mps": 2.60088133811951,
+            "max_mps": 2.60088133811951
+          }
+        },
+        "same_air_speed": true,
+        "first_landing_end_seconds": {
+          "60": 0.9833333333333337,
+          "120": 0.9500000000000003
+        },
+        "first_landing_horizontal_delta_m": 0.08670234680180045,
+        "first_landing_end_time_delta_seconds": 0.03333333333333344,
+        "same_speed_time_contribution_m": 0.08669604460398393,
+        "horizontal_residual_m": 6.302197816512867e-06,
+        "apex_y_delta_m": 0.03250789642334029,
+        "custom_snap_tick_start_seconds": {
+          "60": [
+            0.95
+          ],
+          "120": [
+            0.933333333333333
+          ]
+        },
+        "landing_same_collision_groups": true,
+        "landing_height_delta_m": 2.0861625649182258e-07,
+        "precision_equivalence_accepted": false
+      }
+    },
+    "source_reports_sha256": {
+      "inferno": {
+        "60": "c0e8cc26ca989560c770848bc88e3039ced68d00c334b00e7a89a53cf6c62cca",
+        "120": "ebccffaae1c57372d44f99d104e18a83ceccb7d8cf80df6734ee72fa2a14b0bd"
+      },
+      "dust2": {
+        "60": "9331ab74793b83c76b0542b62a0c8cec10971bcefacf4b388c996dc91c1b797f",
+        "120": "a0a78ecf1e6a9b418e425a1db0dc250738111dfd88234065289464c3501f7965"
+      },
+      "mirage": {
+        "60": "b803db94c72aa4cf928a0fcf8be9514510d478ffb744cc627704ef53508642a5",
+        "120": "ed9d1c8522e07f29cc7942cc0efd0fa644acedec2f376394e5e633bb7de4e225"
+      }
+    },
+    "formal_release_ready": false,
+    "production_changed": false,
+    "scope": "R25_fixed_crouch_candidates_residual_attribution_not_vertical_repair"
+  },
+  "source_summaries_sha256": {
+    "docs\\evidence\\quadrature-cross-category-20261027\\summary.json": "ac9c67d1d7ecb1d760e9d88bb2c83f05082921f191c3602d7fa9287fefd65d02",
+    "docs\\evidence\\runup-action-completion-20261027\\summary.json": "6ed8914eb726b90f7f5847b3aee8b741bb18267aef1daac08804bef6f455abb8"
+  },
+  "existing_dirty_imports_settings_package_preserved": true,
+  "production_changed": false,
+  "package_updated": false,
+  "movement4_accepted": false,
+  "movement5_frozen": true,
+  "ci_status": "query_once_after_final_push_not_waited",
+  "limits": [
+    "Finite author-only corpus; no original-client or human acceptance.",
+    "Action coverage does not prove route qualification.",
+    "Residual attribution restricted to fixed R25 constant-vector airborne trajectories.",
+    "Weapon/tag/complex obstacles, full routes, AI,18 matches,three-map playtest,70%FPS pending."
+  ]
+}
