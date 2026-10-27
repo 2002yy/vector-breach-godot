@@ -1,0 +1,264 @@
+{
+  "schema": 1,
+  "trials": 18,
+  "variants": {
+    "run_plus_1": {
+      "60": {
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.933333333333333,
+        "arrival_time": 0.933333333333333,
+        "radial_margin_m": 0.1792236328125001,
+        "same_frame_first_support_and_event": true,
+        "controls": {
+          "no_jump": false,
+          "walk": false
+        }
+      },
+      "120": {
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.941666666666667,
+        "arrival_time": 0.941666666666667,
+        "radial_margin_m": 0.17935714721680052,
+        "same_frame_first_support_and_event": true,
+        "controls": {
+          "no_jump": false,
+          "walk": false
+        }
+      },
+      "dual_rate_difference": {
+        "first_support_time_s": 0.00833333333333397,
+        "first_support_position_m": 0.00013351445751885033
+      }
+    },
+    "run_plus_2": {
+      "60": {
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.95,
+        "arrival_time": 0.95,
+        "radial_margin_m": 0.37390098571780195,
+        "same_frame_first_support_and_event": true,
+        "controls": {
+          "no_jump": false,
+          "walk": false
+        }
+      },
+      "120": {
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.958333333333333,
+        "arrival_time": 0.958333333333333,
+        "radial_margin_m": 0.37397346496580264,
+        "same_frame_first_support_and_event": true,
+        "controls": {
+          "no_jump": false,
+          "walk": false
+        }
+      },
+      "dual_rate_difference": {
+        "first_support_time_s": 0.008333333333333082,
+        "first_support_position_m": 7.247934603457944e-05
+      }
+    },
+    "run_plus_3": {
+      "60": {
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.966666666666667,
+        "arrival_time": 0.966666666666667,
+        "radial_margin_m": 0.5602699279785015,
+        "same_frame_first_support_and_event": true,
+        "controls": {
+          "no_jump": false,
+          "walk": false
+        }
+      },
+      "120": {
+        "first_landing": true,
+        "supported_arrival": true,
+        "landing_time": 0.975,
+        "arrival_time": 0.975,
+        "radial_margin_m": 0.5602794647217011,
+        "same_frame_first_support_and_event": true,
+        "controls": {
+          "no_jump": false,
+          "walk": false
+        }
+      },
+      "dual_rate_difference": {
+        "first_support_time_s": 0.00833333333333297,
+        "first_support_position_m": 9.537488228550548e-06
+      }
+    }
+  },
+  "unchanged_old_input": {
+    "60": {
+      "first_landing": false,
+      "supported_arrival": true,
+      "landing_time": 0.916666666666667,
+      "arrival_time": 0.933333333333333
+    },
+    "120": {
+      "first_landing": false,
+      "supported_arrival": true,
+      "landing_time": 0.925,
+      "arrival_time": 0.941666666666667
+    }
+  },
+  "formal_release_ready": false,
+  "production_changed": false,
+  "global_adoption": false,
+  "original_target_changed": false,
+  "versioned_input_set": {
+    "version": "r30_mirage_run_plus_1_other_maps_r29",
+    "first_landing_count": 6,
+    "total": 6,
+    "outcomes": {
+      "mirage": {
+        "60": {
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.933333333333333,
+          "arrival_time": 0.933333333333333,
+          "radial_margin_m": 0.1792236328125001,
+          "same_frame_first_support_and_event": true,
+          "controls": {
+            "no_jump": false,
+            "walk": false
+          }
+        },
+        "120": {
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.941666666666667,
+          "arrival_time": 0.941666666666667,
+          "radial_margin_m": 0.17935714721680052,
+          "same_frame_first_support_and_event": true,
+          "controls": {
+            "no_jump": false,
+            "walk": false
+          }
+        }
+      },
+      "dust2": {
+        "60": {
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.483333333333333,
+          "arrival_time": 0.483333333333333
+        },
+        "120": {
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.475,
+          "arrival_time": 0.475
+        }
+      },
+      "inferno": {
+        "60": {
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.666666666666667,
+          "arrival_time": 0.666666666666667
+        },
+        "120": {
+          "first_landing": true,
+          "supported_arrival": true,
+          "landing_time": 0.675,
+          "arrival_time": 0.675
+        }
+      }
+    },
+    "original_frozen_input_set_replaced": false,
+    "global_adoption": false,
+    "formal_release_ready": false
+  },
+  "unchanged_source_bindings": {
+    "dust2": {
+      "manifest_sha256": "02eaaed6f50c8ebdd175413d5f1f64cdda7f11d18e44cba137d01fda178a1f3b",
+      "reports": {
+        "60": "a3c2d2f5d57f9d5092f6e05b7fdd3941eb58bad348bc8fdcf7caeb515773fd36",
+        "120": "03457a56ef0a4f79ec853f4eabf8d2bf9752cf7062e9dc1cb8644043c6386ec3"
+      },
+      "runtime_sha256": {
+        "res://scripts/player/PlayerController.gd": "4f2586a61cfc9274aa5cfc8336630e83179063052ac4478435ec48459fb5bc77",
+        "res://scripts/player/ClassicMovementRules.gd": "8d015e3b17ca2bdd87df3e07bd39f64330cd81271499747116b3de0df97cd74f",
+        "res://tools/authoring/NativeRoutePlayer.gd": "bcaa18c6dbc35271018c59a5077df045b4e46543aa190f8186a86d5663599f36"
+      },
+      "probe_sha256": {
+        "res://tools/authoring/LandingStageProbePlayer.gd": "42793cfb0dab9127c81daf656eb604786c06918cd5cadc5a1ad17928e6f5b212",
+        "res://tools/authoring/audit_landing_stages.gd": "a97eae16ea8f2e4ff3b4d2d74044923091575d9473ef27d1c71b6ab2f3009173",
+        "res://tools/authoring/QueuedKeyProbePlayer.gd": "28a2b87d39711e0e5310a04accd6028ff827bd8def78cbf2485e5e0d61ecca8f",
+        "res://tools/authoring/audit_queued_key.gd": "92f60d1082004c28d8856228609dd6d56dd72219f19c035cbae756b67a6235b0",
+        "res://tools/authoring/QueueCadenceProbePlayer.gd": "17c1c85b746fcbfdccf9219f805eb528fe77a39cf8bf3bd54395b43c2cb087d7",
+        "res://tools/authoring/audit_queue_cadence.gd": "ab79bd7029ebe9b95c123db2289cc5daec7a0d5b50301affe1b34c0736b02426",
+        "res://tools/authoring/ModernGroundQuadraturePlayer.gd": "c9b41d95a9639d3cffeb7be9092beefadc3c22da2d818166f0a6787ca26704d5",
+        "res://tools/authoring/audit_modern_ground_quadrature.gd": "e2a2abe7110b52af7c6a5648a25ae47a56438170578ac4c0413acd69a40e5543",
+        "res://tools/authoring/ModernGroundQuadratureV2Player.gd": "8e02ab4da4615e18f0fa3f05c8b20b0e6c1c0c4b5e636f22e3632312b24e441a",
+        "res://tools/authoring/audit_modern_ground_quadrature_v2.gd": "b0d66529cd5cf46afc0fd85f6919a88e3df22518b771e39ff520ad1fad1255c9",
+        "res://tools/authoring/ModernVerticalQuadraturePlayer.gd": "48b3adf37a1079aec43cc9c4d8eafe173ed7e53e37aa5e8cc9a0404376647222",
+        "res://tools/authoring/audit_modern_vertical_quadrature.gd": "b24296f32509cb11e3bc46bfda64d58e7832ba3e519ca633159027e0006870dd",
+        "res://tools/authoring/ModernSnapSupportPlayer.gd": "c0c1c69811f0ed06ee03ba3c5a8a54c885643865c7c84f58ff32c217eb3306a0",
+        "res://tools/authoring/audit_modern_snap_support.gd": "83002df4bcc05ef8376b31c00d5c4c36bd3b8fcf787d0eed7434c2760274a8c1"
+      },
+      "geometry_identity": {
+        "collision_import_sha256": "70e533e20912e8e673c02f54413633f74d4c779a7c138426542a40f724d6f61f",
+        "collision_path": "res://assets/models/dustline/dustline_depths.glb",
+        "collision_sha256": "fa5aa46d6f283de8f9afe2345b9681b2b3c27fe5126761a2b2cfc79b5e09cad8",
+        "engine_hash": "a13da4feb8d8aefc283c3763d33a2f170a18d541",
+        "layout_sha256": "9a87865a348ee59be754839d007028af7de60cba45a465cee29a11768250ff61",
+        "level": "dustline-depths-original-local",
+        "level_sha256": "2104fbbe22568ab3ef0d4d115bd5ade708cda9db98f9f1a25055648b05723a5e"
+      },
+      "target_sha256": "3e6ac0b87bb5acfefdf2b252aae9a12544d84fa8d4f7e4eb8da2d581686322eb"
+    },
+    "inferno": {
+      "manifest_sha256": "eb19e518ef9ecf7a52ffdf114519a19d0631195f3561089cc62bc35e762d9990",
+      "reports": {
+        "60": "1da4cf0ba5ab85944c052f68c3307f373f616d7ad3fca8761847fbcdccfc0ea3",
+        "120": "884630e198246acd00d4ead669915a25859d9fe2f5bc7c1845933abe0e3cf458"
+      },
+      "runtime_sha256": {
+        "res://scripts/player/PlayerController.gd": "4f2586a61cfc9274aa5cfc8336630e83179063052ac4478435ec48459fb5bc77",
+        "res://scripts/player/ClassicMovementRules.gd": "8d015e3b17ca2bdd87df3e07bd39f64330cd81271499747116b3de0df97cd74f",
+        "res://tools/authoring/NativeRoutePlayer.gd": "bcaa18c6dbc35271018c59a5077df045b4e46543aa190f8186a86d5663599f36"
+      },
+      "probe_sha256": {
+        "res://tools/authoring/LandingStageProbePlayer.gd": "42793cfb0dab9127c81daf656eb604786c06918cd5cadc5a1ad17928e6f5b212",
+        "res://tools/authoring/audit_landing_stages.gd": "a97eae16ea8f2e4ff3b4d2d74044923091575d9473ef27d1c71b6ab2f3009173",
+        "res://tools/authoring/QueuedKeyProbePlayer.gd": "28a2b87d39711e0e5310a04accd6028ff827bd8def78cbf2485e5e0d61ecca8f",
+        "res://tools/authoring/audit_queued_key.gd": "92f60d1082004c28d8856228609dd6d56dd72219f19c035cbae756b67a6235b0",
+        "res://tools/authoring/QueueCadenceProbePlayer.gd": "17c1c85b746fcbfdccf9219f805eb528fe77a39cf8bf3bd54395b43c2cb087d7",
+        "res://tools/authoring/audit_queue_cadence.gd": "ab79bd7029ebe9b95c123db2289cc5daec7a0d5b50301affe1b34c0736b02426",
+        "res://tools/authoring/ModernGroundQuadraturePlayer.gd": "c9b41d95a9639d3cffeb7be9092beefadc3c22da2d818166f0a6787ca26704d5",
+        "res://tools/authoring/audit_modern_ground_quadrature.gd": "e2a2abe7110b52af7c6a5648a25ae47a56438170578ac4c0413acd69a40e5543",
+        "res://tools/authoring/ModernGroundQuadratureV2Player.gd": "8e02ab4da4615e18f0fa3f05c8b20b0e6c1c0c4b5e636f22e3632312b24e441a",
+        "res://tools/authoring/audit_modern_ground_quadrature_v2.gd": "b0d66529cd5cf46afc0fd85f6919a88e3df22518b771e39ff520ad1fad1255c9",
+        "res://tools/authoring/ModernVerticalQuadraturePlayer.gd": "48b3adf37a1079aec43cc9c4d8eafe173ed7e53e37aa5e8cc9a0404376647222",
+        "res://tools/authoring/audit_modern_vertical_quadrature.gd": "b24296f32509cb11e3bc46bfda64d58e7832ba3e519ca633159027e0006870dd",
+        "res://tools/authoring/ModernSnapSupportPlayer.gd": "c0c1c69811f0ed06ee03ba3c5a8a54c885643865c7c84f58ff32c217eb3306a0",
+        "res://tools/authoring/audit_modern_snap_support.gd": "83002df4bcc05ef8376b31c00d5c4c36bd3b8fcf787d0eed7434c2760274a8c1"
+      },
+      "geometry_identity": {
+        "collision_import_sha256": "b21cab1565229e4eeee2cfe566f9e2c4b69b292db96d4169d3e49dc38cb66a47",
+        "collision_path": "res://assets/local_reference/classic_maps/inferno/official/player_collision.glb",
+        "collision_sha256": "c7ac5a0fce623e0ad1fef0417ea016c53f5c555aff702666b30c04d9aa74e261",
+        "engine_hash": "a13da4feb8d8aefc283c3763d33a2f170a18d541",
+        "layout_sha256": "3e66d812496d5e1d30dd8817744f418b95eaf57c08c976a55e9babf46244e2f9",
+        "level": "inferno-classic-local",
+        "level_sha256": "d62c6d48ec972f639d466d353fc214e81f8f3b3eb85add04080222f57a5a2d3d"
+      },
+      "target_sha256": "71632ed0ab69ad9fba748dac04b736c9a655cc8ea7d2723dc4c3ffb45b41e9a0"
+    }
+  },
+  "selection_policy": "all_three_predeclared_variants_dual_rate_no_selection",
+  "source_manifest_sha256": "126b18817ea63209ccfd61a1e77892c12ca402d021f101c891bedb5bd7e0b997",
+  "matrix_sha256": "f5f5eed1fda58066a60e3eae0fad40e1d1430dfc99b9994ab39b7d37c49b2f03",
+  "mirage_target_sha256": "e10be569fca474f304f92fab753ca0bf384b81e595baf407ab3e7d7bebd2bd7a",
+  "report_sha256": {
+    "60": "706e57fdc79d1b6876d6534e704f7a12ee01e79abdcb02e79a7e81fb3f909b53",
+    "120": "6cc38447dbe2ee4db1f81ea1361c9f20dbbfb42484f8c1cca7cd05a650ff5869"
+  }
+}

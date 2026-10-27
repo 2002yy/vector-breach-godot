@@ -2,7 +2,15 @@
 
 更新：2026-10-27。此文件为当前实现、优先级和交付状态的权威入口；旧任务文档及历史截图中的“当前版本/尚未实现”只对应当时提交。
 
-## 当前批：Movement-4 R29 真实贴地支撑、Legacy助跑与滑动链
+## 当前批：Movement-4 R30 原目标新输入与实际链身体查询
+
+基线 `11b2362`（#126），分支 `audit/movement-support-input-chain`。并行完成Mirage真实支撑候选的新输入18次回放和Inferno完整胶囊链查询。Mirage三种预声明时序6/6首次支撑落入原目标，12控制均未到，最小新输入余量约179mm；与旧Dust II/Inferno组合的新版本6/6，原冻结输入4/6失败及采用NO-GO保持，正式默认不改。
+
+Inferno78条实际段+70比较弦最终748查询（另748格式化前证据保留），57实际段清空、21重叠，两路线仍unproven；内部转向未消除旧非清空帧，停止重复这两条接触路径。完整Python **497项**、新原生8断言、Python格式/F/Pyright零错误、三份GDScript检查通过；四脏导入/设置/32份旧来源/包保持。见 [R30整合结果](TASK_MOVEMENT_SUPPORT_INPUT_CHAIN_2026-10-27.md)；最终提交/PR/CI首查见本机`movement-support-input-chain-20261027/delivery.json`。
+
+**Movement-4未验收、Movement-5冻结。** 动作15/15、通路8/15保持；下一片对原已有清楚通道的Inferno rise_03/04冻结有界三方案输入，不改目标或原图。新作者输入集通过不等于全局采用，原机/人工、AI/18场/连续三图/70%FPS待验；不等CI、不合并、不发包。
+
+## 前批：Movement-4 R29 真实贴地支撑、Legacy助跑与滑动链
 
 基线 `4e9152b`（#125），分支 `audit/movement-snap-support-slide`。并行完成真实引擎支撑作者修复、Legacy提前起跳、Inferno内部滑动记录，共53次玩法回放。支撑/落地事件同帧一致，Mirage双频首落差21.677→0.00382mm、Inferno15.587→0.11446mm；但Mirage原输入两频首落超原半径约24.54mm，候选4/6首落，正式采用仍NO-GO。原输入/目标/正式参数均不改。
 
