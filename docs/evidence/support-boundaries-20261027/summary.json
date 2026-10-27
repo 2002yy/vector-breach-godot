@@ -1,0 +1,13 @@
+{
+  "baseline": "a0c40e6",
+  "candidate": "tools/authoring/ModernSnapSupportPlayer.gd",
+  "candidate_modified": false,
+  "native_assertions": 124,
+  "physics_rates": [60, 120],
+  "map_resources_loaded": false,
+  "python_tests": 1,
+  "outcome": "bounded_regression_pass",
+  "candidate_defect_found": false,
+  "boundaries": ["real_60_degree_surface", "near_ledge_crouch_roof_clearance", "ledge_support_loss", "single_landing_event", "support_toggle", "current_fallback", "legacy_fallback", "controls_disabled_fallback", "sensor_water_fallback", "sensor_ladder_fallback"],
+  "limits": ["no_map_route_acceptance", "no_global_adoption", "no_manual_or_device_acceptance"]
+}
