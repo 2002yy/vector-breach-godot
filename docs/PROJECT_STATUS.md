@@ -2,7 +2,21 @@
 
 更新：2026-10-29。此文件为当前实现、优先级和交付状态的权威入口；旧任务文档及历史截图中的“当前版本/尚未实现”只对应当时提交。
 
-## 当前批：R40 自动挂载与真实包开局阻塞
+空间清理（2026-10-29）：已删除9个被替代的导出/负测PCK，逻辑合计10.177GiB，D盘实际可用约12.84GiB。原版资产、活动缓存、最新基线与桌面试玩包及所有日志收据保留；历史证据路径中的旧PCK可能需重建。见 [清理与保护核验](REPOSITORY_CLEANUP_2026-10-29.md)。本次暂停开发清理，下批接续R41。
+
+## 当前批：R41 导出路网身份修复与release候选开局
+
+基线 `1730994`（#137），分支 `fix/exported-layout-identity`。ClassicMatchLayout原字节存在时继续严格原sha校验，不会因错误而回退；原字节缺失时，新ExportedLayoutIdentity绑定原冻结清单/来源sha/关卡sha、实际remap、导入sidecar和compiled collision字节。input_stamps纳入实际验证文件，原路线/几何/布局内容不改。实际PCK导出身份24检查、原字节严格路径6检查通过，统一固定雷达附包包含三份layout收据及原雷达数据，无产品脚本/碰撞重复。
+
+实际release二进制组装候选三图最终均EXIT0：editor=false、game_started=true、load_failed=false、雷达ready；Dust4.052s/Mirage1.658s/Inferno10.519s。诊断loader在_init先挂实际产品PCK和两个精确身份脚本覆盖层，使用原路径remap解决旧compiled preload缓存；生产bootstrap自动挂统一固定附包，无手工第三layout包或门闸绕过。两份源码sha逐一匹配，用户设置字节未变。此证明实际release引擎+实际旧PCK+本次修复的组装候选；尚非最终重新标准导出/UI/完整比赛验收。初期_enter_tree太晚、release assert剥离及脚本别名缓存失败均保留。
+
+Inferno缓存HIT49的碰撞节点分析：wood_001含1,438,118三角，shape赋值29.22ms，挂接2039.727ms；concrete_002含714,175三角，挂接602.995ms；前两项占全部49mesh挂接3037.099ms的88.5%。另测未缓存wood创建1586.928ms且faces与缓存完全相同，该成本不能加到实际缓存命中路径。测量区间包括树通知和物理注册，未冒称C++内部归因。保留原三角的空间分块仅为后续独立候选提案，未改正式碰撞。
+
+Python575项、原生16套件RUN_ALL_OK、新文件格式/lint及既有ClassicMatchLayout无新增lint债务通过。85份旧工具、四脏导入、设置和旧包保持，生成作者UID归档。见 [导出身份合同](TASK_EXPORTED_LAYOUT_IDENTITY_2026-10-29.md)、[release开局](TASK_EXPORTED_MAIN_ACCEPTANCE_2026-10-29.md)、[mesh耗时](TASK_COLLISION_MESH_COST_2026-10-29.md)。证据/提交/PR/CI首查：本机 `D:/AgentGamePipeline/evidence/exported-layout-20261029/delivery.json`。
+
+下一步最终标准导出三图图形开局与统一附包交付，再独立评估保留原三角的碰撞分块峰值与接缝/支撑语义。18场完整比赛、人工三图和70%FPS继续待验；M4未验收/M5冻结，Current/原资源几何保持，不等CI、不合并、不替换桌面试玩包。
+
+## 前批：R40 自动挂载与真实包开局阻塞
 
 基线 `dea0af0`（#136），分支 `feat/radar-pack-bootstrap`。新增首个autoload，实际导出运行时自动检查EXE旁固定VectorBreach-radar.pck；源码/编辑器跳过，缺失/坏头回退，以replace_files=false禁止覆盖主包已有资源。定向正负与禁止覆盖检查通过；标准产品PCK+附包三图26切片通过。一次新标准release导出已完成；实际release EXE副本配极小诊断主项目证明editor=false、生产autoload自动mounted及三图26切片，最终日志无ERROR。模板禁用路径覆盖，初期--script超时/--main-pack失败及诊断cache缺失错误保留。该诊断启动不等于正常产品Main成功，不更新桌面试玩包。
 

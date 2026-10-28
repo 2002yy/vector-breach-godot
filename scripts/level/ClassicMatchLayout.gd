@@ -1,5 +1,7 @@
 extends RefCounted
 
+const ExportIdentity = preload("res://scripts/level/ExportedLayoutIdentity.gd")
+
 const AUTHORED_PATH := "res://data/levels/match-local/dustline.json"
 
 
@@ -8,7 +10,12 @@ static func input_stamps(data: Dictionary, manifest_path: String = AUTHORED_PATH
 	var collision := String(data.get("runtime_collision_scene", data.get("visual_scene", "")))
 	var level := "res://data/levels/%s.json" % String(data.get("id", ""))
 	var result := {}
-	for path in [manifest_path, collision, level]:
+	var paths: Array = [manifest_path, collision, level]
+	if not FileAccess.file_exists(collision):
+		paths = ExportIdentity.input_paths(data, manifest_path)
+		if paths.is_empty():
+			return {}
+	for path in paths:
 		var file := FileAccess.open(path, FileAccess.READ)
 		if file == null:
 			return {}
@@ -32,8 +39,10 @@ static func load_authored(data: Dictionary, manifest_path: String = AUTHORED_PAT
 	var level_hashes: Dictionary = manifest.get("level_sha256", {})
 	if manifest.get("schema", 0) != 1 or manifest.get("collision_path", "") != collision_path:
 		return {}
-	var collision_hash := FileAccess.get_sha256(collision_path)
-	if collision_hash.is_empty() or collision_hash != String(manifest.get("collision_sha256", "")):
+	var collision_hash := (
+		FileAccess.get_sha256(collision_path) if FileAccess.file_exists(collision_path) else ""
+	)
+	if not ExportIdentity.collision_matches(data, manifest, manifest_path, collision_hash):
 		return {}
 	var level_hash := FileAccess.get_sha256(level_path)
 	if level_hash.is_empty() or level_hash != String(level_hashes.get(level_path, "")):
