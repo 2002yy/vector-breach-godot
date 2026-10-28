@@ -2,7 +2,15 @@
 
 更新：2026-10-28。此文件为当前实现、优先级和交付状态的权威入口；旧任务文档及历史截图中的“当前版本/尚未实现”只对应当时提交。
 
-## 当前批：Movement-4 R33 真实武器上下文与双频采样
+## 当前批：R34 玩家实测、三图真实雷达、AI共享限速
+
+基线 `4bd2291`（#130），分支 `feat/movement-radar-ai`。三路独立实现：真实Player/WeaponSystem完成三方案×九动作×60/120Hz的54份测量；三图从原碰撞几何生成26张1536²高度切片，v4保留低亮全高度道路参照、突出当前层，脚底校准/空中保持起跳层/缺失回退；AI接入共用枪型、姿态、镜态限速与受击/水域修正，并修复quiet路线进入交战后的静步状态残留。正式Current、Player参数、原版地图几何与旧包保持。
+
+完整普通Python **575项**、静态检查通过；原生16套件前9套落盘通过，中断后仅补跑后7套，最终结果见本机交付收据。定向AI351、雷达116检查通过；Mirage/Inferno v4 Vulkan HUD截图已人工查看。60份旧工具、四份既有脏导入、用户设置和试玩包哈希保护。证据及PR/精确HEAD CI首查记录：`D:/AgentGamePipeline/evidence/movement-three-lanes-20261028/delivery.json`，不等CI、不合并、不发包。
+
+见 [玩家实测](TASK_MOVEMENT_FEEL_MEASURE_2026-10-28.md)、[真实雷达](TASK_REAL_RADAR_2026-10-28.md)、[AI共享限速](TASK_AI_SHARED_MOVEMENT_2026-10-28.md)。60/120Hz普通跳高仍差21–33mm，不能视为频率等价验收；人工评分、雷达三图实走/切层性能、AI完整运动/难度及旧蹲姿路线状态调查仍待完成。Movement-4未验收、Movement-5冻结；最新头18场完整比赛、连续人工三图和70%FPS仍待验。下一批先做雷达实走与切层预算、AI蹲姿转换复现，玩家参数留待人工裁定。
+
+## 前批：Movement-4 R33 真实武器上下文与双频采样
 
 基线 `2e2d804`（#129），分支 `audit/movement-weapon-observation`。新增独立作者武器观察入口，复用真实WeaponSystem/TacticalEquipment，记录AWP镜/非镜、AK、刀、最终限速、FOV和实际速度；Current保持原样，不修改正式参数或几何。严格收据审核补齐全会话帧序、时钟、重试/切点和频率。
 
