@@ -199,19 +199,22 @@ func _run(owner: Node) -> void:
 					"navigationGraph":
 					{
 						"points": [[0, 0, 0], [0, 0, -5]],
-						"links": [{"from": 0, "to": 1, "quiet": true, "precise": true}]
+						"links":
+						[{"from": 0, "to": 1, "quiet": true, "precise": true, "crouch": true}]
 					},
 				}
 			)
 		)
 		brain.call("_move_toward", Vector3(0, 0, -5), 1.0)
 		_check(actor.ai_walking, "combat regression begins on an actual quiet edge")
+		_check(actor.ai_crouching, "combat regression begins on a crouch edge")
 		brain.set("_target", enemy)
 		brain.set("_dodge_active", 0.4)
 		brain.set("_dodge_direction", Vector3.RIGHT)
 		brain.set("_crouch_timer", 10.0)
 		brain.call("_tick_engage", 1.0 / 60.0)
 		_check(not actor.ai_walking, "combat movement cannot retain a quiet navigation edge")
+		_check(not actor.ai_crouching, "combat movement releases navigation crouch before moving")
 		var snapshot: Dictionary = actor.get_ai_movement_snapshot()
 		if scheme == "modern_cs":
 			_check(actor.ai_scoped, "AWP combat regression uses actual scoped state")
@@ -224,5 +227,15 @@ func _run(owner: Node) -> void:
 				is_equal_approx(snapshot.navigation_speed, 5.4 * 0.7),
 				"Current knife pursuit must not retain quiet walking cap"
 			)
+		brain.set("_crouch_active", 0.4)
+		brain.call("_tick_engage", 1.0 / 60.0)
+		_check(actor.ai_crouching, "explicit combat crouch remains authorized")
+		_check(
+			(
+				actor.get_ai_movement_snapshot().navigation_speed
+				<= actor.resolve_ai_navigation_speed(20.0)
+			),
+			"combat crouch applies before movement in strafe and pursuit"
+		)
 	world.queue_free()
 	await owner.get_tree().process_frame
