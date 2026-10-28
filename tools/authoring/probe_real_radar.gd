@@ -79,7 +79,10 @@ func _run() -> void:
 	for frame in range(500):
 		hud.update_radar(snapshot)
 		await get_tree().process_frame
-		if radar.get_debug_snapshot().atlas_status == "ready":
+		if (
+			radar.get_debug_snapshot().atlas_status == "ready"
+			and radar.get_debug_snapshot().atlas_layer >= 0
+		):
 			break
 	var debug: Dictionary = radar.get_debug_snapshot()
 	if debug.atlas_status != "ready" or debug.atlas_layer < 0:

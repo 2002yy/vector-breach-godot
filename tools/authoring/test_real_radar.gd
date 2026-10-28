@@ -100,20 +100,45 @@ func _run() -> void:
 		for layer in atlas.manifest.layers:
 			var started := Time.get_ticks_usec()
 			var selected: Dictionary = atlas.select_layer(float(layer.height))
+			_check(selected.is_empty())
 			var cold_us := Time.get_ticks_usec() - started
+			var poll_us := 0
+			for frame in range(1000):
+				await create_timer(0.001).timeout
+				started = Time.get_ticks_usec()
+				selected = atlas.select_layer(float(layer.height))
+				poll_us = maxi(poll_us, Time.get_ticks_usec() - started)
+				if not selected.is_empty():
+					break
 			started = Time.get_ticks_usec()
 			atlas.select_layer(float(layer.height))
 			timings.append(
 				{
 					"level": level_id,
 					"height": layer.height,
-					"cold_us": cold_us,
+					"request_us": cold_us,
+					"poll_upload_max_us": poll_us,
 					"cached_us": Time.get_ticks_usec() - started
 				}
 			)
 			_check(not selected.is_empty())
 			_check(is_equal_approx(float(selected.height), float(layer.height)))
 			_check(atlas.textures.size() <= 2)
+		# An uncached request superseded by another slice must never publish its image.
+		atlas.textures.clear()
+		atlas.select_layer(float(atlas.manifest.layers[0].height))
+		atlas.select_layer(float(atlas.manifest.layers[1].height))
+		var final_slice: Dictionary = {}
+		for frame in range(1000):
+			await create_timer(0.001).timeout
+			final_slice = atlas.select_layer(float(atlas.manifest.layers[1].height))
+			if not final_slice.is_empty():
+				break
+		_check(not final_slice.is_empty() and int(final_slice.layer_index) == 1)
+		_check(not atlas.textures.has(0))
+		# Reload while a decode is pending; no old generation texture can survive.
+		atlas.textures.clear()
+		atlas.select_layer(float(atlas.manifest.layers[0].height))
 		var old_generation: int = atlas.generation
 		atlas.load_level(level_id, "reload-1")
 		_check(atlas.generation == old_generation + 1)
@@ -127,9 +152,22 @@ func _run() -> void:
 			atlas.load_level(level_id, "reload-2")
 		_check(atlas.status == "ready")
 		_check(atlas.generation == old_generation + 2)
+		_check(atlas.textures.is_empty())
+		var reloaded_slice: Dictionary = {}
+		for frame in range(1000):
+			await create_timer(0.001).timeout
+			reloaded_slice = atlas.select_layer(float(atlas.manifest.layers[1].height))
+			if not reloaded_slice.is_empty():
+				break
+		_check(not reloaded_slice.is_empty() and not atlas.textures.has(0))
 		atlas.textures.clear()
 		atlas.manifest.layers[0].sha256 = "0".repeat(64)
 		_check(atlas.select_layer(float(atlas.manifest.layers[0].height)).is_empty())
+		for frame in range(1000):
+			await create_timer(0.001).timeout
+			atlas.select_layer(float(atlas.manifest.layers[0].height))
+			if atlas.status != "ready":
+				break
 		_check(atlas.status == "texture_identity_mismatch")
 	var drift = Atlas.new()
 	drift.load_level(Atlas.LEVELS[0])

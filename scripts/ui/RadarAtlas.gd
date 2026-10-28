@@ -13,6 +13,9 @@ var textures: Dictionary = {}
 var verification := Thread.new()
 var reload_identity := ""
 var generation := 0
+var decoding := Thread.new()
+var request_serial := 0
+var requested_layer := -1
 
 
 static func valid_manifest(data: Dictionary, expected_level: String) -> bool:
@@ -57,6 +60,8 @@ func load_level(requested: String, identity := "") -> bool:
 	level_id = requested
 	reload_identity = identity
 	generation += 1
+	request_serial += 1
+	requested_layer = -1
 	manifest.clear()
 	textures.clear()
 	active_layer = -1
@@ -129,8 +134,11 @@ func _poll_identity() -> void:
 
 
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_PREDELETE and verification.is_started():
-		verification.wait_to_finish()
+	if what == NOTIFICATION_PREDELETE:
+		if verification.is_started():
+			verification.wait_to_finish()
+		if decoding.is_started():
+			decoding.wait_to_finish()
 
 
 static func nearest_layer(layers: Array, height: float, previous := -1) -> int:
@@ -157,20 +165,25 @@ func select_layer(feet_height: float) -> Dictionary:
 	if selected < 0:
 		return {}
 	active_layer = selected
+	if selected != requested_layer:
+		requested_layer = selected
+		request_serial += 1
+	_poll_decode()
+	if status != "ready":
+		return {}
 	if not textures.has(selected):
-		var layer: Dictionary = manifest.layers[selected]
-		var path := directory + String(layer.texture)
-		if not FileAccess.file_exists(path) or FileAccess.get_sha256(path) != String(layer.sha256):
-			status = "texture_identity_mismatch"
-			return {}
-		var image := Image.load_from_file(path)
-		if image == null or image.is_empty():
-			status = "texture_unreadable"
-			return {}
-		# Bound decoded texture memory to two slices per active map.
-		if textures.size() >= 2:
-			textures.erase(textures.keys()[0])
-		textures[selected] = ImageTexture.create_from_image(image)
+		if not decoding.is_started():
+			var layer: Dictionary = manifest.layers[selected]
+			decoding.start(
+				_decode_layer.bind(
+					directory + String(layer.texture),
+					String(layer.sha256),
+					generation,
+					request_serial,
+					selected
+				)
+			)
+		return {}
 	return {
 		"texture": textures[selected],
 		"world_rect": manifest.world_rect,
@@ -190,3 +203,38 @@ static func floor_sample(
 	previous: float, feet_height: float, grounded: bool, level_changed: bool
 ) -> float:
 	return feet_height if grounded or level_changed else previous
+
+
+static func _decode_layer(
+	path: String, expected: String, epoch: int, serial: int, index: int
+) -> Dictionary:
+	var result := {"generation": epoch, "serial": serial, "index": index, "error": ""}
+	# Hash and decode the same bytes; no file IO or PNG decoding on the HUD thread.
+	var bytes := FileAccess.get_file_as_bytes(path)
+	var hash := HashingContext.new()
+	hash.start(HashingContext.HASH_SHA256)
+	hash.update(bytes)
+	if bytes.is_empty() or hash.finish().hex_encode() != expected:
+		result.error = "texture_identity_mismatch"
+		return result
+	var image := Image.new()
+	if image.load_png_from_buffer(bytes) != OK or image.is_empty():
+		result.error = "texture_unreadable"
+		return result
+	result.image = image
+	return result
+
+
+func _poll_decode() -> void:
+	if not decoding.is_started() or decoding.is_alive():
+		return
+	var result: Dictionary = decoding.wait_to_finish()
+	if int(result.generation) != generation or int(result.serial) != request_serial:
+		return
+	if not String(result.error).is_empty():
+		status = String(result.error)
+		return
+	# ImageTexture upload stays on the main thread. Keep two textures plus one worker image.
+	if textures.size() >= 2:
+		textures.erase(textures.keys()[0])
+	textures[int(result.index)] = ImageTexture.create_from_image(result.image)
