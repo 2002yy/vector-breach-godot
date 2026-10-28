@@ -11,6 +11,8 @@ var directory := ""
 var active_layer := -1
 var textures: Dictionary = {}
 var verification := Thread.new()
+var reload_identity := ""
+var generation := 0
 
 
 static func valid_manifest(data: Dictionary, expected_level: String) -> bool:
@@ -48,11 +50,13 @@ static func valid_manifest(data: Dictionary, expected_level: String) -> bool:
 	return true
 
 
-func load_level(requested: String) -> bool:
-	if requested == level_id:
+func load_level(requested: String, identity := "") -> bool:
+	if requested == level_id and identity == reload_identity:
 		_poll_identity()
 		return status == "ready"
 	level_id = requested
+	reload_identity = identity
+	generation += 1
 	manifest.clear()
 	textures.clear()
 	active_layer = -1
@@ -93,8 +97,14 @@ static func import_identity_matches(data: Dictionary, import_sha256: String) -> 
 	)
 
 
-static func _source_identity(source: String, expected_level: String) -> Dictionary:
-	return {"level": expected_level, "sha256": FileAccess.get_sha256(source)}
+static func _source_identity(
+	source: String, expected_level: String, expected_generation: int
+) -> Dictionary:
+	return {
+		"level": expected_level,
+		"generation": expected_generation,
+		"sha256": FileAccess.get_sha256(source)
+	}
 
 
 func _poll_identity() -> void:
@@ -104,7 +114,7 @@ func _poll_identity() -> void:
 		if verification.is_alive():
 			return
 		var proof: Dictionary = verification.wait_to_finish()
-		if String(proof.level) == level_id:
+		if String(proof.level) == level_id and int(proof.generation) == generation:
 			var matched: bool = proof.sha256 == manifest.source_sha256
 			matched = (
 				matched
@@ -115,7 +125,7 @@ func _poll_identity() -> void:
 			status = "ready" if matched else "source_identity_mismatch"
 			return
 	# A map switch may happen while the previous map's worker is finishing.
-	verification.start(_source_identity.bind(String(manifest.source), level_id))
+	verification.start(_source_identity.bind(String(manifest.source), level_id, generation))
 
 
 func _notification(what: int) -> void:

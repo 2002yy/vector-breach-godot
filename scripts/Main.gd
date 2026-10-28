@@ -1578,6 +1578,7 @@ func _build_radar_snapshot() -> Dictionary:
 	return {
 		"bounds": bounds,
 		"level_id": String(level_data.get("id", "")),
+		"radar_load_identity": str(_level_load_serial),
 		"feet_height": feet_height,
 		"grounded": player.is_on_floor(),
 		"range_meters": UserSettings.radar_range,
