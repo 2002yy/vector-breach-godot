@@ -1,10 +1,16 @@
+# gdlint: disable=max-public-methods
+# Explicit AI movement-state APIs keep callers out of private actor state.
 extends CharacterBody3D
 
 signal appearance_changed
 signal appearance_changing(visual: Node3D)
 
+const MovementPolicy = preload("res://scripts/ai/ActorMovementPolicy.gd")
 const Appearance = preload("res://scripts/characters/CharacterAppearance.gd")
 const NativeVisual = preload("res://scripts/characters/NativeActorVisual.gd")
+@export_enum("current", "legacy_16", "modern_cs") var movement_scheme: String = "current"
+var ai_walking: bool = false
+var ai_scoped: bool = false
 var _native_visual: Node3D
 var _appearance_id := "prototype"
 
@@ -23,6 +29,9 @@ signal ai_damaged(world_position: Vector3, source_team: String)
 @export var max_armor: int = 0
 @export var has_helmet: bool = false
 @export var equipped_weapon_id: String = "rifle"
+var _ai_tagging_multiplier: float = 1.0
+var _last_navigation_cap: float = 0.0
+var _last_navigation_speed: float = 0.0
 
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
 @onready var body_mesh: MeshInstance3D = $BodyMesh
@@ -79,6 +88,7 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if is_dead:
 		return
+	_ai_tagging_multiplier = move_toward(_ai_tagging_multiplier, 1.0, delta * 1.9)
 	_update_environment_state()
 	var position_before := global_position
 	if bot_brain != null:
@@ -128,6 +138,9 @@ func configure_from_record(record: Dictionary) -> void:
 	current_health = max_health
 	current_armor = max_armor
 	is_dead = false
+	_ai_tagging_multiplier = 1.0
+	set_ai_scoped(false)
+	set_ai_walking(false)
 	bot_brain.call("configure", record)
 	_install_appearance(String(record.get("appearance_id", Appearance.profile_for(team, absi(display_name.hash())))))
 	_apply_team_visual()
@@ -145,6 +158,7 @@ func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, arm
 	var resolved := DamageModel.resolve_damage(amount, hit_group, current_armor, has_helmet, armor_penetration)
 	var health_damage := int(resolved.damage)
 	var armor_damage := int(resolved.armor_damage)
+	_ai_tagging_multiplier = minf(_ai_tagging_multiplier, 0.48)
 	current_armor = maxi(0, current_armor - armor_damage)
 	current_health = maxi(0, current_health - health_damage)
 	if bot_brain != null:
@@ -152,6 +166,8 @@ func apply_hitscan_damage(amount: int, hit_position: Vector3 = Vector3.ZERO, arm
 	ai_damaged.emit(resolved_position, source_team)
 	var killed := current_health == 0
 	if killed:
+		set_ai_scoped(false)
+		set_ai_walking(false)
 		_drop_ai_weapon()
 		is_dead = true
 		collision_layer = 0
@@ -180,6 +196,7 @@ func get_combat_snapshot() -> Dictionary:
 		"z": global_position.z, "yaw": rotation.y, "crouching": ai_crouching,
 		"appearance": _appearance_id,
 		"native_appearance": _native_visual != null,
+		"movement": get_ai_movement_snapshot(),
 		"defuse_kit": has_defuse_kit,
 	}
 	if bot_brain != null:
@@ -196,6 +213,11 @@ func reset_actor() -> void:
 	current_health = max_health
 	current_armor = max_armor
 	is_dead = false
+	_ai_tagging_multiplier = 1.0
+	set_ai_scoped(false)
+	set_ai_walking(false)
+	_last_navigation_cap = 0.0
+	_last_navigation_speed = 0.0
 	set_ai_crouching(false)
 	collision_layer = 1
 	collision_mask = 1
@@ -302,13 +324,48 @@ func apply_ai_navigation(direction: Vector3, speed: float, target_y: float, delt
 			global_position += exit_direction.normalized() * 0.72 + Vector3.UP * 0.12
 			_current_ladder = null
 		return
-		return
-	var speed_multiplier := 0.52 if _water_depth >= 1.2 else (0.72 if _current_water != null else 1.0)
-	var target_velocity := direction * speed * speed_multiplier
+	_last_navigation_cap = maxf(speed, 0.0)
+	_last_navigation_speed = resolve_ai_navigation_speed(_last_navigation_cap)
+	var horizontal_direction := Vector3(direction.x, 0.0, direction.z).limit_length(1.0)
+	var target_velocity := horizontal_direction * _last_navigation_speed
 	velocity.x = move_toward(velocity.x, target_velocity.x, 18.0 * delta)
 	velocity.z = move_toward(velocity.z, target_velocity.z, 18.0 * delta)
 	if _water_depth >= 1.2 and global_position.y < float(_current_water.get_meta("water_surface_y", global_position.y)) - 0.7:
 		velocity.y = move_toward(velocity.y, 0.45, 4.0 * delta)
+
+func set_ai_walking(wants_walk: bool) -> void:
+	ai_walking = wants_walk
+
+func set_ai_scoped(wants_scope: bool) -> void:
+	ai_scoped = wants_scope and not is_dead and _ai_weapon_context().weapon_id == "sniper"
+
+func _ai_weapon_context() -> Dictionary:
+	var weapon_id := equipped_weapon_id
+	var slot := 0
+	if bot_brain != null:
+		var weapon: Dictionary = bot_brain.call("get_movement_context")
+		weapon_id = String(weapon.weapon_id)
+		slot = int(weapon.slot)
+	return {"weapon_id": weapon_id, "slot": slot, "scoped": ai_scoped and weapon_id == "sniper"}
+
+func resolve_ai_navigation_speed(navigation_cap: float) -> float:
+	var state := _ai_weapon_context()
+	state.merge({
+		"crouching": ai_crouching,
+		"walking": ai_walking,
+		"tagging": _ai_tagging_multiplier,
+		"water": MovementPolicy.water_multiplier(_water_depth, _current_water != null),
+	})
+	return MovementPolicy.navigation_limit(movement_scheme, state, navigation_cap)
+
+func get_ai_movement_snapshot() -> Dictionary:
+	var state := _ai_weapon_context()
+	state.merge({
+		"scheme": movement_scheme, "crouching": ai_crouching, "walking": ai_walking,
+		"tagging": _ai_tagging_multiplier, "navigation_cap": _last_navigation_cap,
+		"navigation_speed": _last_navigation_speed,
+	})
+	return state
 
 func set_ai_crouching(wants_crouch: bool) -> bool:
 	if not wants_crouch and ai_crouching and not _has_ai_standing_clearance():
@@ -330,7 +387,7 @@ func get_ai_environment_snapshot() -> Dictionary:
 		"on_ladder": _current_ladder != null,
 		"in_water": _current_water != null,
 		"water_depth": _water_depth,
-		"speed_multiplier": 0.52 if _water_depth >= 1.2 else (0.72 if _current_water != null else 1.0),
+		"speed_multiplier": MovementPolicy.water_multiplier(_water_depth, _current_water != null),
 	}
 
 func _resolve_team(value: String) -> String:
@@ -481,7 +538,7 @@ func _update_ai_footsteps(position_before: Vector3) -> void:
 		return
 	_footstep_distance = fmod(_footstep_distance, 1.8)
 	var surface := "water" if _current_water != null else _detect_floor_surface()
-	ai_footstep.emit(global_position, surface, false)
+	ai_footstep.emit(global_position, surface, ai_crouching or ai_walking)
 
 func _detect_floor_surface() -> String:
 	var query := PhysicsRayQueryParameters3D.create(global_position + Vector3.UP * 0.1, global_position + Vector3.DOWN * 1.2, 1)

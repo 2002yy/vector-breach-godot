@@ -283,5 +283,6 @@ func _normalize_link(to_index: int, attributes: Dictionary) -> Dictionary:
 			1.05
 		),
 		"crouch": bool(attributes.get("crouch", false)),
+		"quiet": bool(attributes.get("quiet", false)),
 		"ladder": bool(attributes.get("ladder", false)),
 	}

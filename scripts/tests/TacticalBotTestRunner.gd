@@ -11,6 +11,7 @@ var _failures: PackedStringArray = []
 var _passes: int = 0
 
 func _ready() -> void:
+	await _run_test("shared_weapon_pose_navigation_limits", _test_shared_movement)
 	await _run_test("prepared_topology_preserves_independent_navigation", _test_prepared_navigation)
 	await _run_test("oscillation_detection_and_bounded_waypoint_reselection", _test_route_progress)
 	await _run_test("bot_configuration_uses_route_and_classic_timing", _test_bot_configuration_uses_route_and_classic_timing)
@@ -98,6 +99,12 @@ func _run_test(test_name: String, callable: Callable) -> void:
 	if _failures.size() == before:
 		_passes += 1
 		print("[TacticalBotTests] PASS %s" % test_name)
+
+func _test_shared_movement() -> void:
+	var result: Dictionary = await preload("res://scripts/tests/AISharedMovementTests.gd").run(self)
+	for failure in result.failures:
+		_assert_true(false, String(failure))
+	print("AI_SHARED_MOVEMENT_CHECKS=", result.checks)
 
 func _assert_true(condition: bool, message: String) -> void:
 	if not condition:

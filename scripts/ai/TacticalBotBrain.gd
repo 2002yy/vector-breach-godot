@@ -261,7 +261,11 @@ func configure(record: Dictionary) -> void:
 	ammo_in_mag = int(_weapon_ammo.get(_current_weapon_id, 0))
 
 func tick(delta: float) -> void:
-	if actor == null or not enabled or bool(actor.get("is_dead")):
+	if actor == null:
+		return
+	# Scope is an active AI aiming state, never inferred from merely owning AWP.
+	actor.call("set_ai_scoped", false)
+	if not enabled or bool(actor.get("is_dead")):
 		return
 	_shot_cooldown = maxf(0.0, _shot_cooldown - delta)
 	_burst_pause = maxf(0.0, _burst_pause - delta)
@@ -418,6 +422,8 @@ func set_defuse_kit(has_kit: bool) -> void:
 
 func set_ai_combat_enabled(enabled_combat: bool) -> void:
 	combat_enabled = enabled_combat
+	if not enabled_combat and actor != null:
+		actor.call("set_ai_scoped", false)
 
 func notify_teammate_report(world_position: Vector3, enemy_team: String) -> void:
 	if actor == null or not enabled:
@@ -467,6 +473,7 @@ func get_snapshot() -> Dictionary:
 		"ammo_reserve": int(_weapon_reserve.get(_current_weapon_id, 0)),
 		"shots": _shot_count,
 		"weapon_id": _current_weapon_id,
+		"scoped": bool(actor.get("ai_scoped")) if actor != null else false,
 		"inventory": export_weapon_inventory(),
 		"weapon_slot": int(WEAPON_PROFILES.get(_current_weapon_id, {}).get("slot", 0)),
 		"burst_size": _burst_size,
@@ -521,6 +528,9 @@ func reset_runtime() -> void:
 	_reset_runtime()
 
 func _reset_runtime() -> void:
+	if actor != null:
+		actor.call("set_ai_scoped", false)
+		actor.call("set_ai_walking", false)
 	purchase_receipt.clear()
 	purchase_reason = "等待队伍预算"
 	state = State.HOLD
@@ -646,6 +656,9 @@ func _can_see(target: CharacterBody3D) -> bool:
 	return not hit.is_empty() and hit.get("collider", null) == target
 
 func _tick_engage(delta: float) -> void:
+	# Quiet belongs to the navigation edge, not a persistent combat posture.
+	# Combat strafe/knife pursuit can bypass _stop(), so clear it on transition.
+	actor.call("set_ai_walking", false)
 	if _target == null:
 		return
 	var health_ratio := float(int(actor.get("current_health"))) / maxf(float(int(actor.get("max_health"))), 1.0)
@@ -663,6 +676,7 @@ func _tick_engage(delta: float) -> void:
 	_update_combat_stance(delta)
 	_update_dodge(delta)
 	_update_weapon_selection(distance)
+	actor.call("set_ai_scoped", _current_weapon_id == "sniper")
 	_maybe_throw_combat_grenade(_target)
 	if _current_weapon_id == "knife":
 		_dodge_active = 0.0
@@ -1361,6 +1375,7 @@ func _switch_to_weapon(weapon_id: String) -> void:
 	if not _weapon_is_owned(weapon_id) or weapon_id == _current_weapon_id:
 		return
 	_current_weapon_id = weapon_id
+	actor.call("set_ai_scoped", false)
 	ammo_in_mag = int(_weapon_ammo.get(weapon_id, 0))
 	_shots_in_burst = 0
 	_burst_pause = maxf(_burst_pause, 0.12)
@@ -1368,6 +1383,12 @@ func _switch_to_weapon(weapon_id: String) -> void:
 
 func _current_profile() -> Dictionary:
 	return WEAPON_PROFILES.get(_current_weapon_id, WEAPON_PROFILES["rifle"])
+
+func get_movement_context() -> Dictionary:
+	return {
+		"weapon_id": _current_weapon_id,
+		"slot": int(_current_profile().get("slot", 0)),
+	}
 
 func _weapon_is_owned(weapon_id: String) -> bool:
 	return bool(_weapon_owned.get(weapon_id, false))
@@ -1566,6 +1587,7 @@ func _move_toward(destination: Vector3, delta: float) -> void:
 		# Imported navmesh edges are all precise for arrival, including open ground.
 		speed = minf(move_speed * 0.72, 4.0)
 	actor.call("set_ai_crouching", crouch)
+	actor.call("set_ai_walking", bool(_active_navigation_link.get("quiet", false)))
 	_aim_at(actor.global_position + direction, delta, 0.18)
 	_watch_yaw = actor.rotation.y
 	actor.call("apply_ai_navigation", direction, speed, steering_target.y, delta)
@@ -1573,6 +1595,7 @@ func _move_toward(destination: Vector3, delta: float) -> void:
 func _stop(delta: float) -> void:
 	if actor != null and actor.has_method("set_ai_crouching"):
 		actor.call("set_ai_crouching", false)
+		actor.call("set_ai_walking", false)
 	actor.velocity.x = move_toward(actor.velocity.x, 0.0, 22.0 * delta)
 	actor.velocity.z = move_toward(actor.velocity.z, 0.0, 22.0 * delta)
 	_last_progress_position = actor.global_position
