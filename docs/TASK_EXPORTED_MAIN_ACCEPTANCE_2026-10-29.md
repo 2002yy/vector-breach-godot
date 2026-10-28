@@ -1,0 +1,11 @@
+# 实际 release 二进制的组装候选开局验证
+
+基线1730994，新增作者探针probe_release_layout_start.gd；未改运行时、输入或冻结路网。磁盘余量不足以再导出3.62GB，使用R40实际release EXE的字节一致副本及原实际产品PCK；极小诊断主项目第一autoload的_init先挂载产品，再挂载仅含本批ClassicMatchLayout和ExportedLayoutIdentity的代码覆盖包。旧脚本的.gd.remap指向原同名路径的精确新源码，禁止错误沿用原compiled脚本。探针以显式if核对加载的脚本源码与包内字节一致，收据记录两份源码SHA。其后运行原产品autoload和实际Main。
+
+固定VectorBreach-radar.pck为统一雷达资产及三份路网收据包，由原生产RadarPackBootstrap自动挂载；没有手动调用布局加载绕过门闸。headless按设计隐藏经典选图，探针明确注入完整现有选项，再走真实_on_start_pressed。没有关闭CollisionVerifier或修改通过阈值。
+
+三图最终独立进程均EXIT0，editor=false、game_started=true、load_failed=false、radar ready：Dust II4.052秒，Mirage1.658秒，Inferno10.519秒。源GLB原字节不在产品PCK中，使用新导出身份合同放行。每图用户settings字节一致。计时为头less加载至游戏开始且雷达已解码，非GPU绘制/正常菜单/完整比赛/70%帧率验收。
+
+证据：D:/AgentGamePipeline/evidence/exported-layout-20261029/startup/summary-final.json、final-*.json/log、source-locks.json。三个最终日志无ERROR。早期_enter_tree挂载过晚、release assert表达式被剥离导致副作用未执行、重定向到不同脚本路径使compiled preload无法解析的失败均保留；最终以_init提前挂载、显式条件及原同名源码重映射解决。没有把失败或诊断启动冒称标准发布启动。
+
+工具格式/lint通过。该结果是实际release二进制＋真实导出产品数据＋精确两份运行时修复的组装候选；尚不是一次重新标准导出的最终EXE。后续仍需正常图形菜单启动、最终包导出与人工/整场/帧率验收。本批不更新桌面试玩版。
