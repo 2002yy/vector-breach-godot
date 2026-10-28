@@ -2,6 +2,7 @@ extends SceneTree
 
 const Atlas = preload("res://scripts/ui/RadarAtlas.gd")
 var checks := 0
+var timings: Array = []
 
 
 func _initialize() -> void:
@@ -52,6 +53,34 @@ func _run() -> void:
 	bad = data.duplicate(true)
 	bad.world_rect[2] = 0
 	_check(not Atlas.valid_manifest(bad, "synthetic"))
+	var radar = load("res://scripts/ui/RadarDisplay.gd").new()
+	radar.set_snapshot(
+		{
+			"level_id": "unknown-map",
+			"radar_load_identity": "1",
+			"feet_height": 2.0,
+			"grounded": true
+		}
+	)
+	radar.set_snapshot(
+		{
+			"level_id": "unknown-map",
+			"radar_load_identity": "1",
+			"feet_height": 8.0,
+			"grounded": false
+		}
+	)
+	_check(radar.get_debug_snapshot().atlas_floor_height == 2.0)
+	radar.set_snapshot(
+		{
+			"level_id": "unknown-map",
+			"radar_load_identity": "2",
+			"feet_height": 8.0,
+			"grounded": false
+		}
+	)
+	_check(radar.get_debug_snapshot().atlas_floor_height == 8.0)
+	radar.free()
 	var absent = Atlas.new()
 	_check(not absent.load_level("unknown-map"))
 	_check(absent.select_layer(0.0).is_empty())
@@ -69,10 +98,35 @@ func _run() -> void:
 			var uv := Atlas.world_uv(point, atlas.manifest.world_rect)
 			_check(uv.is_equal_approx(Vector2(float(anchor.uv[0]), float(anchor.uv[1]))))
 		for layer in atlas.manifest.layers:
+			var started := Time.get_ticks_usec()
 			var selected: Dictionary = atlas.select_layer(float(layer.height))
+			var cold_us := Time.get_ticks_usec() - started
+			started = Time.get_ticks_usec()
+			atlas.select_layer(float(layer.height))
+			timings.append(
+				{
+					"level": level_id,
+					"height": layer.height,
+					"cold_us": cold_us,
+					"cached_us": Time.get_ticks_usec() - started
+				}
+			)
 			_check(not selected.is_empty())
 			_check(is_equal_approx(float(selected.height), float(layer.height)))
 			_check(atlas.textures.size() <= 2)
+		var old_generation: int = atlas.generation
+		atlas.load_level(level_id, "reload-1")
+		_check(atlas.generation == old_generation + 1)
+		_check(atlas.textures.is_empty() and atlas.active_layer == -1)
+		atlas.load_level(level_id, "reload-2")
+		_check(atlas.generation == old_generation + 2)
+		for frame in range(1000):
+			if atlas.status != "verifying_source":
+				break
+			await create_timer(0.01).timeout
+			atlas.load_level(level_id, "reload-2")
+		_check(atlas.status == "ready")
+		_check(atlas.generation == old_generation + 2)
 		atlas.textures.clear()
 		atlas.manifest.layers[0].sha256 = "0".repeat(64)
 		_check(atlas.select_layer(float(atlas.manifest.layers[0].height)).is_empty())
@@ -86,5 +140,9 @@ func _run() -> void:
 		await create_timer(0.01).timeout
 		drift.load_level(Atlas.LEVELS[0])
 	_check(drift.status == "source_identity_mismatch")
+	var args := OS.get_cmdline_user_args()
+	if not args.is_empty():
+		var report := FileAccess.open(args[0], FileAccess.WRITE)
+		report.store_string(JSON.stringify({"checks": checks, "timings": timings}, "  "))
 	print("REAL_RADAR_CONTRACT_OK checks=", checks)
 	quit(0)

@@ -674,6 +674,9 @@ func _tick_engage(delta: float) -> void:
 	_burst_size = int(plan.get("size", 3))
 	_next_burst_pause = float(plan.get("pause", 0.45))
 	_update_combat_stance(delta)
+	# Replace the route posture before any strafe/pursuit speed is resolved.
+	# The combat timer still owns an explicitly chosen combat crouch.
+	actor.call("set_ai_crouching", _crouch_active > 0.0)
 	_update_dodge(delta)
 	_update_weapon_selection(distance)
 	actor.call("set_ai_scoped", _current_weapon_id == "sniper")

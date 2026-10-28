@@ -17,6 +17,7 @@ var _atlas := preload("res://scripts/ui/RadarAtlas.gd").new()
 var _atlas_slice: Dictionary = {}
 var _atlas_level_id := "__unset__"
 var _atlas_floor_height := 0.0
+var _atlas_reload_identity := ""
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -25,14 +26,16 @@ func _ready() -> void:
 func set_snapshot(snapshot: Dictionary) -> void:
 	_snapshot = snapshot.duplicate(true)
 	var next_level := String(snapshot.get("level_id", ""))
+	var next_identity := String(snapshot.get("radar_load_identity", ""))
 	_atlas_floor_height = _atlas.floor_sample(
 		_atlas_floor_height,
 		float(snapshot.get("feet_height", float(snapshot.get("player_height", 0.0)) - 0.9)),
 		bool(snapshot.get("grounded", true)),
-		next_level != _atlas_level_id
+		next_level != _atlas_level_id or next_identity != _atlas_reload_identity
 	)
 	_atlas_level_id = next_level
-	_atlas.load_level(next_level)
+	_atlas_reload_identity = next_identity
+	_atlas.load_level(next_level, next_identity)
 	_atlas_slice = _atlas.select_layer(_atlas_floor_height)
 	queue_redraw()
 
