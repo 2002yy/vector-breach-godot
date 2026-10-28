@@ -17,6 +17,8 @@ config/features=PackedStringArray("4.7")
 
 [autoload]
 
+RadarPackBootstrap="*res://scripts/bootstrap/RadarPackBootstrap.gd"
+
 CollisionVerifier="*res://scripts/autoload/CollisionVerifier.gd"
 
 SceneReader="*res://scripts/autoload/SceneReader.gd"
