@@ -5,6 +5,18 @@
 
 最近整合交付已把加载反馈、C4安装全员提示/爆炸先于结算、观战面板与队友快捷切换、AI速度/横移节奏，以及移动规则修复纳入候选包。下表“已实现”不等于已合入main或通过完整体验验收。
 
+最新整合：R40 自动挂载与真实包开局阻塞
+
+基线 `dea0af0`（#136），分支 `feat/radar-pack-bootstrap`。新增首个autoload，实际导出运行时自动检查EXE旁固定VectorBreach-radar.pck；源码/编辑器跳过，缺失/坏头回退，以replace_files=false禁止覆盖主包已有资源。定向正负与禁止覆盖检查通过；标准产品PCK+附包三图26切片通过。一次新标准release导出已完成；实际release EXE副本配极小诊断主项目证明editor=false、生产autoload自动mounted及三图26切片，最终日志无ERROR。模板禁用路径覆盖，初期--script超时/--main-pack失败及诊断cache缺失错误保留。该诊断启动不等于正常产品Main成功，不更新桌面试玩包。
+
+**发布阻塞P1**：实际产品PCK的三图Main均被ClassicMatchLayout正确拒绝。manifest存在、raw collision GLB缺失，input_stamps对原文件open失败且load_authored原sha为空，不能满足冻结路网身份；compiled remap有效及雷达收据通过不能代替该独立合同。headless按设计隐藏经典选图，探针明确注入完整选项后走真实start，并未绕过布局门闸。三图最终拒绝收据/预期EXIT2已保存，不能宣布新包可玩。
+
+Inferno真实Main加载分段单次11.11秒：visual_scene4.64s、collision_shapes3.78s，约76%；最大单mesh原子碰撞工作1.60s。碰撞缓存已命中，材质修复最高148ms非主要瓶颈。未冒险改原几何或碰撞规则。
+
+完整Python575项、原生16套件RUN_ALL_OK、新GDS格式/lint通过；82份旧工具、四脏导入、用户设置和旧包保持。见 [自动挂载](TASK_RADAR_BOOTSTRAP_2026-10-29.md)、[包内开局阻塞](TASK_PACKAGED_MAIN_2026-10-29.md)、[加载分段](TASK_LOADING_PHASES_2026-10-29.md)。提交/PR/CI首查及产物在本机 `D:/AgentGamePipeline/evidence/radar-bootstrap-20261029/delivery.json`。
+
+下一批P1先为ClassicMatchLayout建立绑定实际导出碰撞字节的身份合同，保留原冻结清单/原路线/原几何和拒绝门闸，再验证真实EXE三图开局；之后再拆解最大碰撞mesh与视觉等待。18完整比赛、人工三图和70%FPS仍待验，M4未验收/M5冻结，不等CI、不合并、不放行候选。
+
 最新整合：R39 标准主PCK、碰撞依赖与Main开局
 
 基线 `98d170c`（#135），分支 `build/radar-final-pack`。本批仅新增三份作者工具及文档，未改运行时/preset/资产。实际标准Windows主PCK为3,620,438,302字节，针对该PCK导出字节生成资产附包1,631,716字节；不重复产品脚本、原GLB或compiled collision。空项目挂载两包，以产品导出的RadarAtlas验证三图26切片通过。EXE自动挂载附包尚未接入，不能算正式发布整合完成。
