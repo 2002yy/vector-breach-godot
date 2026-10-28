@@ -2,7 +2,17 @@
 
 更新：2026-10-28。此文件为当前实现、优先级和交付状态的权威入口；旧任务文档及历史截图中的“当前版本/尚未实现”只对应当时提交。
 
-## 当前批：R35 雷达重载、AI蹲姿交战与跳高归因
+## 当前批：R36 雷达异步切层与低顶/楼层证据
+
+基线 `a1d090d`（#132），分支 `perf/radar-layer-streaming`。PNG读盘/哈希/解码移至单个后台worker；主线程仅创建纹理，保留两张缓存，generation与request serial拒绝过期地图/切片结果。171条原生定向检查通过；三图headless首次请求最高237/96/83µs，主线程poll与纹理创建最高452/489/476µs，缓存最高46/16/11µs；不等同GPU帧预算通过。Mirage Vulkan截图已查看；作者探针修正为同时等待来源与异步纹理就绪。
+
+新增实际低顶物理回归12条，AI合计371检查通过：低顶下拒绝站起并保留限速/脚底，移除后恢复站立。现有实现有效，未修改TacticalActor。三图原碰撞胶囊探针仅4条轨迹：Mirage两条到达，其中一条楼层4→5；Inferno两条阻挡/部分到达，Dust II限定采样无有效边。没有完整Player台阶逻辑，明确不认定三图实走通过。
+
+完整Python575项、静态检查及原生16套件最终记录见本机 `D:/AgentGamePipeline/evidence/radar-layer-streaming-20261028/delivery.json`。68份旧工具、四脏导入、设置和旧包保持；两份原雷达作者工具是明确授权的异步合同适配。见 [异步切层](TASK_RADAR_STREAM_2026-10-28.md)、[楼层探针](TASK_RADAR_FLOOR_ROUTES_2026-10-28.md)、[低顶回归](TASK_AI_LOWTOP_2026-10-28.md)。不等CI、不合并、不发包。
+
+下一步：使用完整Player与冻结有效路线补Dust/Inferno楼层证据，验证真实GPU切层帧时间、首次可见延迟及打包PNG；人工手感、AI复杂路线/难度、18场完整比赛、连续人工三图及逐图70%FPS继续待验。Current参数/原资产几何保持，M4未验收/M5冻结。
+
+## 前批：R35 雷达重载、AI蹲姿交战与跳高归因
 
 基线 `eda13b6`（#131），分支 `fix/radar-ai-transition`。真实地图加载序号接入雷达，同ID重载清空纹理/楼层并重新校验，generation隔离旧异步证明；133条定向检查通过，Mirage Vulkan HUD截图已查看。26张底图headless冷切层最高Dust II48.426ms/Mirage14.713ms/Inferno19.109ms，缓存命中最高38/17/17µs；同步冷解码仍有卡顿风险，不能算GPU帧预算或70%FPS验收。
 

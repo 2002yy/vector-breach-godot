@@ -237,5 +237,70 @@ func _run(owner: Node) -> void:
 			),
 			"combat crouch applies before movement in strafe and pursuit"
 		)
+	await _test_low_ceiling(owner, world, actor, brain, enemy)
 	world.queue_free()
 	await owner.get_tree().process_frame
+
+
+func _test_low_ceiling(owner: Node, world: Node3D, actor, brain: Node, enemy) -> void:
+	actor.position = Vector3.ZERO
+	actor.velocity = Vector3.ZERO
+	actor.set_ai_crouching(true)
+	var ceiling := StaticBody3D.new()
+	var collider := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(8.0, 0.3, 8.0)
+	collider.shape = box
+	ceiling.add_child(collider)
+	ceiling.position.y = 0.65
+	world.add_child(ceiling)
+	await owner.get_tree().physics_frame
+	await owner.get_tree().physics_frame
+	var shape := actor.get_node("CollisionShape3D") as CollisionShape3D
+	var feet_before: float = shape.global_position.y - shape.shape.height * 0.5
+	_check(not actor.set_ai_crouching(false), "low ceiling denies explicit standing")
+	_check(actor.ai_crouching, "denied standing preserves crouch state")
+	_check(is_equal_approx(shape.shape.height, 1.2), "denied standing preserves short capsule")
+	for weapon in ["sniper", "knife"]:
+		brain.call(
+			"configure",
+			{
+				"aiEnabled": true,
+				"aiCombatEnabled": true,
+				"weapon": weapon,
+				"aiHasKnife": weapon == "knife",
+				"aiCrouchChance": 0.0
+			}
+		)
+		actor.set_ai_crouching(true)
+		brain.set("_target", enemy)
+		brain.set("_crouch_timer", 10.0)
+		brain.set("_crouch_active", 0.0)
+		brain.set("_dodge_active", 0.4)
+		brain.set("_dodge_direction", Vector3.RIGHT)
+		brain.call("_tick_engage", 1.0 / 60.0)
+		_check(actor.ai_crouching, weapon + " combat cannot force standing into ceiling")
+		_check(
+			(
+				actor.get_ai_movement_snapshot().navigation_speed
+				<= actor.resolve_ai_navigation_speed(20.0)
+			),
+			weapon + " denied standing retains speed cap"
+		)
+		actor.velocity.y = 0.0
+		actor.move_and_slide()
+		_check(
+			is_equal_approx(shape.global_position.y - shape.shape.height * 0.5, feet_before),
+			weapon + " blocked stand and horizontal slide preserve feet"
+		)
+	ceiling.queue_free()
+	await owner.get_tree().physics_frame
+	await owner.get_tree().physics_frame
+	brain.set("_crouch_active", 0.0)
+	brain.call("_tick_engage", 1.0 / 60.0)
+	_check(not actor.ai_crouching, "combat releases crouch once ceiling removed")
+	_check(is_equal_approx(shape.shape.height, 1.8), "clear ceiling restores standing capsule")
+	_check(
+		is_equal_approx(shape.global_position.y - shape.shape.height * 0.5, feet_before),
+		"successful standing preserves feet"
+	)
