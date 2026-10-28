@@ -18,15 +18,43 @@ var _atlas_slice: Dictionary = {}
 var _atlas_level_id := "__unset__"
 var _atlas_floor_height := 0.0
 var _atlas_reload_identity := ""
+var _preparing_identity := ""
+var _preparing_level := ""
+
+func prepare_level(level_id: String, identity: String) -> void:
+	_preparing_level = level_id
+	_preparing_identity = identity
+	_atlas.load_level(level_id, identity)
+	set_process(_atlas.status == "verifying_source")
+
+func cancel_preparation() -> void:
+	_preparing_level = ""
+	_preparing_identity = ""
+	_atlas.load_level("", "")
+	_atlas_slice.clear()
+	set_process(false)
+
+func _process(_delta: float) -> void:
+	_atlas.load_level(_preparing_level, _preparing_identity)
+	if _atlas.status != "verifying_source":
+		set_process(false)
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	set_process(false)
 	queue_redraw()
 
 func set_snapshot(snapshot: Dictionary) -> void:
-	_snapshot = snapshot.duplicate(true)
 	var next_level := String(snapshot.get("level_id", ""))
 	var next_identity := String(snapshot.get("radar_load_identity", ""))
+	# Main still publishes the old map while its replacement is loading.
+	if not _preparing_identity.is_empty():
+		if next_level != _preparing_level or next_identity != _preparing_identity:
+			return
+		_preparing_level = ""
+		_preparing_identity = ""
+	set_process(false)
+	_snapshot = snapshot.duplicate(true)
 	_atlas_floor_height = _atlas.floor_sample(
 		_atlas_floor_height,
 		float(snapshot.get("feet_height", float(snapshot.get("player_height", 0.0)) - 0.9)),

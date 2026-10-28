@@ -639,12 +639,16 @@ func _start_selected_map() -> void:
 	if is_instance_valid(training_telemetry):
 		training_telemetry.call("begin_round", 1)
 	_clear_round_drops()
+	combat_hud.get_node("HudRoot/Radar").call(
+		"prepare_level", String(option["id"]), str(_level_load_serial + 1)
+	)
 	if not await level.call("load_level_async", option["id"]):
 		_level_load_failed = true
 		_level_loading = false
 	while _level_loading:
 		await get_tree().physics_frame
 	if _level_load_failed:
+		combat_hud.get_node("HudRoot/Radar").call("cancel_preparation")
 		game_started = false
 		GameState.reset_runtime_state()
 		GameState.set_game_started(false)
@@ -747,6 +751,10 @@ func _toggle_fullscreen() -> void:
 	_update_ui(true)
 
 func _on_level_loaded(level_data: Dictionary) -> void:
+	_level_load_serial += 1
+	combat_hud.get_node("HudRoot/Radar").call(
+		"prepare_level", String(level_data.get("id", "")), str(_level_load_serial)
+	)
 	var began := Time.get_ticks_usec()
 	var timings := {"physics_settle_ms": 0.0, "layout_ms": 0.0}
 	_level_load_failed = false
@@ -754,7 +762,6 @@ func _on_level_loaded(level_data: Dictionary) -> void:
 	preload("res://scripts/level/SourceModulateMaterials.gd").update_environment(
 		level, world_environment.environment
 	)
-	_level_load_serial += 1
 	var serial := _level_load_serial
 	var level_load_count: int = level.load_count
 	timings["environment_ms"] = (Time.get_ticks_usec() - began) / 1000.0
