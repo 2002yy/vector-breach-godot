@@ -1,0 +1,11 @@
+# 冻结路网的导出碰撞身份
+
+基线1730994。保留ClassicMatchLayout原清单、路线和原GLB存在时的严格原sha路径；仅原字节缺失时使用match_manifest + `.export.json`。收据绑定冻结manifest本身sha、原collision sha、关卡sha、实际发货import sha、remap compiled路径与实际compiled字节sha。独立ExportedLayoutIdentity helper不依赖UI，不把complete字段当证明；原GLB存在但坏hash不会回退到收据。
+
+input_stamps在导出路径覆盖manifest、level、receipt、import和compiled文件，前后一致性检查不再依赖缺失原GLB。哈希工作仍位于原CollisionVerifier worker，未把大文件哈希移回主线程。stamp长度/时间与旧机制相同，并非对抗并发恶意篡改的签名信任边界。
+
+新build_layout_export_receipts先在完整来源工程prepare，复算原GLB、原冻结清单和关卡身份；再由宿主挂载实际产品PCK，在隔离目录build收据，对照产品实际remap/compiled字节。可传入现有雷达附包，把26PNG、atlas与雷达身份收据加三份layout收据写入统一固定雷达附包。不含产品脚本、原GLB或重复compiled资源。PCKPacker生成的收据只有几KB；统一包约1.64MB。正常bootstrap可直接自动挂载统一文件，不需另挂layout包。
+
+实际R40标准产品PCK的三图新layout均加载通过，input_stamps非空；逐图修改manifest/source/level/import/compiledsha及compiledpath六类字段均拒绝，24检查。源工程三图原身份通过，原字节存在但错误hash拒绝，6检查。最终作者工具格式/lint零错误。测试脚本接受descriptor、候选ClassicMatchLayout脚本路径、负例输出目录；宿主须在无本地原GLB回退的目录挂载实际产品PCK与统一收据，并提供候选helper。否定数据写新小PCK，不改原素材。
+
+证据D:/AgentGamePipeline/evidence/exported-layout-20261029/identity/：descriptor.json、combined.pck、focused-final.log、finaltest.py、原字节严格检查。初轮builder的Variant类型推断错误、Dust默认match_manifest键缺失与超时保留；一次在工程cwd运行main-pack仍能回退本地原资源，已由raw存在断言拒绝，最终在隔离cwd重跑。此前仅存工具输出的诊断不冒称有原始log。真实EXE三图Main开局由独立通道验证，本片不宣称完整比赛/M4/人工/FPS验收。
