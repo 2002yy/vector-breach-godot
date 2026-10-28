@@ -5,6 +5,18 @@
 
 最近整合交付已把加载反馈、C4安装全员提示/爆炸先于结算、观战面板与队友快捷切换、AI速度/横移节奏，以及移动规则修复纳入候选包。下表“已实现”不等于已合入main或通过完整体验验收。
 
+最新整合：R39 标准主PCK、碰撞依赖与Main开局
+
+基线 `98d170c`（#135），分支 `build/radar-final-pack`。本批仅新增三份作者工具及文档，未改运行时/preset/资产。实际标准Windows主PCK为3,620,438,302字节，针对该PCK导出字节生成资产附包1,631,716字节；不重复产品脚本、原GLB或compiled collision。空项目挂载两包，以产品导出的RadarAtlas验证三图26切片通过。EXE自动挂载附包尚未接入，不能算正式发布整合完成。
+
+实际主PCK空项目隔离加载三图碰撞场景，无本地源回退、无缺依赖错误；mesh50/39/49，shape35/39/49，32条射线分别命中32/32/30。按Graybox相同mesh fallback生成碰撞，不替代完整地图导航/全游戏验收。
+
+真实Main正常选图/开始流程三图Vulkan通过，选图均未加载；开局到game_started4570.695/2704.548/10138.460ms，到雷达绘制4582.673/2742.066/10201.704ms（晚11.978/37.518/63.244ms），来源校验在加载期间完成且代次稳定。截图在真实ready关闭购买页后已查看。计时不含引擎启动、本地碰撞缓存存在，非冷启动/GPU时间戳/FPS。未注入失败取消E2E。
+
+Python575项、新GDS格式/lint及保护核验通过；无生产变更，复用R38最终原生16套件结果。79份旧工具、四脏导入、设置和旧包保持，生成UID归档。见 [最终PCK](TASK_RADAR_FINAL_PACK_2026-10-29.md)、[碰撞依赖](TASK_COLLISION_PACK_DEPENDENCIES_2026-10-29.md)、[Main开局](TASK_MAIN_RADAR_STARTUP_2026-10-29.md)。提交/PR/CI首查及产物哈希在本机 `D:/AgentGamePipeline/evidence/radar-final-pack-20261029/delivery.json`。
+
+下一步附包自动挂载、主PCK真实开局及Inferno主要加载阶段分解；实际EXE/人工三图/18完整比赛/70%FPS继续待验。Current/原资产几何保持，M4未验收/M5冻结，不等CI、不合并、不替换桌面包。
+
 最新整合：R38 导出身份、预热与首次落地复核
 
 基线 `e0bd468`（#134），分支 `feat/radar-export-identity`。原GLB存在仍严格核对原sha/import；原字节在导出包缺失时，新增构建收据绑定原来源/import/关卡/atlas、实际remap与compiled collision字节sha。资产构建器不放产品脚本或原GLB；隔离实际PCK三图26切片通过，缺碰撞/缺收据/陈旧compiled哈希均拒绝。包135,447,680字节（此前359,490,460），雷达/收据附加约1.65MB；最终主包应复用已有compiled collision，不能直接再附135MB。完整compiled scene依赖实例化、真实最终导出生成收据及EXE验收仍待完成。
