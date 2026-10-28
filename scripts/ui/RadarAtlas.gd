@@ -16,6 +16,8 @@ var generation := 0
 var decoding := Thread.new()
 var request_serial := 0
 var requested_layer := -1
+var identity_source := ""
+var identity_digest := ""
 
 
 static func valid_manifest(data: Dictionary, expected_level: String) -> bool:
@@ -83,9 +85,8 @@ func load_level(requested: String, identity := "") -> bool:
 		not level_data is Dictionary
 		or not source.begins_with("res://assets/")
 		or source != String(level_data.get("runtime_collision_scene", ""))
-		or not FileAccess.file_exists(source)
-		or not import_identity_matches(parsed, FileAccess.get_sha256(source + ".import"))
 		or FileAccess.get_sha256(level_path) != String(parsed.get("level_sha256", ""))
+		or not _configure_identity(parsed, path, source)
 	):
 		status = "source_identity_mismatch"
 		return false
@@ -93,6 +94,65 @@ func load_level(requested: String, identity := "") -> bool:
 	status = "verifying_source"
 	_poll_identity()
 	return status == "ready"
+
+
+func _configure_identity(parsed: Dictionary, path: String, source: String) -> bool:
+	identity_source = source
+	identity_digest = String(parsed.source_sha256)
+	if FileAccess.file_exists(source):
+		if not import_identity_matches(parsed, FileAccess.get_sha256(source + ".import")):
+			status = "source_identity_mismatch"
+			return false
+	else:
+		var receipt: Variant = null
+		if FileAccess.file_exists(directory + "export_identity.json"):
+			receipt = JSON.parse_string(
+				FileAccess.get_file_as_string(directory + "export_identity.json")
+			)
+		var remap := ConfigFile.new()
+		var remap_loaded := remap.load(source + ".import") == OK
+		var compiled := String(remap.get_value("remap", "path", ""))
+		if (
+			not remap_loaded
+			or not valid_export_identity(
+				receipt,
+				parsed,
+				FileAccess.get_sha256(path),
+				FileAccess.get_sha256(source + ".import"),
+				compiled
+			)
+		):
+			status = "source_identity_mismatch"
+			return false
+		identity_source = compiled
+		identity_digest = String(receipt.compiled_sha256)
+	return true
+
+
+static func valid_export_identity(
+	receipt: Variant,
+	data: Dictionary,
+	atlas_sha: String,
+	shipped_import_sha: String,
+	compiled: String
+) -> bool:
+	if not receipt is Dictionary or int(receipt.get("schema", 0)) != 1:
+		return false
+	for key in ["source", "source_sha256", "source_import_sha256", "level_sha256"]:
+		if receipt.get(key, "") != data.get(key, "missing"):
+			return false
+	return (
+		receipt.get("atlas_sha256", "") == atlas_sha
+		and atlas_sha.length() == 64
+		and receipt.get("shipped_import_sha256", "") == shipped_import_sha
+		and shipped_import_sha.length() == 64
+		and receipt.get("compiled", "") == compiled
+		and compiled.begins_with("res://.godot/imported/")
+		and not compiled.contains("..")
+		and compiled.ends_with(".scn")
+		and FileAccess.file_exists(compiled)
+		and String(receipt.get("compiled_sha256", "")).length() == 64
+	)
 
 
 static func import_identity_matches(data: Dictionary, import_sha256: String) -> bool:
@@ -120,17 +180,19 @@ func _poll_identity() -> void:
 			return
 		var proof: Dictionary = verification.wait_to_finish()
 		if String(proof.level) == level_id and int(proof.generation) == generation:
-			var matched: bool = proof.sha256 == manifest.source_sha256
-			matched = (
-				matched
-				and import_identity_matches(
-					manifest, FileAccess.get_sha256(String(manifest.source) + ".import")
+			var matched: bool = proof.sha256 == identity_digest
+			if identity_source == String(manifest.source):
+				matched = matched and proof.sha256 == String(manifest.source_sha256)
+				matched = (
+					matched
+					and import_identity_matches(
+						manifest, FileAccess.get_sha256(identity_source + ".import")
+					)
 				)
-			)
 			status = "ready" if matched else "source_identity_mismatch"
 			return
 	# A map switch may happen while the previous map's worker is finishing.
-	verification.start(_source_identity.bind(String(manifest.source), level_id, generation))
+	verification.start(_source_identity.bind(identity_source, level_id, generation))
 
 
 func _notification(what: int) -> void:

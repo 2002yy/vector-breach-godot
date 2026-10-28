@@ -31,6 +31,49 @@ func _run() -> void:
 	for key in ["source_sha256", "source_import_sha256", "level_sha256"]:
 		data[key] = "a".repeat(64)
 	_check(Atlas.valid_manifest(data, "synthetic"))
+	var export_data := data.duplicate(true)
+	export_data.source = "res://assets/synthetic.glb"
+	var receipt := {
+		"schema": 1,
+		"source": export_data.source,
+		"source_sha256": export_data.source_sha256,
+		"source_import_sha256": export_data.source_import_sha256,
+		"level_sha256": export_data.level_sha256,
+		"atlas_sha256": "a".repeat(64),
+		"shipped_import_sha256": "b".repeat(64),
+		"compiled": "res://.godot/imported/missing.scn",
+		"compiled_sha256": "c".repeat(64)
+	}
+	_check(
+		not Atlas.valid_export_identity(
+			null, export_data, "a".repeat(64), "b".repeat(64), receipt.compiled
+		)
+	)
+	_check(
+		not Atlas.valid_export_identity(
+			receipt, export_data, "d".repeat(64), "b".repeat(64), receipt.compiled
+		)
+	)
+	_check(
+		not Atlas.valid_export_identity(
+			receipt, export_data, "a".repeat(64), "d".repeat(64), receipt.compiled
+		)
+	)
+	_check(
+		not Atlas.valid_export_identity(
+			receipt,
+			export_data,
+			"a".repeat(64),
+			"b".repeat(64),
+			"res://.godot/imported/../outside.scn"
+		)
+	)
+	_check(
+		not Atlas.valid_export_identity(
+			receipt, export_data, "a".repeat(64), "b".repeat(64), receipt.compiled
+		)
+	)
+
 	_check(Atlas.import_identity_matches(data, "a".repeat(64)))
 	_check(not Atlas.import_identity_matches(data, "b".repeat(64)))
 	var missing_import := data.duplicate(true)
