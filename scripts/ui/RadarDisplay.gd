@@ -13,6 +13,10 @@ const ENEMY_COLOR := Color(1.0, 0.3, 0.25, 1.0)
 const C4_COLOR := Color(1.0, 0.72, 0.12, 1.0)
 
 var _snapshot: Dictionary = {}
+var _atlas := preload("res://scripts/ui/RadarAtlas.gd").new()
+var _atlas_slice: Dictionary = {}
+var _atlas_level_id := "__unset__"
+var _atlas_floor_height := 0.0
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -20,6 +24,16 @@ func _ready() -> void:
 
 func set_snapshot(snapshot: Dictionary) -> void:
 	_snapshot = snapshot.duplicate(true)
+	var next_level := String(snapshot.get("level_id", ""))
+	_atlas_floor_height = _atlas.floor_sample(
+		_atlas_floor_height,
+		float(snapshot.get("feet_height", float(snapshot.get("player_height", 0.0)) - 0.9)),
+		bool(snapshot.get("grounded", true)),
+		next_level != _atlas_level_id
+	)
+	_atlas_level_id = next_level
+	_atlas.load_level(next_level)
+	_atlas_slice = _atlas.select_layer(_atlas_floor_height)
 	queue_redraw()
 
 func get_debug_snapshot() -> Dictionary:
@@ -35,6 +49,10 @@ func get_debug_snapshot() -> Dictionary:
 		"feature_count": (_snapshot.get("features", []) as Array).size(),
 		"player_count": (_snapshot.get("players", []) as Array).size(),
 		"c4_state": String((_snapshot.get("c4", {}) as Dictionary).get("state", "")),
+		"atlas_status": _atlas.status,
+		"atlas_layer": _atlas_slice.get("layer_index", -1),
+		"atlas_layer_count": _atlas_slice.get("layer_count", 0),
+		"atlas_floor_height": _atlas_floor_height,
 		"width_fraction": radar_range / bounds.x if bounds.x > 0.0 else 0.0,
 		"height_fraction": radar_range / bounds.y if bounds.y > 0.0 else 0.0,
 		"area_fraction": PI * radar_range * radar_range / full_area if full_area > 0.0 else 0.0,
@@ -49,9 +67,13 @@ func _draw() -> void:
 	var player_world: Vector2 = _snapshot.get("player_position", Vector2.ZERO)
 	var yaw := float(_snapshot.get("player_yaw", 0.0))
 	var bounds: Vector2 = _snapshot.get("bounds", Vector2.ZERO)
-	_draw_map_boundary(bounds, player_world, center, radius, radar_range, yaw)
-	for feature_variant in _snapshot.get("features", []):
-		_draw_feature(feature_variant as Dictionary, player_world, center, radius, radar_range, yaw)
+	_draw_atlas(player_world, center, radius, radar_range, yaw)
+	if _atlas_slice.is_empty():
+		_draw_map_boundary(bounds, player_world, center, radius, radar_range, yaw)
+		for feature_variant in _snapshot.get("features", []):
+			_draw_feature(
+				feature_variant as Dictionary, player_world, center, radius, radar_range, yaw
+			)
 	for target_variant in _snapshot.get("targets", []):
 		_draw_target(target_variant as Dictionary, player_world, center, radius, radar_range, yaw)
 	for player_variant in _snapshot.get("players", []):
@@ -66,6 +88,22 @@ func _draw() -> void:
 	])
 	draw_colored_polygon(arrow, PLAYER_COLOR)
 	draw_circle(center, radius, BORDER_COLOR, false, 2.0, true)
+
+func _draw_atlas(
+	player_world: Vector2, center: Vector2, radius: float, radar_range: float, yaw: float
+) -> void:
+	if _atlas_slice.is_empty():
+		return
+	var polygon := PackedVector2Array()
+	var uv := PackedVector2Array()
+	for index in range(96):
+		var offset := Vector2.RIGHT.rotated(TAU * index / 96.0) * (radius - 2.0)
+		polygon.append(center + offset)
+		var world := player_world + offset.rotated(-yaw) * (radar_range / radius)
+		uv.append(_atlas.world_uv(world, _atlas_slice.world_rect))
+	draw_polygon(
+		polygon, PackedColorArray([Color(0.8, 0.84, 0.8, 0.85)]), uv, _atlas_slice.texture
+	)
 
 func _draw_grid(center: Vector2, radius: float) -> void:
 	draw_circle(center, radius * 0.5, GRID_COLOR, false, 1.0, true)

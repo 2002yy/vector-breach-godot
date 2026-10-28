@@ -1521,6 +1521,13 @@ func _get_objective_hint() -> String:
 
 func _build_radar_snapshot() -> Dictionary:
 	var level_data: Dictionary = level.call("get_current_level_data") if level.has_method("get_current_level_data") else {}
+	var feet_height := player.global_position.y - 0.9
+	var body_shape := player.get_node_or_null("CollisionShape3D") as CollisionShape3D
+	if body_shape != null and body_shape.shape is CapsuleShape3D:
+		feet_height = (
+			body_shape.global_position.y
+			- body_shape.shape.height * body_shape.global_basis.y.length() * 0.5
+		)
 	var arena_size := float(level_data.get("arenaSize", 56.0))
 	var bounds := Vector2(
 		float(level_data.get("arenaSizeX", arena_size)),
@@ -1570,6 +1577,9 @@ func _build_radar_snapshot() -> Dictionary:
 			targets.append({"label": "T", "x": float(target_route[0]), "z": float(target_route[1])})
 	return {
 		"bounds": bounds,
+		"level_id": String(level_data.get("id", "")),
+		"feet_height": feet_height,
+		"grounded": player.is_on_floor(),
 		"range_meters": UserSettings.radar_range,
 		"player_position": Vector2(player.global_position.x, player.global_position.z),
 		"player_yaw": player.rotation.y if UserSettings.radar_rotates else 0.0,
