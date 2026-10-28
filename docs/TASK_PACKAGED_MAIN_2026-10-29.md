@@ -1,0 +1,11 @@
+# 实际包 Main 开局检查：冻结路网身份阻塞
+
+基线dea0af0。本批新增作者探针`probe_packaged_main.gd`，不改游戏运行时或绕过身份门闸。Godot以R39实际3.62GB product.pck为main-pack，外置探针加载精确复制的新RadarPackBootstrap，通过`bootstrap(true, fixture_exe)`显式测试导出门控分支，挂载固定文件名旁包。真实Main、autoload、场景均从product.pck加载。此为受控组装候选，不是新最终EXE自动autoload验收。
+
+headless按现有设计隐藏本机经典地图：Main._has_local_level和LocalClassicMaps.installed_options均检查DisplayServer。探针因此复制完整现有选项字段并显式注入三图，再走真实_on_start_pressed；不视为正常发布菜单验收。
+
+三图实际启动均被原游戏正确拒绝，game_started=false、_level_load_failed=true。旁包bootstrap成功、碰撞场景能加载，但ClassicMatchLayout仍依赖原GLB字节身份：input_stamps对manifest、raw collision、level逐一FileAccess.open，导出包缺raw collision使其返回空；load_authored又对raw collision计算sha256与冻结collision_sha256比较。ResourceLoader的compiled remap有效不能满足这个原始字节门闸。R40雷达bootstrap解决资源挂载，不会自动解决游戏路网身份合同。
+
+最终证据`D:/AgentGamePipeline/evidence/radar-bootstrap-20261029/packaged/rejection-final.json/log`记录逐图manifest存在、raw collision缺失和input_stamps为空，预期退出2/标记PACKAGED_MAIN_REJECTED。原headless过滤失败、过简选项缺字段和Dust默认manifest键的探针问题均保留旧日志，不计为生产缺陷。最终工具格式/lint通过。
+
+本批不能宣布完整包可玩或三图Main通过。下一步为冻结路网建立与实际导出碰撞绑定的明确身份合同，保持原manifest、原几何与原路线，加入缺失/陈旧身份拒绝测试，再复跑最终EXE三图实际开局；不得直接关闭CollisionVerifier或把complete字段当证明。源工程人工试玩、18场比赛和70%FPS继续独立待验。
