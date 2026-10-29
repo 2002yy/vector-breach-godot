@@ -20,3 +20,6 @@
 本机收据：`D:/AgentGamePipeline/evidence/cleanup-20261029/`，包括`inventory.json`、`cleanup-plan.json`、`cleanup-actions.json`、`cleanup-result.json`、`final-verification.json`。未清理其它项目或D盘其它数据。
 
 下一批继续R41后的最终标准导出/三图图形开局，以及保留原三角集合的碰撞分块独立实验。清理不代表候选已合并或试玩包已更新。
+# 新标准EXE开局补验后的追加清理
+
+R42标准候选已完成正常菜单三图开始、购买、就绪和战斗截图检查。随后仅删除被替代的R40 `radar-bootstrap-20261029/exe-candidate/VectorBreach.pck`，3,620,457,009字节（约3.37GiB）；删除前核对旧哈希24daf505…abff94与新包70bf75e4…cbec5，保留新标准包、全部日志/收据、原版资产及现有桌面试玩包。此项追加在前述9文件清理之后，总计10个旧PCK、逻辑14,547,953,008字节。收据：`D:/AgentGamePipeline/evidence/standard-release-20261029/superseded-cleanup.json`。历史保留清单中的R40主PCK从此不再存在；诊断日志和身份结果仍保留。实际释放量与逻辑字节数不混算。
