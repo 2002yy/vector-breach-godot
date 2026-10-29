@@ -861,6 +861,7 @@ func _tick_t_side_objective(delta: float) -> void:
 	_maybe_throw_objective_smoke()
 	if not bomb_carrier:
 		if not RoundManager.bomb_carried and _c4_known_state == "dropped" and _is_c4_recoverer():
+			tactical_reason = "回收掉落的C4"
 			_move_to_or_hold(delta, _c4_known_position + Vector3.UP * 0.82)
 			return
 		_move_to_or_hold(delta, objective_target, true)
@@ -1054,8 +1055,24 @@ func _refresh_c4_knowledge() -> void:
 	_c4_known_state = device_state
 	if device_state in ["planted", "dropped"]:
 		_c4_known_position = _c4_device.global_position
-	elif _c4_device.has_meta("recovery_actor"):
-		_c4_device.remove_meta("recovery_actor")
+	else:
+		for key in ["recovery_actor", "recovery_retry_frame"]:
+			if _c4_device.has_meta(key):
+				_c4_device.remove_meta(key)
+
+func _has_c4_recovery_route() -> bool:
+	# Keep the existing local/no-graph behavior; a graph path is only a coarse
+	# qualification, not proof of the final physical approach to the dropped item.
+	if (
+		_navigation.points.is_empty()
+		or actor.global_position.distance_to(_c4_known_position + Vector3.UP * 0.82) <= 2.2
+	):
+		return true
+	return not _navigation.find_path(
+		_navigation.nearest_index(actor.global_position),
+		_navigation.nearest_index(_c4_known_position + Vector3.UP * 0.82),
+		_danger_events
+	).is_empty()
 
 func _is_c4_recoverer() -> bool:
 	if not is_instance_valid(_c4_device) or _c4_known_state != "dropped":
@@ -1068,10 +1085,15 @@ func _is_c4_recoverer() -> bool:
 			recoverer = null
 		elif (
 			is_instance_valid(recoverer)
-			and float(recoverer.get_node("TacticalBotBrain").get("_route_blocked_seconds")) > 0.0
+			and (
+				float(recoverer.get_node("TacticalBotBrain").get("_route_blocked_seconds")) > 0.0
+				or bool(recoverer.get_node("TacticalBotBrain").get("_navigation_unreachable"))
+			)
 		):
 			recoverer = null
 	if not is_instance_valid(recoverer):
+		if Engine.get_physics_frames() < int(_c4_device.get_meta("recovery_retry_frame", 0)):
+			return false
 		var best_distance := INF
 		for candidate in actor.get_tree().get_nodes_in_group("combat_actors"):
 			if not candidate is CharacterBody3D or bool(candidate.get("is_dead")) or String(candidate.get("team")) != "T":
@@ -1081,12 +1103,21 @@ func _is_c4_recoverer() -> bool:
 				continue
 			if not bool(brain.get("enabled")) or String(brain.get("objective_role")) not in ["plant", "support", "diversion"]:
 				continue
+			if not bool(brain.call("_has_c4_recovery_route")):
+				continue
 			var distance := (candidate as CharacterBody3D).global_position.distance_squared_to(_c4_known_position)
 			if distance < best_distance:
 				best_distance = distance
 				recoverer = candidate
 		if recoverer != null:
 			_c4_device.set_meta("recovery_actor", weakref(recoverer))
+		else:
+			_c4_device.remove_meta("recovery_actor")
+			# Bound failed elections across the entire squad, not once per actor.
+			_c4_device.set_meta(
+				"recovery_retry_frame",
+				Engine.get_physics_frames() + maxi(1, Engine.physics_ticks_per_second / 2)
+			)
 	return recoverer == actor
 
 func _tick_freeze_purchase() -> void:
