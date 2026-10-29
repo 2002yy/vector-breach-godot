@@ -185,6 +185,10 @@ var objective_role: String = ""
 var objective_target: Vector3 = Vector3.INF
 var plant_site_label: String = ""
 var bomb_carrier: bool = false
+var _c4_direct_seconds := 0.0
+var _c4_direct_allowed := false
+var _c4_direct_target := Vector3.INF
+var _c4_direct_start := Vector3.INF
 var has_defuse_kit: bool = false
 var combat_enabled: bool = true
 var plant_radius_meters: float = 3.0
@@ -271,6 +275,7 @@ func tick(delta: float) -> void:
 	_burst_pause = maxf(0.0, _burst_pause - delta)
 	_grenade_cooldown = maxf(0.0, _grenade_cooldown - delta)
 	_repath_seconds = maxf(0.0, _repath_seconds - delta)
+	_c4_direct_seconds = maxf(0.0, _c4_direct_seconds - delta)
 	_heard_seconds += delta
 	_damage_seconds += delta
 	_lost_sight_seconds += delta
@@ -528,6 +533,10 @@ func reset_runtime() -> void:
 	_reset_runtime()
 
 func _reset_runtime() -> void:
+	_c4_direct_seconds = 0.0
+	_c4_direct_allowed = false
+	_c4_direct_target = Vector3.INF
+	_c4_direct_start = Vector3.INF
 	if actor != null:
 		actor.call("set_ai_scoped", false)
 		actor.call("set_ai_walking", false)
@@ -862,7 +871,7 @@ func _tick_t_side_objective(delta: float) -> void:
 	if not bomb_carrier:
 		if not RoundManager.bomb_carried and _c4_known_state == "dropped" and _is_c4_recoverer():
 			tactical_reason = "回收掉落的C4"
-			_move_to_or_hold(delta, _c4_known_position + Vector3.UP * 0.82)
+			_move_to_or_hold(delta, _c4_known_position + Vector3.UP * 0.82, false, true)
 			return
 		_move_to_or_hold(delta, objective_target, true)
 		return
@@ -935,7 +944,9 @@ func _tick_team_support(delta: float) -> bool:
 		return true
 	return false
 
-func _move_to_or_hold(delta: float, destination: Vector3, formation_hold: bool = false) -> void:
+func _move_to_or_hold(
+	delta: float, destination: Vector3, formation_hold: bool = false, c4_recovery: bool = false
+) -> void:
 	if not destination.is_finite():
 		_stop(delta)
 		return
@@ -955,7 +966,7 @@ func _move_to_or_hold(delta: float, destination: Vector3, formation_hold: bool =
 		actor.rotation.y = lerp_angle(actor.rotation.y, _watch_yaw + sin(_watch_time * 0.7) * 0.65, minf(delta * 2.0, 1.0))
 	else:
 		_watch_time = 0.0
-		_move_toward(destination, delta)
+		_move_toward(destination, delta, c4_recovery)
 
 func _yield_to_passing_teammate(delta: float, hold_position: Vector3) -> bool:
 	for teammate in actor.get_tree().get_nodes_in_group("combat_actors"):
@@ -1579,13 +1590,13 @@ func _tick_patrol(delta: float) -> void:
 		destination = _route_points[_route_index]
 	_move_toward(destination, delta)
 
-func _move_toward(destination: Vector3, delta: float) -> void:
+func _move_toward(destination: Vector3, delta: float, c4_recovery: bool = false) -> void:
 	if _route_blocked_seconds > 0.0:
 		state = State.HOLD
 		if not _yield_to_passing_teammate(delta, actor.global_position):
 			_stop(delta)
 		return
-	var steering_target := _resolve_navigation_target(destination)
+	var steering_target := _resolve_navigation_target(destination, c4_recovery)
 	if _route_progress.observe(actor.global_position, destination, delta):
 		_reselect_blocked_route(steering_target)
 		if _route_blocked_seconds > 0.0:
@@ -1644,8 +1655,39 @@ func _aim_at(target_position: Vector3, delta: float, duration: float) -> void:
 	var desired_yaw := atan2(-direction.x, -direction.z)
 	actor.rotation.y = lerp_angle(actor.rotation.y, desired_yaw, clampf(delta / maxf(duration, 0.01), 0.0, 1.0))
 
-func _resolve_navigation_target(destination: Vector3) -> Vector3:
+func _resolve_navigation_target(destination: Vector3, c4_recovery: bool = false) -> Vector3:
 	_navigation_unreachable = false
+	if c4_recovery:
+		var recovery_target := _c4_known_position
+		if _c4_direct_start.is_finite():
+			var corridor := _c4_direct_target - _c4_direct_start
+			corridor.y = 0.0
+			var offset := actor.global_position - _c4_direct_start
+			offset.y = 0.0
+			var along := offset.dot(corridor) / maxf(0.0001, corridor.length_squared())
+			if (
+				along < 0.0 or along > 1.0
+				or (offset - corridor * along).length() > 0.05
+				or absf(actor.global_position.y - _c4_direct_start.lerp(_c4_direct_target, along).y) > 0.1
+			):
+				_c4_direct_seconds = 0.0
+		if _c4_direct_seconds <= 0.0 or _c4_direct_target.distance_to(recovery_target) > 0.05:
+			_c4_direct_start = actor.global_position
+			_c4_direct_target = recovery_target
+			_c4_direct_seconds = 0.25
+			_c4_direct_allowed = preload("res://scripts/ai/C4LocalApproach.gd").allowed(
+				actor, recovery_target
+			)
+		var direct_motion := recovery_target - actor.global_position
+		direct_motion.y = 0.0
+		if (
+			_c4_direct_allowed and not bool(actor.get("ai_crouching"))
+			and not actor.test_move(actor.global_transform, direct_motion)
+		):
+			_active_navigation_link.clear()
+			_navigation_path.clear()
+			_repath_seconds = 0.0
+			return recovery_target
 	if _navigation.points.is_empty() or actor.global_position.distance_to(destination) <= 2.2:
 		_active_navigation_link.clear()
 		return destination
