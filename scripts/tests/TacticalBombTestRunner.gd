@@ -20,6 +20,9 @@ func _ready() -> void:
 	await _run_test("c4_drop_pickup_transfers_carrier", _test_c4_drop_pickup_transfers_carrier)
 	await _run_test("distant_c4_drop_assigns_one_recoverer", _test_distant_c4_recovery)
 	await _run_test("dead_c4_recoverer_is_reassigned", _test_dead_c4_recoverer)
+	await _run_test(
+		"unreachable_c4_recoverer_yields_to_connected_survivor", _test_unreachable_c4_recoverer
+	)
 	await _run_test("combat_sandbox_assigns_bomb_carrier", _test_combat_sandbox_assigns_bomb_carrier)
 	await _run_test("bot_buys_grenades_and_defuse_kit_in_freeze", _test_bot_buys_grenades_and_defuse_kit_in_freeze)
 	await _run_test("bot_throws_smoke_toward_objective_before_plant", _test_bot_throws_smoke_toward_objective_before_plant)
@@ -167,6 +170,53 @@ func _test_dead_c4_recoverer() -> void:
 	for _frame in range(210):
 		await get_tree().physics_frame
 	_assert_true(c4.call("is_carried_by", far), "replacement survivor actually recovers the same unique C4")
+	await _cleanup_fixture(fixture)
+
+func _test_unreachable_c4_recoverer() -> void:
+	var fixture := await _make_fixture()
+	var c4: Node3D = fixture.c4
+	var near := _make_actor(fixture.world, "断路回收兵", "T", Vector3(6, 1.15, 10))
+	var far := _make_actor(fixture.world, "连通接替兵", "T", Vector3(-4, 1.15, 6))
+	var disconnected := {
+		"points": [[6, 1.15, 10], [-4, 1.15, 6], [6, 1.15, 6]], "links": []
+	}
+	for actor in [near, far]:
+		actor.set_physics_process(false)
+		var brain: Node = actor.get_node("TacticalBotBrain")
+		brain.call("set_c4_device", c4)
+		brain.call("configure_objective", "support", Vector3(-15, 1.15, -10), "A", false)
+		brain.get("_navigation").configure(disconnected)
+		brain.set_physics_process(false)
+	c4.call("drop_at", Vector3(6, 0.18, 6))
+	for actor in [near, far]:
+		actor.get_node("TacticalBotBrain").call("_refresh_c4_knowledge")
+	_assert_true(
+		not near.get_node("TacticalBotBrain").call("_is_c4_recoverer"),
+		"disconnected graph must not lease bomb to nearest stranded actor"
+	)
+	for _frame in range(32):
+		await get_tree().physics_frame
+	var connected: Dictionary = disconnected.duplicate(true)
+	connected.links = [[1, 2]]
+	far.get_node("TacticalBotBrain").get("_navigation").configure(connected)
+	c4.set_meta("recovery_actor", weakref(near))
+	near.get_node("TacticalBotBrain").set("_navigation_unreachable", true)
+	_assert_true(
+		far.get_node("TacticalBotBrain").call("_is_c4_recoverer"),
+		"a stale live but disconnected recovery lease must transfer"
+	)
+	near.set("is_dead", true)
+	far.set_physics_process(true)
+	near.position = Vector3(-20, 1.15, 6)
+	far.get_node("TacticalBotBrain").set_physics_process(true)
+	RoundManager.set_live()
+	RoundManager.bomb_carried = false
+	for _frame in range(240):
+		await get_tree().physics_frame
+	_assert_true(
+		c4.call("is_carried_by", far),
+		"connected replacement must physically collect the C4 on unobstructed floor"
+	)
 	await _cleanup_fixture(fixture)
 
 func _test_ct_bot_defuses_planted_bomb() -> void:
