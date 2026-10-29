@@ -11,6 +11,15 @@ var _failures: PackedStringArray = []
 var _passes: int = 0
 
 func _ready() -> void:
+	if "--c4-pickup-only" in OS.get_cmdline_user_args():
+		await _run_test("c4_clear_final_approach_pickup", _test_c4_clear_final_pickup)
+		for failure in _failures:
+			push_error(failure)
+		print("C4_PICKUP_FOCUSED failures=", _failures.size())
+		get_tree().quit(0 if _failures.is_empty() else 1)
+		return
+	await _run_test("c4_local_approach_obstacle_and_support", _test_local_c4_approach)
+	await _run_test("c4_clear_final_approach_pickup", _test_c4_clear_final_pickup)
 	await _run_test("role_budget_receipts_and_preserved_primary", _test_role_purchases)
 	await _run_test("reported_support_rotation_and_impossible_defuse", _test_squad_decisions)
 	await _run_test("bot_carries_plants_c4_at_objective", _test_bot_carries_plants_c4_at_objective)
@@ -630,4 +639,82 @@ func _test_saved_loadout_persists_across_round_reload() -> void:
 	_assert_equal(int(reloaded_ai.get("ammo", 0)), 5, "surviving bot should keep its magazine ammo into the next round")
 	_assert_equal(int(reloaded_ai.get("ammo_reserve", 0)), 40, "surviving bot should keep its reserve ammo into the next round")
 	_assert_equal(int(reloaded_snapshot.get("armor", 0)), 50, "surviving bot should keep its armor after saving the gun")
+	await _cleanup_fixture(fixture)
+
+func _test_local_c4_approach() -> void:
+	var fixture := await _make_fixture()
+	var actor := _make_actor(fixture.world, "局部回收兵", "T", Vector3(0, 0.91, 6))
+	actor.set_physics_process(false)
+	var brain: Node = actor.get_node("TacticalBotBrain")
+	brain.set_physics_process(false)
+	var target := Vector3(2, 0.91, 6)
+	var Helper = preload("res://scripts/ai/C4LocalApproach.gd")
+	await get_tree().physics_frame
+	_assert_true(
+		Helper.allowed(actor, target), "supported clear capsule corridor permits final approach"
+	)
+	brain.set("_c4_known_position", target)
+	var chosen: Vector3 = brain.call("_resolve_navigation_target", target + Vector3.UP * 0.82, true)
+	_assert_true(chosen.is_equal_approx(target), "verified corridor steers at the actual dropped C4")
+	actor.position = Vector3(0, 0.91, 10)
+	brain.call("_resolve_navigation_target", target + Vector3.UP * 0.82, true)
+	_assert_true(
+		not bool(brain.get("_c4_direct_allowed")), "leaving corridor invalidates cached proof"
+	)
+	actor.position = Vector3(0, 0.91, 6)
+	actor.call("set_ai_crouching", true)
+	_assert_true(
+		not Helper.allowed(actor, target), "crouched capsule cannot authorize standing shortcut"
+	)
+	actor.call("set_ai_crouching", false)
+	var wall := StaticBody3D.new()
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(0.2, 3, 2)
+	shape.shape = box
+	wall.add_child(shape)
+	wall.position = Vector3(1, 1.5, 6)
+	fixture.world.add_child(wall)
+	await get_tree().physics_frame
+	_assert_true(not Helper.allowed(actor, target), "wall blocks full capsule corridor")
+	wall.position = Vector3(1, 1.5, 6)
+	box.size = Vector3(2, 0.2, 2)
+	await get_tree().physics_frame
+	_assert_true(
+		not Helper.allowed(actor, target), "low ceiling blocks full capsule despite clear floor"
+	)
+	wall.queue_free()
+	fixture.world.get_child(0).get_child(0).disabled = true
+	await get_tree().physics_frame
+	_assert_true(not Helper.allowed(actor, target), "unsupported corridor cannot bypass navigation")
+	_assert_true(
+		not Helper.allowed(actor, Vector3(2, 1.4, 6)), "large height change cannot bypass navigation"
+	)
+	brain.set("_c4_direct_seconds", 0.2)
+	brain.set("_c4_direct_allowed", true)
+	brain.call("reset_runtime")
+	_assert_true(
+		not bool(brain.get("_c4_direct_allowed")), "round reset clears supported corridor proof"
+	)
+	await _cleanup_fixture(fixture)
+
+func _test_c4_clear_final_pickup() -> void:
+	var fixture := await _make_fixture()
+	var actor := _make_actor(fixture.world, "末段回收兵", "T", Vector3(0, 0.91, 6))
+	var brain: Node = actor.get_node("TacticalBotBrain")
+	brain.call("set_c4_device", fixture.c4)
+	brain.call("configure_objective", "support", Vector3(-15, 0.91, -10), "A", false)
+	brain.get("_navigation").configure({
+		"points": [[0, 0.91, 6], [0, 0.91, 9], [2.6, 0.91, 6]],
+		"links": [[0, 1], [1, 2]]
+	})
+	fixture.c4.call("drop_at", Vector3(2.6, 0.91, 6))
+	RoundManager.set_live()
+	RoundManager.bomb_carried = false
+	for _frame in range(30):
+		await get_tree().physics_frame
+	_assert_true(
+		fixture.c4.call("is_carried_by", actor),
+		"clear supported final approach collects C4 without the detouring waypoint"
+	)
 	await _cleanup_fixture(fixture)
