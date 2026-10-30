@@ -1,0 +1,9 @@
+# R48 实际候选雷达身份拒绝
+
+新完整候选runtime756。实际普通EXE与可选环境EXE的三图开局可进入战斗，但等待约11秒后雷达仍黑底、网格和标记。新PCK诊断Vulkan的Mirage/Inferno `get_debug_snapshot`显示`source_identity_mismatch`、layer=-1、layer_count=0、feature_count=0。这不是底图可读性通过，也不能用26张切片文件存在代替显示验收。
+
+无需GPU的隔离实际PCK+sidecar只读探针进一步核实三图：manifest有效、source与runtime_collision_scene相同、level字节SHA匹配、编译场景存在且实际SHA等于receipt.compiled_sha256；但receipt.shipped_import_sha256仍等于源authoring import哈希，与新PCK实际source.import字节SHA不符，valid_export_identity/configure_identity全部false。证据`D:/AgentGamePipeline/evidence/r48-20261030/radar-identity.json`、`radar-host/probe.gd`。这是实际包身份合同拒绝，不是地图几何或编译碰撞损坏证明。
+
+探针空宿主未挂raw碰撞，直接证实导出分支失败；真实EXE另有完整raw支持文件，raw与compiled共存分支也须独立核对。不能把诊断宿主状态无条件当作真实EXE内部同一分支。下一片须重建绑定实际发货import的雷达收据，并检查主包/附包重复资源优先级及raw支持共存合同；保留原资产、严格hash检查及replace_files=false，不通过删原资源或忽略身份判断放行。
+
+本批未改生产RadarAtlas、旧附包builder或新三件runtime。只读诊断退出0，marker RADAR_IDENTITY_READ_OK；实际普通/可选EXE三图开局通过，但新包雷达验收NO-GO，桌面入口保持。候选说明与metadata已记录已知问题，最终44项完整文件门闸仍通过；文件一致性不代表运行时功能全部通过。
