@@ -4,7 +4,23 @@
 
 空间清理（2026-10-29）：两次清理共删除10个被替代的导出/负测PCK，逻辑合计约13.55GiB；实际空间以清理收据的时间快照为准。原版资产、活动缓存、最新基线与桌面试玩包及所有日志收据保留；历史证据路径中的旧PCK可能需重建。见 [清理与保护核验](REPOSITORY_CLEANUP_2026-10-29.md)。清理后已恢复开发；旧章节中的可用空间为当时快照。
 
-## 当前批：R48 完整候选、实际双入口与雷达阻塞
+## 当前批：R49 雷达身份修复、可见底图与新版试玩入口
+
+基线 `49d99a3`（#145），分支 `fix/shipped-radar-identity`。修复R48实际导出雷达阻塞：新data-only builder从实际主PCK重新绑定shipped import与compiled字节，保留原atlas/纹理及严格核验的layout收据；主包三图没有同名radar identity，新增显式拒绝重复拥有者，保持replace_files=false。未改export_presets、原地图/纹理/布局/导航或正式Current。
+
+RadarAtlas同时修raw/compiled共存合同：raw无export收据保留原作者import严格路径；有收据必须完整验证source/author import/atlas/level/shipped import/remap/compiled。保留raw时同时哈希原raw与compiled，任一篡改仍拒绝，完成时复查import，旧generation结果不串图。14项真实文件旧版红/新版绿，数据包优先级反例、新GDS格式/lint及独立只读审查通过。原生16套件RUN_ALL_OK、Python607项通过；后续只有作者guard/文档与发布元数据变化，不重复完整游戏套件。
+
+一次新正常主包导出，runtime源码 `0a2968a045c127cb7eca8db60f8e4504a3a0ac18`；原四步导出的中间雷达包仅作输入，新增生成步骤替换为实际字节绑定的最终附包并通过产品26切片CPU检查。完整44项载荷/新metadata门闸通过，不使用代码覆盖层、不删除raw支持逃避校验。新包发布时同盘移动而非再复制整包，实际交付三件SHA与前后源指纹见本批export receipt/delivery。
+
+实际普通/可选EXE三图开局共12张有效购买/战斗截图已查看，底图全部恢复；可选Inferno首次22秒图仍加载，不算购买页通过，仅该项延长等待补拍后通过。三图raw支持共存的实际PCK Vulkan检查全部atlas ready，8+9+9层及当前正确选层通过；同姿态仅隐藏底图、保留grid/markers对照有约59%–90%内圆像素贡献，不是地图覆盖率/原引擎等价或FPS。诊断冻结下观战HUD文字可能滞后，只接受手臂绑定和雷达证据，不代替连续观战流程。所有测试进程已结束，设置保持。
+
+已按用户既有新试玩版/清旧包要求发布本地预览：`D:/VectorBreach/releases/VectorBreach-playtest-20261031-candidate`。桌面3Dgame内普通/环境两个CMD仅替换目标路径，同目录时间戳备份保留；新位置两个headless短启动及完整文件门闸通过。metadata明确仅本地试玩预览，正式18场/连续人工三图/70%FPS仍未通过，未将文件门闸自动升级为完整验收。旧20261026桌面包保留回退。
+
+新预览通过后，按原收据复核并只删除R42、R47两份过期测试主PCK，逻辑合计7,240,997,492字节（约6.74GiB）；当前预览、旧桌面回退、原资源、支持载荷、日志及收据保留，旧候选目录留SUPERSEDED标记。114份旧工具和四份既有脏导入保持。实际删除/空间快照、发布备份、验证及提交/PR/CI首查见 `D:/AgentGamePipeline/evidence/r49-20261031/delivery.json`。
+
+见 [raw/compiled合同](TASK_RADAR_RAW_COMPILED_2026-10-31.md)、[发货收据](TASK_SHIPPED_RADAR_RECEIPTS_2026-10-31.md)、[可见底图](TASK_RADAR_VISIBLE_BASEMAP_2026-10-31.md)。下一片冻结生产树跑正式18场并分析C4战斗/回收策略，继续人工三图、楼层切换/标记规则和固定条件性能；M4未验收/M5冻结、AI难度及原引擎效果等价仍待完成。自动窗口测试就绪后手枪12→11是既有旁项，待真人复核点击透传，尚未定因。不等CI，不合并。
+
+## 前批：R48 完整候选、实际双入口与雷达阻塞
 
 基线 `56b6046`（#144），分支 `build/complete-playtest-support`。三路并行完成完整支持载荷与新metadata、实际双入口/GPU、最新C4等待分段；不改生产行为、原版资源/几何或Current，不重导大主包、不切换桌面入口。
 
