@@ -1,5 +1,6 @@
 extends RigidBody3D
 
+const FlashExposure = preload("res://scripts/combat/FlashExposure.gd")
 const EquipmentVisuals = preload("res://scripts/player/EquipmentVisuals.gd")
 
 var grenade_type: String = "he_grenade"
@@ -180,29 +181,41 @@ func _blast_cover_scale(target_position: Vector3, target_collider: Variant) -> f
 	return 0.35
 
 func _apply_flash() -> void:
-	var viewer: Node = null
-	if is_instance_valid(thrower):
-		if (thrower as Node).is_in_group("local_player"):
-			viewer = thrower as Node
+	var viewers: Array[Node] = []
+	var player := get_tree().get_first_node_in_group("local_player")
+	if player != null:
+		viewers.append(player)
+	for candidate in get_tree().get_nodes_in_group("combat_actors"):
+		if candidate not in viewers:
+			viewers.append(candidate)
+	for viewer in viewers:
+		if not viewer.has_method("apply_flash_effect") or bool(viewer.get("is_dead")):
+			continue
+		var eye: Vector3
+		var forward: Vector3
+		if viewer == player:
+			var camera := viewer.call("get_camera_node") as Camera3D
+			if camera == null:
+				continue
+			eye = camera.global_position
+			forward = -camera.global_transform.basis.z
 		else:
-			viewer = get_tree().get_first_node_in_group("local_player")
-	if viewer == null:
-		return
-	var camera := viewer.call("get_camera_node") as Camera3D
-	if camera == null:
-		return
-	var delta := global_position - camera.global_position
-	if delta.length() > 18.0:
-		return
-	var query := PhysicsRayQueryParameters3D.create(global_position, camera.global_position)
-	query.exclude = [get_rid()]
-	if is_instance_valid(thrower):
-		query.exclude.append(thrower.get_rid())
-	if not get_world_3d().direct_space_state.intersect_ray(query).is_empty():
-		return
-	var facing := clampf((-camera.global_transform.basis.z).dot(delta.normalized()), -1.0, 1.0)
-	var intensity := clampf((1.0 - delta.length() / 18.0) * lerpf(0.25, 1.0, maxf(facing, 0.0)), 0.0, 1.0)
-	viewer.call("apply_flash_effect", intensity, lerpf(0.5, 3.4, intensity))
+			eye = viewer.call("get_eye_position")
+			forward = -(viewer as Node3D).global_transform.basis.z
+		var intensity := FlashExposure.intensity(global_position, eye, forward)
+		if intensity <= 0.0:
+			continue
+		var query := PhysicsRayQueryParameters3D.create(global_position, eye, 1)
+		var excluded: Array[RID] = [get_rid()]
+		if viewer is CollisionObject3D:
+			excluded.append(viewer.get_rid())
+		if is_instance_valid(thrower):
+			excluded.append(thrower.get_rid())
+		query.exclude = excluded
+		var hit := get_world_3d().direct_space_state.intersect_ray(query)
+		if not hit.is_empty():
+			continue
+		viewer.call("apply_flash_effect", intensity, FlashExposure.duration(intensity))
 
 func _activate_smoke() -> void:
 	freeze = true

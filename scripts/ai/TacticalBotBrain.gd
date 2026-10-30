@@ -647,6 +647,8 @@ func _find_local_target() -> CharacterBody3D:
 	return visible_target if visible_target != null else best_target
 
 func _can_see(target: CharacterBody3D) -> bool:
+	if float(actor.call("get_flash_intensity")) > 0.05:
+		return false
 	var eye := actor.call("get_eye_position") as Vector3
 	var target_point := target.global_position + Vector3.UP * 0.18
 	var delta := target_point - eye
@@ -736,6 +738,8 @@ func _tick_engage(delta: float) -> void:
 	_fire_shot(target_point)
 
 func _fire_shot(target_point: Vector3) -> void:
+	if float(actor.call("get_flash_intensity")) > 0.05:
+		return
 	var profile := _current_profile()
 	var weapon_name := String(profile.get("label", "AI步枪"))
 	var weapon_slot := int(profile.get("slot", 0))
@@ -791,7 +795,10 @@ func _tick_hold_angle(delta: float) -> void:
 func _tick_retreat(delta: float) -> void:
 	_retreat_seconds = maxf(0.0, _retreat_seconds - delta)
 	if _target != null:
-		_aim_at(_target.global_position + Vector3.UP * 0.18, delta, aim_tracking_time)
+		var aim_point := _last_known_position
+		if float(actor.call("get_flash_intensity")) <= 0.05:
+			aim_point = _target.global_position
+		_aim_at(aim_point + Vector3.UP * 0.18, delta, aim_tracking_time)
 	if _retreat_seconds <= 0.0:
 		state = State.HOLD
 		_stop(delta)

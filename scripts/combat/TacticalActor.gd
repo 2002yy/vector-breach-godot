@@ -32,6 +32,8 @@ signal ai_damaged(world_position: Vector3, source_team: String)
 var _ai_tagging_multiplier: float = 1.0
 var _last_navigation_cap: float = 0.0
 var _last_navigation_speed: float = 0.0
+var _flash_intensity: float = 0.0
+var _flash_seconds: float = 0.0
 
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
 @onready var body_mesh: MeshInstance3D = $BodyMesh
@@ -88,6 +90,10 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if is_dead:
 		return
+	_flash_seconds = maxf(0.0, _flash_seconds - delta)
+	_flash_intensity = move_toward(
+		_flash_intensity, 0.0, delta / maxf(_flash_seconds + 0.2, 0.2)
+	)
 	_ai_tagging_multiplier = move_toward(_ai_tagging_multiplier, 1.0, delta * 1.9)
 	_update_environment_state()
 	var position_before := global_position
@@ -225,6 +231,8 @@ func reset_actor() -> void:
 	_footstep_distance = 0.0
 	_presentation_time = 0.0
 	_hit_flash_time = 0.0
+	_flash_intensity = 0.0
+	_flash_seconds = 0.0
 	_active_visual_animation = &""
 	bot_brain.call("reset_runtime")
 	_apply_team_visual()
@@ -593,3 +601,12 @@ func _install_appearance(id: String) -> void:
 	_active_visual_animation = &""
 	_discover_imported_animations()
 	appearance_changed.emit()
+
+func apply_flash_effect(intensity: float, duration: float) -> void:
+	if is_dead:
+		return
+	_flash_intensity = maxf(_flash_intensity, clampf(intensity, 0.0, 1.0))
+	_flash_seconds = maxf(_flash_seconds, duration)
+
+func get_flash_intensity() -> float:
+	return _flash_intensity
