@@ -1,0 +1,9 @@
+# R49 实际主包雷达收据
+
+新增作者工具build_shipped_radar_receipts.gd，隔离宿主加载实际主PCK，先检查主包三图export_identity均不存在；再false挂旧小附包。主包没有旧identity阻止覆盖，故无需改export_presets或生产bootstrap优先级。
+
+新data-only小包从实际主PCK的.import取得shipped import SHA及compiled路径/字节SHA，保留原atlas/source identity和纹理，重新生成三图radar receipts。三份layout receipts原样保留前逐项断言shipped import、compiled及level SHA与实际主包一致。不复制代码、.import、compiled、level或原GLB，未改原资源。
+
+最终输出D:/AgentGamePipeline/evidence/r49-20261031/pack/radar-final.pck；build-final.log为SHIPPED_RADAR_RECEIPTS_OK，check-final.log证明实际主PCK加新小包、replace_files=false下产品RadarAtlas三图26切片通过。不能替代正常EXE开局/GPU验收。初期隔离inspect保留inspect.inspection.json；主包三图identity SHA均空。
+
+test_radar_pack_priority.gd用两个只含同一虚构JSON路径的数据PCK验证false保持first、true替换second。初版临时FileAccess未close造成打包读缓冲不可靠，错误日志保留；改显式close后priority-final.log为RADAR_DATA_PACK_PRIORITY_OK。builder临时写入同样显式close。新GDS格式/lint通过，未改旧冻结builder，不导大主包。候选目录替换/metadata及GPU验证由父代理协调。

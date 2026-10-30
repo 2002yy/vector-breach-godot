@@ -18,6 +18,9 @@ var request_serial := 0
 var requested_layer := -1
 var identity_source := ""
 var identity_digest := ""
+var identity_compiled := ""
+var identity_compiled_digest := ""
+var identity_import_digest := ""
 
 
 static func valid_manifest(data: Dictionary, expected_level: String) -> bool:
@@ -99,8 +102,13 @@ func load_level(requested: String, identity := "") -> bool:
 func _configure_identity(parsed: Dictionary, path: String, source: String) -> bool:
 	identity_source = source
 	identity_digest = String(parsed.source_sha256)
-	if FileAccess.file_exists(source):
-		if not import_identity_matches(parsed, FileAccess.get_sha256(source + ".import")):
+	identity_compiled = ""
+	identity_compiled_digest = ""
+	identity_import_digest = FileAccess.get_sha256(source + ".import")
+	var raw_exists := FileAccess.file_exists(source)
+	var receipt_exists := FileAccess.file_exists(directory + "export_identity.json")
+	if raw_exists and not receipt_exists:
+		if not import_identity_matches(parsed, identity_import_digest):
 			status = "source_identity_mismatch"
 			return false
 	else:
@@ -126,6 +134,12 @@ func _configure_identity(parsed: Dictionary, path: String, source: String) -> bo
 			return false
 		identity_source = compiled
 		identity_digest = String(receipt.compiled_sha256)
+		if raw_exists:
+			# A retained raw source never escapes its original content check.
+			identity_source = source
+			identity_digest = String(parsed.source_sha256)
+			identity_compiled = compiled
+			identity_compiled_digest = String(receipt.compiled_sha256)
 	return true
 
 
@@ -163,12 +177,13 @@ static func import_identity_matches(data: Dictionary, import_sha256: String) -> 
 
 
 static func _source_identity(
-	source: String, expected_level: String, expected_generation: int
+	source: String, expected_level: String, expected_generation: int, compiled := ""
 ) -> Dictionary:
 	return {
 		"level": expected_level,
 		"generation": expected_generation,
-		"sha256": FileAccess.get_sha256(source)
+		"sha256": FileAccess.get_sha256(source),
+		"compiled_sha256": FileAccess.get_sha256(compiled) if not compiled.is_empty() else ""
 	}
 
 
@@ -181,18 +196,25 @@ func _poll_identity() -> void:
 		var proof: Dictionary = verification.wait_to_finish()
 		if String(proof.level) == level_id and int(proof.generation) == generation:
 			var matched: bool = proof.sha256 == identity_digest
+			matched = (
+				matched
+				and (
+					FileAccess.get_sha256(String(manifest.source) + ".import")
+					== identity_import_digest
+				)
+				and (
+					identity_compiled.is_empty()
+					or proof.compiled_sha256 == identity_compiled_digest
+				)
+			)
 			if identity_source == String(manifest.source):
 				matched = matched and proof.sha256 == String(manifest.source_sha256)
-				matched = (
-					matched
-					and import_identity_matches(
-						manifest, FileAccess.get_sha256(identity_source + ".import")
-					)
-				)
 			status = "ready" if matched else "source_identity_mismatch"
 			return
 	# A map switch may happen while the previous map's worker is finishing.
-	verification.start(_source_identity.bind(identity_source, level_id, generation))
+	verification.start(
+		_source_identity.bind(identity_source, level_id, generation, identity_compiled)
+	)
 
 
 func _notification(what: int) -> void:
