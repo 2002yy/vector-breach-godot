@@ -11,6 +11,13 @@ var _failures: PackedStringArray = []
 var _passes: int = 0
 
 func _ready() -> void:
+	if "--flash-only" in OS.get_cmdline_user_args():
+		await _run_test("flash_shared_rules_and_ai_recovery", _test_flash_rules)
+		for failure in _failures:
+			push_error(failure)
+		print("FLASH_FOCUSED failures=", _failures.size())
+		get_tree().quit(0 if _failures.is_empty() else 1)
+		return
 	if "--c4-pickup-only" in OS.get_cmdline_user_args():
 		await _run_test("c4_clear_final_approach_pickup", _test_c4_clear_final_pickup)
 		for failure in _failures:
@@ -18,6 +25,7 @@ func _ready() -> void:
 		print("C4_PICKUP_FOCUSED failures=", _failures.size())
 		get_tree().quit(0 if _failures.is_empty() else 1)
 		return
+	await _run_test("flash_shared_rules_and_ai_recovery", _test_flash_rules)
 	await _run_test("c4_local_approach_obstacle_and_support", _test_local_c4_approach)
 	await _run_test("c4_clear_final_approach_pickup", _test_c4_clear_final_pickup)
 	await _run_test("role_budget_receipts_and_preserved_primary", _test_role_purchases)
@@ -716,5 +724,66 @@ func _test_c4_clear_final_pickup() -> void:
 	_assert_true(
 		fixture.c4.call("is_carried_by", actor),
 		"clear supported final approach collects C4 without the detouring waypoint"
+	)
+	await _cleanup_fixture(fixture)
+
+func _test_flash_rules() -> void:
+	var fixture := await _make_fixture()
+	var world := fixture.world as Node3D
+	var actor := _make_actor(world, "Flashed", "CT", Vector3(0, 1.15, 0))
+	var target := _make_actor(world, "Target", "T", Vector3(0, 1.15, -6))
+	actor.set_physics_process(false)
+	target.set_physics_process(false)
+	var brain := actor.get_node("TacticalBotBrain")
+	await get_tree().physics_frame
+	_assert_true(bool(brain.call("_can_see", target)), "unflashed bot sees visible enemy")
+	var grenade := preload("res://scripts/combat/GrenadeProjectile.gd").new()
+	world.add_child(grenade)
+	grenade.freeze = true
+	grenade.thrower = actor
+	grenade.position = actor.call("get_eye_position") + Vector3(0, 0, -3)
+	grenade.call("_apply_flash")
+	_assert_true(
+		float(actor.call("get_flash_intensity")) > 0.5,
+		"real friendly flash blinds its thrower despite friendly fire setting"
+	)
+	_assert_true(not bool(brain.call("_can_see", target)), "flash blocks target acquisition")
+	var ammo := int(brain.get("ammo_in_mag"))
+	brain.call("_fire_shot", target.global_position)
+	_assert_true(int(brain.get("ammo_in_mag")) == ammo, "flash blocks cached target firing")
+	actor.call("apply_flash_effect", 0.1, 0.1)
+	_assert_true(float(actor.get("_flash_seconds")) > 2.0, "short flash preserves existing duration")
+	_assert_true(float(actor.call("get_flash_intensity")) > 0.5, "weak flash preserves intensity")
+	brain.set("_target", target)
+	brain.set("_last_known_position", Vector3(-6, 1.15, -6))
+	target.position.x = 6
+	brain.set("_retreat_seconds", 0.0)
+	brain.call("_tick_retreat", 0.1)
+	_assert_true(actor.rotation.y > 0, "blind retreat aims toward remembered side, not moved enemy")
+	actor.call("reset_actor")
+	_assert_true(float(actor.call("get_flash_intensity")) == 0, "respawn clears flash")
+	var wall := StaticBody3D.new()
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(4, 4, 0.3)
+	shape.shape = box
+	wall.add_child(shape)
+	world.add_child(wall)
+	wall.position = Vector3(0, 1, -1.5)
+	await get_tree().physics_frame
+	grenade.call("_apply_flash")
+	_assert_true(float(actor.call("get_flash_intensity")) == 0, "wall blocks flash")
+	wall.queue_free()
+	await get_tree().physics_frame
+	actor.call("apply_flash_effect", 1.0, 0.1)
+	for _frame in range(60):
+		actor.call("_physics_process", 1.0 / 60.0)
+	_assert_true(float(actor.call("get_flash_intensity")) == 0, "flash expires")
+	var Exposure = preload("res://scripts/combat/FlashExposure.gd")
+	var front: float = Exposure.intensity(Vector3(0, 0, -3), Vector3.ZERO, Vector3.FORWARD)
+	var back: float = Exposure.intensity(Vector3(0, 0, 3), Vector3.ZERO, Vector3.FORWARD)
+	_assert_true(front > back and back > 0, "turning away reduces but does not remove exposure")
+	_assert_true(
+		Exposure.intensity(Vector3(0, 0, -19), Vector3.ZERO, Vector3.FORWARD) == 0, "range limit"
 	)
 	await _cleanup_fixture(fixture)
