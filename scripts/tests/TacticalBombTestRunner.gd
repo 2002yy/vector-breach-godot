@@ -11,6 +11,13 @@ var _failures: PackedStringArray = []
 var _passes: int = 0
 
 func _ready() -> void:
+	if "--c4-cost-only" in OS.get_cmdline_user_args():
+		await _run_test("c4_recoverer_uses_route_cost", _test_c4_route_cost)
+		for failure in _failures:
+			push_error(failure)
+		print("C4_COST_FOCUSED failures=", _failures.size())
+		get_tree().quit(0 if _failures.is_empty() else 1)
+		return
 	if "--flash-only" in OS.get_cmdline_user_args():
 		await _run_test("flash_shared_rules_and_ai_recovery", _test_flash_rules)
 		for failure in _failures:
@@ -26,6 +33,7 @@ func _ready() -> void:
 		get_tree().quit(0 if _failures.is_empty() else 1)
 		return
 	await _run_test("flash_shared_rules_and_ai_recovery", _test_flash_rules)
+	await _run_test("c4_recoverer_uses_route_cost", _test_c4_route_cost)
 	await _run_test("c4_local_approach_obstacle_and_support", _test_local_c4_approach)
 	await _run_test("c4_clear_final_approach_pickup", _test_c4_clear_final_pickup)
 	await _run_test("role_budget_receipts_and_preserved_primary", _test_role_purchases)
@@ -726,6 +734,50 @@ func _test_c4_clear_final_pickup() -> void:
 		"clear supported final approach collects C4 without the detouring waypoint"
 	)
 	await _cleanup_fixture(fixture)
+
+func _test_c4_route_cost() -> void:
+	var fixture := await _make_fixture()
+	var c4: Node3D = fixture.c4
+	var near := _make_actor(fixture.world, "近但绕路", "T", Vector3(4, 1.15, 0))
+	var far := _make_actor(fixture.world, "远但直路", "T", Vector3(0, 1.15, 8))
+	var graph := {
+		"points": [
+			[4, 1.15, 0], [20, 1.15, 0], [20, 1.15, 20],
+			[0, 1.15, 20], [0, 1.15, 8], [0, 1.15, 0]
+		],
+		"links": [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5]]
+	}
+	for actor in [near, far]:
+		actor.set_physics_process(false)
+		var brain: Node = actor.get_node("TacticalBotBrain")
+		brain.call("set_c4_device", c4)
+		brain.call("configure_objective", "support", Vector3(0, 1.15, -10), "A", false)
+		brain.get("_navigation").configure(graph)
+	c4.call("drop_at", Vector3(0, 0.18, 0))
+	for actor in [near, far]:
+		actor.get_node("TacticalBotBrain").call("_refresh_c4_knowledge")
+	var near_brain: Node = near.get_node("TacticalBotBrain")
+	var far_brain: Node = far.get_node("TacticalBotBrain")
+	_assert_true(
+		float(near_brain.call("_c4_recovery_cost")) > 70.0,
+		"near actor score includes the full detour"
+	)
+	_assert_true(
+		absf(float(far_brain.call("_c4_recovery_cost")) - 8.15) < 0.01,
+		"route score includes endpoint connector"
+	)
+	# The first actor can elect before a teammate's tick refreshes dropped C4.
+	far_brain.set("_c4_known_position", Vector3(999, 999, 999))
+	_assert_true(
+		not near_brain.call("_is_c4_recoverer"),
+		"short connected route wins over a nearer actor's long detour"
+	)
+	# A valid lease stays stable even when another actor later moves closer.
+	near.position = Vector3(0, 1.15, 2)
+	_assert_true(far_brain.call("_is_c4_recoverer"), "valid recovery lease does not churn")
+	_assert_true(not near_brain.call("_is_c4_recoverer"), "one recovery owner only")
+	await _cleanup_fixture(fixture)
+
 
 func _test_flash_rules() -> void:
 	var fixture := await _make_fixture()
