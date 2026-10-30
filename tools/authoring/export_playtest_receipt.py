@@ -3,12 +3,44 @@
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 import subprocess
+import time
 
 from verify_playtest_candidate import manifest_hash, source_manifest
 
 ARTIFACTS = ("VectorBreach.exe", "VectorBreach.pck", "VectorBreach-radar.pck")
+
+
+def run_step(args: list[str], cwd: Path, log: Path) -> int:
+    """Godot assertions can leave SceneTree running; stop only this process tree."""
+    with log.open("w", encoding="utf8") as stream:
+        process = subprocess.Popen(
+            args, cwd=cwd, stdout=stream, stderr=subprocess.STDOUT
+        )
+        started = time.monotonic()
+        while process.poll() is None:
+            text = log.read_text(encoding="utf8", errors="replace")
+            if (
+                "SCRIPT ERROR:" in text
+                or "\nERROR:" in text
+                or time.monotonic() - started > 1800
+            ):
+                if os.name == "nt":
+                    subprocess.run(
+                        ["taskkill", "/PID", str(process.pid), "/T", "/F"],
+                        capture_output=True,
+                    )
+                else:
+                    process.terminate()
+                process.wait(timeout=30)
+                return 1
+            try:
+                process.wait(timeout=0.25)
+            except subprocess.TimeoutExpired:
+                pass
+        return process.returncode
 
 
 def snapshot(repo: Path) -> dict:
@@ -107,19 +139,18 @@ def export(repo: Path, godot: Path, destination: Path, dry_run: bool = False) ->
     if dry_run:
         return dict(before, commands=commands, executed=False, activation_allowed=False)
     candidate.mkdir(parents=True, exist_ok=False)
+    host = destination / "pack-host"
+    host.mkdir()
     (destination / "export-start.json").write_text(
         json.dumps(dict(before, commands=commands), indent=2) + "\n", encoding="utf8"
     )
     steps = []
     for index, args in enumerate(commands):
         log = destination / f"step-{index}.log"
-        with log.open("w", encoding="utf8") as stream:
-            result = subprocess.run(
-                args, cwd=repo, stdout=stream, stderr=subprocess.STDOUT, timeout=1800
-            )
+        code = run_step(args, host if index == 3 else repo, log)
         text = log.read_text(encoding="utf8", errors="replace")
-        steps.append(dict(args=args, exit_code=result.returncode, log=log.name))
-        if result.returncode or "SCRIPT ERROR:" in text or "\nERROR:" in text:
+        steps.append(dict(args=args, exit_code=code, log=log.name))
+        if code or "SCRIPT ERROR:" in text or "\nERROR:" in text:
             raise RuntimeError(f"Export step failed; preserved {log}")
     receipt = collect(candidate, before, snapshot(repo), steps)
     (destination / "export-receipt.json").write_text(

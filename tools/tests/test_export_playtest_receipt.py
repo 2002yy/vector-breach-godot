@@ -16,6 +16,15 @@ SPEC.loader.exec_module(MODULE)
 
 
 class ExportReceiptTests(unittest.TestCase):
+    def test_script_error_stops_hanging_process(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            code = "import time; print('SCRIPT ERROR: assertion', flush=True); time.sleep(60)"
+            self.assertEqual(
+                MODULE.run_step([sys.executable, "-c", code], root, root / "error.log"),
+                1,
+            )
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
