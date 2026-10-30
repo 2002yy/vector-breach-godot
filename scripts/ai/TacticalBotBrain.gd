@@ -1079,18 +1079,37 @@ func _refresh_c4_knowledge() -> void:
 				_c4_device.remove_meta(key)
 
 func _has_c4_recovery_route() -> bool:
+	return is_finite(_c4_recovery_cost())
+
+func _c4_recovery_cost(recovery_position: Vector3 = Vector3.INF) -> float:
 	# Keep the existing local/no-graph behavior; a graph path is only a coarse
 	# qualification, not proof of the final physical approach to the dropped item.
+	var destination := (
+		recovery_position if recovery_position.is_finite() else _c4_known_position
+	) + Vector3.UP * 0.82
+	var direct_distance := actor.global_position.distance_to(destination)
 	if (
 		_navigation.points.is_empty()
-		or actor.global_position.distance_to(_c4_known_position + Vector3.UP * 0.82) <= 2.2
+		or direct_distance <= 2.2
 	):
-		return true
-	return not _navigation.find_path(
+		return direct_distance
+	var path: Array[int] = _navigation.find_path(
 		_navigation.nearest_index(actor.global_position),
-		_navigation.nearest_index(_c4_known_position + Vector3.UP * 0.82),
+		_navigation.nearest_index(destination),
 		_danger_events
-	).is_empty()
+	)
+	if path.is_empty():
+		return INF
+	var cost := actor.global_position.distance_to(_navigation.points[path[0]])
+	cost += _navigation.points[path[-1]].distance_to(destination)
+	for index in range(1, path.size()):
+		var previous := path[index - 1]
+		var current := path[index]
+		var link := _navigation.find_link(previous, current, _danger_events)
+		if link.is_empty():
+			return INF
+		cost += _navigation.edge_cost(previous, current, link, _danger_events)
+	return cost
 
 func _is_c4_recoverer() -> bool:
 	if not is_instance_valid(_c4_device) or _c4_known_state != "dropped":
@@ -1112,7 +1131,7 @@ func _is_c4_recoverer() -> bool:
 	if not is_instance_valid(recoverer):
 		if Engine.get_physics_frames() < int(_c4_device.get_meta("recovery_retry_frame", 0)):
 			return false
-		var best_distance := INF
+		var best_cost := INF
 		for candidate in actor.get_tree().get_nodes_in_group("combat_actors"):
 			if not candidate is CharacterBody3D or bool(candidate.get("is_dead")) or String(candidate.get("team")) != "T":
 				continue
@@ -1121,11 +1140,11 @@ func _is_c4_recoverer() -> bool:
 				continue
 			if not bool(brain.get("enabled")) or String(brain.get("objective_role")) not in ["plant", "support", "diversion"]:
 				continue
-			if not bool(brain.call("_has_c4_recovery_route")):
-				continue
-			var distance := (candidate as CharacterBody3D).global_position.distance_squared_to(_c4_known_position)
-			if distance < best_distance:
-				best_distance = distance
+			# Use the same danger/traversal weights as the candidate's navigation.
+			# Only elect once; a valid existing lease is never churned by new scores.
+			var cost := float(brain.call("_c4_recovery_cost", _c4_known_position))
+			if cost < best_cost:
+				best_cost = cost
 				recoverer = candidate
 		if recoverer != null:
 			_c4_device.set_meta("recovery_actor", weakref(recoverer))
