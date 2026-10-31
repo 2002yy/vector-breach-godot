@@ -4,7 +4,23 @@
 
 空间清理（2026-10-29）：两次清理共删除10个被替代的导出/负测PCK，逻辑合计约13.55GiB；实际空间以清理收据的时间快照为准。原版资产、活动缓存、最新基线与桌面试玩包及所有日志收据保留；历史证据路径中的旧PCK可能需重建。见 [清理与保护核验](REPOSITORY_CLEANUP_2026-10-29.md)。清理后已恢复开发；旧章节中的可用空间为当时快照。
 
-## 当前批：R49 雷达身份修复、可见底图与新版试玩入口
+## 当前批：R50 冻结18场、182回合与交互缺陷复现
+
+基线09592b7（#146），分支test/frozen-match-matrix。三路完成整场/依赖资格、输入时序与风险窗口、雷达及拆弹规则审查。未改生产、Current、原资源/地图；桌面20261031预览/runtime0a2968a保持，未重导大包。不等CI、不合并。
+
+权威三图×双方×1701/1702/1703共18场、182回合完整结束；另6场Dust早期观察原样保留，总24场。初始tracked-only指纹漏原图依赖，已补21文件（level/manifest/raw/import/compiled/cache及receipt×3）并补跑原六场，不事后追写冻结证据。最终matrix-authoritative绑定18次实际启动/完成时间、源/设置、依赖前后、真实引擎及原始trace/log SHA；独立分析18/18完成资格通过。源树与原资源依赖保持。
+
+Dust 67回合：55歼灭/5超时/4拆弹/3爆炸；Mirage64回合：29超时/35爆炸；Inferno51回合：13超时/1拆弹/37爆炸。最长活局掉弹采样跨度62/52/16秒，最长死亡活动等待108/34/11秒。死亡等待不等于UI卡死；掉弹期间行进、交战/死亡和拾取结局分别留证。静止人类+9AI有偏差，固定种子不是确定性回放，不能据次数宣布平衡通过。
+
+轨迹完整门闸另为false：MirageCT1702、InfernoCT1702/1703各有一处跨Round End→新Live的120帧间隔（漏一秒采样）；原样保留、不补造。该限制不抹掉比赛完成，也不能称逐秒全覆盖。Python629项及Ruff/格式/Pyright通过，新作者GDS格式/lint与轻量运行通过；无生产改变，沿用R49原生16套件，不重复全套。
+
+已复现规则缺陷：最小真实Brain/RoundManager函数中拆弹者模拟死亡后占用残留、进度停1秒、队友不能接替而炸弹钟继续；真实Dust/Inferno安装AI死亡后也观察到owner=ai/进度冻结与新carrier并存。不是把所有TIME都归因同一缺陷。Main全局交互禁本地移动/射击/换弹有源码链，实际输入待复验。就绪Button同帧just_pressed残留已复现，但Main完整因果待验。雷达失视野TTL仍实时追踪、观战取死玩家姿态、北向缺真实朝向为源码确认/运行时待修。
+
+整场出现观战Camera3D插值warning，连续观战仍待验。主机暂停/调度异常影响wall，未放宽1200秒预算、未将wall当FPS；临时SYSTEM_REQUIRED已释放，无电源方案/屏常亮修改。114旧工具、四脏导入及用户设置保持。证据D:/AgentGamePipeline/evidence/r50-20261031/delivery.json；详见[TASK_FROZEN_MATCH_MATRIX](TASK_FROZEN_MATCH_MATRIX_2026-10-31.md)、[交互诊断](TASK_DEAD_DEFUSER_AUDIT_2026-10-31.md)及[待修总表](CURRENT_PENDING.md)。
+
+下一片先修具体actor交互归属/死亡与C4转移清理，再并行就绪输入门闸及雷达最后可见/观战参考姿态。真实伤害全链和回归先行；生产改变后的比赛证据分版本记录。人工连续三图、M4/M5与逐图70%FPS仍未放行。
+
+## 前批：R49 雷达身份修复、可见底图与新版试玩入口
 
 基线 `49d99a3`（#145），分支 `fix/shipped-radar-identity`。修复R48实际导出雷达阻塞：新data-only builder从实际主PCK重新绑定shipped import与compiled字节，保留原atlas/纹理及严格核验的layout收据；主包三图没有同名radar identity，新增显式拒绝重复拥有者，保持replace_files=false。未改export_presets、原地图/纹理/布局/导航或正式Current。
 
