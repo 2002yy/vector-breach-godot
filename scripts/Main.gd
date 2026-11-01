@@ -89,6 +89,7 @@ var _starting := false
 var _preparation_timings: Dictionary = {}
 
 var _start_failure := "map"
+var _combat_input_latch := preload("res://scripts/player/CombatInputLatch.gd").new()
 
 @onready var level: Node3D = $Level
 @onready var player: CharacterBody3D = $Player
@@ -114,7 +115,7 @@ var _ui_update_timer: float = 0.0
 var _radar_update_timer: float = 0.0
 var _default_environment_state: Dictionary = {}
 var _buy_menu_open: bool = false
-var _radar_spotted_until: Dictionary = {}
+var _radar_observations := preload("res://scripts/ui/RadarObservationMemory.gd").new()
 var _radar_death_markers: Array[Dictionary] = []
 var training_telemetry: Node
 var selected_start_team: String = "T"
@@ -345,12 +346,36 @@ func _process(delta: float) -> void:
 			not bool(view_motion.get("airborne", false)),
 			bool(view_motion.get("crouching", false))
 		)
-	var combat_enabled := _can_accept_combat_input() and not RoundManager.is_objective_interacting()
-	weapon_view_model.call("set_objective_action", RoundManager.interaction_type if RoundManager.is_objective_interacting() and RoundManager.interaction_owner == "player" else "")
+	var combat_enabled := _can_accept_combat_input() and not _player_objective_interacting()
+	var fire_input_enabled: bool = _combat_input_latch.step(
+		_can_accept_combat_input(),
+		Input.is_action_pressed("fire_primary"),
+		Input.is_action_pressed("fire_secondary"),
+		Input.is_action_pressed("interact")
+	)
+	if not fire_input_enabled:
+		tactical_equipment.call("cancel_use", false)
+	weapon_view_model.call(
+		"set_objective_action",
+		(
+			RoundManager.interaction_type
+			if (
+				RoundManager.is_objective_interacting()
+				and RoundManager.interaction_owner == "player"
+			)
+			else ""
+		)
+	)
 	if not combat_enabled:
 		tactical_equipment.call("cancel_use", false)
-		if not RoundManager.is_objective_interacting():
-			weapon_view_model.call("cancel_actions", not bool(player.get("is_dead")) and String(tactical_equipment.get("equipped")) == "firearm")
+		if not _player_objective_interacting():
+			weapon_view_model.call(
+				"cancel_actions",
+				(
+					not bool(player.get("is_dead"))
+					and String(tactical_equipment.get("equipped")) == "firearm"
+				)
+			)
 	weapon_view_model.call("set_reload_paused", not combat_enabled)
 	tactical_equipment.call("tick", delta)
 	if game_started and not menu_open and player.has_method("set_controls_enabled"):
@@ -358,13 +383,16 @@ func _process(delta: float) -> void:
 		if player.has_method("set_movement_enabled"):
 			player.call("set_movement_enabled", combat_enabled)
 	if combat_enabled:
-		var fire_pressed: bool = Input.is_action_just_pressed("fire_primary")
-		var fire_held: bool = Input.is_action_pressed("fire_primary")
-		if String(tactical_equipment.get("equipped")) == "firearm" and weapon_system.has_method("tick"):
-			if Input.is_action_just_pressed("fire_secondary"):
+		var fire_pressed: bool = fire_input_enabled and Input.is_action_just_pressed("fire_primary")
+		var fire_held: bool = fire_input_enabled and Input.is_action_pressed("fire_primary")
+		if (
+			String(tactical_equipment.get("equipped")) == "firearm"
+			and weapon_system.has_method("tick")
+		):
+			if fire_input_enabled and Input.is_action_just_pressed("fire_secondary"):
 				weapon_system.call("toggle_scope", player)
 			weapon_system.call("tick", delta, fire_pressed, fire_held, player)
-		elif Input.is_action_just_pressed("fire_secondary"):
+		elif fire_input_enabled and Input.is_action_just_pressed("fire_secondary"):
 			tactical_equipment.call("use_secondary", player)
 		elif fire_pressed:
 			tactical_equipment.call("use_primary", player)
@@ -378,6 +406,7 @@ func _process(delta: float) -> void:
 		_radar_update_timer = 0.0
 		if combat_hud.has_method("update_radar"):
 			combat_hud.call("update_radar", _build_radar_snapshot())
+
 
 func _unhandled_input(event: InputEvent) -> void:
 	if _starting:
@@ -623,16 +652,20 @@ func _start_selected_map() -> void:
 	_preparation_timings.clear()
 	_set_world_active(false)
 	combat_hud.call("show_training_panel", false)
-	selected_start_team = "T" if (start_menu.get("team_select") as OptionButton).selected == 0 else "CT"
+	selected_start_team = (
+		"T" if (start_menu.get("team_select") as OptionButton).selected == 0 else "CT"
+	)
 	if String(option["id"]) == "training-range":
 		GameState.reset_runtime_state()
 		GameState.player_team = "T"
 	else:
-		GameState.start_match(selected_start_team, 5 if LocalClassicMaps.is_classic(String(option["id"])) else 3)
+		GameState.start_match(
+			selected_start_team, 5 if LocalClassicMaps.is_classic(String(option["id"])) else 3
+		)
 	_completed_match_record_path = ""
 	if combat_sandbox.has_method("clear_saved_round_state"):
 		combat_sandbox.call("clear_saved_round_state", true)
-	_radar_spotted_until.clear()
+	_radar_observations.clear()
 	_radar_death_markers.clear()
 	if combat_hud.has_method("reset_transients"):
 		combat_hud.call("reset_transients")
@@ -664,26 +697,41 @@ func _start_selected_map() -> void:
 		weapon_system.call("configure_default_loadout", true, GameState.is_competitive_level())
 	tactical_equipment.call("reset_loadout")
 	if weapon_view_model.has_method("set_weapon_slot"):
-		var equipped_slot := int((weapon_system.call("get_runtime_snapshot") as Dictionary).get("weapon_slot", 0))
+		var equipped_slot := int(
+			(weapon_system.call("get_runtime_snapshot") as Dictionary).get("weapon_slot", 0)
+		)
 		weapon_view_model.call("set_weapon_slot", equipped_slot, false)
 	RoundManager.freeze_duration = 60.0 if GameState.is_competitive_level() else 5.0
 	RoundManager.allow_player_ready = GameState.is_competitive_level()
 	RoundManager.start_round()
 	GameState.begin_match_round(RoundManager.round_serial)
-	c4_device.call("set_carried", "T", player.get_instance_id() if GameState.player_team == "T" else int(c4_device.get("carrier_id")))
+	c4_device.call(
+		"set_carried",
+		"T",
+		(
+			player.get_instance_id()
+			if GameState.player_team == "T"
+			else int(c4_device.get("carrier_id"))
+		)
+	)
 	_resume_game()
 	if _training_active():
 		_reset_training()
 	if GameState.is_competitive_level():
 		_set_buy_menu(true)
 
+
 func _set_buy_menu(opened: bool) -> void:
+	var was_open := _buy_menu_open
 	_buy_menu_open = opened and game_started and not menu_open and RoundManager.can_buy()
+	if was_open != _buy_menu_open:
+		_combat_input_latch.disarm()
 	if _buy_menu_open:
 		combat_hud.call("dismiss_help")
 	combat_hud.call("set_buy_menu_visible", _buy_menu_open)
 	player.call("set_mouse_capture_enabled", not _buy_menu_open and not menu_open)
 	_update_buy_page()
+
 
 func _on_player_ready() -> void:
 	if not game_started or menu_open or bool(player.get("is_dead")):
@@ -696,6 +744,7 @@ func _on_resume_pressed() -> void:
 	_resume_game()
 
 func _resume_game() -> void:
+	_combat_input_latch.disarm()
 	var was_paused := RoundManager.state == RoundManager.RoundState.PAUSED_MENU
 	menu_open = false
 	GameState.set_menu_state(false)
@@ -713,7 +762,9 @@ func _resume_game() -> void:
 		spectator.call("tick")
 	_update_ui(true)
 
+
 func _open_menu(initial_open: bool) -> void:
+	_combat_input_latch.disarm()
 	weapon_system.call("cancel_scope")
 	_set_buy_menu(false)
 	menu_open = true
@@ -724,7 +775,9 @@ func _open_menu(initial_open: bool) -> void:
 	else:
 		RoundManager.set_paused_menu()
 	start_menu.call("set_menu_visible", true)
-	start_menu.call("set_map_details", level_options[selected_level_index], game_started and not initial_open)
+	start_menu.call(
+		"set_map_details", level_options[selected_level_index], game_started and not initial_open
+	)
 	if player.has_method("set_controls_enabled"):
 		player.call("set_controls_enabled", false)
 	if player.has_method("set_mouse_capture_enabled"):
@@ -733,6 +786,7 @@ func _open_menu(initial_open: bool) -> void:
 	if initial_open:
 		_set_world_active(false)
 	_update_ui(true)
+
 
 func _set_world_active(active: bool) -> void:
 	if not active:
@@ -1148,7 +1202,7 @@ func _on_round_restart_requested() -> void:
 	var hard_reset := bool(transition.get("reset_economy", false))
 	if hard_reset:
 		GameState.reset_competitive_loadout()
-		_radar_spotted_until.clear()
+		_radar_observations.clear()
 		_radar_death_markers.clear()
 		if combat_hud.has_method("reset_transients"):
 			combat_hud.call("reset_transients")
@@ -1176,13 +1230,24 @@ func _on_round_restart_requested() -> void:
 		weapon_system.call("configure_default_loadout", true, GameState.is_competitive_level())
 		tactical_equipment.call("reset_loadout")
 		if weapon_view_model.has_method("set_weapon_slot"):
-			var reset_slot := int((weapon_system.call("get_runtime_snapshot") as Dictionary).get("weapon_slot", 0))
+			var reset_slot := int(
+				(weapon_system.call("get_runtime_snapshot") as Dictionary).get("weapon_slot", 0)
+			)
 			weapon_view_model.call("set_weapon_slot", reset_slot, false)
 	RoundManager.start_round()
 	GameState.begin_match_round(RoundManager.round_serial)
-	c4_device.call("set_carried", "T", player.get_instance_id() if GameState.player_team == "T" else int(c4_device.get("carrier_id")))
+	c4_device.call(
+		"set_carried",
+		"T",
+		(
+			player.get_instance_id()
+			if GameState.player_team == "T"
+			else int(c4_device.get("carrier_id"))
+		)
+	)
 	if GameState.is_competitive_level():
 		_set_buy_menu(true)
+
 
 func _purchase_item(item_id: String) -> void:
 	var offer := _purchase_offer(item_id)
@@ -1280,12 +1345,21 @@ func _try_begin_objective_interaction() -> bool:
 			return true
 	if GameState.player_team == "CT" and RoundManager.state == RoundManager.RoundState.BOMB_PLANTED:
 		if bool(c4_device.call("is_player_in_interaction_range", player.global_position)):
-			return RoundManager.begin_defuse(GameState.player_team, GameState.player_defuse_kit)
+			return RoundManager.begin_defuse(
+				GameState.player_team, GameState.player_defuse_kit, "player", player, c4_device
+			)
 		return false
 	if not _player_has_c4():
 		return false
 	var site := _get_current_plant_site()
-	return RoundManager.begin_plant(String(site.get("label", "")), GameState.player_team) if not site.is_empty() else false
+	return (
+		RoundManager.begin_plant(
+			String(site.get("label", "")), GameState.player_team, "player", player, c4_device
+		)
+		if not site.is_empty()
+		else false
+	)
+
 
 func _get_current_plant_site() -> Dictionary:
 	var radar_snapshot := _build_radar_snapshot()
@@ -1300,12 +1374,24 @@ func _get_current_plant_site() -> Dictionary:
 			return target
 	return {}
 
+func _player_objective_interacting() -> bool:
+	return RoundManager.is_objective_interacting() and RoundManager.interaction_owner == "player"
+
+
 func _update_objective_interaction(delta: float) -> void:
 	if not game_started or menu_open or bool(player.get("is_dead")):
 		return
-	if RoundManager.is_objective_interacting() and String(RoundManager.interaction_owner) != "player":
+	if not RoundManager.is_objective_interacting() and not _combat_input_latch.is_armed():
 		return
-	var holding_c4_primary := String(tactical_equipment.get("equipped")) == "c4" and Input.is_action_pressed("fire_primary")
+	if (
+		RoundManager.is_objective_interacting()
+		and String(RoundManager.interaction_owner) != "player"
+	):
+		return
+	var holding_c4_primary := (
+		String(tactical_equipment.get("equipped")) == "c4"
+		and Input.is_action_pressed("fire_primary")
+	)
 	if not Input.is_action_pressed("interact") and not holding_c4_primary:
 		RoundManager.cancel_objective_interaction()
 		return
@@ -1324,12 +1410,15 @@ func _update_objective_interaction(delta: float) -> void:
 		still_valid = String(site.get("label", "")) == interaction_site and _player_has_c4()
 	elif interaction_type == "defuse":
 		still_valid = bool(c4_device.call("is_player_in_interaction_range", player.global_position))
-	var completed := RoundManager.tick_objective_interaction(delta, still_valid)
+	var completed := RoundManager.tick_objective_interaction(delta, still_valid, player)
 	if completed and interaction_type == "plant":
-		c4_device.call("plant_at", player.global_position - Vector3(0.0, 0.82, 0.0), interaction_site)
+		c4_device.call(
+			"plant_at", player.global_position - Vector3(0.0, 0.82, 0.0), interaction_site
+		)
 		GameState.reward_objective_action("plant")
 	elif completed and interaction_type == "defuse":
 		c4_device.call("set_carried", "CT")
+
 
 func _on_bomb_exploded(_site_label: String) -> void:
 	if not bool(c4_device.call("detonate")):
@@ -1428,19 +1517,31 @@ func _help_is_open() -> bool:
 	return is_instance_valid(combat_hud) and bool(combat_hud.call("is_help_open"))
 
 func _on_help_visibility_changed(opened: bool) -> void:
+	_combat_input_latch.disarm()
 	player.call(
 		"set_mouse_capture_enabled",
 		not opened and game_started and not menu_open and not _buy_menu_open
 	)
 	player.call("set_controls_enabled", not opened and not bool(player.get("is_dead")))
 
+
 func _can_accept_weapon_management() -> bool:
-	return game_started \
-		and not menu_open \
-		and not _help_is_open() \
-		and RoundManager.state in [RoundManager.RoundState.FREEZE, RoundManager.RoundState.LIVE, RoundManager.RoundState.BOMB_PLANTED] \
-		and not RoundManager.is_objective_interacting() \
+	return (
+		game_started
+		and not menu_open
+		and not _help_is_open()
+		and (
+			RoundManager.state
+			in [
+				RoundManager.RoundState.FREEZE,
+				RoundManager.RoundState.LIVE,
+				RoundManager.RoundState.BOMB_PLANTED
+			]
+		)
+		and not _player_objective_interacting()
 		and not bool(player.get("is_dead"))
+	)
+
 
 func find_level_option_index(target_level_id: String) -> int:
 	for index in range(level_options.size()):
@@ -1526,10 +1627,32 @@ func _get_objective_hint() -> String:
 		return "C4 已掉落 · 前往雷达标记拾取"
 	return ""
 
+func _radar_view_actor() -> CharacterBody3D:
+	if (
+		bool(player.get("is_dead"))
+		and is_instance_valid(spectator)
+		and bool(spectator.get("active"))
+	):
+		var watched := spectator.get("target") as CharacterBody3D
+		if (
+			is_instance_valid(watched)
+			and watched.is_inside_tree()
+			and not watched.is_queued_for_deletion()
+			and watched.get_viewport() == player.get_viewport()
+			and not bool(watched.get("is_dead"))
+			and watched.get("team") == GameState.player_team
+		):
+			return watched
+	return player
+
+
 func _build_radar_snapshot() -> Dictionary:
-	var level_data: Dictionary = level.call("get_current_level_data") if level.has_method("get_current_level_data") else {}
-	var feet_height := player.global_position.y - 0.9
-	var body_shape := player.get_node_or_null("CollisionShape3D") as CollisionShape3D
+	var level_data: Dictionary = (
+		level.call("get_current_level_data") if level.has_method("get_current_level_data") else {}
+	)
+	var view_actor := _radar_view_actor()
+	var feet_height := view_actor.global_position.y - 0.9
+	var body_shape := view_actor.get_node_or_null("CollisionShape3D") as CollisionShape3D
 	if body_shape != null and body_shape.shape is CapsuleShape3D:
 		feet_height = (
 			body_shape.global_position.y
@@ -1546,15 +1669,22 @@ func _build_radar_snapshot() -> Dictionary:
 			continue
 		var objective := objective_variant as Dictionary
 		var objective_id := String(objective.get("id", "")).to_lower()
-		var objective_label := "A" if objective_id.contains("a") else ("B" if objective_id.contains("b") else "T")
+		var objective_label := (
+			"A" if objective_id.contains("a") else ("B" if objective_id.contains("b") else "T")
+		)
 		var objective_radius := float(objective.get("radius", 2.0))
-		targets.append({
-			"label": objective_label,
-			"x": float(objective.get("x", 0.0)),
-			"z": float(objective.get("z", 0.0)),
-			"sx": objective_radius * 2.0,
-			"sz": objective_radius * 2.0,
-		})
+		(
+			targets
+			. append(
+				{
+					"label": objective_label,
+					"x": float(objective.get("x", 0.0)),
+					"z": float(objective.get("z", 0.0)),
+					"sx": objective_radius * 2.0,
+					"sz": objective_radius * 2.0,
+				}
+			)
+		)
 		if objective.has("y"):
 			targets[-1]["y"] = float(objective["y"])
 	for floor_variant in level_data.get("floors", []):
@@ -1571,13 +1701,18 @@ func _build_radar_snapshot() -> Dictionary:
 			label = "A"
 		elif floor_id.contains("site-b"):
 			label = "B"
-		targets.append({
-			"label": label,
-			"x": float(floor_entry.get("x", 0.0)),
-			"z": float(floor_entry.get("z", 0.0)),
-			"sx": float(floor_entry.get("sx", 2.0)),
-			"sz": float(floor_entry.get("sz", 2.0)),
-		})
+		(
+			targets
+			. append(
+				{
+					"label": label,
+					"x": float(floor_entry.get("x", 0.0)),
+					"z": float(floor_entry.get("z", 0.0)),
+					"sx": float(floor_entry.get("sx", 2.0)),
+					"sz": float(floor_entry.get("sz", 2.0)),
+				}
+			)
+		)
 	if targets.is_empty():
 		var target_route: Variant = (level_data.get("routes", {}) as Dictionary).get("target", [])
 		if target_route is Array and target_route.size() >= 2:
@@ -1587,11 +1722,13 @@ func _build_radar_snapshot() -> Dictionary:
 		"level_id": String(level_data.get("id", "")),
 		"radar_load_identity": str(_level_load_serial),
 		"feet_height": feet_height,
-		"grounded": player.is_on_floor(),
+		"grounded": view_actor.is_on_floor(),
+		"view_actor_id": view_actor.get_instance_id(),
+		"view_yaw": view_actor.rotation.y,
 		"range_meters": UserSettings.radar_range,
-		"player_position": Vector2(player.global_position.x, player.global_position.z),
-		"player_yaw": player.rotation.y if UserSettings.radar_rotates else 0.0,
-		"player_height": player.global_position.y,
+		"player_position": Vector2(view_actor.global_position.x, view_actor.global_position.z),
+		"player_yaw": view_actor.rotation.y if UserSettings.radar_rotates else 0.0,
+		"player_height": view_actor.global_position.y,
 		"local_team": GameState.player_team,
 		"targets": targets,
 		"features": _collect_radar_features(level_data),
@@ -1599,35 +1736,68 @@ func _build_radar_snapshot() -> Dictionary:
 		"c4": c4_device.call("get_radar_record"),
 	}
 
+
 func _build_radar_players() -> Array[Dictionary]:
-	var records: Array[Dictionary] = [{
-		"team": GameState.player_team,
-		"alive": not bool(player.get("is_dead")),
-		"local": true,
-		"x": player.global_position.x,
-		"y": player.global_position.y,
-		"z": player.global_position.z,
-		"yaw": player.rotation.y,
-	}]
+	var view_actor := _radar_view_actor()
+	var records: Array[Dictionary] = [
+		{
+			"team": GameState.player_team,
+			"alive": not bool(view_actor.get("is_dead")),
+			"local": true,
+			"x": view_actor.global_position.x,
+			"y": view_actor.global_position.y,
+			"z": view_actor.global_position.z,
+			"yaw": view_actor.rotation.y,
+		}
+	]
 	for target in get_tree().get_nodes_in_group("combat_actors"):
 		if target is Node3D:
 			var target_node := target as Node3D
-			var actor_snapshot: Dictionary = target_node.call("get_combat_snapshot") if target_node.has_method("get_combat_snapshot") else {}
-			var actor_team := String(actor_snapshot.get("team", "CT" if GameState.player_team == "T" else "T"))
+			if target_node == view_actor:
+				continue
+			var actor_snapshot: Dictionary = (
+				target_node.call("get_combat_snapshot")
+				if target_node.has_method("get_combat_snapshot")
+				else {}
+			)
+			var actor_team := String(
+				actor_snapshot.get("team", "CT" if GameState.player_team == "T" else "T")
+			)
 			if bool(player.get("is_dead")) and actor_team != GameState.player_team:
 				continue
 			var target_id := target_node.get_instance_id()
-			if actor_team != GameState.player_team and _is_target_legally_spotted(target_node):
-				_radar_spotted_until[target_id] = Time.get_ticks_msec() + 2500
-			records.append({
-				"team": actor_team,
-				"alive": bool(actor_snapshot.get("alive", true)),
-				"spotted": actor_team == GameState.player_team or int(_radar_spotted_until.get(target_id, 0)) >= Time.get_ticks_msec(),
-				"x": target_node.global_position.x,
-				"y": target_node.global_position.y,
-				"z": target_node.global_position.z,
-				"yaw": target_node.rotation.y,
-			})
+			var now := Time.get_ticks_msec()
+			var friendly := actor_team == GameState.player_team
+			if (
+				not friendly
+				and bool(actor_snapshot.get("alive", true))
+				and _is_target_legally_spotted(target_node)
+			):
+				_radar_observations.observe(
+					target_id, target_node.global_position, target_node.rotation.y, now
+				)
+			var memory: Dictionary = _radar_observations.recall(target_id, now)
+			var marker_position: Vector3 = (
+				target_node.global_position if friendly else memory.get("position", Vector3.ZERO)
+			)
+			var marker_yaw: float = (
+				target_node.rotation.y if friendly else float(memory.get("yaw", 0.0))
+			)
+			(
+				records
+				. append(
+					{
+						"team": actor_team,
+						"alive": bool(actor_snapshot.get("alive", true)),
+						"actor_id": target_id,
+						"spotted": friendly or not memory.is_empty(),
+						"x": marker_position.x,
+						"y": marker_position.y,
+						"z": marker_position.z,
+						"yaw": marker_yaw,
+					}
+				)
+			)
 	var now := Time.get_ticks_msec()
 	var retained_markers: Array[Dictionary] = []
 	for marker in _radar_death_markers:
@@ -1636,6 +1806,7 @@ func _build_radar_players() -> Array[Dictionary]:
 			records.append(marker)
 	_radar_death_markers = retained_markers
 	return records
+
 
 func _is_target_legally_spotted(target: Node3D) -> bool:
 	var camera := player.call("get_camera_node") as Camera3D

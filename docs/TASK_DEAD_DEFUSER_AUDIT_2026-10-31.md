@@ -32,3 +32,7 @@ Mirage CT/1701第1回合末20秒：存活CT2/5距弹分别约34.63/47.32m，剩�
 只读确认另一条独立数据流：Main约348行用全局`is_objective_interacting()`否定`combat_enabled`，没有检查owner。每帧将该值传入`player.set_movement_enabled`并控制射击/开镜/装备使用分支，武器换弹也据此暂停；`PlayerController.set_movement_enabled(false)`会立即清水平速度。`_can_accept_weapon_management`同样用全局交互禁武器管理。因而AI正常安装/拆弹时，本地活玩家也会被禁移动及这些战斗动作；`set_controls_enabled`仍true，不能笼统说全部输入/视角冻结。只有viewmodel动作提示已经按owner==player过滤，未防止前述门闸。
 
 这是确定的源码数据流候选，尚未运行Main实际输入复现，也不由静止玩家比赛验收覆盖。下一片应在AI正常安装与拆弹时，分别验证本地移动/射击/换弹/切枪仍可用，而本地自己交互时保留相应限制；不能以简单移除全局保护同时破坏本地交互。与死亡owner残留相关但需独立失败测试，不在本批改生产。
+
+## R51后续（2026-11-01）
+
+上述known-bug探针仅对应586b052及此前基线，退出0表示缺陷复现，不是当前产品验收。其假C4对象不满足新交互绑定合同，保留历史、不再作为当前检查入口。当前真实伤害/死亡/释放及队友接替回归改用`ObjectiveOwnershipFixtures.gd`与TacticalBomb原生套件；Main实际掩护动作、UI输入及雷达修复见[TASK_OBJECTIVE_INPUT_RADAR](TASK_OBJECTIVE_INPUT_RADAR_2026-11-01.md)。旧18场记录不追写成修复后结果。

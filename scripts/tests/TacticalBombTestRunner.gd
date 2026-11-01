@@ -1,5 +1,6 @@
 extends Node
 
+const ObjectiveOwnershipTests = preload("res://scripts/tests/ObjectiveOwnershipFixtures.gd")
 const MatchTactics = preload("res://scripts/tests/MatchTacticsFixtures.gd")
 
 const ACTOR_SCENE = preload("res://scenes/combat/TacticalActor.tscn")
@@ -11,6 +12,13 @@ var _failures: PackedStringArray = []
 var _passes: int = 0
 
 func _ready() -> void:
+	if "--objective-owner-only" in OS.get_cmdline_user_args():
+		await _run_test("objective_owner_death_and_handoff", _test_objective_owner)
+		for failure in _failures:
+			push_error(failure)
+		print("OBJECTIVE_OWNER_FOCUSED failures=", _failures.size())
+		get_tree().quit(0 if _failures.is_empty() else 1)
+		return
 	if "--c4-cost-only" in OS.get_cmdline_user_args():
 		await _run_test("c4_recoverer_uses_route_cost", _test_c4_route_cost)
 		for failure in _failures:
@@ -32,6 +40,7 @@ func _ready() -> void:
 		print("C4_PICKUP_FOCUSED failures=", _failures.size())
 		get_tree().quit(0 if _failures.is_empty() else 1)
 		return
+	await _run_test("objective_owner_death_and_handoff", _test_objective_owner)
 	await _run_test("flash_shared_rules_and_ai_recovery", _test_flash_rules)
 	await _run_test("c4_recoverer_uses_route_cost", _test_c4_route_cost)
 	await _run_test("c4_local_approach_obstacle_and_support", _test_local_c4_approach)
@@ -40,36 +49,69 @@ func _ready() -> void:
 	await _run_test("reported_support_rotation_and_impossible_defuse", _test_squad_decisions)
 	await _run_test("bot_carries_plants_c4_at_objective", _test_bot_carries_plants_c4_at_objective)
 	await _run_test("ct_bot_defuses_planted_bomb", _test_ct_bot_defuses_planted_bomb)
-	await _run_test("bot_targets_enemy_bot_not_only_player", _test_bot_targets_enemy_bot_not_only_player)
-	await _run_test("teammate_report_shared_to_same_team", _test_teammate_report_shared_to_same_team)
+	await _run_test(
+		"bot_targets_enemy_bot_not_only_player", _test_bot_targets_enemy_bot_not_only_player
+	)
+	await _run_test(
+		"teammate_report_shared_to_same_team", _test_teammate_report_shared_to_same_team
+	)
 	await _run_test("c4_drop_pickup_transfers_carrier", _test_c4_drop_pickup_transfers_carrier)
 	await _run_test("distant_c4_drop_assigns_one_recoverer", _test_distant_c4_recovery)
 	await _run_test("dead_c4_recoverer_is_reassigned", _test_dead_c4_recoverer)
 	await _run_test(
 		"unreachable_c4_recoverer_yields_to_connected_survivor", _test_unreachable_c4_recoverer
 	)
-	await _run_test("combat_sandbox_assigns_bomb_carrier", _test_combat_sandbox_assigns_bomb_carrier)
-	await _run_test("bot_buys_grenades_and_defuse_kit_in_freeze", _test_bot_buys_grenades_and_defuse_kit_in_freeze)
-	await _run_test("bot_throws_smoke_toward_objective_before_plant", _test_bot_throws_smoke_toward_objective_before_plant)
+	await _run_test(
+		"combat_sandbox_assigns_bomb_carrier", _test_combat_sandbox_assigns_bomb_carrier
+	)
+	await _run_test(
+		"bot_buys_grenades_and_defuse_kit_in_freeze",
+		_test_bot_buys_grenades_and_defuse_kit_in_freeze
+	)
+	await _run_test(
+		"bot_throws_smoke_toward_objective_before_plant",
+		_test_bot_throws_smoke_toward_objective_before_plant
+	)
 	await _run_test("bot_uses_he_in_combat", _test_bot_uses_he_in_combat)
 	await _run_test("bot_uses_flash_in_combat", _test_bot_uses_flash_in_combat)
 	await _run_test("bot_picks_up_dropped_weapon", _test_bot_picks_up_dropped_weapon)
-	await _run_test("combat_sandbox_splits_t_roles_between_sites", _test_combat_sandbox_splits_t_roles_between_sites)
-	await _run_test("bot_economy_mode_changes_freeze_buying", _test_bot_economy_mode_changes_freeze_buying)
-	await _run_test("bot_weapon_inventory_tracks_reserve", _test_bot_weapon_inventory_tracks_reserve)
-	await _run_test("bot_grenade_velocity_scales_with_distance", _test_bot_grenade_velocity_scales_with_distance)
-	await _run_test("refrag_report_goes_to_nearest_teammate", _test_refrag_report_goes_to_nearest_teammate)
-	await _run_test("bot_saves_gun_when_low_health_and_eco", _test_bot_saves_gun_when_low_health_and_eco)
-	await _run_test("team_economy_syncs_mode_across_team", _test_team_economy_syncs_mode_across_team)
-	await _run_test("saved_loadout_persists_across_round_reload", _test_saved_loadout_persists_across_round_reload)
+	await _run_test(
+		"combat_sandbox_splits_t_roles_between_sites",
+		_test_combat_sandbox_splits_t_roles_between_sites
+	)
+	await _run_test(
+		"bot_economy_mode_changes_freeze_buying", _test_bot_economy_mode_changes_freeze_buying
+	)
+	await _run_test(
+		"bot_weapon_inventory_tracks_reserve", _test_bot_weapon_inventory_tracks_reserve
+	)
+	await _run_test(
+		"bot_grenade_velocity_scales_with_distance", _test_bot_grenade_velocity_scales_with_distance
+	)
+	await _run_test(
+		"refrag_report_goes_to_nearest_teammate", _test_refrag_report_goes_to_nearest_teammate
+	)
+	await _run_test(
+		"bot_saves_gun_when_low_health_and_eco", _test_bot_saves_gun_when_low_health_and_eco
+	)
+	await _run_test(
+		"team_economy_syncs_mode_across_team", _test_team_economy_syncs_mode_across_team
+	)
+	await _run_test(
+		"saved_loadout_persists_across_round_reload",
+		_test_saved_loadout_persists_across_round_reload
+	)
 	if _failures.is_empty():
 		print("[TacticalBombTests] PASS (%d tests)" % _passes)
 		get_tree().quit(0)
 		return
-	push_error("[TacticalBombTests] FAIL (%d/%d failed)" % [_failures.size(), _passes + _failures.size()])
+	push_error(
+		"[TacticalBombTests] FAIL (%d/%d failed)" % [_failures.size(), _passes + _failures.size()]
+	)
 	for failure in _failures:
 		push_error("  - %s" % failure)
 	get_tree().quit(1)
+
 
 func _test_role_purchases() -> void:
 	await MatchTactics.role_purchases(self)
@@ -141,6 +183,7 @@ func _test_bot_carries_plants_c4_at_objective() -> void:
 	var c4 := fixture.c4 as Node3D
 	c4.call("set_carried", "T")
 	var actor := _make_actor(fixture.world as Node3D, "T安包手", "T", Vector3(0.0, 1.15, 6.0))
+	c4.call("set_carried", "T", actor.get_instance_id())
 	var brain := actor.get_node("TacticalBotBrain")
 	brain.call("set_c4_device", c4)
 	brain.call("configure_objective", "plant", Vector3(0.0, 1.15, 0.0), "A", true)
@@ -148,11 +191,28 @@ func _test_bot_carries_plants_c4_at_objective() -> void:
 	RoundManager.bomb_carried = true
 	for _frame in range(320):
 		await get_tree().physics_frame
-	var objective := (actor.call("get_combat_snapshot") as Dictionary).get("objective", {}) as Dictionary
-	_assert_equal(String(RoundManager.get_state_name()), "Bomb Planted", "T bomb carrier should complete a continuous plant interaction")
-	_assert_equal(String(c4.get("device_state")), "planted", "planted C4 should move to the planted world state")
-	_assert_true(not bool(objective.get("carrier", true)), "carrier flag should clear after planting")
+	var objective := (
+		(actor.call("get_combat_snapshot") as Dictionary).get("objective", {}) as Dictionary
+	)
+	_assert_equal(
+		String(RoundManager.get_state_name()),
+		"Bomb Planted",
+		"T bomb carrier should complete a continuous plant interaction"
+	)
+	_assert_equal(
+		String(c4.get("device_state")),
+		"planted",
+		"planted C4 should move to the planted world state"
+	)
+	_assert_true(
+		not bool(objective.get("carrier", true)), "carrier flag should clear after planting"
+	)
 	await _cleanup_fixture(fixture)
+
+
+func _test_objective_owner() -> void:
+	await ObjectiveOwnershipTests.run(self)
+
 
 func _test_distant_c4_recovery() -> void:
 	var fixture := await _make_fixture()
@@ -298,25 +358,50 @@ func _test_c4_drop_pickup_transfers_carrier() -> void:
 	var c4 := fixture.c4 as Node3D
 	c4.call("set_carried", "T")
 	var carrier := _make_actor(fixture.world as Node3D, "T原携带者", "T", Vector3(0.0, 1.15, 2.0))
+	c4.call("set_carried", "T", carrier.get_instance_id())
 	var pickup := _make_actor(fixture.world as Node3D, "T接手", "T", Vector3(0.0, 1.15, 1.5))
 	carrier.get_node("TacticalBotBrain").call("set_c4_device", c4)
-	carrier.get_node("TacticalBotBrain").call("configure_objective", "plant", Vector3(0.0, 1.15, 10.0), "A", true)
+	carrier.get_node("TacticalBotBrain").call(
+		"configure_objective", "plant", Vector3(0.0, 1.15, 10.0), "A", true
+	)
 	pickup.get_node("TacticalBotBrain").call("set_c4_device", c4)
-	pickup.get_node("TacticalBotBrain").call("configure_objective", "plant", Vector3(0.0, 1.15, 10.0), "A", false)
+	pickup.get_node("TacticalBotBrain").call(
+		"configure_objective", "plant", Vector3(0.0, 1.15, 10.0), "A", false
+	)
 	RoundManager.set_live()
 	RoundManager.bomb_carried = true
 	var drop_position := carrier.global_position
-	carrier.call("apply_hitscan_damage", 1000, drop_position + Vector3.UP * 0.6, 1.0, false, "CT", Vector3.ZERO)
+	carrier.call(
+		"apply_hitscan_damage",
+		1000,
+		drop_position + Vector3.UP * 0.6,
+		1.0,
+		false,
+		"CT",
+		Vector3.ZERO
+	)
 	await get_tree().physics_frame
 	c4.call("drop_at", drop_position)
 	RoundManager.bomb_carried = false
 	for _frame in range(60):
 		await get_tree().physics_frame
-	var objective := (pickup.call("get_combat_snapshot") as Dictionary).get("objective", {}) as Dictionary
-	_assert_true(bool(objective.get("carrier", false)), "nearby T bot should pick up the dropped C4 and become carrier")
-	_assert_equal(String(c4.get("device_state")), "carried", "dropped C4 should return to the carried state after pickup")
-	_assert_true(bool(RoundManager.bomb_carried), "RoundManager should track the transferred bomb carrier")
+	var objective := (
+		(pickup.call("get_combat_snapshot") as Dictionary).get("objective", {}) as Dictionary
+	)
+	_assert_true(
+		bool(objective.get("carrier", false)),
+		"nearby T bot should pick up the dropped C4 and become carrier"
+	)
+	_assert_equal(
+		String(c4.get("device_state")),
+		"carried",
+		"dropped C4 should return to the carried state after pickup"
+	)
+	_assert_true(
+		bool(RoundManager.bomb_carried), "RoundManager should track the transferred bomb carrier"
+	)
 	await _cleanup_fixture(fixture)
+
 
 func _test_combat_sandbox_assigns_bomb_carrier() -> void:
 	var fixture := await _make_fixture()
@@ -370,7 +455,14 @@ func _test_bot_throws_smoke_toward_objective_before_plant() -> void:
 	var fixture := await _make_fixture()
 	var c4 := fixture.c4 as Node3D
 	c4.call("set_carried", "T")
-	var actor := _make_actor(fixture.world as Node3D, "T烟雾手", "T", Vector3(0.0, 1.15, 6.0), {"aiGrenades": {"smoke_grenade": 1}})
+	var actor := _make_actor(
+		fixture.world as Node3D,
+		"T烟雾手",
+		"T",
+		Vector3(0.0, 1.15, 6.0),
+		{"aiGrenades": {"smoke_grenade": 1}}
+	)
+	c4.call("set_carried", "T", actor.get_instance_id())
 	var brain := actor.get_node("TacticalBotBrain")
 	brain.call("set_c4_device", c4)
 	brain.call("configure_objective", "plant", Vector3(0.0, 1.15, 0.0), "A", true)
@@ -383,8 +475,12 @@ func _test_bot_throws_smoke_toward_objective_before_plant() -> void:
 		if String(projectile_variant.get("grenade_type")) == "smoke_grenade":
 			smoke_thrown = true
 	var ai := (actor.call("get_combat_snapshot") as Dictionary).get("ai", {}) as Dictionary
-	_assert_true(smoke_thrown or int(((ai.get("grenades", {}) as Dictionary).get("smoke_grenade", 1))) == 0, "T bot should throw smoke toward the objective before planting")
+	_assert_true(
+		smoke_thrown or int((ai.get("grenades", {}) as Dictionary).get("smoke_grenade", 1)) == 0,
+		"T bot should throw smoke toward the objective before planting"
+	)
 	await _cleanup_fixture(fixture)
+
 
 func _test_bot_uses_he_in_combat() -> void:
 	var fixture := await _make_fixture()

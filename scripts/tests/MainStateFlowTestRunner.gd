@@ -6,6 +6,7 @@ const MatchExperience = preload("res://scripts/tests/MatchExperienceFixtures.gd"
 const LazyLoad = preload("res://scripts/tests/LazyLoadFixtures.gd")
 const C4ExplosionTests = preload("res://scripts/tests/C4ExplosionFixtures.gd")
 const SpectatorPanelTests = preload("res://scripts/tests/SpectatorPanelFixtures.gd")
+const RadarInformationTests = preload("res://scripts/tests/RadarInformationFixtures.gd")
 
 var _failures: PackedStringArray = []
 var _passes: int = 0
@@ -141,9 +142,28 @@ func _test_knife_backstab() -> void:
 	await _cleanup_main(main)
 
 func _ready() -> void:
-	if "--official-assets-only" in OS.get_cmdline_user_args():
+	if "--objective-owner-only" in OS.get_cmdline_user_args():
+		await _run_test(
+			"buy_page_ready_and_pause_contract", _test_buy_page_ready_and_pause_contract
+		)
+		await get_tree().process_frame
+		await get_tree().process_frame
+	elif "--c4-prompts-only" in OS.get_cmdline_user_args():
+		await _run_test("c4_slot_and_context_prompt_guards", _test_c4_prompts)
+		await get_tree().process_frame
+		await get_tree().process_frame
+	elif "--radar-information-only" in OS.get_cmdline_user_args():
+		await _run_test(
+			"radar_information_and_view_pose", func() -> void: await RadarInformationTests.run(self)
+		)
+		await get_tree().process_frame
+		await get_tree().process_frame
+	elif "--official-assets-only" in OS.get_cmdline_user_args():
 		await _run_test("character_profiles_settings_and_native_hands", _test_character_profiles)
-		await _run_test("official_equipment_team_switch_reload_pause_and_c4_fallback", _test_official_equipment_contract)
+		await _run_test(
+			"official_equipment_team_switch_reload_pause_and_c4_fallback",
+			_test_official_equipment_contract
+		)
 	else:
 		await _run_all_tests()
 	if _failures.is_empty():
@@ -151,10 +171,13 @@ func _ready() -> void:
 		get_tree().quit(0)
 		return
 
-	push_error("[MainStateFlowTests] FAIL (%d/%d failed)" % [_failures.size(), _passes + _failures.size()])
+	push_error(
+		"[MainStateFlowTests] FAIL (%d/%d failed)" % [_failures.size(), _passes + _failures.size()]
+	)
 	for failure in _failures:
 		push_error("  - %s" % failure)
 	get_tree().quit(1)
+
 
 func _run_all_tests() -> void:
 	await _run_test(
@@ -169,52 +192,130 @@ func _run_all_tests() -> void:
 	)
 	await _run_test("independent_training_resupply_reset_and_match_isolation", _test_training_mode)
 	await _run_test("knife_backstab_uses_contact_facing_and_real_occlusion", _test_knife_backstab)
-	await _run_test("initial_boot_shows_menu_and_default_map", _test_initial_boot_shows_menu_and_default_map)
-	await _run_test("classic_layout_is_frozen_and_rejects_changed_assets", _test_frozen_classic_layout)
-	await _run_test("new_classic_maps_keep_competitive_buy_and_frozen_layout_contract", _test_classic_catalog)
+	await _run_test(
+		"initial_boot_shows_menu_and_default_map", _test_initial_boot_shows_menu_and_default_map
+	)
+	await _run_test(
+		"classic_layout_is_frozen_and_rejects_changed_assets", _test_frozen_classic_layout
+	)
+	await _run_test(
+		"new_classic_maps_keep_competitive_buy_and_frozen_layout_contract", _test_classic_catalog
+	)
 	await _run_test("paused_match_can_return_to_map_selection", _test_return_to_maps)
 
-	await _run_test("squad_economy_includes_player_and_help_matches_loadout", _test_squad_economy_includes_player_and_help_matches_loadout)
-	await _run_test("map_selection_updates_game_state_and_menu_copy", _test_map_selection_updates_game_state_and_menu_copy)
-	await _run_test("start_game_enters_freeze_buy_state", _test_start_game_transitions_to_live_state)
+	await _run_test(
+		"squad_economy_includes_player_and_help_matches_loadout",
+		_test_squad_economy_includes_player_and_help_matches_loadout
+	)
+	await _run_test(
+		"map_selection_updates_game_state_and_menu_copy",
+		_test_map_selection_updates_game_state_and_menu_copy
+	)
+	await _run_test(
+		"start_game_enters_freeze_buy_state", _test_start_game_transitions_to_live_state
+	)
 	await _run_test("buy_page_ready_and_pause_contract", _test_buy_page_ready_and_pause_contract)
 	await _run_test("planted_bomb_outlives_attackers", _test_planted_bomb_outlives_attackers)
-	await _run_test("pause_then_resume_restores_live_state", _test_pause_then_resume_restores_live_state)
-	await _run_test("level_environment_overrides_restore_defaults", _test_level_environment_overrides_restore_defaults)
-	await _run_test("weapon_view_model_tracks_switch_and_shot", _test_weapon_view_model_tracks_switch_and_shot)
+	await _run_test(
+		"pause_then_resume_restores_live_state", _test_pause_then_resume_restores_live_state
+	)
+	await _run_test(
+		"level_environment_overrides_restore_defaults",
+		_test_level_environment_overrides_restore_defaults
+	)
+	await _run_test(
+		"weapon_view_model_tracks_switch_and_shot", _test_weapon_view_model_tracks_switch_and_shot
+	)
 	await _run_test("player_scale_matches_cs_reference", _test_player_scale_matches_cs_reference)
-	await _run_test("player_input_maps_to_local_forward_and_right", _test_player_input_maps_to_local_forward_and_right)
-	await _run_test("player_counter_strafe_and_air_control_are_bounded", _test_player_counter_strafe_and_air_control_are_bounded)
-	await _run_test("tactical_movement_solver_has_sharp_stops_and_bounded_air_control", _test_tactical_movement_solver_has_sharp_stops_and_bounded_air_control)
-	await _run_test("classic_shift_walk_and_settings_apply", _test_classic_shift_walk_and_settings_apply)
-	await _run_test("player_traverses_authored_height_step", _test_player_traverses_authored_height_step)
-	await _run_test("player_uses_crouch_hull_without_double_jump", _test_player_uses_crouch_hull_without_double_jump)
-	await _run_test("player_clears_classic_cs_height_tiers", _test_player_clears_classic_cs_height_tiers)
-	await _run_test("rotating_radar_tracks_bounds_targets_and_heading", _test_rotating_radar_tracks_bounds_targets_and_heading)
-	await _run_test("movement_and_radar_scale_are_map_invariant", _test_movement_and_radar_scale_are_map_invariant)
-	await _run_test("ladder_water_and_tactical_actors_are_runtime_systems", _test_ladder_water_and_tactical_actors_are_runtime_systems)
-	await _run_test("combat_audio_tracks_shot_hit_reload_and_switch", _test_combat_audio_tracks_shot_hit_reload_and_switch)
-	await _run_test("scoreboard_kill_feed_and_training_summary_work", _test_scoreboard_kill_feed_and_training_summary_work)
-	await _run_test("player_mouse_look_bypasses_gui_consumption", _test_player_mouse_look_bypasses_gui_consumption)
+	await _run_test(
+		"player_input_maps_to_local_forward_and_right",
+		_test_player_input_maps_to_local_forward_and_right
+	)
+	await _run_test(
+		"player_counter_strafe_and_air_control_are_bounded",
+		_test_player_counter_strafe_and_air_control_are_bounded
+	)
+	await _run_test(
+		"tactical_movement_solver_has_sharp_stops_and_bounded_air_control",
+		_test_tactical_movement_solver_has_sharp_stops_and_bounded_air_control
+	)
+	await _run_test(
+		"classic_shift_walk_and_settings_apply", _test_classic_shift_walk_and_settings_apply
+	)
+	await _run_test(
+		"player_traverses_authored_height_step", _test_player_traverses_authored_height_step
+	)
+	await _run_test(
+		"player_uses_crouch_hull_without_double_jump",
+		_test_player_uses_crouch_hull_without_double_jump
+	)
+	await _run_test(
+		"player_clears_classic_cs_height_tiers", _test_player_clears_classic_cs_height_tiers
+	)
+	await _run_test(
+		"rotating_radar_tracks_bounds_targets_and_heading",
+		_test_rotating_radar_tracks_bounds_targets_and_heading
+	)
+	await _run_test(
+		"radar_information_and_view_pose", func() -> void: await RadarInformationTests.run(self)
+	)
+	await _run_test(
+		"movement_and_radar_scale_are_map_invariant",
+		_test_movement_and_radar_scale_are_map_invariant
+	)
+	await _run_test(
+		"ladder_water_and_tactical_actors_are_runtime_systems",
+		_test_ladder_water_and_tactical_actors_are_runtime_systems
+	)
+	await _run_test(
+		"combat_audio_tracks_shot_hit_reload_and_switch",
+		_test_combat_audio_tracks_shot_hit_reload_and_switch
+	)
+	await _run_test(
+		"scoreboard_kill_feed_and_training_summary_work",
+		_test_scoreboard_kill_feed_and_training_summary_work
+	)
+	await _run_test(
+		"player_mouse_look_bypasses_gui_consumption",
+		_test_player_mouse_look_bypasses_gui_consumption
+	)
 	await _run_test("pause_menu_blocks_combat_commands", _test_pause_menu_blocks_combat_commands)
 	await _run_test("freeze_allows_weapon_management", _test_freeze_allows_weapon_management)
-	await _run_test("economy_escalates_losses_and_caps_money", _test_economy_escalates_losses_and_caps_money)
-	await _run_test("knife_and_grenade_equipment_are_actionable", _test_knife_and_grenade_equipment_are_actionable)
+	await _run_test(
+		"economy_escalates_losses_and_caps_money", _test_economy_escalates_losses_and_caps_money
+	)
+	await _run_test(
+		"knife_and_grenade_equipment_are_actionable",
+		_test_knife_and_grenade_equipment_are_actionable
+	)
 	await _run_test("heavy_stab_has_contact_damage_range_and_shared_cooldown", _test_heavy_stab)
-	await _run_test("pending_equipment_use_cancels_on_switch_and_pause", _test_pending_use_cancellation)
+	await _run_test(
+		"pending_equipment_use_cancels_on_switch_and_pause", _test_pending_use_cancellation
+	)
 	await _run_test("character_profiles_settings_and_native_hands", _test_character_profiles)
-	await _run_test("official_equipment_team_switch_reload_pause_and_c4_fallback", _test_official_equipment_contract)
+	await _run_test(
+		"official_equipment_team_switch_reload_pause_and_c4_fallback",
+		_test_official_equipment_contract
+	)
 	await _run_test("hands_animate_joints_and_cancel_objective_reload", _test_hands_actions)
 	await _run_test("sleeves_follow_wrist_without_duplicate_weapon_arms", _test_sleeve_contacts)
-	await _run_test("reload_animation_pauses_and_equipment_switch_cancels_ammo_load", _test_reload_pause_and_cancel)
-	await _run_test("equipment_models_follow_inventory_and_same_gun_reselection", _test_equipment_models)
+	await _run_test(
+		"reload_animation_pauses_and_equipment_switch_cancels_ammo_load",
+		_test_reload_pause_and_cancel
+	)
+	await _run_test(
+		"equipment_models_follow_inventory_and_same_gun_reselection", _test_equipment_models
+	)
 	await _run_test("c4_slot_and_context_prompt_guards", _test_c4_prompts)
 	await _run_test("bot_c4_pickup_cannot_duplicate_player_carrier", _test_bot_c4_ownership)
 	await _run_test("c4_ai_hint_distinguishes_enemy_and_ally", _test_c4_ai_hint)
-	await _run_test("player_damage_tags_and_death_ends_round", _test_player_damage_tags_and_death_ends_round)
+	await _run_test(
+		"player_damage_tags_and_death_ends_round", _test_player_damage_tags_and_death_ends_round
+	)
 	await _run_test("buy_plant_defuse_round_loop", _test_buy_plant_defuse_round_loop)
 	await _run_test("c4_blast_damage_precedes_terminal_record_and_result", _test_c4_explosion)
 	await _run_test("spectator_roster_number_keys_clutch_and_terminal_ui", _test_spectator_panel)
+
 
 func _run_test(test_name: String, callable: Callable) -> void:
 	var failed_before: int = _failures.size()
@@ -430,12 +531,19 @@ func _test_buy_page_ready_and_pause_contract() -> void:
 	(main.get_node("StartMenu").get("team_select") as OptionButton).select(1)
 	await main.call("_on_start_pressed")
 	_assert_equal(GameState.player_team, "CT", "actual start must honor the visible menu selection")
-	_assert_true(RoundManager.time_remaining > 55.0, "AI match should allow up to sixty seconds to buy")
+	_assert_true(
+		RoundManager.time_remaining > 55.0, "AI match should allow up to sixty seconds to buy"
+	)
 	_assert_true(bool(main.get("_buy_menu_open")), "opening must show the purchase page")
 	var page := main.get_node("CombatHud").get("buy_menu") as PanelContainer
 	var buttons := page.get("_buttons") as Dictionary
-	_assert_true((buttons["rifle"] as Button).disabled, "800-dollar opening must not offer an unaffordable rifle")
-	_assert_true((buttons["pistol"] as Button).disabled, "already-owned pistol must not charge again")
+	_assert_true(
+		(buttons["rifle"] as Button).disabled,
+		"800-dollar opening must not offer an unaffordable rifle"
+	)
+	_assert_true(
+		(buttons["pistol"] as Button).disabled, "already-owned pistol must not charge again"
+	)
 	_assert_true(not (buttons["armor"] as Button).disabled, "affordable armor should be actionable")
 	(buttons["armor"] as Button).pressed.emit()
 	_assert_equal(GameState.player_money, 150, "actual page purchase should charge exactly once")
@@ -443,17 +551,93 @@ func _test_buy_page_ready_and_pause_contract() -> void:
 	main.call("_open_menu", false)
 	_assert_true(not bool(main.get("_buy_menu_open")), "pause must close the purchase page")
 	page.get("_ready_button").pressed.emit()
-	_assert_equal(RoundManager.state, RoundManager.RoundState.PAUSED_MENU, "ready cannot bypass pause")
+	_assert_equal(
+		RoundManager.state, RoundManager.RoundState.PAUSED_MENU, "ready cannot bypass pause"
+	)
 	main.call("_resume_game")
 	main.call("_set_buy_menu", true)
 	page.get("_ready_button").pressed.emit()
-	_assert_equal(RoundManager.state, RoundManager.RoundState.LIVE, "actual ready button should skip remaining wait")
+	_assert_equal(
+		RoundManager.state,
+		RoundManager.RoundState.LIVE,
+		"actual ready button should skip remaining wait"
+	)
 	_assert_true(not bool(main.get("_buy_menu_open")), "ready must close purchase page")
 	_assert_true(not RoundManager.player_ready(), "repeated ready must not restart a live round")
+	var latch = load("res://scripts/player/CombatInputLatch.gd").new()
+	_assert_true(
+		not latch.step(true, false, false, false), "fast UI release blocks transition frame"
+	)
+	_assert_true(latch.step(true, true, false, false), "fresh next-frame press is accepted")
+	latch.disarm()
+	_assert_true(not latch.step(true, true, false, false), "held automatic fire cannot leak")
+	_assert_true(not latch.step(true, false, true, false), "held secondary cannot leak")
+	_assert_true(not latch.step(true, false, false, true), "held interact cannot leak")
+	_assert_true(not latch.step(true, false, false, false), "release arms only following frame")
+	_assert_true(latch.step(true, true, false, false), "new press works after release")
+	latch = null
+	var player: CharacterBody3D = main.get_node("Player")
+	var c4: Node3D = main.get_node("C4Device")
+	var ready_weapons: Node = main.get_node("WeaponSystem")
+	var ready_state: Dictionary = ready_weapons.call("_current_state")
+	ready_state["equip_timer"] = 0.0
+	ready_state["is_equipping"] = false
+	var ready_ammo := int(ready_state["ammo_in_mag"])
+	Input.action_press("fire_primary")
+	await get_tree().process_frame
+	main.call("_process", 0.0)
+	_assert_equal(
+		int((ready_weapons.call("_current_state") as Dictionary)["ammo_in_mag"]),
+		ready_ammo,
+		"ready click/held fire cannot discharge weapon"
+	)
+	Input.action_release("fire_primary")
+	main.call("_process", 0.0)
+	await get_tree().process_frame
+	var carrier := instance_from_id(int(c4.get("carrier_id"))) as Node
+	_assert_true(is_instance_valid(carrier), "actual match has an AI carrier")
+	if is_instance_valid(carrier):
+		_assert_true(RoundManager.begin_plant("A", "T", "ai", carrier, c4), "AI owns plant")
+		var weapons: Node = main.get_node("WeaponSystem")
+		var weapon_state: Dictionary = weapons.call("_current_state")
+		weapon_state["equip_timer"] = 0.0
+		weapon_state["is_equipping"] = false
+		weapon_state["fire_cooldown"] = 0.0
+		var ammo_before := int(weapon_state["ammo_in_mag"])
+		Input.action_press("fire_primary")
+		await get_tree().process_frame
+		main.call("_process", 0.0)
+		Input.action_release("fire_primary")
+		_assert_true(player.get("movement_enabled"), "AI interaction must allow player movement")
+		_assert_true(
+			main.call("_can_accept_weapon_management"),
+			"AI interaction must allow weapon management"
+		)
+		_assert_equal(
+			int((weapons.call("_current_state") as Dictionary)["ammo_in_mag"]),
+			ammo_before - 1,
+			"player can fire while AI interacts"
+		)
+		RoundManager.cancel_objective_interaction()
+		RoundManager.plant_bomb("A")
+		c4.call("plant_at", player.global_position, "A")
+		RoundManager.begin_defuse("CT", false, "player", player, c4)
+		Input.action_press("interact")
+		main.call("_process", 0.0)
+		_assert_true(not player.get("movement_enabled"), "own defuse still locks movement")
+		_assert_true(
+			not main.call("_can_accept_weapon_management"), "own defuse still locks weapons"
+		)
+		Input.action_release("interact")
+		RoundManager.cancel_objective_interaction()
 	GameState.start_match("T", 5)
 	main.get_node("StartMenu").call("set_match_summary", GameState.get_match_snapshot(), "fixture")
-	_assert_true((main.get_node("StartMenu").get("description_label") as RichTextLabel).text.contains("5V5"), "classic result page must show five-player teams")
+	_assert_true(
+		(main.get_node("StartMenu").get("description_label") as RichTextLabel).text.contains("5V5"),
+		"classic result page must show five-player teams"
+	)
 	await _cleanup_main(main)
+
 
 func _test_start_game_transitions_to_live_state() -> void:
 	var main: Node3D = _instantiate_main()
@@ -1522,44 +1706,77 @@ func _test_c4_prompts() -> void:
 	key.pressed = true
 	main.call("_unhandled_input", key)
 	var view: Node = main.get_node("Player/CameraPivot/Camera3D/WeaponViewModel")
-	_assert_equal((view.call("get_debug_snapshot") as Dictionary).get("equipped_kind"), "c4", "T carrier can inspect C4 via slot five")
+	_assert_equal(
+		(view.call("get_debug_snapshot") as Dictionary).get("equipped_kind"),
+		"c4",
+		"T carrier can inspect C4 via slot five"
+	)
 	RoundManager.set_live()
+	# Observe a released combat frame after the buy UI closes.
+	await get_tree().process_frame
+	main.call("_process", 0.0)
 	var hint := String(main.call("_get_objective_hint"))
-	_assert_true(hint.contains("前往 A / B"), "outside site prompt gives destination rather than false plant instruction")
+	_assert_true(
+		hint.contains("前往 A / B"),
+		"outside site prompt gives destination rather than false plant instruction"
+	)
 	var player: CharacterBody3D = main.get_node("Player")
 	var radar: Dictionary = main.call("_build_radar_snapshot")
 	var target: Dictionary = radar["targets"][0]
 	player.global_position.x = float(target["x"])
 	player.global_position.z = float(target["z"])
-	_assert_true(String(main.call("_get_objective_hint")).contains("[按住 E]"), "inside site prompts actual hold interaction")
+	_assert_true(
+		String(main.call("_get_objective_hint")).contains("[按住 E]"),
+		"inside site prompts actual hold interaction"
+	)
 	Input.action_press("interact")
 	main.call("_try_begin_objective_interaction")
 	main.call("_update_objective_interaction", 1.0)
-	_assert_true(String(main.call("_get_objective_hint")).contains("松开即取消"), "active plant explains cancellation")
+	_assert_true(
+		String(main.call("_get_objective_hint")).contains("松开即取消"),
+		"active plant explains cancellation"
+	)
 	Input.action_release("interact")
 	main.call("_update_objective_interaction", 0.01)
 	_assert_true(not RoundManager.is_objective_interacting(), "release cancels actual install")
 	Input.action_press("fire_primary")
 	main.call("_update_objective_interaction", 0.5)
-	_assert_true(RoundManager.is_objective_interacting(), "holding primary while C4 selected starts actual install")
+	_assert_true(
+		RoundManager.is_objective_interacting(),
+		"holding primary while C4 selected starts actual install"
+	)
 	Input.action_release("fire_primary")
 	main.call("_update_objective_interaction", 0.01)
-	_assert_true(not RoundManager.is_objective_interacting(), "releasing C4 primary cancels actual install")
+	_assert_true(
+		not RoundManager.is_objective_interacting(), "releasing C4 primary cancels actual install"
+	)
 	var c4: Node = main.get_node("C4Device")
 	RoundManager.bomb_carried = false
 	c4.call("drop_at", player.global_position)
-	_assert_true(String(main.call("_get_objective_hint")).contains("拾取"), "near dropped C4 prompts pickup")
+	_assert_true(
+		String(main.call("_get_objective_hint")).contains("拾取"), "near dropped C4 prompts pickup"
+	)
 	GameState.player_team = "CT"
 	main.call("_unhandled_input", key)
 	main.call("_process", 0.0)
-	_assert_true((view.call("get_debug_snapshot") as Dictionary).get("equipped_kind") != "c4", "CT cannot equip C4 and lost carrier model clears")
+	_assert_true(
+		(view.call("get_debug_snapshot") as Dictionary).get("equipped_kind") != "c4",
+		"CT cannot equip C4 and lost carrier model clears"
+	)
 	RoundManager.state = RoundManager.RoundState.BOMB_PLANTED
 	c4.call("plant_at", player.global_position, "A")
 	GameState.player_defuse_kit = false
-	_assert_true(String(main.call("_get_objective_hint")).contains("10 秒"), "no kit prompt matches actual duration")
+	_assert_true(
+		String(main.call("_get_objective_hint")).contains("10 秒"),
+		"no kit prompt matches actual duration"
+	)
 	GameState.player_defuse_kit = true
-	_assert_true(String(main.call("_get_objective_hint")).contains("5 秒"), "kit prompt matches actual duration")
+	_assert_true(
+		String(main.call("_get_objective_hint")).contains("5 秒"),
+		"kit prompt matches actual duration"
+	)
 	await _cleanup_main(main)
+
 
 func _test_bot_c4_ownership() -> void:
 	var main: Node3D = _instantiate_main()
