@@ -33,10 +33,13 @@ var interaction_site: String = ""
 var interaction_elapsed: float = 0.0
 var interaction_duration: float = 0.0
 var interaction_owner: String = ""
+var _interaction_actor: WeakRef
+var _interaction_device: WeakRef
 var round_serial: int = 0
 var _restart_emitted: bool = false
 
 func _process(delta: float) -> void:
+	_validate_interaction_actor()
 	match state:
 		RoundState.FREEZE:
 			time_remaining = maxf(0.0, time_remaining - delta)
@@ -57,6 +60,7 @@ func _process(delta: float) -> void:
 			if time_remaining == 0.0 and not _restart_emitted:
 				_restart_emitted = true
 				restart_requested.emit()
+
 
 func set_warmup() -> void:
 	_set_state(RoundState.WARMUP)
@@ -111,34 +115,66 @@ func defuse_bomb() -> bool:
 	end_round("CT", "BOMB DEFUSED")
 	return true
 
-func begin_plant(site_label: String, player_team: String, owner: String = "player") -> bool:
+func begin_plant(
+	site_label: String,
+	player_team: String,
+	owner: String = "player",
+	actor: Node = null,
+	device: Node = null
+) -> bool:
+	_validate_interaction_actor()
+	if actor != null and not _actor_can_interact(actor):
+		return false
 	if state != RoundState.LIVE or not bomb_carried or player_team != "T" or site_label.is_empty():
 		return false
-	if interaction_type == "plant" and interaction_site == site_label:
-		return true
+	if is_objective_interacting():
+		return (
+			interaction_type == "plant"
+			and interaction_site == site_label
+			and _same_interactor(owner, actor)
+		)
 	interaction_type = "plant"
 	interaction_site = site_label
 	interaction_elapsed = 0.0
 	interaction_duration = 3.2
 	interaction_owner = owner
+	_interaction_actor = weakref(actor) if actor != null else null
+	_interaction_device = weakref(device) if device != null else null
 	_emit_objective_interaction()
 	return true
 
-func begin_defuse(player_team: String, has_defuse_kit: bool, owner: String = "player") -> bool:
+
+func begin_defuse(
+	player_team: String,
+	has_defuse_kit: bool,
+	owner: String = "player",
+	actor: Node = null,
+	device: Node = null
+) -> bool:
+	_validate_interaction_actor()
+	if actor != null and not _actor_can_interact(actor):
+		return false
 	if state != RoundState.BOMB_PLANTED or player_team != "CT":
 		return false
-	if interaction_type == "defuse":
-		return true
+	if is_objective_interacting():
+		return interaction_type == "defuse" and _same_interactor(owner, actor)
 	interaction_type = "defuse"
 	interaction_site = bomb_site
 	interaction_elapsed = 0.0
 	interaction_duration = 5.0 if has_defuse_kit else 10.0
 	interaction_owner = owner
+	_interaction_actor = weakref(actor) if actor != null else null
+	_interaction_device = weakref(device) if device != null else null
 	_emit_objective_interaction()
 	return true
 
-func tick_objective_interaction(delta: float, still_valid: bool) -> bool:
-	if interaction_type.is_empty():
+
+func tick_objective_interaction(delta: float, still_valid: bool, actor: Node = null) -> bool:
+	_validate_interaction_actor()
+	if (
+		interaction_type.is_empty()
+		or (_interaction_actor != null and _interaction_actor.get_ref() != actor)
+	):
 		return false
 	if not still_valid:
 		cancel_objective_interaction()
@@ -155,7 +191,10 @@ func tick_objective_interaction(delta: float, still_valid: bool) -> bool:
 		return defuse_bomb()
 	return false
 
-func cancel_objective_interaction() -> void:
+
+func cancel_objective_interaction(actor: Node = null) -> void:
+	if actor != null and (_interaction_actor == null or _interaction_actor.get_ref() != actor):
+		return
 	if interaction_type.is_empty() and interaction_elapsed == 0.0:
 		return
 	interaction_type = ""
@@ -163,10 +202,62 @@ func cancel_objective_interaction() -> void:
 	interaction_elapsed = 0.0
 	interaction_duration = 0.0
 	interaction_owner = ""
+	_interaction_actor = null
+	_interaction_device = null
 	_emit_objective_interaction()
 
+
 func is_objective_interacting() -> bool:
+	_validate_interaction_actor()
 	return not interaction_type.is_empty()
+
+
+func _same_interactor(owner: String, actor: Node) -> bool:
+	return (
+		interaction_owner == owner
+		and (
+			(_interaction_actor == null and actor == null)
+			or (_interaction_actor != null and _interaction_actor.get_ref() == actor)
+		)
+	)
+
+
+func is_interaction_owned_by(actor: Node) -> bool:
+	_validate_interaction_actor()
+	return (
+		not interaction_type.is_empty()
+		and _interaction_actor != null
+		and _interaction_actor.get_ref() == actor
+	)
+
+
+func _validate_interaction_actor() -> void:
+	if _interaction_actor == null:
+		return
+	var actor := _interaction_actor.get_ref() as Node
+	if not _actor_can_interact(actor):
+		cancel_objective_interaction()
+		return
+	if _interaction_device == null:
+		return
+	var device := _interaction_device.get_ref() as Node
+	if not is_instance_valid(device):
+		cancel_objective_interaction()
+		return
+	if interaction_type == "plant" and not bool(device.call("is_carried_by", actor)):
+		cancel_objective_interaction()
+	elif interaction_type == "defuse" and String(device.get("device_state")) != "planted":
+		cancel_objective_interaction()
+
+
+func _actor_can_interact(actor: Node) -> bool:
+	return (
+		is_instance_valid(actor)
+		and actor.is_inside_tree()
+		and not actor.is_queued_for_deletion()
+		and not bool(actor.get("is_dead"))
+	)
+
 
 func end_round(winner: String, reason: String) -> void:
 	if state not in [RoundState.LIVE, RoundState.BOMB_PLANTED]:
@@ -174,13 +265,17 @@ func end_round(winner: String, reason: String) -> void:
 	round_winner = winner
 	round_reason = reason
 	time_remaining = round_end_duration
-	var detonated := state == RoundState.BOMB_PLANTED and winner == "T" and reason == "BOMB EXPLODED"
+	var detonated := (
+		state == RoundState.BOMB_PLANTED and winner == "T" and reason == "BOMB EXPLODED"
+	)
 	# Lock the winner before blast deaths can trigger elimination callbacks.
 	state = RoundState.ROUND_END
+	cancel_objective_interaction()
 	if detonated:
 		bomb_exploded.emit(bomb_site)
 	phase_changed.emit(get_state_name())
 	round_ended.emit(winner, reason)
+
 
 func can_player_move() -> bool:
 	return state in [RoundState.LIVE, RoundState.BOMB_PLANTED]

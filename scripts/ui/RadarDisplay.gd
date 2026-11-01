@@ -17,6 +17,7 @@ var _atlas := preload("res://scripts/ui/RadarAtlas.gd").new()
 var _atlas_slice: Dictionary = {}
 var _atlas_level_id := "__unset__"
 var _atlas_floor_height := 0.0
+var _view_actor_id := 0
 var _atlas_reload_identity := ""
 var _preparing_identity := ""
 var _preparing_level := ""
@@ -59,13 +60,19 @@ func set_snapshot(snapshot: Dictionary) -> void:
 		_atlas_floor_height,
 		float(snapshot.get("feet_height", float(snapshot.get("player_height", 0.0)) - 0.9)),
 		bool(snapshot.get("grounded", true)),
-		next_level != _atlas_level_id or next_identity != _atlas_reload_identity
+		(
+			next_level != _atlas_level_id
+			or next_identity != _atlas_reload_identity
+			or int(snapshot.get("view_actor_id", 0)) != _view_actor_id
+		)
 	)
+	_view_actor_id = int(snapshot.get("view_actor_id", 0))
 	_atlas_level_id = next_level
 	_atlas_reload_identity = next_identity
 	_atlas.load_level(next_level, next_identity)
 	_atlas_slice = _atlas.select_layer(_atlas_floor_height)
 	queue_redraw()
+
 
 func get_debug_snapshot() -> Dictionary:
 	var bounds: Vector2 = _snapshot.get("bounds", Vector2.ZERO)
@@ -76,6 +83,12 @@ func get_debug_snapshot() -> Dictionary:
 		"range_meters": radar_range,
 		"player_position": _snapshot.get("player_position", Vector2.ZERO),
 		"player_yaw": float(_snapshot.get("player_yaw", 0.0)),
+		"view_yaw": float(_snapshot.get("view_yaw", _snapshot.get("player_yaw", 0.0))),
+		"heading_angle":
+		heading_angle(
+			float(_snapshot.get("view_yaw", _snapshot.get("player_yaw", 0.0))),
+			float(_snapshot.get("player_yaw", 0.0))
+		),
 		"target_count": (_snapshot.get("targets", []) as Array).size(),
 		"feature_count": (_snapshot.get("features", []) as Array).size(),
 		"player_count": (_snapshot.get("players", []) as Array).size(),
@@ -88,6 +101,7 @@ func get_debug_snapshot() -> Dictionary:
 		"height_fraction": radar_range / bounds.y if bounds.y > 0.0 else 0.0,
 		"area_fraction": PI * radar_range * radar_range / full_area if full_area > 0.0 else 0.0,
 	}
+
 
 func _draw() -> void:
 	var center := size * 0.5
@@ -111,14 +125,20 @@ func _draw() -> void:
 		_draw_player(player_variant as Dictionary, player_world, center, radius, radar_range, yaw)
 	_draw_c4(_snapshot.get("c4", {}) as Dictionary, player_world, center, radius, radar_range, yaw)
 	_draw_north(center, radius, yaw)
-	var arrow := PackedVector2Array([
-		center + Vector2(0.0, -9.0),
-		center + Vector2(-5.5, 6.5),
-		center + Vector2(0.0, 4.0),
-		center + Vector2(5.5, 6.5),
-	])
+	var arrow := PackedVector2Array(
+		[
+			center + Vector2(0.0, -9.0),
+			center + Vector2(-5.5, 6.5),
+			center + Vector2(0.0, 4.0),
+			center + Vector2(5.5, 6.5),
+		]
+	)
+	var heading := heading_angle(float(_snapshot.get("view_yaw", yaw)), yaw)
+	for index in arrow.size():
+		arrow[index] = center + (arrow[index] - center).rotated(heading)
 	draw_colored_polygon(arrow, PLAYER_COLOR)
 	draw_circle(center, radius, BORDER_COLOR, false, 2.0, true)
+
 
 func _draw_atlas(
 	player_world: Vector2, center: Vector2, radius: float, radar_range: float, yaw: float
@@ -186,13 +206,24 @@ func _draw_target(target: Dictionary, player_world: Vector2, center: Vector2, ra
 	draw_circle(local_point, 7.0, color, false, 1.3, true)
 	draw_string(ThemeDB.fallback_font, local_point + Vector2(-3.5, 4.0), label, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 11, color)
 
+static func heading_angle(actor_yaw: float, map_yaw: float) -> float:
+	return map_yaw - actor_yaw
+
+
 func _draw_north(center: Vector2, radius: float, yaw: float) -> void:
 	var north_point := center + Vector2(0.0, -radius * 0.82).rotated(yaw)
 	var color := Color(0.92, 0.88, 0.68, 0.9)
 	draw_circle(north_point, 3.0, color)
 	draw_string(ThemeDB.fallback_font, north_point + Vector2(5.0, 4.0), "北", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 10, color)
 
-func _draw_player(record: Dictionary, player_world: Vector2, center: Vector2, radius: float, radar_range: float, yaw: float) -> void:
+func _draw_player(
+	record: Dictionary,
+	player_world: Vector2,
+	center: Vector2,
+	radius: float,
+	radar_range: float,
+	yaw: float
+) -> void:
 	if bool(record.get("local", false)):
 		return
 	var friendly := String(record.get("team", "")) == String(_snapshot.get("local_team", "T"))
@@ -208,12 +239,27 @@ func _draw_player(record: Dictionary, player_world: Vector2, center: Vector2, ra
 		draw_line(point + Vector2(-4, -4), point + Vector2(4, 4), color, 2.0)
 		draw_line(point + Vector2(4, -4), point + Vector2(-4, 4), color, 2.0)
 		return
-	var direction := float(record.get("yaw", 0.0)) + yaw
-	var arrow := PackedVector2Array([point + Vector2(0, -6).rotated(direction), point + Vector2(-4, 4).rotated(direction), point + Vector2(4, 4).rotated(direction)])
+	var direction := heading_angle(float(record.get("yaw", 0.0)), yaw)
+	var arrow := PackedVector2Array(
+		[
+			point + Vector2(0, -6).rotated(direction),
+			point + Vector2(-4, 4).rotated(direction),
+			point + Vector2(4, 4).rotated(direction)
+		]
+	)
 	draw_colored_polygon(arrow, color)
 	var height_delta := float(record.get("y", 0.0)) - float(_snapshot.get("player_height", 0.0))
 	if absf(height_delta) > 1.5:
-		draw_string(ThemeDB.fallback_font, point + Vector2(5, 4), "↑" if height_delta > 0.0 else "↓", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, color)
+		draw_string(
+			ThemeDB.fallback_font,
+			point + Vector2(5, 4),
+			"↑" if height_delta > 0.0 else "↓",
+			HORIZONTAL_ALIGNMENT_LEFT,
+			-1,
+			11,
+			color
+		)
+
 
 func _draw_c4(record: Dictionary, player_world: Vector2, center: Vector2, radius: float, radar_range: float, yaw: float) -> void:
 	var state := String(record.get("state", ""))

@@ -270,6 +270,7 @@ func tick(delta: float) -> void:
 	# Scope is an active AI aiming state, never inferred from merely owning AWP.
 	actor.call("set_ai_scoped", false)
 	if not enabled or bool(actor.get("is_dead")):
+		_cancel_owned_objective()
 		return
 	_shot_cooldown = maxf(0.0, _shot_cooldown - delta)
 	_burst_pause = maxf(0.0, _burst_pause - delta)
@@ -291,9 +292,11 @@ func tick(delta: float) -> void:
 		return
 	_try_pickup_weapon_nearby()
 	if state == State.RELOAD:
+		_cancel_owned_objective()
 		_tick_reload(delta)
 		return
 	if state == State.RETREAT:
+		_cancel_owned_objective()
 		_tick_retreat(delta)
 		return
 	if _bomb_interacting:
@@ -311,7 +314,11 @@ func tick(delta: float) -> void:
 		_last_known_position = _target.global_position
 		_visible_seconds += delta
 		_hold_angle_timer = hold_angle_seconds
-		if _target != null and _visible_seconds >= reaction_time and _spot_emitted_target != _target.get_instance_id():
+		if (
+			_target != null
+			and _visible_seconds >= reaction_time
+			and _spot_emitted_target != _target.get_instance_id()
+		):
 			_spot_emitted_target = _target.get_instance_id()
 			var enemy_team := GameState.player_team
 			if _target.is_in_group("combat_actors"):
@@ -365,6 +372,7 @@ func tick(delta: float) -> void:
 		_tick_patrol(delta)
 	else:
 		_stop(delta)
+
 
 func notify_sound(world_position: Vector3, audible_radius: float, source_team: String) -> bool:
 	if not enabled or source_team == String(actor.get("team")):
@@ -1023,48 +1031,75 @@ func _try_pick_up_c4() -> bool:
 func _begin_plant() -> void:
 	if _c4_device == null or not is_instance_valid(_c4_device):
 		return
-	if not RoundManager.begin_plant(plant_site_label, "T", "ai"):
+	if not RoundManager.begin_plant(plant_site_label, "T", "ai", actor, _c4_device):
 		return
 	_bomb_interacting = true
 	_bomb_interaction_type = "plant"
 
+
 func _begin_defuse() -> void:
 	if _c4_device == null or not is_instance_valid(_c4_device):
 		return
-	if not RoundManager.begin_defuse("CT", has_defuse_kit, "ai"):
+	if not RoundManager.begin_defuse("CT", has_defuse_kit, "ai", actor, _c4_device):
 		return
 	_bomb_interacting = true
 	_bomb_interaction_type = "defuse"
 
+
 func _tick_bomb_interaction(delta: float) -> void:
 	_stop(delta)
-	if not RoundManager.is_objective_interacting():
+	if not RoundManager.is_interaction_owned_by(actor):
 		_bomb_interacting = false
 		_bomb_interaction_type = ""
 		return
 	var still_valid := false
 	if _bomb_interaction_type == "plant":
-		still_valid = actor.global_position.distance_to(objective_target) <= plant_radius_meters and RoundManager.bomb_carried
+		still_valid = (
+			actor.global_position.distance_to(objective_target) <= plant_radius_meters
+			and RoundManager.bomb_carried
+		)
 	elif _bomb_interaction_type == "defuse":
 		still_valid = (
 			_c4_device != null
 			and is_instance_valid(_c4_device)
-			and actor.global_position.distance_to(_c4_device.global_position) <= defuse_radius_meters
+			and (
+				actor.global_position.distance_to(_c4_device.global_position)
+				<= defuse_radius_meters
+			)
 		)
-	var completed := RoundManager.tick_objective_interaction(delta, still_valid)
+	var completed := RoundManager.tick_objective_interaction(delta, still_valid, actor)
 	if completed:
-		if _bomb_interaction_type == "plant" and _c4_device != null and is_instance_valid(_c4_device):
-			_c4_device.call("plant_at", actor.global_position - Vector3(0.0, 0.82, 0.0), plant_site_label)
+		if (
+			_bomb_interaction_type == "plant"
+			and _c4_device != null
+			and is_instance_valid(_c4_device)
+		):
+			_c4_device.call(
+				"plant_at", actor.global_position - Vector3(0.0, 0.82, 0.0), plant_site_label
+			)
 			bomb_carrier = false
 			RoundManager.bomb_carried = false
-		elif _bomb_interaction_type == "defuse" and _c4_device != null and is_instance_valid(_c4_device):
+		elif (
+			_bomb_interaction_type == "defuse"
+			and _c4_device != null
+			and is_instance_valid(_c4_device)
+		):
 			_c4_device.call("set_carried", "CT")
 		_bomb_interacting = false
 		_bomb_interaction_type = ""
 	elif not still_valid:
-		RoundManager.cancel_objective_interaction()
+		RoundManager.cancel_objective_interaction(actor)
 		_bomb_interacting = false
 		_bomb_interaction_type = ""
+
+
+func _cancel_owned_objective() -> void:
+	if not _bomb_interacting:
+		return
+	RoundManager.cancel_objective_interaction(actor)
+	_bomb_interacting = false
+	_bomb_interaction_type = ""
+
 
 func _refresh_c4_knowledge() -> void:
 	if _c4_device == null or not is_instance_valid(_c4_device):
