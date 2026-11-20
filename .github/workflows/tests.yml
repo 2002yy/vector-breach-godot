@@ -152,18 +152,16 @@ jobs:
       - name: Asset runtime validation
         run: python tools/validate_runtime_assets.py
 
-      - name: Import project resources
-        run: |
-          "./${GODOT_BIN}" --headless --path . --import
+      # The native runner imports the project before running its 15 suites.
+      # Run GdUnit afterwards so CI imports resources exactly once.
+      - name: Native test suites
+        run: bash ./tools/run_godot_tests.sh "./${GODOT_BIN}"
 
       - name: GdUnit4 CLI tests
         run: >
           "./${GODOT_BIN}" --headless --path .
           -s -d res://addons/gdUnit4/bin/GdUnitCmdTool.gd -a test
           --ignoreHeadlessMode
-
-      - name: Native test suites
-        run: bash ./tools/run_godot_tests.sh "./${GODOT_BIN}"
 
       - name: Upload test reports
         if: always()
